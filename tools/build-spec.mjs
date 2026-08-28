@@ -56,6 +56,42 @@ for (const [group, data] of Object.entries(spec.foundation)) {
   }
 }
 
+w('## Templates');
+w();
+w(spec.templates.note);
+w();
+w(`Default: \`${spec.templates.default}\``);
+w();
+
+for (const [id, t] of Object.entries(spec.templates)) {
+  if (id === 'default' || id === 'note') continue;
+  w(`### ${t.name}`);
+  w();
+  w(`\`${id}\`${t.opt_in ? ` · opt-in: \`${t.opt_in}\`` : ''}`);
+  w();
+  w(`**Use for.** ${t.use_for}`);
+  w();
+  for (const [k, v] of Object.entries(t)) {
+    if (['name', 'id', 'opt_in', 'use_for'].includes(k)) continue;
+    if (Array.isArray(v)) {
+      w(`#### ${label(k)}`); w();
+      for (const item of v) w(`- ${item}`);
+      w();
+    } else if (v && typeof v === 'object') {
+      w(`#### ${label(k)}`); w();
+      const flat = Object.fromEntries(Object.entries(v).filter(([, x]) => !x || typeof x !== 'object' || Array.isArray(x)));
+      if (Object.keys(flat).length) table(flat);
+      for (const [k2, v2] of Object.entries(v)) {
+        if (v2 && typeof v2 === 'object' && !Array.isArray(v2)) {
+          w(`**${label(k2)}**`); w(); table(v2);
+        }
+      }
+    } else {
+      w(`**${label(k)}.** ${v}`); w();
+    }
+  }
+}
+
 w('## Elements');
 w();
 

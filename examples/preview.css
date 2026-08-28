@@ -33,3 +33,26 @@ body { background: #e8e4dd; margin: 0; }
   body { background: none; }
   .pagedjs_page { box-shadow: none; margin: 0; }
 }
+
+/* A two-column document cannot go through Paged.js — Paged.js fragments a page
+   by moving content between page boxes, and it cannot split a CSS column
+   container, so it produces zero pages. The screen preview therefore simulates
+   one sheet at A4 width rather than paginating, and the browser's own print
+   does the real pagination. */
+.sheet {
+  width: 210mm;
+  margin: 2.5rem auto;
+  padding: 25mm 22mm 25mm 28mm;
+  background: #fffefb;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.08), 0 12px 32px -16px rgb(0 0 0 / 0.25);
+}
+
+@media print {
+  .sheet {
+    width: auto;
+    margin: 0;
+    padding: 0;         /* @page owns the margins once printing */
+    box-shadow: none;
+    background: none;
+  }
+}

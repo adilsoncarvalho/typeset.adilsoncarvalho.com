@@ -33,6 +33,11 @@
     <li><a href="#page">Page setup</a></li>
   </ol>
 
+  <p class="nav__group">Templates</p>
+  <ol>
+    <li><a href="#two-column">Two column, equal</a></li>
+  </ol>
+
   <p class="nav__group">Structure</p>
   <ol>
     <li><a href="#headings">Headings</a></li>
@@ -80,6 +85,8 @@
     <li><a href="examples/letter.html">Letter, in CSS →</a></li>
     <li><a href="implementations/typeset.typ">typeset.typ →</a></li>
     <li><a href="implementations/example-essay.typ">Essay, in Typst →</a></li>
+    <li><a href="examples/two-column.html">Two column, in CSS →</a></li>
+    <li><a href="implementations/example-two-column.typ">Two column, in Typst →</a></li>
   </ol>
 </nav>
 
@@ -113,6 +120,7 @@
     <a class="btn" href="implementations/typeset.typ">typeset.typ</a>
     <a class="btn" href="examples/essay.html">Essay</a>
     <a class="btn" href="examples/letter.html">Letter</a>
+    <a class="btn" href="examples/two-column.html">Two column</a>
   </div>
 </header>
 
@@ -205,11 +213,79 @@
   </div>
 </section>
 
+<section class="section" id="two-column">
+  <div class="section__head">
+    <p class="section__num">04 — Templates</p>
+    <h2>Two column, equal</h2>
+    <p>For papers, journal articles, newsletters and technical notes — documents scanned and referenced as much as read. A template sets the page and the scale; it does not get its own typography, so everything else on this page still applies unchanged.</p>
+    <p><b>The base size drops to 9.5pt here, and that is arithmetic rather than taste.</b> A4 less the 28mm inner and 22mm outer margin leaves 160mm; a 6mm gutter divides it into two 77mm columns. At 11pt a 77mm column carries 40 characters — below the 45-character floor this spec sets for prose. 9.5pt restores 47, and every other step comes down with it.</p>
+    <p>Two consequences worth stating: <b>justification stops being optional</b>, because at 47 characters a ragged edge serrates the column visibly; and <b>sidenotes are forbidden</b>, because there is no margin left to put them in.</p>
+  </div>
+  <div class="note"><b>Engine capability.</b> A column container cannot be fragmented by <a href="https://pagedjs.org">Paged.js</a> — it moves content between page boxes and cannot split a column flow, so it produces zero pages. The CSS two-column example therefore prints directly from the browser and simulates one sheet on screen. Typst paginates columns natively.</div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper paper--flush">
+        <div class="mini">
+          <div class="mini__sheet">
+            <article class="typeset typeset--two-column">
+              <div class="ts-titleblock">
+                <h1>The Measure of a Column</h1>
+                <p class="ts-subtitle">What changes when a page is divided in two, and what must not</p>
+                <p class="ts-byline">Adilson Carvalho</p>
+                <p class="ts-dateline">Sydney, 28 August 2026</p>
+              </div>
+              <div class="ts-abstract">
+                <span class="ts-label">Abstract</span>
+                Dividing an A4 page into two equal columns leaves 77mm of measure. At the single-column base of 11pt that carries 40 characters — below the floor at which a line of prose stays readable.
+              </div>
+              <h2>The arithmetic</h2>
+              <p>A4 is 210mm wide. Take off the 28mm inner margin and the 22mm outer margin and 160mm of text width remains. A 6mm gutter divides it into two columns of 77mm.</p>
+              <p>At 11pt, a 77mm column carries about 40 characters. This specification sets 45 as the floor for a line of prose, so 11pt is not available here. Dropping the base to 9.5pt restores 47 characters.</p>
+              <h3>What follows</h3>
+              <p>Leading tightens from 1.45 to 1.4. A shorter line needs less vertical separation for the return sweep to stay unambiguous, and the saving is real: at 13.3pt of advance a column holds 52 lines instead of 47.</p>
+              <p>Headings come down hardest. A 24pt level-2 heading inside a 77mm column spends three lines saying two words, so the scale runs 20/13/11/9.5.</p>
+              <div class="ts-callout">
+                <p class="ts-callout-title">What does not change</p>
+                <p>The palette, the rule weights, the numeral conventions and the pagination rules are all identical.</p>
+              </div>
+              <h2>Justification</h2>
+              <p>At 47 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.</p>
+              <blockquote class="ts-pullquote"><p>The one place the spec removes a choice.</p></blockquote>
+              <p>So the template turns justification on itself rather than offering it as an option.</p>
+              <figure class="ts-span">
+                <table>
+                  <caption><span class="ts-label">Table 1</span> — Characters per line for a 77mm column.</caption>
+                  <thead><tr><th>Base</th><th class="ts-num">11pt</th><th class="ts-num">10pt</th><th class="ts-num">9.5pt</th><th class="ts-num">9pt</th></tr></thead>
+                  <tbody>
+                    <tr><td>Characters</td><td class="ts-num">40</td><td class="ts-num">44</td><td class="ts-num">47</td><td class="ts-num">49</td></tr>
+                    <tr><td>Conformant</td><td class="ts-num">no</td><td class="ts-num">no</td><td class="ts-num">yes</td><td class="ts-num">yes</td></tr>
+                  </tbody>
+                </table>
+              </figure>
+              <h2>What the template forbids</h2>
+              <p>Sidenotes have nowhere to go: there is no margin left. They become footnotes or endnotes, and an implementation should degrade them visibly rather than positioning them off the page and losing them.</p>
+              <p>A three-line drop cap at 3.05em is 29pt — a quarter of the column width for one letter. The cap is neutralised and the opening words carry the signal in small caps instead.</p>
+              <h3>Spanning</h3>
+              <p>An element spans both columns fully or neither. Spanning costs a break in both columns, so it is opt-in per instance and belongs at the top or the bottom of a page.</p>
+              <div class="ts-colophon">Set in EB Garamond, 9.5 on 13.3 points, two columns of 77mm with a 6mm gutter.</div>
+            </article>
+          </div>
+        </div>
+      </div>
+      <p class="mini__caption">A4 at 42%. <a href="examples/two-column.html">Open the full document →</a></p>
+    </div>
+    <div>
+      <div class="panel" data-section="two-column"></div>
+    </div>
+  </div>
+</section>
+
 <!-- ================= STRUCTURE ================= -->
 
 <section class="section" id="headings">
   <div class="section__head">
-    <p class="section__num">04 — Structure</p>
+    <p class="section__num">05 — Structure</p>
     <h2>Headings</h2>
     <p>Sans against the serif body, so hierarchy reads by contrast rather than by size alone. Below level 4 the size stops changing and the register shifts instead: small caps, then italic. Six visually distinct levels inside a 24pt–11pt range.</p>
     <p>Two non-negotiable rules: the space above is four times the space below, because a heading belongs to what follows it; and a heading must never be the last thing on a page. Whatever the engine calls that — <code>break-after: avoid</code>, <code>sticky</code>, <code>\needspace</code> — it is mandatory, not a preference.</p>
@@ -241,7 +317,7 @@
 
 <section class="section" id="numbering">
   <div class="section__head">
-    <p class="section__num">05 — Structure</p>
+    <p class="section__num">06 — Structure</p>
     <h2>Section numbering</h2>
     <p>Opt-in. Numbers are generated by a counter, never typed, so they cannot drift out of sync when a section moves — and they disappear cleanly when the option comes off, which matters because an essay wants no numbers and a report wants them.</p>
   </div>
@@ -271,7 +347,7 @@
 
 <section class="section" id="paragraphs">
   <div class="section__head">
-    <p class="section__num">06 — Prose</p>
+    <p class="section__num">07 — Prose</p>
     <h2>Paragraphs</h2>
     <p>Two conventions, one switch. Spaced paragraphs are the default and suit reports and letters. Indented paragraphs with no gap are the book convention and read better in continuous prose; the first paragraph after any heading, block or break stays flush left in both.</p>
     <p>Orphan and widow control set to 2: never a single line left behind at a page foot, never one carried alone to the next head.</p>
@@ -299,7 +375,7 @@
 
 <section class="section" id="justification">
   <div class="section__head">
-    <p class="section__num">07 — Prose</p>
+    <p class="section__num">08 — Prose</p>
     <h2>Justification &amp; hyphenation</h2>
     <p>These two are a single decision. Justified text without hyphenation opens rivers of white space down the page; hyphenation without justification produces broken words for no gain. Take both or neither.</p>
     <p>Hyphenation is per-language and depends entirely on a correct <code>lang</code> attribute — an English dictionary applied to Portuguese produces confident nonsense. <code>hyphenate-limit-lines: 2</code> stops three hyphens stacking at the right edge.</p>
@@ -324,7 +400,7 @@
 
 <section class="section" id="dropcap">
   <div class="section__head">
-    <p class="section__num">08 — Prose</p>
+    <p class="section__num">09 — Prose</p>
     <h2>Drop cap</h2>
     <p>For the opening of an essay or a chapter, and nowhere else. The <code>font-size</code> and <code>line-height</code> are tuned together so the cap covers exactly three lines at the default leading — change the leading and this needs retuning.</p>
     <p>The opening words go in small caps: without them the jump from 33pt to 11pt is too abrupt, and the eye skips the first line.</p>
@@ -345,7 +421,7 @@
 
 <section class="section" id="inline">
   <div class="section__head">
-    <p class="section__num">09 — Prose</p>
+    <p class="section__num">10 — Prose</p>
     <h2>Inline emphasis</h2>
     <p>Nested emphasis flips to roman rather than compounding — correct typographic behaviour, and something most engines get wrong by default. A superscript or subscript must not alter the leading of the line it sits on; a footnote reference that opens up its line is a defect.</p>
     <p>Underline is deliberately reserved for <code>&lt;ins&gt;</code>. On paper it is a typewriter's substitute for italic, and there is no reason to imitate a typewriter.</p>
@@ -367,7 +443,7 @@
 
 <section class="section" id="links">
   <div class="section__head">
-    <p class="section__num">10 — Prose</p>
+    <p class="section__num">11 — Prose</p>
     <h2>Links in print</h2>
     <p>Paper has no hover and no click. An external link whose URL carries information must have that URL printed after the link text. Internal anchors and <code>mailto:</code> links read fine as they are and are excluded, and any link may opt out where its URL would be noise.</p>
   </div>
@@ -387,7 +463,7 @@
 
 <section class="section" id="figures-numeric">
   <div class="section__head">
-    <p class="section__num">11 — Prose</p>
+    <p class="section__num">12 — Prose</p>
     <h2>Numerals</h2>
     <p>Three kinds, three jobs. <b>Old-style</b> figures have ascenders and descenders, sit inside the x-height, and belong in running prose where uniform-height digits shout. <b>Lining</b> figures are all cap-height, for headings. <b>Tabular</b> figures share one advance width, which is the only reason a column of numbers can align.</p>
     <p>Getting this wrong is the most visible amateur tell in a set document — and in every engine it is one setting.</p>
@@ -419,7 +495,7 @@
 
 <section class="section" id="quotes">
   <div class="section__head">
-    <p class="section__num">12 — Blocks</p>
+    <p class="section__num">13 — Blocks</p>
     <h2>Quotations</h2>
     <p>Four distinct jobs, four treatments. A <b>block quote</b> is evidence: a rule, an indent, one point smaller. An <b>epigraph</b> opens a chapter and sits right-aligned in italic with no rule. A <b>pull quote</b> is display type lifted out of the body — so it must never be the only place a claim appears, or a skimming reader gets the claim without its qualification. <b>Verse</b> preserves the poet's line breaks and indents the runovers.</p>
     <p>Attribution always lives outside the quotation, prefixed with an em dash. Putting it inside makes the source part of what was said.</p>
@@ -458,7 +534,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 
 <section class="section" id="lists">
   <div class="section__head">
-    <p class="section__num">13 — Blocks</p>
+    <p class="section__num">14 — Blocks</p>
     <h2>Lists</h2>
     <p>The marker's colour, weight and column width must be under the spec's control, not the engine's defaults. A grey marker with black text reads as one thing; a black marker competes with the first word. Runover lines align to the text, never to the marker.</p>
     <p>Definition lists are underused. They are the right shape for a glossary, a set of terms, or the field-and-value blocks in a letter — anywhere a short label governs a paragraph.</p>
@@ -504,7 +580,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 
 <section class="section" id="tables">
   <div class="section__head">
-    <p class="section__num">14 — Blocks</p>
+    <p class="section__num">15 — Blocks</p>
     <h2>Tables</h2>
     <p>Rules, not grids. Vertical rules are almost never needed — the columns already read as columns, and every line you add is ink competing with data. Three horizontal rules: above the header, below it, and below the body.</p>
     <p>Numbers align right, on tabular figures, and units go in the header rather than being repeated in every cell. Sans-serif at 9.5pt: a table is scanned, not read, and the serif's job is reading.</p>
@@ -544,7 +620,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 
 <section class="section" id="codeblock">
   <div class="section__head">
-    <p class="section__num">15 — Blocks</p>
+    <p class="section__num">16 — Blocks</p>
     <h2>Code</h2>
     <p>Monospaced faces run optically large beside a serif, so inline code is pulled back to 0.86em and ligatures are switched off — an arrow rendered as a single glyph is charming in an editor and wrong in a document that quotes source.</p>
     <p>Paper cannot scroll, so blocks wrap rather than overflow. And long listings must be <em>allowed</em> to split across pages: forbidding the break on a fifty-line block pushes a blank page ahead of it.</p>
@@ -571,7 +647,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 
 <section class="section" id="figures">
   <div class="section__head">
-    <p class="section__num">16 — Blocks</p>
+    <p class="section__num">17 — Blocks</p>
     <h2>Figures &amp; captions</h2>
     <p>A caption is not a title. It goes below the figure, sans at 9.5pt, separated by a hair rule, and it carries a small-caps label so a cross-reference in the text has something to point at. A figure and its caption stay on one page — the one place a no-break rule is unambiguously right.</p>
   </div>
@@ -602,7 +678,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 
 <section class="section" id="callouts">
   <div class="section__head">
-    <p class="section__num">17 — Blocks</p>
+    <p class="section__num">18 — Blocks</p>
     <h2>Callouts</h2>
     <p>For a report or a technical note: an aside the reader may skip without losing the argument. If skipping it <em>would</em> lose the argument, it is not a callout, it is a paragraph. Two variants only — neutral and warning — because a document with five callout colours has none.</p>
   </div>
@@ -628,7 +704,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 
 <section class="section" id="breaks">
   <div class="section__head">
-    <p class="section__num">18 — Blocks</p>
+    <p class="section__num">19 — Blocks</p>
     <h2>Section breaks</h2>
     <p>A blank line cannot survive a page break. If the break happens to fall exactly on the gap, the reader never learns that the scene changed — and this is not a rare accident, it is a one-in-forty-lines certainty over a long document. Use a visible mark.</p>
     <p>Four registers: three asterisks for prose, an asterism for a heavier division, a fleuron for a decorative one, a plain rule for a report.</p>
@@ -658,7 +734,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 
 <section class="section" id="notes">
   <div class="section__head">
-    <p class="section__num">19 — Apparatus</p>
+    <p class="section__num">20 — Apparatus</p>
     <h2>Footnotes &amp; sidenotes</h2>
     <p>The honest position on footnotes in CSS: true bottom-of-page footnotes require an engine that implements the CSS footnote spec. <b>WeasyPrint 53+ and Prince do. No browser does.</b> So the note text lives in the document, inside <code>.ts-note</code>, and <code>@supports (float: footnote)</code> promotes it to a real footnote where the engine can — degrading to a numbered endnotes block where it cannot.</p>
     <p><b>Sidenotes are the alternative worth considering.</b> They need no page-break arithmetic, they work in every renderer, and the reader never loses their place. The price is a wide right margin, which a single-column A4 essay can usually afford.</p>
@@ -691,7 +767,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 
 <section class="section" id="toc">
   <div class="section__head">
-    <p class="section__num">20 — Apparatus</p>
+    <p class="section__num">21 — Apparatus</p>
     <h2>Table of contents</h2>
     <p>Dot leaders work anywhere. Page numbers require the engine to resolve a cross-reference <em>after</em> pagination — native in Typst and LaTeX, Paged Media in CSS. Where it cannot, the leaders render and the number is simply absent. That is the correct failure: a table of contents with wrong page numbers is worse than one with none.</p>
   </div>
@@ -720,7 +796,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 
 <section class="section" id="bibliography">
   <div class="section__head">
-    <p class="section__num">21 — Apparatus</p>
+    <p class="section__num">22 — Apparatus</p>
     <h2>Bibliography</h2>
     <p>Hanging indent, always. The surname is the thing being scanned, so it must be the leftmost thing on the entry — an indented first line puts the one useful token where the eye is not looking.</p>
   </div>
@@ -747,7 +823,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 
 <section class="section" id="frontmatter">
   <div class="section__head">
-    <p class="section__num">22 — Documents</p>
+    <p class="section__num">23 — Documents</p>
     <h2>Front matter</h2>
     <p>Title, subtitle, byline, dateline, abstract — and a colophon to close. The colophon is the note at the back of a book recording how it was made and in what type. It is the one piece of front-and-back matter that is purely for pleasure, and the cheapest thing in this stylesheet to include.</p>
   </div>
@@ -779,7 +855,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 
 <section class="section" id="letter">
   <div class="section__head">
-    <p class="section__num">23 — Documents</p>
+    <p class="section__num">24 — Documents</p>
     <h2>Letter</h2>
     <p>The full anatomy: letterhead, recipient block, date, salutation, body, closing, signature, enclosures, postscript. Address blocks are line-broken data rather than prose, so they get their own line height and are never justified.</p>
     <p>The signature block reserves vertical space above the rule for an actual signature — the point of printing a letter is that someone signs it.</p>
@@ -827,7 +903,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 
 <section class="section" id="utilities">
   <div class="section__head">
-    <p class="section__num">24 — Documents</p>
+    <p class="section__num">25 — Documents</p>
     <h2>Pagination utilities</h2>
     <p>The small set of overrides reached for while proofing a real document: force a break, forbid one, stop a hyphen, tie two words together. Every one is a manual decision about a specific page, not a style. The last of them tells the output device not to strip backgrounds and rules to save ink.</p>
   </div>

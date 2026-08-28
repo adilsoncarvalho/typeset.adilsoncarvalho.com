@@ -530,3 +530,31 @@ table.spec-table code {
 @media print {
   .tabs, .feeds { display: none; }
 }
+
+/* ---- Scaled page preview ------------------------------------------------- */
+
+/* A template is a page-level decision, so it has to be shown as a page. The
+   sheet is real A4 at real point sizes, scaled down — not a mock-up with
+   invented sizes, which would defeat the purpose. */
+.mini {
+  aspect-ratio: 210 / 297;
+  overflow: hidden;
+  background: #fffefb;
+}
+.mini__sheet {
+  width: 210mm;
+  padding: 25mm 22mm 25mm 28mm;
+  transform: scale(0.42);
+  transform-origin: top left;
+}
+.mini__caption {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--ui-fg-faint);
+}
+
+/* The scale factor is set for the widest breakpoint; below it the sheet is
+   allowed to overflow its box rather than mis-scale the type. */
+@media (max-width: 72rem) {
+  .mini__sheet { transform: scale(0.62); }
+}

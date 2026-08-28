@@ -22,9 +22,26 @@
 #let sans = "Source Sans 3"
 #let mono = "IBM Plex Mono"
 
-#let base-size = 11pt
-#let sm = 9.5pt
-#let xs = 8pt
+// A template supplies one of these. Every size in the document comes from it,
+// so nothing downstream has to know which template is in force.
+#let scale-single-column = (
+  xs: 8pt, sm: 9.5pt, base: 11pt,
+  h4: 12pt, h3: 14pt, h2: 18pt, h1: 24pt,
+  leading: 1.45, space: 11pt,
+)
+
+// Two columns: every step comes down. A 77mm column carries 40 characters at
+// 11pt — below the 45-character floor — so the base drops to 9.5pt for 47.
+#let scale-two-column = (
+  xs: 7pt, sm: 8.5pt, base: 9.5pt,
+  h4: 9.5pt, h3: 11pt, h2: 13pt, h1: 20pt,
+  leading: 1.4, space: 9.5pt,
+)
+
+// Defaults, for the standalone helpers below.
+#let base-size = scale-single-column.base
+#let sm = scale-single-column.sm
+#let xs = scale-single-column.xs
 
 // One unit of vertical space: 11pt, one line of base leading.
 #let sp = 11pt
@@ -45,14 +62,17 @@
 // ── Document ────────────────────────────────────────────────────────────────
 
 #let typeset(
+  scale: scale-single-column,
   justified: false,
   indented: false,
   numbered: false,
   running-head: true,
   folio: true,
-  measure: 33em,
   doc,
 ) = {
+  let sm = scale.sm
+  let xs = scale.xs
+  let sp = scale.space
 // @s page
   set page(
     paper: "a4",
@@ -80,7 +100,7 @@
 // @s foundation
   set text(
     font: serif,
-    size: base-size,
+    size: scale.base,
     fill: ink,
     top-edge: 1em,
     bottom-edge: 0pt,
@@ -88,8 +108,8 @@
   )
 
   set par(
-    leading: leading-for(1.45),
-    spacing: if indented { leading-for(1.45) } else { sp },
+    leading: leading-for(scale.leading),
+    spacing: if indented { leading-for(scale.leading) } else { sp },
     justify: justified,
     first-line-indent: if indented { (amount: 1.5em, all: false) } else { 0pt },
 // @e
@@ -121,17 +141,17 @@
     it,
   )
 
-  show heading.where(level: 1): set text(size: 24pt, weight: 300, tracking: -0.015em)
+  show heading.where(level: 1): set text(size: scale.h1, weight: 300, tracking: -0.015em)
   show heading.where(level: 1): it => block(above: 0pt, below: sp * 0.5, sticky: true, it)
-  show heading.where(level: 2): set text(size: 18pt, weight: 600, tracking: -0.01em)
-  show heading.where(level: 3): set text(size: 14pt, weight: 600)
-  show heading.where(level: 4): set text(size: 12pt, weight: 600)
+  show heading.where(level: 2): set text(size: scale.h2, weight: 600, tracking: -0.01em)
+  show heading.where(level: 3): set text(size: scale.h3, weight: 600)
+  show heading.where(level: 4): set text(size: scale.h4, weight: 600)
   show heading.where(level: 5): set text(
-    font: serif, size: base-size, weight: 600, tracking: 0.06em, ..smcp,
+    font: serif, size: scale.base, weight: 600, tracking: 0.06em, ..smcp,
   )
   show heading.where(level: 6): set text(
 // @e
-    font: serif, size: base-size, weight: 400, style: "italic",
+    font: serif, size: scale.base, weight: 400, style: "italic",
   )
 
   // ── Quotations ────────────────────────────────────────────────────────────
@@ -144,7 +164,7 @@
     stroke: (left: 1pt + rule-color),
     breakable: false,
     {
-      set text(size: 10.5pt)
+      set text(size: 0.955em)
       it.body
       if it.attribution != none {
         set text(size: sm, fill: ink-muted, style: "normal")
@@ -214,7 +234,7 @@
     above: sp * 1.25,
     below: sp * 1.25,
     breakable: true,
-    { set text(size: 8.5pt); set par(leading: leading-for(1.45), justify: false); it },
+    { set text(size: 0.773em); set par(leading: leading-for(1.45), justify: false); it },
   )
 
 // @e
@@ -233,30 +253,33 @@
 
 // ── Blocks the spec names but no engine provides ────────────────────────────
 
-#let epigraph(attribution: none, body) = block(
-  above: 0pt, below: sp * 2, width: 24em,
-  {
+#let epigraph(attribution: none, body) = context {
+  let u = text.size
+  block(above: 0pt, below: u * 2, width: 24em, {
     set align(left)
-    set text(size: 10pt, style: "italic", fill: ink-muted)
+    set text(size: u * 0.91, style: "italic", fill: ink-muted)
     set par(justify: false, first-line-indent: 0pt)
     body
     if attribution != none {
-      block(above: sp * 0.5, text(style: "normal", size: sm)[— #attribution])
+      block(above: u * 0.5, text(style: "normal", size: u * 0.86)[— #attribution])
     }
-  },
-)
+  })
+}
 #let epigraph-right(attribution: none, body) = align(right, epigraph(attribution: attribution, body))
 
-#let pullquote(body) = block(
-  above: sp * 1.5, below: sp * 1.5, width: 100%,
-  inset: (y: sp),
-  stroke: (top: 1.5pt + rule-strong, bottom: 0.5pt + rule-color),
-  {
-    set text(font: sans, size: 15pt, weight: 300)
-    set par(leading: leading-for(1.3), justify: false, first-line-indent: 0pt)
-    align(center, body)
-  },
-)
+#let pullquote(body) = context {
+  let u = text.size
+  block(
+    above: u * 1.5, below: u * 1.5, width: 100%,
+    inset: (y: u),
+    stroke: (top: 1.5pt + rule-strong, bottom: 0.5pt + rule-color),
+    {
+      set text(font: sans, size: u * 1.36, weight: 300)
+      set par(leading: leading-for(1.3), justify: false, first-line-indent: 0pt)
+      align(center, body)
+    },
+  )
+}
 
 #let verse(body) = block(
   above: sp * 1.25, below: sp * 1.25,
@@ -268,8 +291,10 @@
 )
 
 // @s callouts
-#let callout(title: none, warning: false, body) = block(
-  above: sp * 1.25, below: sp * 1.25, width: 100%,
+#let callout(title: none, warning: false, body) = context {
+  let u = text.size
+  block(
+  above: u * 1.25, below: u * 1.25, width: 100%,
   fill: wash,
   stroke: (
     rest: 0.5pt + rule-color,
@@ -278,17 +303,18 @@
   inset: (x: 1em, y: 0.75em),
   breakable: false,
   {
-    set text(size: 10pt)
+    set text(size: u * 0.91)
     if title != none {
       block(below: 0.35em, text(
-        font: sans, size: xs, weight: 700, tracking: 0.09em,
+        font: sans, size: u * 0.73, weight: 700, tracking: 0.09em,
         fill: if warning { accent } else { ink-muted },
         upper(title),
       ))
     }
     body
   },
-)
+  )
+}
 // @e
 
 // Section breaks. A blank line cannot survive a page break, so the mark is
@@ -338,44 +364,124 @@
   )
 }
 
-// ── Front matter ────────────────────────────────────────────────────────────
+// @s two-column
+// Two columns, equal. Papers, journal articles, newsletters, technical notes.
+//
+// `front` is set full width before the columns begin — a title block, an
+// abstract, a level-1 heading. Everything in `doc` flows in two columns.
+//
+// Typst's own `page(columns: 2)` fixes the gutter at 4% of the page width
+// (8.4mm on A4). The spec says 6mm, so the body goes through `columns()`
+// instead, which takes an explicit gutter and still breaks across pages.
+#let two-column(
+  front: none,
+  column-rule: false,
+  justified: true,
+  numbered: false,
+  running-head: true,
+  folio: true,
+  doc,
+) = {
+  // Justification is not optional at a 47-character measure.
+  assert(justified, message: "two-column requires justification: at 47 characters a ragged edge serrates the column")
 
-// @s frontmatter
-#let title-block(title: none, subtitle: none, author: none, place-date: none) = block(
-  below: sp * 3, width: 100%,
-  inset: (bottom: sp),
-  stroke: (bottom: 0.5pt + rule-color),
-  {
-    set par(justify: false, first-line-indent: 0pt)
-    if title != none { heading(level: 1, outlined: false, title) }
-    if subtitle != none {
-      block(below: sp, text(font: sans, size: 14pt, weight: 300, fill: ink-muted, subtitle))
-    }
-    if author != none { text(size: base-size, tracking: 0.08em, ..smcp, author) }
-    if place-date != none {
-      block(above: 0.2em, text(font: sans, size: sm, fill: ink-muted, place-date))
-    }
-  },
+  show: typeset.with(
+    scale: scale-two-column,
+    justified: true,
+    indented: true,      // a blank line costs 3% of a column
+    numbered: numbered,
+    running-head: running-head,
+    folio: folio,
+  )
+
+  if front != none {
+    front
+    v(scale-two-column.space, weak: true)
+  }
+
+  // A hairline where the columns need separating. Most journals omit it — the
+  // gutter is already doing the work. `columns()` has no rule of its own, so it
+  // is drawn on the page behind the text, at the centre of the gutter. The
+  // offset flips with page parity because the margins mirror for duplex.
+  if column-rule {
+    set page(background: context {
+      let inner = if calc.odd(here().page()) { 28mm } else { 22mm }
+      place(
+        top + left,
+        dx: inner + 77mm + 3mm,
+        dy: 25mm,
+        line(angle: 90deg, length: 247mm, stroke: 0.5pt + rule-color),
+      )
+    })
+  }
+
+  columns(2, gutter: 6mm, doc)
+}
+
+// A level-1 heading spans both columns, which in Typst means it must be a
+// parent-scoped float. That works in `front`, before the columns begin. A
+// level-1 heading in the BODY has to be wrapped in `span()` explicitly —
+// Typst cannot promote it out of the column flow on its own. In a paper the
+// body's section headings are level 2 anyway; level 1 is the title.
+//
+// Spans both columns. A spanning element costs a break in both, so it is opt-in
+// per instance and must sit at the top or the bottom of the page — never
+// mid-column, which makes the reader find their place twice.
+#let span(body, at-bottom: false) = place(
+  if at-bottom { bottom } else { top },
+  scope: "parent",
+  float: true,
+  block(width: 100%, body),
 )
 // @e
 
-#let abstract(body) = block(below: sp * 2, width: 30em, {
-  set text(size: 10pt, fill: ink-muted)
-  set par(justify: false, leading: leading-for(1.45), first-line-indent: 0pt)
-  block(below: 0.3em, text(font: sans, size: xs, weight: 700, tracking: 0.1em, fill: ink-faint)[ABSTRACT])
-  body
-})
+// ── Front matter ────────────────────────────────────────────────────────────
 
-#let colophon(body) = block(
-  above: sp * 3, width: 26em,
-  inset: (top: sp),
-  stroke: (top: 0.5pt + rule-color),
-  {
-    set text(size: sm, style: "italic", fill: ink-muted)
-    set par(justify: false, first-line-indent: 0pt)
+// @s frontmatter
+#let title-block(title: none, subtitle: none, author: none, place-date: none) = context {
+  let u = text.size
+  block(
+    below: u * 3, width: 100%,
+    inset: (bottom: u),
+    stroke: (bottom: 0.5pt + rule-color),
+    {
+      set par(justify: false, first-line-indent: 0pt)
+      if title != none { heading(level: 1, outlined: false, title) }
+      if subtitle != none {
+        block(below: u, text(font: sans, size: u * 1.27, weight: 300, fill: ink-muted, subtitle))
+      }
+      if author != none { text(tracking: 0.08em, ..smcp, author) }
+      if place-date != none {
+        block(above: 0.2em, text(font: sans, size: u * 0.86, fill: ink-muted, place-date))
+      }
+    },
+  )
+}
+// @e
+
+#let abstract(width: 30em, body) = context {
+  let u = text.size
+  block(below: u * 2, width: width, {
+    set text(size: u * 0.91, fill: ink-muted)
+    set par(justify: false, leading: leading-for(1.45), first-line-indent: 0pt)
+    block(below: 0.3em, text(font: sans, size: u * 0.73, weight: 700, tracking: 0.1em, fill: ink-faint)[ABSTRACT])
     body
-  },
-)
+  })
+}
+
+#let colophon(body) = context {
+  let u = text.size
+  block(
+    above: u * 3, width: 26em,
+    inset: (top: u),
+    stroke: (top: 0.5pt + rule-color),
+    {
+      set text(size: u * 0.86, style: "italic", fill: ink-muted)
+      set par(justify: false, first-line-indent: 0pt)
+      body
+    },
+  )
+}
 
 // ── Letter ──────────────────────────────────────────────────────────────────
 

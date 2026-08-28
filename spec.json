@@ -396,7 +396,8 @@
         "These are a single decision. Justification without hyphenation opens rivers of white space; hyphenation without justification breaks words for no gain. Take both or neither.",
         "Hyphenation is per-language and requires the document language to be declared. An English dictionary applied to Portuguese produces confident nonsense.",
         "The last line of a paragraph is NEVER stretched. State this explicitly — a paginating engine fragments the text, so the visual last line stops looking like the end of a paragraph and gets justified. It does not reproduce in an unpaginated preview.",
-        "Justification applies to prose only. It MUST NOT reach a subtitle, byline, caption, address block, table cell, heading or listing. In an engine where alignment inherits, every such block declares its own alignment rather than relying on an exception list."
+        "Justification applies to prose only. It MUST NOT reach a subtitle, byline, caption, address block, table cell, heading or listing. In an engine where alignment inherits, every such block declares its own alignment rather than relying on an exception list.",
+        "Alignment inherits, and so does last-line alignment. A block that sets its own alignment — a centred pull quote, a centred section break — must also set its own last-line alignment, or the document's justification flushes its last line (its only line, for a one-liner) to the left."
       ],
       "elements": [
         {
@@ -1596,5 +1597,176 @@
         }
       ]
     }
-  ]
+  ],
+  "templates": {
+    "default": "single-column",
+    "note": "A template sets the page and the scale. Everything under `foundation` and `sections` still applies; a template states only what it overrides, and what it forbids.",
+    "single-column": {
+      "name": "Single column",
+      "use_for": "Essays, letters, reports, memoranda — anything read continuously from start to finish.",
+      "page": "as foundation.page",
+      "scale": "as foundation.scale",
+      "rhythm": "as foundation.rhythm",
+      "justification": "optional",
+      "notes": [
+        "The default. Nothing to opt into."
+      ]
+    },
+    "two-column": {
+      "name": "Two column, equal",
+      "opt_in": "typeset--two-column",
+      "use_for": "Papers, journal articles, newsletters, technical notes — documents that are scanned and referenced as much as read, and where a figure is worth more than an uninterrupted argument.",
+      "derivation": {
+        "text_width_mm": 160,
+        "column_gap_mm": 6,
+        "column_width_mm": 77,
+        "characters_per_line": {
+          "11pt": 40,
+          "10.5pt": 42,
+          "10pt": 44,
+          "9.5pt": 47,
+          "9pt": 49
+        },
+        "floor": 45,
+        "conclusion": "A 77mm column carries 40 characters at the 11pt base — below the 45-character floor this spec sets for a line of prose. The base size therefore DROPS to 9.5pt, which restores 47. This is arithmetic, not preference: an implementation that keeps 11pt in two columns violates the measure rule, which is the rule everything else in this spec is downstream of.",
+        "recompute_when": "The page size, the margins or the gutter change. Characters per line = 0.524 x column_mm x (11 / base_pt)."
+      },
+      "page": {
+        "size": "A4",
+        "margin_top_mm": 25,
+        "margin_bottom_mm": 25,
+        "margin_outer_mm": 22,
+        "margin_inner_mm": 28,
+        "columns": 2,
+        "column_widths": "equal — the two columns are the same width, always",
+        "column_gap_mm": 6,
+        "column_width_mm": 77,
+        "column_rule": "none by default; an optional 0.5pt hairline in `rule` where the columns need separating",
+        "column_balance": "the final page balances its columns to equal height",
+        "lines_per_column": 52,
+        "running_head": "as foundation.page — spans the full text width, not a column",
+        "folio": "as foundation.page"
+      },
+      "scale": {
+        "ratio": 1.2,
+        "base": "9.5pt",
+        "steps": {
+          "xs": "7pt",
+          "sm": "8.5pt",
+          "base": "9.5pt",
+          "h4": "9.5pt",
+          "h3": "11pt",
+          "h2": "13pt",
+          "h1": "20pt"
+        },
+        "note": "Every step comes down. A 24pt heading inside a 77mm column takes three lines to say two words; 18pt takes two. The h1 keeps display size because it spans both columns."
+      },
+      "rhythm": {
+        "line_height": 1.4,
+        "baseline_advance": "13.3pt",
+        "space": "9.5pt",
+        "measure": "the column — 77mm, not a character count",
+        "measure_chars": 47,
+        "note": "Leading tightens with the measure: a shorter line needs less vertical separation to keep the return sweep unambiguous."
+      },
+      "requirements": [
+        "Justification with hyphenation is MANDATORY, not optional. At 47 characters a ragged right edge produces a visibly serrated column and word gaps wide enough to read as rivers. This is the one place the spec removes a choice it otherwise offers.",
+        "The last line of a paragraph is still flush left. Two columns make a stretched last line more visible, not less.",
+        "Balance the columns on the final page. A last page with one full column and one empty third reads as a printing error.",
+        "A spanning element must span BOTH columns fully or neither. An element that spans one and a half columns has no correct reading order.",
+        "Keep a spanning element at the top or the bottom of the page, never mid-column. Interrupting both columns in the middle forces the reader to find their place twice."
+      ],
+      "spanning": {
+        "always": [
+          "title block",
+          "subtitle",
+          "byline",
+          "dateline",
+          "abstract",
+          "heading 1",
+          "colophon",
+          "bibliography heading"
+        ],
+        "optional": [
+          "figure",
+          "table",
+          "code block",
+          "pull quote"
+        ],
+        "never": [
+          "paragraph",
+          "list",
+          "blockquote",
+          "callout",
+          "heading 2 and below",
+          "endnotes"
+        ],
+        "note": "A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns."
+      },
+      "forbidden": {
+        "sidenote": "There is no margin to put it in. Use a footnote or an endnote.",
+        "dropcap": "A three-line cap at 3.05em is 29pt in a 77mm column — a quarter of the column width for one letter. Open with small caps instead.",
+        "measure_variants": "narrow and wide are meaningless: the column is the measure."
+      },
+      "element_overrides": {
+        "h1": {
+          "size": "20pt",
+          "spans": "both columns",
+          "space_after": "9.5pt"
+        },
+        "h2": {
+          "size": "13pt",
+          "space_before": "19pt",
+          "space_after": "4.75pt"
+        },
+        "h3": {
+          "size": "11pt",
+          "space_before": "19pt",
+          "space_after": "4.75pt"
+        },
+        "h4": {
+          "size": "9.5pt",
+          "space_before": "19pt",
+          "space_after": "4.75pt"
+        },
+        "paragraph": {
+          "size": "9.5pt",
+          "line_height": 1.4,
+          "space_after": "0",
+          "first_line_indent": "1.25em",
+          "note": "Indented paragraphs are the default here, not an option: a blank line costs 3% of a column."
+        },
+        "blockquote": {
+          "size": "9pt",
+          "indent_left": "9.5pt"
+        },
+        "table": {
+          "size": "8pt",
+          "line_height": 1.3
+        },
+        "codeblock": {
+          "size": "7.5pt",
+          "line_height": 1.4
+        },
+        "figure_caption": {
+          "size": "8pt"
+        },
+        "footnote": {
+          "size": "8pt",
+          "note": "Scoped to the page, not the column: one notes area spanning both columns at the page foot."
+        },
+        "endnotes": {
+          "size": "8.5pt"
+        },
+        "pullquote": {
+          "size": "12pt",
+          "note": "Column width by default. Spanning both columns turns it into a divider, which is a different and heavier thing."
+        },
+        "abstract": {
+          "size": "9pt",
+          "max_width": "the full text width, set apart above the columns"
+        }
+      }
+    }
+  }
 }

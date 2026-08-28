@@ -193,6 +193,230 @@ A normative typographic specification for printed documents — essays, letters,
 | role | drop caps, note markers, fleurons |
 | note | Oxblood. Chosen to read as a dark grey when printed in greyscale. |
 
+## Templates
+
+A template sets the page and the scale. Everything under `foundation` and `sections` still applies; a template states only what it overrides, and what it forbids.
+
+Default: `single-column`
+
+### Single column
+
+`single-column`
+
+**Use for.** Essays, letters, reports, memoranda — anything read continuously from start to finish.
+
+**page.** as foundation.page
+
+**scale.** as foundation.scale
+
+**rhythm.** as foundation.rhythm
+
+**justification.** optional
+
+#### notes
+
+- The default. Nothing to opt into.
+
+### Two column, equal
+
+`two-column` · opt-in: `typeset--two-column`
+
+**Use for.** Papers, journal articles, newsletters, technical notes — documents that are scanned and referenced as much as read, and where a figure is worth more than an uninterrupted argument.
+
+#### derivation
+
+| Property | Value |
+| --- | --- |
+| text width mm | `160` |
+| column gap mm | `6` |
+| column width mm | `77` |
+| floor | `45` |
+| conclusion | A 77mm column carries 40 characters at the 11pt base — below the 45-character floor this spec sets for a line of prose. The base size therefore DROPS to 9.5pt, which restores 47. This is arithmetic, not preference: an implementation that keeps 11pt in two columns violates the measure rule, which is the rule everything else in this spec is downstream of. |
+| recompute when | The page size, the margins or the gutter change. Characters per line = 0.524 x column_mm x (11 / base_pt). |
+
+**characters per line**
+
+| Property | Value |
+| --- | --- |
+| 11pt | `40` |
+| 10.5pt | `42` |
+| 10pt | `44` |
+| 9.5pt | `47` |
+| 9pt | `49` |
+
+#### page
+
+| Property | Value |
+| --- | --- |
+| size | `A4` |
+| margin top mm | `25` |
+| margin bottom mm | `25` |
+| margin outer mm | `22` |
+| margin inner mm | `28` |
+| columns | `2` |
+| column widths | equal — the two columns are the same width, always |
+| column gap mm | `6` |
+| column width mm | `77` |
+| column rule | none by default; an optional 0.5pt hairline in `rule` where the columns need separating |
+| column balance | the final page balances its columns to equal height |
+| lines per column | `52` |
+| running head | as foundation.page — spans the full text width, not a column |
+| folio | `as foundation.page` |
+
+#### scale
+
+| Property | Value |
+| --- | --- |
+| ratio | `1.2` |
+| base | `9.5pt` |
+| note | Every step comes down. A 24pt heading inside a 77mm column takes three lines to say two words; 18pt takes two. The h1 keeps display size because it spans both columns. |
+
+**steps**
+
+| Property | Value |
+| --- | --- |
+| xs | `7pt` |
+| sm | `8.5pt` |
+| base | `9.5pt` |
+| h4 | `9.5pt` |
+| h3 | `11pt` |
+| h2 | `13pt` |
+| h1 | `20pt` |
+
+#### rhythm
+
+| Property | Value |
+| --- | --- |
+| line height | `1.4` |
+| baseline advance | `13.3pt` |
+| space | `9.5pt` |
+| measure | the column — 77mm, not a character count |
+| measure chars | `47` |
+| note | Leading tightens with the measure: a shorter line needs less vertical separation to keep the return sweep unambiguous. |
+
+#### requirements
+
+- Justification with hyphenation is MANDATORY, not optional. At 47 characters a ragged right edge produces a visibly serrated column and word gaps wide enough to read as rivers. This is the one place the spec removes a choice it otherwise offers.
+- The last line of a paragraph is still flush left. Two columns make a stretched last line more visible, not less.
+- Balance the columns on the final page. A last page with one full column and one empty third reads as a printing error.
+- A spanning element must span BOTH columns fully or neither. An element that spans one and a half columns has no correct reading order.
+- Keep a spanning element at the top or the bottom of the page, never mid-column. Interrupting both columns in the middle forces the reader to find their place twice.
+
+#### spanning
+
+| Property | Value |
+| --- | --- |
+| always | `title block`, `subtitle`, `byline`, `dateline`, `abstract`, `heading 1`, `colophon`, `bibliography heading` |
+| optional | `figure`, `table`, `code block`, `pull quote` |
+| never | `paragraph`, `list`, `blockquote`, `callout`, `heading 2 and below`, `endnotes` |
+| note | A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. |
+
+#### forbidden
+
+| Property | Value |
+| --- | --- |
+| sidenote | There is no margin to put it in. Use a footnote or an endnote. |
+| dropcap | A three-line cap at 3.05em is 29pt in a 77mm column — a quarter of the column width for one letter. Open with small caps instead. |
+| measure variants | narrow and wide are meaningless: the column is the measure. |
+
+#### element overrides
+
+**h1**
+
+| Property | Value |
+| --- | --- |
+| size | `20pt` |
+| spans | `both columns` |
+| space after | `9.5pt` |
+
+**h2**
+
+| Property | Value |
+| --- | --- |
+| size | `13pt` |
+| space before | `19pt` |
+| space after | `4.75pt` |
+
+**h3**
+
+| Property | Value |
+| --- | --- |
+| size | `11pt` |
+| space before | `19pt` |
+| space after | `4.75pt` |
+
+**h4**
+
+| Property | Value |
+| --- | --- |
+| size | `9.5pt` |
+| space before | `19pt` |
+| space after | `4.75pt` |
+
+**paragraph**
+
+| Property | Value |
+| --- | --- |
+| size | `9.5pt` |
+| line height | `1.4` |
+| space after | `0` |
+| first line indent | `1.25em` |
+| note | Indented paragraphs are the default here, not an option: a blank line costs 3% of a column. |
+
+**blockquote**
+
+| Property | Value |
+| --- | --- |
+| size | `9pt` |
+| indent left | `9.5pt` |
+
+**table**
+
+| Property | Value |
+| --- | --- |
+| size | `8pt` |
+| line height | `1.3` |
+
+**codeblock**
+
+| Property | Value |
+| --- | --- |
+| size | `7.5pt` |
+| line height | `1.4` |
+
+**figure caption**
+
+| Property | Value |
+| --- | --- |
+| size | `8pt` |
+
+**footnote**
+
+| Property | Value |
+| --- | --- |
+| size | `8pt` |
+| note | Scoped to the page, not the column: one notes area spanning both columns at the page foot. |
+
+**endnotes**
+
+| Property | Value |
+| --- | --- |
+| size | `8.5pt` |
+
+**pullquote**
+
+| Property | Value |
+| --- | --- |
+| size | `12pt` |
+| note | Column width by default. Spanning both columns turns it into a divider, which is a different and heavier thing. |
+
+**abstract**
+
+| Property | Value |
+| --- | --- |
+| size | `9pt` |
+| max width | the full text width, set apart above the columns |
+
 ## Elements
 
 ### Structure
@@ -384,6 +608,7 @@ A normative typographic specification for printed documents — essays, letters,
 - Hyphenation is per-language and requires the document language to be declared. An English dictionary applied to Portuguese produces confident nonsense.
 - The last line of a paragraph is NEVER stretched. State this explicitly — a paginating engine fragments the text, so the visual last line stops looking like the end of a paragraph and gets justified. It does not reproduce in an unpaginated preview.
 - Justification applies to prose only. It MUST NOT reach a subtitle, byline, caption, address block, table cell, heading or listing. In an engine where alignment inherits, every such block declares its own alignment rather than relying on an exception list.
+- Alignment inherits, and so does last-line alignment. A block that sets its own alignment — a centred pull quote, a centred section break — must also set its own last-line alignment, or the document's justification flushes its last line (its only line, for a one-liner) to the left.
 
 ##### Justified prose
 

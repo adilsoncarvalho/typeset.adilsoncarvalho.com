@@ -22,6 +22,8 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `implementations/typeset.typ` | Reference implementation — Typst. |
 | `implementations/example-essay.typ` | The essay set in Typst. A conformance sample. |
 | `examples/essay.html`, `examples/letter.html` | The same documents in CSS, paginated with Paged.js. |
+| `examples/two-column.html` | The two-column template in CSS. Prints from the browser — see below. |
+| `implementations/example-two-column.typ` | The two-column template in Typst. |
 | `specimen.css`, `specimen.js` | Chrome for the specimen page. Never shipped in a document. |
 | `tools/build-spec.mjs` | Generates `SPEC.md` from `spec.json`. |
 | `tools/check.mjs` | Verifies the implementations still match the spec. |
@@ -47,6 +49,28 @@ The specimen page fetches `spec.json`, `typeset.css` and `typeset.typ`, which
 `file://` blocks — serve the directory or every panel reports that it could not
 load the spec.
 
+## Templates
+
+A template sets the page and the scale. Everything else — the palette, the rule
+weights, the numeral conventions, the pagination rules — is identical across
+them: a template does not get its own typography.
+
+| Template | Base | Measure | Opt-in |
+|---|---|---|---|
+| Single column (default) | 11pt / 1.45 | 33em ≈ 66 characters | — |
+| Two column, equal | 9.5pt / 1.4 | 77mm ≈ 47 characters | `typeset--two-column` |
+
+**The two-column base is derived, not chosen.** A4 less the 28mm inner and 22mm
+outer margin leaves 160mm; a 6mm gutter divides it into two 77mm columns. At 11pt
+that carries 40 characters — below the 45-character floor the spec sets for
+prose. 9.5pt restores 47. `tools/check.mjs` recomputes this and fails if the
+stated numbers stop agreeing, so changing the page size or the gutter cannot
+silently break the measure.
+
+Two columns also change what is allowed: **justification stops being optional**
+(at 47 characters a ragged edge serrates the column), and **sidenotes are
+forbidden** (there is no margin left, so they degrade to an inline aside).
+
 ## Changing the spec
 
 1. Edit `spec.json`. Bump `version` and `updated`.
@@ -69,13 +93,22 @@ This is not optional detail — it decides what you can implement.
 | TOC page numbers | native | yes | **no** — omits the number |
 | Repeating table headers | native | yes | yes |
 | Three-line drop-cap wrap | **no** (needs `droplet`) | yes | yes |
+| Two equal columns | native | yes | yes — but **not** under Paged.js |
 
-The CSS implementation loads [Paged.js](https://pagedjs.org) in the two example
-documents to cover the first three rows.
+The CSS implementation loads [Paged.js](https://pagedjs.org) in the essay and
+letter examples to cover the first three rows.
 
-## Two traps worth knowing
+**Paged.js and CSS columns are mutually exclusive.** Paged.js paginates by moving
+content between page boxes and cannot split a column flow, so a `columns: 2`
+document run through it produces **zero pages** — a blank output, with no error.
+The two-column CSS example therefore drops Paged.js: it simulates one sheet on
+screen and lets the browser's own print do the pagination, which handles multicol
+fragmentation natively. The cost is the running head and folio, which return
+under WeasyPrint or Prince.
 
-Both of these shipped here before they were caught, and neither reproduces in an
+## Three traps worth knowing
+
+All of these shipped here before they were caught, and none reproduces in an
 unpaginated preview:
 
 - **`text-align` inherits.** Setting `justify` on the document container also
@@ -86,6 +119,9 @@ unpaginated preview:
   text, so the visual last line of a paragraph stops looking like the end of one
   and gets stretched to the measure. This is the most visible print defect there
   is.
+- **Last-line alignment inherits too.** A centred block — a pull quote, a section
+  break — must restore its own `text-align-last`, or the document's justification
+  flushes its last line, which for a one-line block is its only line, to the left.
 
 ## Fonts
 

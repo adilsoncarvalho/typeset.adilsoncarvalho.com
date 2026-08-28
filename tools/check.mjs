@@ -86,10 +86,42 @@ for (const sec of spec.sections) {
   if (!cssIds.has(sec.id)) fail.push(`typeset.css: no section marker for "${sec.id}"`);
   if (!panelIds.has(sec.id)) fail.push(`index.html: no panel for spec section "${sec.id}"`);
 }
+
+/* A template must be implemented in both engines and shown on the page. The
+   default template is the base stylesheet, so it needs no marker of its own. */
+const templateIds = Object.keys(spec.templates).filter((k) => k !== 'default' && k !== 'note');
+for (const id of templateIds) {
+  if (id === spec.templates.default) continue;
+  if (!cssIds.has(id)) fail.push(`typeset.css: no section marker for template "${id}"`);
+  if (!typIds.has(id)) fail.push(`typeset.typ: no marked region for template "${id}"`);
+  if (!panelIds.has(id)) fail.push(`index.html: no panel for template "${id}"`);
+}
+
+/* The two-column derivation is arithmetic, so check the arithmetic. */
+const two = spec.templates['two-column'];
+if (two) {
+  const d = two.derivation;
+  const col = (d.text_width_mm - d.column_gap_mm) / 2;
+  if (Math.abs(col - d.column_width_mm) > 0.5) {
+    fail.push(`spec.json: two-column width is ${d.column_width_mm}mm, but (${d.text_width_mm} - ${d.column_gap_mm}) / 2 = ${col}mm`);
+  }
+  const chars = (base) => Math.round((66 / 126) * col * (11 / base));
+  for (const [size, stated] of Object.entries(d.characters_per_line)) {
+    const computed = chars(parseFloat(size));
+    if (computed !== stated) fail.push(`spec.json: characters_per_line[${size}] is ${stated}, computed ${computed}`);
+  }
+  const atBase = chars(parseFloat(two.scale.base));
+  if (atBase < d.floor) fail.push(`spec.json: the two-column base of ${two.scale.base} yields ${atBase} characters, below the ${d.floor} floor`);
+  const advance = +(parseFloat(two.scale.base) * two.rhythm.line_height).toFixed(2);
+  if (Math.abs(parseFloat(two.rhythm.baseline_advance) - advance) > 0.01) {
+    fail.push(`spec.json: two-column baseline_advance is ${two.rhythm.baseline_advance}, computed ${advance}pt`);
+  }
+}
 for (const id of cssIds) {
   const isFoundation = ['tokens', 'foundation', 'page', 'justification', 'numbering', 'dropcap',
     'links', 'code-inline', 'figures-numeric', 'utilities'].includes(id);
-  if (!spec.sections.some((s) => s.id === id) && !isFoundation) {
+  const isTemplate = Object.keys(spec.templates).includes(id);
+  if (!spec.sections.some((s) => s.id === id) && !isFoundation && !isTemplate) {
     warn.push(`typeset.css: section "${id}" has no counterpart in spec.json`);
   }
 }

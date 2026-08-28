@@ -177,25 +177,31 @@
 /*! @e */
 
 /*! @s paragraphs :: Paragraphs */
+.typeset {
+  /* Paragraph separation is one decision expressed as two values: a gap, or an
+     indent, never both. A template sets these; nothing else needs to know. */
+  --ts-para-gap: var(--ts-space);
+  --ts-para-indent: 0;
+}
+
+.typeset--indented {
+  --ts-para-gap: 0;
+  --ts-para-indent: 1.5em;
+}
+
 .typeset p {
-  margin: 0 0 var(--ts-space);
+  margin: 0 0 var(--ts-para-gap);
+  text-indent: var(--ts-para-indent);
   orphans: 2;   /* no single line left at the foot of a page */
   widows: 2;    /* no single line carried to the head of the next */
 }
 
-/* Print convention: indent continuing paragraphs, no blank line between.
-   The first paragraph after a heading or a break stays flush left. */
-.typeset--indented p { margin-bottom: 0; text-indent: 1.5em; }
-.typeset--indented h1 + p,
-.typeset--indented h2 + p,
-.typeset--indented h3 + p,
-.typeset--indented h4 + p,
-.typeset--indented h5 + p,
-.typeset--indented h6 + p,
-.typeset--indented blockquote + p,
-.typeset--indented figure + p,
-.typeset--indented .ts-break + p,
-.typeset--indented > p:first-child { text-indent: 0; }
+/* The first paragraph after a heading, block or break is flush: the thing above
+   it has already marked the start. */
+.typeset :is(h1, h2, h3, h4, h5, h6, blockquote, figure, pre, table, .ts-break, .ts-callout) + p,
+.typeset > p:first-child {
+  text-indent: 0;
+}
 /*! @e */
 
 /*! @s justification :: Justification & hyphenation */
@@ -212,7 +218,11 @@
   hyphenate-limit-lines: 2;         /* never stack 3 hyphens in a row */
 }
 
-/* Never justify a heading, a cell, or a listing. Every other block that must
+/* `text-align-last` inherits as well, so a block that centres itself must
+   restore it — otherwise its last line, which for a one-line block is its only
+   line, is flushed left. See .ts-pullquote and .ts-break.
+
+   Never justify a heading, a cell, or a listing. Every other block that must
    stay flush left — subtitle, byline, caption, address, notes — declares
    `text-align: left` in its own rule, because a direct match always beats an
    inherited value and its descendants then inherit `left` in turn. Relying on
@@ -371,6 +381,8 @@
    never be the only place a claim appears. */
 .typeset .ts-pullquote {
   border: 0;
+  text-align: center;
+  text-align-last: center;
   border-top: 1.5pt solid var(--ts-rule-strong);
   border-bottom: 0.5pt solid var(--ts-rule);
   padding: var(--ts-space) 0;
@@ -379,7 +391,6 @@
   font-size: 15pt;
   font-weight: 300;
   line-height: 1.3;
-  text-align: center;
   text-wrap: balance;
 }
 
@@ -667,6 +678,7 @@
   height: auto;
   margin: calc(var(--ts-space) * 1.5) 0;
   text-align: center;
+  text-align-last: center;   /* a one-line block IS its own last line */
   color: var(--ts-ink-faint);
   break-after: avoid;
 }
@@ -873,6 +885,112 @@
   font-size: var(--ts-sm);
 }
 .typeset .ts-ps .ts-label { font-variant-caps: all-small-caps; letter-spacing: 0.08em; font-weight: 600; }
+/*! @e */
+
+/*! @s two-column :: Two column, equal */
+/* Papers, journal articles, newsletters, technical notes — documents scanned
+   and referenced as much as read.
+
+   The base size drops to 9.5pt here, and that is arithmetic rather than taste:
+   a 77mm column carries 40 characters at 11pt, below the 45-character floor
+   this stylesheet sets for a line of prose. 9.5pt restores 47. An
+   implementation that keeps 11pt in two columns breaks the measure rule, which
+   is the rule everything else is downstream of. */
+.typeset--two-column {
+  /* Every step comes down. A 24pt heading in a 77mm column spends three lines
+     saying two words. */
+  --ts-xs: 7pt;
+  --ts-sm: 8.5pt;
+  --ts-base: 9.5pt;
+  --ts-h4: 9.5pt;
+  --ts-h3: 11pt;
+  --ts-h2: 13pt;
+  --ts-h1: 20pt;
+
+  /* Leading tightens with the measure: a shorter line needs less separation to
+     keep the return sweep unambiguous. */
+  --ts-leading: 1.4;
+  --ts-space: 9.5pt;
+
+  /* The column IS the measure, so the character cap comes off. */
+  --ts-measure: none;
+  --ts-column-gap: 6mm;
+
+  /* A blank line costs 3% of a column, so paragraphs indent here by default —
+     not as an option. */
+  --ts-para-gap: 0;
+  --ts-para-indent: 1.25em;
+
+  font-size: var(--ts-base);
+  columns: 2;
+  column-gap: var(--ts-column-gap);
+  column-fill: balance;   /* the final page balances its columns */
+
+  /* Justification with hyphenation is MANDATORY at this measure, not optional:
+     at 47 characters a ragged edge serrates the column and the word gaps read
+     as rivers. This is the one place the stylesheet removes a choice. */
+  text-align: justify;
+  text-align-last: left;
+  hyphens: auto;
+  hyphenate-limit-chars: 6 3 3;
+  hyphenate-limit-lines: 2;
+}
+
+/* Spans both columns, always. Each is a direct child of the multicol container,
+   which is what column-span requires. */
+.typeset--two-column > .ts-titleblock,
+.typeset--two-column > .ts-abstract,
+.typeset--two-column > h1,
+.typeset--two-column > .ts-colophon,
+.typeset--two-column > .ts-span {
+  column-span: all;
+}
+
+/* Spanning is opt-in per instance for figures and tables: it costs a break in
+   both columns, so the default stays column-width. A spanning element must sit
+   at the top or the bottom of the page, never mid-column. */
+.typeset--two-column > .ts-span {
+  break-before: avoid-column;
+  margin-bottom: calc(var(--ts-space) * 1.5);
+}
+
+/* An optional hairline where the columns need separating. Most journals omit
+   it — the gutter is already doing the work. */
+.typeset--two-column.typeset--column-rule {
+  column-rule: 0.5pt solid var(--ts-rule);
+}
+
+/* A sidenote has no margin to live in here. Rather than let it be positioned
+   off the page and silently lost, it degrades to an inline aside. */
+.typeset--two-column .ts-sidenote {
+  position: static;
+  display: block;
+  width: auto;
+  margin: 0.4em 0;
+  padding-left: 0.6em;
+  border-left: 0.5pt solid var(--ts-rule);
+  text-indent: 0;
+}
+
+/* A three-line cap at 3.05em is 29pt — a quarter of the column width for one
+   letter. The opening small caps carry the signal instead. */
+.typeset--two-column .ts-dropcap::first-letter {
+  float: none;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  padding: 0;
+}
+
+/* Denser matter for a narrower column. */
+.typeset--two-column blockquote { font-size: 9pt; padding-left: var(--ts-space); }
+.typeset--two-column table { font-size: 8pt; line-height: 1.3; }
+.typeset--two-column pre { font-size: 7.5pt; }
+.typeset--two-column figcaption { font-size: 8pt; }
+.typeset--two-column .ts-endnotes { font-size: 8.5pt; }
+.typeset--two-column .ts-pullquote { font-size: 12pt; }
+.typeset--two-column .ts-abstract { font-size: 9pt; max-width: none; }
+.typeset--two-column .ts-epigraph { max-width: none; }
 /*! @e */
 
 /*! @s utilities :: Pagination utilities */

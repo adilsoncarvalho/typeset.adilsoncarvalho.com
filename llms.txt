@@ -7,6 +7,10 @@ You are most likely here because someone is wiring up a rendering engine —
 Typst, LaTeX, WeasyPrint, InDesign, a PDF library — and wants the output to match
 this specification.
 
+There are two page templates. `single-column` is the default; `two-column` sets
+its own page and scale, and its base size is *derived* from the column width
+rather than chosen — see `templates.two-column.derivation` in `spec.json`.
+
 Read in this order:
 
 1. `/spec.json` — the normative source. Every value, with units. If your output
@@ -21,6 +25,8 @@ Read in this order:
 - [typeset.css](https://typeset.adilsoncarvalho.com/typeset.css): CSS. Complete except for footnotes, running heads and TOC page numbers, which need a paged-media engine.
 - [typeset.typ](https://typeset.adilsoncarvalho.com/implementations/typeset.typ): Typst. Complete except for the three-line drop-cap wrap, which Typst cannot float.
 - [example-essay.typ](https://typeset.adilsoncarvalho.com/implementations/example-essay.typ): the essay set in Typst — a conformance sample.
+- [example-two-column.typ](https://typeset.adilsoncarvalho.com/implementations/example-two-column.typ): the two-column template in Typst.
+- [two-column.html](https://typeset.adilsoncarvalho.com/examples/two-column.html): the two-column template in CSS. Note: it does NOT use Paged.js — Paged.js cannot fragment a CSS column flow and silently produces zero pages.
 - [essay.html](https://typeset.adilsoncarvalho.com/examples/essay.html), [letter.html](https://typeset.adilsoncarvalho.com/examples/letter.html): the same documents in CSS, paginated with Paged.js.
 
 ## Rules for an implementer
@@ -34,5 +40,7 @@ Read in this order:
   `conformance`.
 - Where an engine cannot express a property, degrade as named in that element's
   `fallback` field, and never silently.
+- A template overrides the page and the scale and nothing else. Do not give a
+  template its own palette, rule weights or numeral conventions.
 - Report what you could not implement. A conformance claim that hides a gap is
   worse than an honest partial implementation.

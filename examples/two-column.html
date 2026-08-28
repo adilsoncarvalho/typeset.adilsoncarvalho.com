@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Measure of a Column — typeset two-column example</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Source+Sans+3:ital,wght@0,300..700;1,300..700&family=IBM+Plex+Mono:wght@400&display=swap">
+<link rel="stylesheet" href="../typeset.css">
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+
+<div class="preview-bar ts-screen-only">
+  <a href="../index.html">← typeset</a>
+  <b>Two column, equal</b>
+  <span>No Paged.js — it cannot fragment a column container. ⌘P for the real pagination.</span>
+</div>
+
+<div class="sheet">
+<article class="typeset typeset--two-column" lang="en">
+
+  <div class="ts-titleblock">
+    <h1>The Measure of a Column</h1>
+    <p class="ts-subtitle">What changes when a page is divided in two, and what must not</p>
+    <p class="ts-byline">Adilson Carvalho</p>
+    <p class="ts-dateline">Sydney, 28 August 2026</p>
+  </div>
+
+  <div class="ts-abstract">
+    <span class="ts-label">Abstract</span>
+    Dividing an A4 page into two equal columns leaves 77mm of measure. At the single-column base of 11pt that carries 40 characters — below the floor at which a line of prose stays readable. This note works through what a two-column template must therefore change, and what it must leave alone.
+  </div>
+
+  <h2>The arithmetic</h2>
+
+  <p>A4 is 210mm wide. Take off the 28mm inner margin and the 22mm outer margin and 160mm of text width remains. A 6mm gutter divides it into two columns of 77mm.</p>
+
+  <p>At 11pt, a 77mm column carries about 40 characters. This specification sets 45 as the floor for a line of prose, so 11pt is not available here. Dropping the base to 9.5pt restores 47 characters, and every other step in the scale comes down with it.</p>
+
+  <h3>What follows from the size change</h3>
+
+  <p>Leading tightens from 1.45 to 1.4. A shorter line needs less vertical separation for the return sweep to stay unambiguous, and the saving is real: at 13.3pt of advance a column holds 52 lines instead of 47.</p>
+
+  <p>Headings come down hardest. A 24pt level-2 heading inside a 77mm column spends three lines saying two words, so the scale runs 20/13/11/9.5 — and the level-1 heading keeps display size only because it spans both columns.</p>
+
+  <div class="ts-callout">
+    <p class="ts-callout-title">What does not change</p>
+    <p>The colour palette, the rule weights, the numeral conventions, the treatment of quotations and the pagination rules are all identical. A template sets the page and the scale; it does not get its own typography.</p>
+  </div>
+
+  <h2>Justification stops being optional</h2>
+
+  <p>At 47 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.</p>
+
+  <blockquote class="ts-pullquote">
+    <p>This is the one place the spec removes a choice it otherwise offers.</p>
+  </blockquote>
+
+  <p>So the two-column template turns justification on itself rather than offering it as an option. An implementation that offers ragged-right two columns is not conformant.</p>
+
+  <h3>Spanning</h3>
+
+  <p>An element spans both columns fully or neither. Spanning costs a break in both columns, so it is opt-in per instance and belongs at the top or the bottom of a page — interrupting both columns mid-page makes the reader find their place twice.</p>
+
+  <figure class="ts-span">
+    <table>
+      <caption><span class="ts-label">Table 1</span> — Characters per line for a 77mm column, by base size. The floor is 45.</caption>
+      <thead>
+        <tr><th>Base size</th><th class="ts-num">11pt</th><th class="ts-num">10.5pt</th><th class="ts-num">10pt</th><th class="ts-num">9.5pt</th><th class="ts-num">9pt</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Characters</td><td class="ts-num">40</td><td class="ts-num">42</td><td class="ts-num">44</td><td class="ts-num">47</td><td class="ts-num">49</td></tr>
+        <tr><td>Conformant</td><td class="ts-num">no</td><td class="ts-num">no</td><td class="ts-num">no</td><td class="ts-num">yes</td><td class="ts-num">yes</td></tr>
+      </tbody>
+    </table>
+  </figure>
+
+  <h2>What the template forbids</h2>
+
+  <p>Sidenotes have nowhere to go: there is no margin left. They become footnotes or endnotes, and an implementation should degrade them visibly rather than positioning them off the page — as this one does:</p>
+
+  <p>The claim is set out at length elsewhere.<span class="ts-noteref"></span><span class="ts-sidenote">In two columns this sidenote degrades to an inline aside rather than being positioned off the page and lost.</span></p>
+
+  <p class="ts-dropcap"><span class="ts-lede">A three-line drop cap</span> at 3.05em is 29pt — a quarter of the column width for one letter. So the cap is neutralised here and the opening words carry the signal in small caps instead, as this paragraph does.</p>
+
+  <div class="ts-colophon">
+    Set in EB Garamond, 9.5 on 13.3 points, two columns of 77mm with a 6mm gutter. Composed in HTML, printed from the browser.
+  </div>
+
+</article>
+</div>
+</body>
+</html>

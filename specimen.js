@@ -62,6 +62,38 @@ function renderElement(el) {
   return bits.join('');
 }
 
+function renderTemplate(id, t) {
+  const bits = [];
+  if (t.opt_in) bits.push(`<p class="spec-optin-line">Opt-in · <code>${esc(t.opt_in)}</code></p>`);
+  bits.push(`<p class="spec-note"><b>Use for</b> — ${esc(t.use_for)}</p>`);
+
+  const ORDER = ['derivation', 'requirements', 'page', 'scale', 'rhythm', 'spanning', 'forbidden', 'element_overrides'];
+  const keys = [...ORDER.filter((k) => k in t), ...Object.keys(t).filter((k) => !ORDER.includes(k)
+    && !['name', 'opt_in', 'use_for', 'notes'].includes(k))];
+
+  for (const k of keys) {
+    const v = t[k];
+    bits.push(`<h3 class="spec-group">${esc(label(k))}</h3>`);
+    if (Array.isArray(v)) {
+      bits.push('<ul class="spec-rules">' + v.map((x) => `<li>${esc(x)}</li>`).join('') + '</ul>');
+    } else if (v && typeof v === 'object') {
+      const flat = Object.fromEntries(
+        Object.entries(v).filter(([, x]) => !x || typeof x !== 'object' || Array.isArray(x)),
+      );
+      if (Object.keys(flat).length) bits.push(propTable(flat));
+      for (const [k2, v2] of Object.entries(v)) {
+        if (v2 && typeof v2 === 'object' && !Array.isArray(v2)) {
+          bits.push(`<h4 class="spec-el">${esc(label(k2))}</h4>`, propTable(v2));
+        }
+      }
+    } else {
+      bits.push(`<p class="spec-note">${esc(v)}</p>`);
+    }
+  }
+  for (const n of t.notes || []) bits.push(`<p class="spec-note">${esc(n)}</p>`);
+  return bits.join('');
+}
+
 function renderSpecPanel(ids) {
   if (ids.includes(',')) {
     return ids.split(',').map((i) => {
@@ -70,6 +102,12 @@ function renderSpecPanel(ids) {
     }).join('');
   }
   const id = ids;
+
+  /* A template is not a document element: it sets the page and the scale, and
+     states what it overrides and what it forbids. */
+  const template = state.spec.templates?.[id];
+  if (template && typeof template === 'object') return renderTemplate(id, template);
+
   const groups = FOUNDATION_PANELS[id];
   if (groups) {
     return groups.map((g) => {
