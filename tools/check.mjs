@@ -3,7 +3,8 @@
    implementation is broken, not the spec.
    Run: node tools/check.mjs */
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { buildAll } from './build-site.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
@@ -69,6 +70,16 @@ if (!typ.includes('top-edge: 1em') || !typ.includes('bottom-edge: 0pt')) {
   fail.push('typeset.typ: the line box is not pinned to baseline..1em, so the advance is font-dependent');
 }
 
+/* The measure is the rule everything else is downstream of, so both
+   implementations must actually constrain it — not just declare the page. */
+const measureMm = spec.foundation.rhythm.measure_mm;
+if (!typ.includes(`${measureMm}mm`)) {
+  fail.push(`typeset.typ: the measure (${measureMm}mm) is never applied — the flow would fill the full text width`);
+}
+if (!css.includes('max-width: var(--ts-measure)')) {
+  fail.push('typeset.css: the measure is never applied to the text column');
+}
+
 /* ---- 3. Every spec section must be reachable from the page --------------- */
 
 const marker = (src, re) => {
@@ -79,12 +90,37 @@ const marker = (src, re) => {
 };
 const cssIds = marker(css, /\/\*!\s*@s\s+([a-z0-9-]+)\s*::/g);
 const typIds = marker(typ, /\/\/\s*@s\s+([a-z0-9-]+)\s*\n/g);
-const panelAttrs = [...html.matchAll(/data-section="([^"]+)"/g)].map((m) => m[1]);
+const manifest = JSON.parse(readFileSync('src/sections.json', 'utf8'));
+const panelAttrs = manifest.map((s) => s.panel.spec);
 const panelIds = new Set(panelAttrs.flatMap((a) => a.split(',').map((s) => s.trim())));
 
 for (const sec of spec.sections) {
   if (!cssIds.has(sec.id)) fail.push(`typeset.css: no section marker for "${sec.id}"`);
-  if (!panelIds.has(sec.id)) fail.push(`index.html: no panel for spec section "${sec.id}"`);
+  if (!panelIds.has(sec.id)) fail.push(`src/sections.json: no panel for spec section "${sec.id}"`);
+}
+
+/* ---- 3b. Every manifest section must have a demo, and vice versa --------- */
+
+for (const s of manifest) {
+  const demo = `src/demos/${s.id}.html`;
+  if (!existsSync(demo)) fail.push(`${demo} is missing`);
+  if (s.fullrow && !existsSync(`src/demos/${s.id}.fullrow.html`)) {
+    fail.push(`src/demos/${s.id}.fullrow.html is declared but missing`);
+  }
+}
+const declared = new Set(manifest.map((s) => s.id));
+for (const f of readdirSync('src/demos')) {
+  const id = f.replace(/\.(fullrow\.)?html$/, '');
+  if (!declared.has(id)) warn.push(`src/demos/${f} is not referenced by src/sections.json`);
+}
+
+/* ---- 3c. The generated pages must be current ----------------------------- */
+
+const { output } = buildAll();
+for (const [path, contents] of output) {
+  if (readFileSync(path, 'utf8') !== contents) {
+    fail.push(`${path} is stale — run node tools/build-site.mjs`);
+  }
 }
 
 /* A template must be implemented in both engines and shown on the page. The
@@ -141,7 +177,7 @@ for (const sec of spec.sections) {
 
 const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);
 console.log(`typeset spec ${spec.version} — ${spec.sections.length} sections, ${elements} elements`);
-console.log(`  css markers ${cssIds.size} · typst markers ${typIds.size} · page panels ${panelAttrs.length}`);
+console.log(`  css markers ${cssIds.size} · typst markers ${typIds.size} · panels ${panelAttrs.length} · generated pages ${output.size}`);
 for (const wn of warn) console.log(`  note: ${wn}`);
 if (fail.length) {
   console.error(`\n${fail.length} conformance failure${fail.length > 1 ? 's' : ''}:`);

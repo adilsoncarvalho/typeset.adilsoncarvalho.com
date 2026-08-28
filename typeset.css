@@ -197,8 +197,25 @@
 }
 
 /* The first paragraph after a heading, block or break is flush: the thing above
-   it has already marked the start. */
-.typeset :is(h1, h2, h3, h4, h5, h6, blockquote, figure, pre, table, .ts-break, .ts-callout) + p,
+   it has already marked the start.
+
+   Enumerated rather than written as `:is(...)`. Paged.js rewrites every
+   stylesheet through its own CSS parser, which does not understand `:is()`: it
+   splits the selector on the commas INSIDE the argument list and emits fragments
+   like ` .ts-callout)+p`, which throw on querySelectorAll and abort pagination
+   entirely — a blank document, not a degraded one. Keep this list flat. */
+.typeset h1 + p,
+.typeset h2 + p,
+.typeset h3 + p,
+.typeset h4 + p,
+.typeset h5 + p,
+.typeset h6 + p,
+.typeset blockquote + p,
+.typeset figure + p,
+.typeset pre + p,
+.typeset table + p,
+.typeset .ts-break + p,
+.typeset .ts-callout + p,
 .typeset > p:first-child {
   text-indent: 0;
 }
@@ -216,6 +233,22 @@
   -webkit-hyphenate-limit-before: 3;
   -webkit-hyphenate-limit-after: 3;
   hyphenate-limit-lines: 2;         /* never stack 3 hyphens in a row */
+}
+
+/* Ragged right. This is the default — the point of naming it is so a document
+   can state the choice rather than express it as the absence of a class, and so
+   the two options read as siblings in the source.
+
+   `text-wrap: pretty` asks the engine to spend more effort on the rag: it
+   avoids a very short last line and evens out the right edge, which is the one
+   thing a ragged setting can get wrong. Hyphenation stays off — a hyphen exists
+   to help justification, and without justification it only breaks a word for
+   no gain. */
+.typeset--ragged {
+  text-align: left;
+  text-align-last: left;
+  hyphens: manual;
+  text-wrap: pretty;
 }
 
 /* `text-align-last` inherits as well, so a block that centres itself must
@@ -624,12 +657,21 @@
 
 /* Sidenotes: no page-break arithmetic, and the reader never loses their
    place. They cost you a wide right margin. */
-.typeset--sidenotes { --ts-measure: 27em; padding-right: 15em; }
+/* The reserved margin must be wide enough for the gap plus the note: 2em + 11em
+   here, with an em to spare. */
+.typeset--sidenotes { --ts-measure: 27em; padding-right: 14em; }
 .typeset--sidenotes p { position: relative; }
 .typeset .ts-sidenote {
   position: absolute;
-  left: calc(var(--ts-measure) + 2em);
-  width: 12em;
+
+  /* Anchored to the paragraph's own right edge, NOT to `calc(measure + 2em)`.
+     The measure is a max-width, so the paragraph is whichever is narrower —
+     the measure, or what the container's padding leaves it. Offsetting from the
+     measure therefore puts the note in the wrong place whenever the padding is
+     the binding constraint, and it lands on top of the text. */
+  left: 100%;
+  margin-left: 2em;
+  width: 11em;
   margin-top: -0.3em;
   font-family: var(--ts-sans);
   font-size: var(--ts-xs);
@@ -810,23 +852,20 @@
 /*! @e */
 
 /*! @s letter :: Letter */
+/* The sender block is address data, not a masthead: one style throughout, at
+   body size, in the reading face. A personal letter does not announce itself —
+   the recipient knows who writes to them. Nothing here is bold, and nothing is
+   set in the sans, so the block recedes and the letter starts sooner. */
 .typeset .ts-letterhead {
   text-align: left;
-  margin-bottom: calc(var(--ts-space) * 2.5);
+  font-size: var(--ts-base);
+  line-height: 1.35;
+  color: var(--ts-ink);
+  margin: 0 0 calc(var(--ts-space) * 2.5);
 }
-.typeset .ts-letterhead .ts-name {
-  font-family: var(--ts-sans);
-  font-size: var(--ts-h3);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+.typeset .ts-letterhead p {
   margin: 0;
-}
-.typeset .ts-letterhead .ts-contact {
-  font-family: var(--ts-sans);
-  font-size: var(--ts-xs);
-  line-height: 1.5;
-  color: var(--ts-ink-muted);
-  margin: 0.3em 0 0;
+  text-indent: 0;
 }
 
 /* Address blocks are not prose: they are line-broken data. */
@@ -849,42 +888,52 @@
 .typeset .ts-date {
   margin-bottom: calc(var(--ts-space) * 1.5);
   font-variant-numeric: oldstyle-nums;
+  text-align: left;
+}
+
+/* A line under the date, in italic — a dedication, a feast, a devotion. It
+   belongs to the date rather than following it, so it climbs back over the
+   date's gap and carries that gap itself. Written against the same token as the
+   date's margin so the two cannot drift apart.
+
+   Deliberately not `.ts-date:has(+ .ts-date-note)`: Paged.js's CSS parser does
+   not understand `:has()` any more than it understands `:is()`, and a selector
+   it cannot parse aborts pagination outright. */
+.typeset .ts-date-note {
+  margin: calc(var(--ts-space) * -1.5 + 0.1em) 0 calc(var(--ts-space) * 1.5);
+  font-style: italic;
+  text-indent: 0;
 }
 .typeset .ts-salutation { margin-bottom: var(--ts-space); text-align: left; }
 .typeset .ts-closing { margin: calc(var(--ts-space) * 1.5) 0 0; text-align: left; }
 
+/* The typed name, with room above it to sign. No rule: a ruled line is a form
+   to be filled in, and this is a letter. */
 .typeset .ts-signature {
   text-align: left;
   margin-top: calc(var(--ts-space) * 3);
+  text-indent: 0;
   break-inside: avoid;
 }
-.typeset .ts-signature .ts-rule {
-  display: block;
-  width: 16em;
-  border-top: 0.5pt solid var(--ts-rule-strong);
-  padding-top: 0.3em;
-  font-size: var(--ts-sm);
-}
-.typeset .ts-signature img { max-height: 16mm; margin-bottom: 0.2em; }
+.typeset .ts-signature img { display: block; max-height: 16mm; margin-bottom: 0.2em; }
 
+/* Same reasoning as the postscript: "Enc." introduces a sentence, it does not
+   head a section. Left as the only small-caps label in a letter it was the one
+   thing on the page shouting. */
 .typeset .ts-enclosures {
   text-align: left;
   margin-top: calc(var(--ts-space) * 2);
-  font-size: var(--ts-sm);
-  color: var(--ts-ink-muted);
+  font-size: var(--ts-base);
+  text-indent: 0;
 }
-.typeset .ts-enclosures .ts-label {
-  font-variant-caps: all-small-caps;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-  color: var(--ts-ink);
-}
+/* A postscript is a sentence that happens to begin with "P.S." — the label is
+   not a heading, so it matches the text it introduces exactly. */
 .typeset .ts-ps {
   text-align: left;
   margin-top: var(--ts-space);
-  font-size: var(--ts-sm);
+  font-size: var(--ts-base);
+  text-indent: 0;
 }
-.typeset .ts-ps .ts-label { font-variant-caps: all-small-caps; letter-spacing: 0.08em; font-weight: 600; }
 /*! @e */
 
 /*! @s two-column :: Two column, equal */

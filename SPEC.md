@@ -600,17 +600,34 @@ Default: `single-column`
 
 > Applies after a heading, blockquote, figure or section break, and to the first paragraph of the document.
 
-#### Justification & hyphenation
+#### Alignment: ragged or justified
 
 `justification` · opt-in: `typeset--justified`
 
+- Ragged right is the DEFAULT, and it is a choice rather than an absence — a document states it. Justification buys a clean right edge at the cost of uneven word spacing; a ragged setting keeps the spacing even and gives up the edge. Neither is more correct, but the cost lands differently by document.
+- Choose ragged right for a letter, a memorandum, a short note — anything addressed to a person rather than to a readership. Justification reads as institutional, and its even edge is the visual signature of print that was set for strangers.
+- Choose justification for continuous prose at a full measure: an essay, a report, a paper. It is mandatory in two columns, where a ragged edge at 47 characters serrates the column.
 - These are a single decision. Justification without hyphenation opens rivers of white space; hyphenation without justification breaks words for no gain. Take both or neither.
 - Hyphenation is per-language and requires the document language to be declared. An English dictionary applied to Portuguese produces confident nonsense.
 - The last line of a paragraph is NEVER stretched. State this explicitly — a paginating engine fragments the text, so the visual last line stops looking like the end of a paragraph and gets justified. It does not reproduce in an unpaginated preview.
 - Justification applies to prose only. It MUST NOT reach a subtitle, byline, caption, address block, table cell, heading or listing. In an engine where alignment inherits, every such block declares its own alignment rather than relying on an exception list.
 - Alignment inherits, and so does last-line alignment. A block that sets its own alignment — a centred pull quote, a centred section break — must also set its own last-line alignment, or the document's justification flushes its last line (its only line, for a one-liner) to the left.
 
-##### Justified prose
+##### Ragged right (default) (opt-in: `typeset--ragged — names the default; no class needed to get it`)
+
+| Property | Value |
+| --- | --- |
+| align | `left` |
+| align last line | `left` |
+| hyphenation | `manual — never automatic` |
+| line breaking | high effort: avoid a very short last line, and even out the right edge |
+| applies to | `paragraph`, `list item`, `blockquote`, `definition description`, `callout` |
+
+> Hyphenation exists to serve justification. Without justification a hyphen breaks a word for no gain, so it stays off.
+
+> The rag itself is the thing to judge: an even rag reads as deliberate, a rag with one very short line and one very long one reads as an accident.
+
+##### Justified
 
 | Property | Value |
 | --- | --- |
@@ -1290,7 +1307,9 @@ Where unsupported: an endnotes block at the end of the document
 | padding top | `11pt` |
 | list indent | `1.8em` |
 | item space after | `0.4em` |
-| heading | NOTES — sans, 8pt, uppercase, tracking 0.1em, colour ink_faint |
+| heading | none — the rule above the block is the only mark it needs |
+
+> No 'NOTES' label. In a one-page document the rule plus the numbered list already reads as a notes area, and a heading over two lines of small print is heavier than the thing it labels.
 
 ##### Sidenote (opt-in: `typeset--sidenotes`)
 
@@ -1301,11 +1320,16 @@ Where unsupported: an endnotes block at the end of the document
 | line height | `1.4` |
 | color | `ink_muted` |
 | align | `left` |
-| width | `12em` |
-| position | right margin, 2em past the measure |
+| width | `11em` |
+| position | the right margin, 2em past the text column's own right edge |
 | vertical offset | -0.3em from the marker's line |
 | marker prefix | the note number in accent, weight 600 |
 | measure when active | `27em` |
+| reserved margin | 14em — the gap plus the note, with an em to spare |
+
+> Anchor the note to the text column's right edge, not to the measure. The measure is a maximum: where the reserved margin is the binding constraint the column is narrower than it, and a note offset from the measure lands on top of the text.
+
+> Sidenotes are positioned, not flowed: a long note followed closely by another will overlap it. Keep each note short and consecutive notes apart — one per paragraph, and not in every paragraph. An implementation cannot fix this, and should not pretend to; it is a constraint on the writing.
 
 #### Table of contents
 
@@ -1438,9 +1462,12 @@ Where unsupported: leaders render, page numbers are omitted
 
 `letter`
 
+- A letter is set ragged right. It is addressed to a person, and justification reads as institutional.
+- The sender block is address data, not a masthead: one style throughout, at body size, in the reading face. Nothing bold, nothing in the sans. A personal letter does not announce itself.
 - Address blocks are line-broken data, not prose: tighter leading, never justified, line breaks as authored.
-- The signature block reserves vertical space above its rule. The point of printing a letter is that someone signs it.
+- The signature is the typed name with room above it to sign. No ruled line — a rule is a form to be filled in.
 - A letter carries no running head and no folio.
+- Footnotes belong in a letter as much as in an essay. Where the engine cannot set them at the page foot, the rule plus the numbered note at the end of a one-page letter reads as a footnote area regardless.
 
 ##### Letter page
 
@@ -1454,27 +1481,22 @@ Where unsupported: leaders render, page numbers are omitted
 
 > The deeper top margin puts the letterhead where an envelope window expects it.
 
-##### Letterhead name
+##### Sender block
 
 | Property | Value |
 | --- | --- |
-| font | `sans` |
-| weight | `600` |
-| size | `14pt` |
-| tracking | `-0.01em` |
+| font | `serif` |
+| weight | `400` |
+| size | `11pt` |
+| line height | `1.35` |
+| color | `ink` |
 | align | `left` |
-| space after | `0.3em` |
+| line breaks | as authored — name, street, suburb and postcode, country |
+| space after | `27.5pt` |
 
-##### Letterhead contact
+> Every line is the same style, including the name. Setting the name larger or bolder turns a letter into stationery.
 
-| Property | Value |
-| --- | --- |
-| font | `sans` |
-| size | `8pt` |
-| line height | `1.5` |
-| color | `ink_muted` |
-| align | `left` |
-| block space after | `27.5pt` |
+> Omit what you do not use. A personal letter needs no email address and no telephone number.
 
 ##### Address block
 
@@ -1497,6 +1519,20 @@ Where unsupported: leaders render, page numbers are omitted
 | align | `left` |
 | space after | `16.5pt` |
 
+##### Line under the date
+
+| Property | Value |
+| --- | --- |
+| font | `serif` |
+| style | `italic` |
+| size | `11pt` |
+| color | `ink` |
+| align | `left` |
+| space before | 0.1em — it belongs to the date, and takes no gap of its own |
+| space after | `16.5pt` |
+
+> A dedication, a feast, a devotion — whatever the writer puts under the date. Italic, at body size, immediately beneath.
+
 ##### Salutation
 
 | Property | Value |
@@ -1515,35 +1551,52 @@ Where unsupported: leaders render, page numbers are omitted
 
 | Property | Value |
 | --- | --- |
+| font | `serif` |
+| size | `11pt` |
 | align | `left` |
-| space before | `33pt` |
-| rule width | `16em` |
-| rule | 0.5pt rule_strong above the typed name |
-| name size | `9.5pt` |
-| padding top | `0.3em` |
+| space before | `33pt — the room to sign` |
+| rule | `none` |
 | break inside | `avoid` |
 | signature image max height | `16mm` |
+
+> The typed name only. A ruled line above a name is a form; a letter is not a form.
 
 ##### Enclosures
 
 | Property | Value |
 | --- | --- |
 | font | `serif` |
-| size | `9.5pt` |
-| color | `ink_muted` |
+| size | `11pt` |
 | align | `left` |
 | space before | `22pt` |
-| label | small caps, weight 600, colour ink |
+| label | same style as the text it introduces — no small caps, no weight change |
+
+> Same reasoning as the postscript: "Enc." introduces a sentence, it does not head a section.
 
 ##### Postscript
 
 | Property | Value |
 | --- | --- |
 | font | `serif` |
-| size | `9.5pt` |
+| size | `11pt` |
 | align | `left` |
 | space before | `11pt` |
-| label | small caps, weight 600, tracking 0.08em |
+| label | same style as the text it introduces — no small caps, no weight change |
+
+> A postscript is a sentence that happens to begin with "P.S.". The label is not a heading.
+
+##### Footnote
+
+| Property | Value |
+| --- | --- |
+| marker | as the note marker in Apparatus — superscript, accent, no brackets |
+| position | foot of the page where the engine can; otherwise after the signature block |
+| font | `serif` |
+| size | `9.5pt` |
+| separator | 0.5pt rule above the notes area |
+| heading | `none` |
+
+Where unsupported: a numbered note after the signature, under a rule — which on a one-page letter is the page foot anyway
 
 #### Pagination utilities
 

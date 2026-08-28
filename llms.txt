@@ -25,7 +25,9 @@ Read in this order:
 - [typeset.css](https://typeset.adilsoncarvalho.com/typeset.css): CSS. Complete except for footnotes, running heads and TOC page numbers, which need a paged-media engine.
 - [typeset.typ](https://typeset.adilsoncarvalho.com/implementations/typeset.typ): Typst. Complete except for the three-line drop-cap wrap, which Typst cannot float.
 - [example-essay.typ](https://typeset.adilsoncarvalho.com/implementations/example-essay.typ): the essay set in Typst — a conformance sample.
+- [example-letter.typ](https://typeset.adilsoncarvalho.com/implementations/example-letter.typ): the letter in Typst — ragged right, real page-foot footnote.
 - [example-two-column.typ](https://typeset.adilsoncarvalho.com/implementations/example-two-column.typ): the two-column template in Typst.
+- [typeset-typst.zip](https://typeset.adilsoncarvalho.com/downloads/typeset-typst.zip): the Typst implementation with every font file. Typst cannot fetch a font from a URL, so a bundle is the only way to hand it over complete.
 - [two-column.html](https://typeset.adilsoncarvalho.com/examples/two-column.html): the two-column template in CSS. Note: it does NOT use Paged.js — Paged.js cannot fragment a CSS column flow and silently produces zero pages.
 - [essay.html](https://typeset.adilsoncarvalho.com/examples/essay.html), [letter.html](https://typeset.adilsoncarvalho.com/examples/letter.html): the same documents in CSS, paginated with Paged.js.
 
@@ -40,6 +42,8 @@ Read in this order:
   `conformance`.
 - Where an engine cannot express a property, degrade as named in that element's
   `fallback` field, and never silently.
+- Ragged right is the DEFAULT alignment. Justification is opt-in for continuous
+  prose at a full measure, and mandatory in two columns. Do not justify a letter.
 - A template overrides the page and the scale and nothing else. Do not give a
   template its own palette, rule weights or numeral conventions.
 - Report what you could not implement. A conformance claim that hides a gap is

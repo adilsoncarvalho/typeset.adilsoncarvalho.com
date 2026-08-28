@@ -8,31 +8,28 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Source+Sans+3:ital,wght@0,300..700;1,300..700&display=swap">
 <link rel="stylesheet" href="../typeset.css">
 <link rel="stylesheet" href="preview.css">
-<script src="https://cdn.jsdelivr.net/npm/pagedjs@0.4.3/dist/paged.polyfill.js"></script>
 <style>
   /* A letter is one page: no running head, no folio, and a deeper top margin
-     so the letterhead sits where an envelope window expects it. */
+     so the sender block sits where an envelope window expects it. */
   @page {
     margin: 32mm 25mm 28mm;
     @top-center { content: none; }
     @bottom-center { content: none; }
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/pagedjs@0.4.3/dist/paged.polyfill.js"></script>
+<script src="preview-bar.js" defer data-label="Letter" data-note="Paginated by Paged.js · ⌘P prints exactly what you see"></script>
 </head>
 <body>
 
-<div class="preview-bar ts-screen-only">
-  <a href="../index.html">← typeset</a>
-  <b>Letter</b>
-  <span>Paginated by Paged.js · ⌘P prints exactly what you see</span>
-</div>
 
-<article class="typeset">
+<article class="typeset typeset--ragged" lang="en">
 
   <div class="ts-letterhead">
-    <p class="ts-name">Adilson Carvalho</p>
-    <p class="ts-contact">14 Wentworth Avenue, Surry Hills <span class="ts-tie">NSW 2010</span><br>
-      hello@example.org · <span class="ts-tie">+61 2 5550 0100</span></p>
+    <p>Adilson Carvalho</p>
+    <p>10 Wentworth Avenue</p>
+    <p>Surry Hills <span class="ts-tie">NSW 2010</span></p>
+    <p>Australia</p>
   </div>
 
   <address class="ts-address">
@@ -43,26 +40,30 @@
     Adelaide <span class="ts-tie">SA 5000</span>
   </address>
 
-  <p class="ts-date">28 August 2026</p>
+  <p class="ts-date">27 August 2026</p>
+  <p class="ts-date-note">St Monica, mother of St Augustine Bishop, ora pro nobis</p>
 
   <p class="ts-salutation">Dear Registrar,</p>
 
-  <p>I am writing about the setting of the Institute's annual report, which arrived this morning and which I read with rather more attention to its margins than to its contents. I hope that is taken in the spirit intended.</p>
+  <p>I am writing about the setting of the Institute’s annual report, which arrived this morning and which I read with rather more attention to its margins than to its contents. I hope that is taken in the spirit intended.</p>
 
-  <p>The text column runs to something near a hundred and ten characters. By the second page I had lost my place twice, and by the fourth I had stopped reading and started measuring. The report itself is careful work; it deserves better than a layout that makes it tiring to read.</p>
+  <p>The text column runs to something near a hundred and ten characters.<a class="ts-noteref" href="#n1"></a> By the second page I had lost my place twice, and by the fourth I had stopped reading and started measuring. The report itself is careful work; it deserves better than a layout that makes it tiring to read.</p>
 
-  <p>This is a cheap problem to fix. Narrowing the column to sixty-six characters costs one afternoon and no money, and the space it frees on the right can carry the marginal notes that are currently crowded into footnotes. I have enclosed the specification I use for my own documents, along with two specimen pages so the Institute can judge the result rather than the argument.</p>
-
-  <p>If it would be useful, I am glad to set one section of next year's report as a demonstration.</p>
+  <p>This is a cheap problem to fix, and I have enclosed the specification I use for my own documents.</p>
 
   <p class="ts-closing">Yours sincerely,</p>
 
-  <div class="ts-signature">
-    <span class="ts-rule">Adilson Carvalho</span>
-  </div>
+  <div class="ts-signature">Adilson Carvalho</div>
 
-  <p class="ts-enclosures"><span class="ts-label">Enc.</span> typeset.css; two specimen pages</p>
-  <p class="ts-ps"><span class="ts-label">P.S.</span> The tables were excellent — tabular figures throughout, which is more than most annual reports manage.</p>
+  <p class="ts-enclosures">Enc. typeset.css; two specimen pages</p>
+
+  <p class="ts-ps">P.S. The tables were excellent — tabular figures throughout, which is more than most annual reports manage.</p>
+
+  <div class="ts-endnotes">
+    <ol>
+      <li id="n1">Measured on page four, between the outer margins: 168mm at a 10pt body, which is about 112 characters.</li>
+    </ol>
+  </div>
 
 </article>
 </body>

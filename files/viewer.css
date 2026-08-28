@@ -1,0 +1,106 @@
+/* Chrome for a single-file view. Colour tokens come from ../specimen.css. */
+
+body { margin: 0; background: var(--ui-bg); color: var(--ui-fg); font-family: var(--ui-sans); }
+
+.vbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 1.25rem;
+  background: #24211e;
+  color: #e8e3db;
+  font-size: 0.8125rem;
+}
+.vbar a.back { color: #e8e3db; text-decoration: none; border-bottom: 1px solid #6b6560; }
+.vbar a.back:hover { border-color: currentColor; }
+.vbar .name { font-family: var(--ui-mono); color: #fff; }
+.vbar .actions { margin-left: auto; display: flex; gap: 0.5rem; }
+
+.vbtn {
+  appearance: none;
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  font: 600 0.75rem/1.4 var(--ui-sans);
+  color: #e8e3db;
+  background: rgb(255 255 255 / 0.08);
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 3px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.vbtn:hover { background: rgb(255 255 255 / 0.16); color: #fff; }
+.vbtn[data-done="1"] { color: #9ed2a0; border-color: #9ed2a0; }
+
+main { max-width: 74rem; margin: 0 auto; padding: 2.5rem 1.5rem 6rem; }
+
+main h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-family: var(--ui-mono);
+}
+.lede { margin: 0 0 1.5rem; max-width: 44rem; color: var(--ui-fg-muted); font-size: 0.9375rem; }
+.lede code { font-family: var(--ui-mono); font-size: 0.85em; background: var(--ui-bg-sunken); padding: 0.1em 0.3em; border-radius: 3px; }
+
+.extra {
+  margin: 0 0 1.75rem;
+  padding: 1rem 1.25rem;
+  max-width: 44rem;
+  border: 1px solid var(--ui-border);
+  border-left: 3px solid var(--ui-accent);
+  border-radius: 3px;
+  background: var(--ui-bg-raised);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--ui-fg-muted);
+}
+.extra b { color: var(--ui-fg); }
+.extra .vbtn {
+  margin-top: 0.75rem;
+  color: var(--ui-fg);
+  background: var(--ui-bg);
+  border-color: var(--ui-border-strong);
+}
+.extra .vbtn:hover { background: var(--ui-bg-sunken); }
+
+.meta {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  color: var(--ui-fg-faint);
+  font-family: var(--ui-mono);
+}
+
+.filebody {
+  background: var(--ui-code-bg);
+  border-radius: 3px;
+  overflow-x: auto;
+  padding: 1.25rem 0;
+  font-family: var(--ui-mono);
+  font-size: 0.75rem;
+  line-height: 1.65;
+  color: var(--ui-code-fg);
+  tab-size: 2;
+}
+.filebody .line { display: flex; }
+.filebody .line:target, .filebody .line:hover { background: rgb(255 255 255 / 0.04); }
+.filebody .no {
+  flex: 0 0 4rem;
+  padding-right: 1rem;
+  text-align: right;
+  color: #6b6560;
+  user-select: none;
+}
+.filebody .src { white-space: pre-wrap; overflow-wrap: break-word; padding-right: 1.5rem; }
+
+.c-comment { color: var(--ui-code-comment); font-style: italic; }
+.c-sel { color: var(--ui-code-sel); }
+.c-prop { color: var(--ui-code-prop); }
+.c-val { color: var(--ui-code-val); }
+.c-at { color: #c3a6e0; }
+.c-num { color: #9ed2a0; }
+
+.err { padding: 1.5rem; color: #d98a8a; font-family: var(--ui-mono); font-size: 0.8125rem; }

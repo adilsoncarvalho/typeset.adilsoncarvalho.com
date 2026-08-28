@@ -9,30 +9,9 @@ body { background: #e8e4dd; margin: 0; }
   margin: 0 auto 2rem;
 }
 
-.preview-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 1rem;
-  background: #24211e;
-  color: #e8e3db;
-  font: 400 0.8125rem/1.4 "Source Sans 3", sans-serif;
-}
-.preview-bar a { color: #e8e3db; text-decoration: none; border-bottom: 1px solid #6b6560; }
-.preview-bar a:hover { border-color: currentColor; }
-.preview-bar span { color: #a09890; margin-left: auto; }
-.pagedjs_pages { margin-top: 2.5rem; }
-
-@media print {
-  .preview-bar { display: none; }
-  body { background: none; }
-  .pagedjs_page { box-shadow: none; margin: 0; }
-}
+/* The navigation bar is built and styled by preview-bar.js, inline — Paged.js
+   rewrites and drops rules from this file, and applies @media print rules
+   unconditionally, so neither a class nor a media query can be relied on. */
 
 /* A two-column document cannot go through Paged.js — Paged.js fragments a page
    by moving content between page boxes, and it cannot split a CSS column

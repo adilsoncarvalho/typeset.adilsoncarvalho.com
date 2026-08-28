@@ -1,0 +1,50 @@
+<p class="pair__label">How it must look</p>
+<div class="paper paper--flush">
+  <div class="mini">
+    <div class="mini__sheet">
+      <article class="typeset typeset--two-column">
+        <div class="ts-titleblock">
+          <h1>The Measure of a Column</h1>
+          <p class="ts-subtitle">What changes when a page is divided in two, and what must not</p>
+          <p class="ts-byline">Adilson Carvalho</p>
+          <p class="ts-dateline">Sydney, 28 August 2026</p>
+        </div>
+        <div class="ts-abstract">
+          <span class="ts-label">Abstract</span>
+          Dividing an A4 page into two equal columns leaves 77mm of measure. At the single-column base of 11pt that carries 40 characters — below the floor at which a line of prose stays readable.
+        </div>
+        <h2>The arithmetic</h2>
+        <p>A4 is 210mm wide. Take off the 28mm inner margin and the 22mm outer margin and 160mm of text width remains. A 6mm gutter divides it into two columns of 77mm.</p>
+        <p>At 11pt, a 77mm column carries about 40 characters. This specification sets 45 as the floor for a line of prose, so 11pt is not available here. Dropping the base to 9.5pt restores 47 characters.</p>
+        <h3>What follows</h3>
+        <p>Leading tightens from 1.45 to 1.4. A shorter line needs less vertical separation for the return sweep to stay unambiguous, and the saving is real: at 13.3pt of advance a column holds 52 lines instead of 47.</p>
+        <p>Headings come down hardest. A 24pt level-2 heading inside a 77mm column spends three lines saying two words, so the scale runs 20/13/11/9.5.</p>
+        <div class="ts-callout">
+          <p class="ts-callout-title">What does not change</p>
+          <p>The palette, the rule weights, the numeral conventions and the pagination rules are all identical.</p>
+        </div>
+        <h2>Justification</h2>
+        <p>At 47 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.</p>
+        <blockquote class="ts-pullquote"><p>The one place the spec removes a choice.</p></blockquote>
+        <p>So the template turns justification on itself rather than offering it as an option.</p>
+        <figure class="ts-span">
+          <table>
+            <caption><span class="ts-label">Table 1</span> — Characters per line for a 77mm column.</caption>
+            <thead><tr><th>Base</th><th class="ts-num">11pt</th><th class="ts-num">10pt</th><th class="ts-num">9.5pt</th><th class="ts-num">9pt</th></tr></thead>
+            <tbody>
+              <tr><td>Characters</td><td class="ts-num">40</td><td class="ts-num">44</td><td class="ts-num">47</td><td class="ts-num">49</td></tr>
+              <tr><td>Conformant</td><td class="ts-num">no</td><td class="ts-num">no</td><td class="ts-num">yes</td><td class="ts-num">yes</td></tr>
+            </tbody>
+          </table>
+        </figure>
+        <h2>What the template forbids</h2>
+        <p>Sidenotes have nowhere to go: there is no margin left. They become footnotes or endnotes, and an implementation should degrade them visibly rather than positioning them off the page and losing them.</p>
+        <p>A three-line drop cap at 3.05em is 29pt — a quarter of the column width for one letter. The cap is neutralised and the opening words carry the signal in small caps instead.</p>
+        <h3>Spanning</h3>
+        <p>An element spans both columns fully or neither. Spanning costs a break in both columns, so it is opt-in per instance and belongs at the top or the bottom of a page.</p>
+        <div class="ts-colophon">Set in EB Garamond, 9.5 on 13.3 points, two columns of 77mm with a 6mm gutter.</div>
+      </article>
+    </div>
+  </div>
+</div>
+<p class="mini__caption">A4 at 42%. <a href="examples/two-column.html">Open the full document →</a></p>

@@ -222,55 +222,9 @@ a { color: inherit; }
 }
 @media (max-width: 48rem) { .paper { padding: 1.5rem 1.25rem; } }
 
-.paper--tall { min-height: 20rem; }
 .paper--flush { padding: 0; overflow: hidden; }
 
 /* Code panel */
-.code {
-  position: relative;
-  background: var(--ui-code-bg);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.code pre {
-  margin: 0;
-  padding: 1.25rem 1.5rem;
-  font-family: var(--ui-mono);
-  font-size: 0.75rem;
-  /* Wrap rather than clip: a long comment cut off at the panel edge reads as
-     broken. The Copy button hands over the exact text either way. */
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  line-height: 1.6;
-  color: var(--ui-code-fg);
-  tab-size: 2;
-}
-.code pre::-webkit-scrollbar { height: 8px; }
-.code pre::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-
-.code .c-comment { color: var(--ui-code-comment); font-style: italic; }
-.code .c-sel { color: var(--ui-code-sel); }
-.code .c-prop { color: var(--ui-code-prop); }
-.code .c-val { color: var(--ui-code-val); }
-.code .c-at { color: #c3a6e0; }
-
-.copy {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  padding: 0.25rem 0.55rem;
-  font: 600 0.6875rem/1.4 var(--ui-sans);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #a09890;
-  background: rgb(255 255 255 / 0.06);
-  border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: 3px;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 120ms;
-}
-.code:hover .copy, .copy:focus-visible { opacity: 1; }
 .copy:hover { color: #fff; background: rgb(255 255 255 / 0.12); }
 .copy[data-done="1"] { color: #9ed2a0; }
 
@@ -334,12 +288,6 @@ a { color: inherit; }
 }
 .btn:hover { border-color: var(--ui-fg-muted); }
 
-.err {
-  padding: 1rem 1.25rem;
-  font-family: var(--ui-mono);
-  font-size: 0.75rem;
-  color: #d98a8a;
-}
 
 @media print {
   .nav, .copy, .pair__label, .code, .btnrow, .masthead .meta { display: none; }
@@ -387,39 +335,60 @@ a { color: inherit; }
 
 .tabs {
   display: flex;
-  gap: 0.15rem;
-  margin-bottom: 0.5rem;
-  border-bottom: 1px solid var(--ui-border);
+  flex-wrap: wrap;
+  align-items: flex-end;
 }
-.tab {
-  appearance: none;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: none;
+
+/* Tabs are radio inputs, and the pane shown is chosen by sibling position, so
+   the panel works with no JavaScript at all. The panes must stay the only <div>
+   children of .tabs for the nth-of-type pairing below to hold. */
+.tabs input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.tabs label {
   padding: 0.3rem 0.65rem;
-  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
   font: 700 0.6875rem/1.4 var(--ui-sans);
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--ui-fg-faint);
   cursor: pointer;
 }
-.tab:hover { color: var(--ui-fg); }
-.tab[aria-selected="true"] {
+.tabs label:hover { color: var(--ui-fg); }
+.tabs input:checked + label {
   color: var(--ui-fg);
   border-bottom-color: var(--ui-accent);
 }
+.tabs input:focus-visible + label { outline: 2px solid var(--ui-accent); outline-offset: 2px; }
 
-.tabs__body { position: relative; min-width: 0; }
-.tabs__body[data-kind="css"] > div,
-.tabs__body[data-kind="typst"] > div {
+.tabs__rule {
+  flex: 1;
+  min-width: 1rem;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.tabs__pane {
+  flex: 0 0 100%;
+  min-width: 0;
+  display: none;
+  margin-top: 0.5rem;
+}
+.tabs input:nth-of-type(1):checked ~ .tabs__pane:nth-of-type(1),
+.tabs input:nth-of-type(2):checked ~ .tabs__pane:nth-of-type(2),
+.tabs input:nth-of-type(3):checked ~ .tabs__pane:nth-of-type(3) { display: block; }
+
+/* Code panes */
+.codewrap {
   position: relative;
   background: var(--ui-code-bg);
   border-radius: 3px;
   overflow: hidden;
 }
-.tabs__body[data-kind="css"] pre,
-.tabs__body[data-kind="typst"] pre {
+.codewrap pre {
   margin: 0;
   padding: 1.25rem 1.5rem;
   font-family: var(--ui-mono);
@@ -430,7 +399,7 @@ a { color: inherit; }
   overflow-wrap: break-word;
   tab-size: 2;
 }
-.tabs__body > div:hover .copy, .copy:focus-visible { opacity: 1; }
+.codewrap:hover .copy, .copy:focus-visible { opacity: 1; }
 
 .code-note {
   margin: 0;
@@ -557,4 +526,65 @@ table.spec-table code {
    allowed to overflow its box rather than mis-scale the type. */
 @media (max-width: 72rem) {
   .mini__sheet { transform: scale(0.62); }
+}
+
+/* ---- Grouped action buttons --------------------------------------------- */
+
+.btngroups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 3rem;
+  margin-top: 1.5rem;
+}
+.btngroup__label {
+  margin: 0 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ui-fg-faint);
+}
+.btngroup .btnrow { margin-top: 0; }
+.btn--strong {
+  border-color: var(--ui-accent);
+  color: var(--ui-accent);
+}
+.btn--strong:hover { border-color: var(--ui-accent); background: var(--ui-bg-sunken); }
+
+/* Syntax colours, unscoped: the same palette serves the specimen page's code
+   panes and the file viewers. Previously scoped under `.code`, which the build
+   refactor renamed — losing every colour silently. */
+.c-comment { color: var(--ui-code-comment); font-style: italic; }
+.c-sel { color: var(--ui-code-sel); }
+.c-prop { color: var(--ui-code-prop); }
+.c-val { color: var(--ui-code-val); }
+.c-at { color: #c3a6e0; }
+.c-num { color: #9ed2a0; }
+
+/* A short note above a demo, explaining what to look at in it. */
+.demo-note {
+  margin: 0 0 0.6rem;
+  max-width: 34rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ui-fg-muted);
+}
+.demo-note b { color: var(--ui-fg); }
+
+/* The table-of-contents demo carries hand-written page numbers so the finished
+   shape is visible in a browser. The real rule resolves them after pagination,
+   which a browser cannot do — so it is suppressed here to avoid showing both. */
+.ts-toc--demo a::after { content: none !important; }
+.ts-toc--demo .ts-folio {
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--ts-ink-muted);
+}
+
+/* A demo that cannot be judged in half a column gets the full content width. */
+.fullrow { margin-top: 2rem; }
+.mini--wide { aspect-ratio: 210 / 297; max-width: 44rem; }
+.mini--wide .mini__sheet { transform: scale(0.85); }
+
+@media (max-width: 60rem) {
+  .mini--wide .mini__sheet { transform: scale(0.62); }
 }

@@ -63,11 +63,19 @@
 
 #let typeset(
   scale: scale-single-column,
+  // Ragged right is the default. Justification buys a clean right edge at the
+  // cost of uneven word spacing; choose it for continuous prose at a full
+  // measure, and leave it off for a letter or a note addressed to a person.
   justified: false,
   indented: false,
   numbered: false,
   running-head: true,
   folio: true,
+  // The measure, not the text width. The page leaves 160mm between its
+  // margins; the spec sets the column at 126mm and keeps the remainder as
+  // slack, which is where marginalia live. Pass `none` where the column IS
+  // the measure, as in two columns.
+  measure: 126mm,
   doc,
 ) = {
   let sm = scale.sm
@@ -248,7 +256,10 @@
   show footnote.entry: set text(size: sm)
 
 // @e
-  doc
+
+  // Running heads and folios still span the full text width; only the flow is
+  // constrained. The block is breakable, so pagination is unaffected.
+  if measure == none { doc } else { block(width: measure, doc) }
 }
 
 // ── Blocks the spec names but no engine provides ────────────────────────────
@@ -387,6 +398,7 @@
 
   show: typeset.with(
     scale: scale-two-column,
+    measure: none,        // the column is the measure
     justified: true,
     indented: true,      // a blank line costs 3% of a column
     numbered: numbered,
@@ -496,16 +508,25 @@
 }
 // @e
 
-#let letterhead(name: none, contact: none) = block(below: sp * 2.5, {
-  set par(justify: false, first-line-indent: 0pt)
-  text(font: sans, size: 14pt, weight: 600, tracking: -0.01em, name)
-  if contact != none {
-    block(above: 0.3em, {
-      set par(leading: leading-for(1.5))
-      text(font: sans, size: xs, fill: ink-muted, contact)
-    })
-  }
-})
+// The sender block is address data, not a masthead: one style throughout, at
+// body size, in the reading face. Nothing bold, nothing in the sans.
+#let letterhead(body) = context {
+  let u = text.size
+  block(below: u * 2.5, {
+    set par(justify: false, leading: leading-for(1.35), first-line-indent: 0pt)
+    body
+  })
+}
+
+// A line under the date — a dedication, a feast, a devotion. It belongs to the
+// date, so it takes no gap of its own.
+#let date-note(body) = context {
+  let u = text.size
+  block(above: 0.1em, below: u * 1.5, {
+    set par(justify: false, first-line-indent: 0pt)
+    text(style: "italic", body)
+  })
+}
 
 #let address(label: none, body) = block(below: sp * 1.5, {
   set par(justify: false, leading: leading-for(1.35), first-line-indent: 0pt)
@@ -515,26 +536,36 @@
   body
 })
 
-#let signature(name) = block(above: sp * 3, breakable: false, {
-  set par(justify: false, first-line-indent: 0pt)
-  block(width: 16em, inset: (top: 0.3em), stroke: (top: 0.5pt + rule-strong), text(size: sm, name))
-})
+// The typed name, with room above it to sign. No rule: a ruled line is a form
+// to be filled in, and this is a letter.
+#let signature(name) = context {
+  let u = text.size
+  block(above: u * 3, breakable: false, {
+    set par(justify: false, first-line-indent: 0pt)
+    name
+  })
+}
 
-#let enclosures(body) = block(above: sp * 2, {
-  set par(justify: false, first-line-indent: 0pt)
-  set text(size: sm, fill: ink-muted)
-  text(fill: ink, weight: 600, tracking: 0.06em, ..smcp)[Enc.]
-  [ ]
-  body
-})
+// "Enc." introduces a sentence; it does not head a section.
+#let enclosures(body) = context {
+  let u = text.size
+  block(above: u * 2, {
+    set par(justify: false, first-line-indent: 0pt)
+    [Enc. ]
+    body
+  })
+}
 
-#let postscript(body) = block(above: sp, {
-  set par(justify: false, first-line-indent: 0pt)
-  set text(size: sm)
-  text(weight: 600, tracking: 0.08em, ..smcp)[P.S.]
-  [ ]
-  body
-})
+// A postscript is a sentence that happens to begin with "P.S." — the label is
+// not a heading, so it matches the text it introduces exactly.
+#let postscript(body) = context {
+  let u = text.size
+  block(above: u, {
+    set par(justify: false, first-line-indent: 0pt)
+    [P.S. ]
+    body
+  })
+}
 
 // ── Apparatus ───────────────────────────────────────────────────────────────
 
@@ -546,11 +577,13 @@
 // @e
 
 // @s notes
+// Anchored past the text column's right edge. In Typst the column width is
+// explicit (the `measure` argument), so the offset is taken from it directly.
 #let sidenote(body) = place(
   right,
-  dx: 14em,
+  dx: 13em,
   dy: -0.3em,
-  block(width: 12em, {
+  block(width: 11em, {
     set text(font: sans, size: xs, fill: ink-muted)
     set par(justify: false, leading: leading-for(1.4), first-line-indent: 0pt)
     body
