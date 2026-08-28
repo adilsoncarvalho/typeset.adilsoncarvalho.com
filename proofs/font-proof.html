@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Font proof — typeset</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..700;1,400..700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Spectral:ital,wght@0,300;0,400;0,600;1,400;1,600&family=Alegreya:ital,wght@0,400..700;1,400..700&family=Crimson+Pro:ital,wght@0,300..700;1,300..700&family=Literata:ital,opsz,wght@0,7..72,300..700;1,7..72,300..700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../typeset.css">
+<style>
+  /* A specimen sheet, not a document: its own page margins, and one candidate
+     per page so the comparison is made by turning paper over.
+     Nothing here touches typeset.css — every sample overrides only --ts-serif. */
+  @page { size: A4; margin: 14mm 16mm; }
+
+  html { background: #e8e4dd; }
+  body {
+    margin: 0;
+    font-family: "Source Sans 3", sans-serif;
+    color: #1a1a1a;
+  }
+
+  .proof {
+    box-sizing: border-box;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto 8mm;
+    padding: 14mm 16mm;
+    background: #fffefb;
+    box-shadow: 0 2px 4px rgb(0 0 0 / .08), 0 12px 32px -16px rgb(0 0 0 / .25);
+    break-after: page;
+  }
+  .proof:last-of-type { break-after: auto; }
+
+  .proof__head {
+    padding-bottom: 4mm;
+    margin-bottom: 7mm;
+    border-bottom: 1pt solid #6f6a64;
+  }
+  .proof__n {
+    margin: 0 0 1mm;
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #8a8a8a;
+  }
+  .proof__head h1 { margin: 0 0 2mm; font-size: 30pt; font-weight: 400; line-height: 1.05; }
+  .proof__intent { margin: 0; max-width: 150mm; font-size: 8.5pt; line-height: 1.45; color: #5a5a5a; }
+  .proof--display .proof__intent { color: #7a1f1f; }
+
+  .proof__block { margin-bottom: 8mm; }
+  .proof__label {
+    margin: 0 0 2.5mm;
+    padding-bottom: 1mm;
+    border-bottom: .5pt solid #c9c4bd;
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #8a8a8a;
+  }
+
+  .proof__detail { font-size: 10pt; line-height: 1.8; }
+  .proof__votive {
+    margin: 4mm 0 0;
+    font-size: 17pt;
+    line-height: 1.25;
+    color: #1a1a1a;
+  }
+
+  /* The two-column sample is a fragment, so it gets a fixed height instead of
+     flowing to a page of its own. */
+  .proof .typeset--two-column { column-fill: auto; height: 40mm; }
+
+  .howto {
+    width: 210mm;
+    box-sizing: border-box;
+    margin: 8mm auto;
+    padding: 6mm 16mm;
+    background: #24211e;
+    color: #e8e3db;
+    font-size: 9pt;
+    line-height: 1.5;
+    border-radius: 2px;
+  }
+  .howto b { color: #fff; }
+  .howto ul { margin: 2mm 0 0; padding-left: 5mm; }
+
+  @media print {
+    html { background: none; }
+    .proof {
+      width: auto;
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      box-shadow: none;
+      background: none;
+    }
+    .howto { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="howto">
+  <b>Printing this proof.</b> Six candidates, one per page. Judge on paper, not on screen.
+  <ul>
+    <li><b>Print at 100%.</b> Turn off “fit to page” / “scale to fit” — it invalidates every point size here.</li>
+    <li>Use the paper and the printer you will actually use. A laser and an inkjet fail light hairlines differently.</li>
+    <li>Read the <b>small-sizes block</b> first. That is where a display face gives itself away; the 11pt sample flatters everything.</li>
+    <li>Then read the <b>two-column block</b> at arm's length. If you can read it without leaning in, it works at 9.5pt.</li>
+  </ul>
+</div>
+
+<section class="proof">
+  <header class="proof__head">
+    <p class="proof__n">Candidate 1 of 6</p>
+    <h1 style='font-family: "EB Garamond", serif'>EB Garamond</h1>
+    <p class="proof__intent">Text face. The incumbent. A Garamond revival drawn for reading sizes — but its own note in the spec says no smaller than 11pt.</p>
+  </header>
+
+  <div class="proof__block">
+    <p class="proof__label">Single column · 11pt / 1.45 · 33em measure</p>
+    <div class="typeset" style='--ts-serif: "EB Garamond", serif'>
+      <p>Ask anyone to improve a document and they will change the font. It is the most visible lever and the least effective one. The reader who abandoned your report on page three did not abandon it because the type was thin; they abandoned it because each line ran a hundred and ten characters wide and their eye could not find the start of the next.</p>
+    </div>
+  </div>
+
+  <div class="proof__block">
+    <p class="proof__label">Two column · 9.5pt / 1.4 · 77mm columns · justified, hyphenated</p>
+    <div class="typeset typeset--two-column" style='--ts-serif: "EB Garamond", serif' lang="en">
+      <p>This is not a matter of taste. The return sweep — the movement from the end of one line to the beginning of the next — is a motor task, and like every motor task it has an error rate that rises with distance. Past about seventy-five characters the rate becomes high enough that a reader begins re-reading lines without noticing. What they notice is fatigue, and fatigue gets attributed to the content rather than to its setting. The conventional figure is forty-five to seventy-five characters for a single column, with sixty-six given as the ideal, and the width of that range is the interesting part.</p>
+    </div>
+  </div>
+
+  <div class="proof__block">
+    <p class="proof__label">The small sizes — where a display face fails first</p>
+    <div class="typeset" style='--ts-serif: "EB Garamond", serif'>
+      <p style="font-size:9.5pt">9.5pt — the two-column body size. Judge the stems and the hairlines here, not on the page above.</p>
+      <p style="font-size:8.5pt">8.5pt — table and endnote size. Are the thin strokes continuous, or are they breaking up?</p>
+      <p style="font-size:8pt;margin-bottom:11pt">8pt — caption and running-head size. This is the floor. If it looks grey rather than black, the face is too light for print at this size.</p>
+      <p class="proof__detail">
+        <span class="ts-sc">Small caps</span> · <em>italic for a term of art</em> · <strong>bold for a load-bearing clause</strong><br>
+        Old-style figures 1234567890 · <span class="ts-nums-lining">lining 1234567890</span> · <span class="ts-nums-tabular">tabular 1234567890</span>
+      </p>
+      <p class="proof__votive" style='font-family: "EB Garamond", serif'>St Monica, mother of St Augustine the bishop, ora pro nobis</p>
+    </div>
+  </div>
+</section>
+<section class="proof proof--display">
+  <header class="proof__head">
+    <p class="proof__n">Candidate 2 of 6</p>
+    <h1 style='font-family: "Cormorant Garamond", serif'>Cormorant Garamond</h1>
+    <p class="proof__intent">DISPLAY face. Drawn for large sizes; there is no text cut. Very fine hairlines, small x-height. Expect it to thin out below 11pt.</p>
+  </header>
+
+  <div class="proof__block">
+    <p class="proof__label">Single column · 11pt / 1.45 · 33em measure</p>
+    <div class="typeset" style='--ts-serif: "Cormorant Garamond", serif'>
+      <p>Ask anyone to improve a document and they will change the font. It is the most visible lever and the least effective one. The reader who abandoned your report on page three did not abandon it because the type was thin; they abandoned it because each line ran a hundred and ten characters wide and their eye could not find the start of the next.</p>
+    </div>
+  </div>
+
+  <div class="proof__block">
+    <p class="proof__label">Two column · 9.5pt / 1.4 · 77mm columns · justified, hyphenated</p>
+    <div class="typeset typeset--two-column" style='--ts-serif: "Cormorant Garamond", serif' lang="en">
+      <p>This is not a matter of taste. The return sweep — the movement from the end of one line to the beginning of the next — is a motor task, and like every motor task it has an error rate that rises with distance. Past about seventy-five characters the rate becomes high enough that a reader begins re-reading lines without noticing. What they notice is fatigue, and fatigue gets attributed to the content rather than to its setting. The conventional figure is forty-five to seventy-five characters for a single column, with sixty-six given as the ideal, and the width of that range is the interesting part.</p>
+    </div>
+  </div>
+
+  <div class="proof__block">
+    <p class="proof__label">The small sizes — where a display face fails first</p>
+    <div class="typeset" style='--ts-serif: "Cormorant Garamond", serif'>
+      <p style="font-size:9.5pt">9.5pt — the two-column body size. Judge the stems and the hairlines here, not on the page above.</p>
+      <p style="font-size:8.5pt">8.5pt — table and endnote size. Are the thin strokes continuous, or are they breaking up?</p>
+      <p style="font-size:8pt;margin-bottom:11pt">8pt — caption and running-head size. This is the floor. If it looks grey rather than black, the face is too light for print at this size.</p>
+      <p class="proof__detail">
+        <span class="ts-sc">Small caps</span> · <em>italic for a term of art</em> · <strong>bold for a load-bearing clause</strong><br>
+        Old-style figures 1234567890 · <span class="ts-nums-lining">lining 1234567890</span> · <span class="ts-nums-tabular">tabular 1234567890</span>
+      </p>
+      <p class="proof__votive" style='font-family: "Cormorant Garamond", serif'>St Monica, mother of St Augustine the bishop, ora pro nobis</p>
+    </div>
+  </div>
+</section>
+<section class="proof">
+  <header class="proof__head">
+    <p class="proof__n">Candidate 3 of 6</p>
+    <h1 style='font-family: "Spectral", serif'>Spectral</h1>
+    <p class="proof__intent">Text face, drawn for screen and print together. Sturdier strokes, larger x-height. Holds small sizes well.</p>
+  </header>
+
+  <div class="proof__block">
+    <p class="proof__label">Single column · 11pt / 1.45 · 33em measure</p>
+    <div class="typeset" style='--ts-serif: "Spectral", serif'>
+      <p>Ask anyone to improve a document and they will change the font. It is the most visible lever and the least effective one. The reader who abandoned your report on page three did not abandon it because the type was thin; they abandoned it because each line ran a hundred and ten characters wide and their eye could not find the start of the next.</p>
+    </div>
+  </div>
+
+  <div class="proof__block">
+    <p class="proof__label">Two column · 9.5pt / 1.4 · 77mm columns · justified, hyphenated</p>
+    <div class="typeset typeset--two-column" style='--ts-serif: "Spectral", serif' lang="en">
+      <p>This is not a matter of taste. The return sweep — the movement from the end of one line to the beginning of the next — is a motor task, and like every motor task it has an error rate that rises with distance. Past about seventy-five characters the rate becomes high enough that a reader begins re-reading lines without noticing. What they notice is fatigue, and fatigue gets attributed to the content rather than to its setting. The conventional figure is forty-five to seventy-five characters for a single column, with sixty-six given as the ideal, and the width of that range is the interesting part.</p>
+    </div>
+  </div>
+
+  <div class="proof__block">
+    <p class="proof__label">The small sizes — where a display face fails first</p>
+    <div class="typeset" style='--ts-serif: "Spectral", serif'>
+      <p style="font-size:9.5pt">9.5pt — the two-column body size. Judge the stems and the hairlines here, not on the page above.</p>
+      <p style="font-size:8.5pt">8.5pt — table and endnote size. Are the thin strokes continuous, or are they breaking up?</p>
+      <p style="font-size:8pt;margin-bottom:11pt">8pt — caption and running-head size. This is the floor. If it looks grey rather than black, the face is too light for print at this size.</p>
+      <p class="proof__detail">
+        <span class="ts-sc">Small caps</span> · <em>italic for a term of art</em> · <strong>bold for a load-bearing clause</strong><br>
+        Old-style figures 1234567890 · <span class="ts-nums-lining">lining 1234567890</span> · <span class="ts-nums-tabular">tabular 1234567890</span>
+      </p>
+      <p class="proof__votive" style='font-family: "Spectral", serif'>St Monica, mother of St Augustine the bishop, ora pro nobis</p>
+    </div>
+  </div>
+</section>
+<section class="proof">
+  <header class="proof__head">
+    <p class="proof__n">Candidate 4 of 6</p>
+    <h1 style='font-family: "Alegreya", serif'>Alegreya</h1>
+    <p class="proof__intent">Text face, drawn specifically for literature. Calligraphic, high readability at small sizes. True small caps ship as Alegreya SC.</p>
+  </header>
+
+  <div class="proof__block">
+    <p class="proof__label">Single column · 11pt / 1.45 · 33em measure</p>
+    <div class="typeset" style='--ts-serif: "Alegreya", serif'>
+      <p>Ask anyone to improve a document and they will change the font. It is the most visible lever and the least effective one. The reader who abandoned your report on page three did not abandon it because the type was thin; they abandoned it because each line ran a hundred and ten characters wide and their eye could not find the start of the next.</p>
+    </div>
+  </div>
+
+  <div class="proof__block">
+    <p class="proof__label">Two column · 9.5pt / 1.4 · 77mm columns · justified, hyphenated</p>
+    <div class="typeset typeset--two-column" style='--ts-serif: "Alegreya", serif' lang="en">
+      <p>This is not a matter of taste. The return sweep — the movement from the end of one line to the beginning of the next — is a motor task, and like every motor task it has an error rate that rises with distance. Past about seventy-five characters the rate becomes high enough that a reader begins re-reading lines without noticing. What they notice is fatigue, and fatigue gets attributed to the content rather than to its setting. The conventional figure is forty-five to seventy-five characters for a single column, with sixty-six given as the ideal, and the width of that range is the interesting part.</p>
+    </div>
+  </div>
+
+  <div class="proof__block">
+    <p class="proof__label">The small sizes — where a display face fails first</p>
+    <div class="typeset" style='--ts-serif: "Alegreya", serif'>
+      <p style="font-size:9.5pt">9.5pt — the two-column body size. Judge the stems and the hairlines here, not on the page above.</p>
+      <p style="font-size:8.5pt">8.5pt — table and endnote size. Are the thin strokes continuous, or are they breaking up?</p>
+      <p style="font-size:8pt;margin-bottom:11pt">8pt — caption and running-head size. This is the floor. If it looks grey rather than black, the face is too light for print at this size.</p>
+      <p class="proof__detail">
+        <span class="ts-sc">Small caps</span> · <em>italic for a term of art</em> · <strong>bold for a load-bearing clause</strong><br>
+        Old-style figures 1234567890 · <span class="ts-nums-lining">lining 1234567890</span> · <span class="ts-nums-tabular">tabular 1234567890</span>
+      </p>
+      <p class="proof__votive" style='font-family: "Alegreya", serif'>St Monica, mother of St Augustine the bishop, ora pro nobis</p>
+    </div>
+  </div>
+</section>
+<section class="proof">
+  <header class="proof__head">
+    <p class="proof__n">Candidate 5 of 6</p>
+    <h1 style='font-family: "Crimson Pro", serif'>Crimson Pro</h1>
+    <p class="proof__intent">Text face in the Minion tradition. A classic book serif — elegant, conventional, quiet.</p>
+  </header>
+
+  <div class="proof__block">
+    <p class="proof__label">Single column · 11pt / 1.45 · 33em measure</p>
+    <div class="typeset" style='--ts-serif: "Crimson Pro", serif'>
+      <p>Ask anyone to improve a document and they will change the font. It is the most visible lever and the least effective one. The reader who abandoned your report on page three did not abandon it because the type was thin; they abandoned it because each line ran a hundred and ten characters wide and their eye could not find the start of the next.</p>
+    </div>
+  </div>
+
+  <div class="proof__block">
+    <p class="proof__label">Two column · 9.5pt / 1.4 · 77mm columns · justified, hyphenated</p>
+    <div class="typeset typeset--two-column" style='--ts-serif: "Crimson Pro", serif' lang="en">
+      <p>This is not a matter of taste. The return sweep — the movement from the end of one line to the beginning of the next — is a motor task, and like every motor task it has an error rate that rises with distance. Past about seventy-five characters the rate becomes high enough that a reader begins re-reading lines without noticing. What they notice is fatigue, and fatigue gets attributed to the content rather than to its setting. The conventional figure is forty-five to seventy-five characters for a single column, with sixty-six given as the ideal, and the width of that range is the interesting part.</p>
+    </div>
+  </div>
+
+  <div class="proof__block">
+    <p class="proof__label">The small sizes — where a display face fails first</p>
+    <div class="typeset" style='--ts-serif: "Crimson Pro", serif'>
+      <p style="font-size:9.5pt">9.5pt — the two-column body size. Judge the stems and the hairlines here, not on the page above.</p>
+      <p style="font-size:8.5pt">8.5pt — table and endnote size. Are the thin strokes continuous, or are they breaking up?</p>
+      <p style="font-size:8pt;margin-bottom:11pt">8pt — caption and running-head size. This is the floor. If it looks grey rather than black, the face is too light for print at this size.</p>
+      <p class="proof__detail">
+        <span class="ts-sc">Small caps</span> · <em>italic for a term of art</em> · <strong>bold for a load-bearing clause</strong><br>
+        Old-style figures 1234567890 · <span class="ts-nums-lining">lining 1234567890</span> · <span class="ts-nums-tabular">tabular 1234567890</span>
+      </p>
+      <p class="proof__votive" style='font-family: "Crimson Pro", serif'>St Monica, mother of St Augustine the bishop, ora pro nobis</p>
+    </div>
+  </div>
+</section>
+<section class="proof">
+  <header class="proof__head">
+    <p class="proof__n">Candidate 6 of 6</p>
+    <h1 style='font-family: "Literata", serif'>Literata</h1>
+    <p class="proof__intent">Text face, drawn for long-form reading on e-ink and paper. Optical sizing: it thickens automatically at small sizes.</p>
+  </header>
+
+  <div class="proof__block">
+    <p class="proof__label">Single column · 11pt / 1.45 · 33em measure</p>
+    <div class="typeset" style='--ts-serif: "Literata", serif'>
+      <p>Ask anyone to improve a document and they will change the font. It is the most visible lever and the least effective one. The reader who abandoned your report on page three did not abandon it because the type was thin; they abandoned it because each line ran a hundred and ten characters wide and their eye could not find the start of the next.</p>
+    </div>
+  </div>
+
+  <div class="proof__block">
+    <p class="proof__label">Two column · 9.5pt / 1.4 · 77mm columns · justified, hyphenated</p>
+    <div class="typeset typeset--two-column" style='--ts-serif: "Literata", serif' lang="en">
+      <p>This is not a matter of taste. The return sweep — the movement from the end of one line to the beginning of the next — is a motor task, and like every motor task it has an error rate that rises with distance. Past about seventy-five characters the rate becomes high enough that a reader begins re-reading lines without noticing. What they notice is fatigue, and fatigue gets attributed to the content rather than to its setting. The conventional figure is forty-five to seventy-five characters for a single column, with sixty-six given as the ideal, and the width of that range is the interesting part.</p>
+    </div>
+  </div>
+
+  <div class="proof__block">
+    <p class="proof__label">The small sizes — where a display face fails first</p>
+    <div class="typeset" style='--ts-serif: "Literata", serif'>
+      <p style="font-size:9.5pt">9.5pt — the two-column body size. Judge the stems and the hairlines here, not on the page above.</p>
+      <p style="font-size:8.5pt">8.5pt — table and endnote size. Are the thin strokes continuous, or are they breaking up?</p>
+      <p style="font-size:8pt;margin-bottom:11pt">8pt — caption and running-head size. This is the floor. If it looks grey rather than black, the face is too light for print at this size.</p>
+      <p class="proof__detail">
+        <span class="ts-sc">Small caps</span> · <em>italic for a term of art</em> · <strong>bold for a load-bearing clause</strong><br>
+        Old-style figures 1234567890 · <span class="ts-nums-lining">lining 1234567890</span> · <span class="ts-nums-tabular">tabular 1234567890</span>
+      </p>
+      <p class="proof__votive" style='font-family: "Literata", serif'>St Monica, mother of St Augustine the bishop, ora pro nobis</p>
+    </div>
+  </div>
+</section>
+</body>
+</html>

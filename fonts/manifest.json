@@ -1,0 +1,334 @@
+{
+  "note": "Generated inventory. Every face is a static instance \u2014 no variable fonts, because Typst 0.14 exposes a variable font as its default weight only and would synthesise the rest.",
+  "licence": "All families are OFL-1.1. Each directory carries its own OFL.txt; keep it with the fonts.",
+  "families": [
+    {
+      "family": "EB Garamond",
+      "role": "spec",
+      "dir": "fonts/EB-Garamond",
+      "source": "octaviopardo/EBGaramond12 (upstream release)",
+      "specimen": "https://github.com/octaviopardo/EBGaramond12",
+      "faces": [
+        {
+          "file": "EBGaramond-Italic.otf",
+          "bytes": 304844
+        },
+        {
+          "file": "EBGaramond-Regular.otf",
+          "bytes": 316832
+        },
+        {
+          "file": "EBGaramond-SemiBold.otf",
+          "bytes": 422480
+        },
+        {
+          "file": "EBGaramond-SemiBoldItalic.otf",
+          "bytes": 385388
+        }
+      ],
+      "opentype_features": [
+        "aalt",
+        "c2pc",
+        "c2sc",
+        "case",
+        "dlig",
+        "dnom",
+        "fina",
+        "frac",
+        "hist",
+        "hlig",
+        "init",
+        "kern",
+        "liga",
+        "lnum",
+        "locl",
+        "mark",
+        "mkmk",
+        "numr",
+        "onum",
+        "ordn",
+        "pcap",
+        "pnum",
+        "rlig",
+        "sinf",
+        "smcp",
+        "ss01",
+        "ss02",
+        "ss03",
+        "ss04",
+        "ss05",
+        "ss06",
+        "ss07",
+        "subs",
+        "sups",
+        "swsh",
+        "tnum"
+      ]
+    },
+    {
+      "family": "Source Sans 3",
+      "role": "spec",
+      "dir": "fonts/Source-Sans-3",
+      "source": "Google Fonts static instances",
+      "specimen": "https://fonts.google.com/specimen/Source+Sans+3",
+      "faces": [
+        {
+          "file": "SourceSans3-300.ttf",
+          "bytes": 234604
+        },
+        {
+          "file": "SourceSans3-400.ttf",
+          "bytes": 234708
+        },
+        {
+          "file": "SourceSans3-400Italic.ttf",
+          "bytes": 209376
+        },
+        {
+          "file": "SourceSans3-600.ttf",
+          "bytes": 234680
+        },
+        {
+          "file": "SourceSans3-600Italic.ttf",
+          "bytes": 209336
+        },
+        {
+          "file": "SourceSans3-700.ttf",
+          "bytes": 234640
+        }
+      ],
+      "opentype_features": [
+        "ccmp",
+        "dnom",
+        "frac",
+        "kern",
+        "liga",
+        "locl",
+        "mark",
+        "mkmk",
+        "numr",
+        "pnum"
+      ]
+    },
+    {
+      "family": "IBM Plex Mono",
+      "role": "spec",
+      "dir": "fonts/IBM-Plex-Mono",
+      "source": "Google Fonts static instances",
+      "specimen": "https://fonts.google.com/specimen/IBM+Plex+Mono",
+      "faces": [
+        {
+          "file": "IBMPlexMono-400.ttf",
+          "bytes": 128812
+        },
+        {
+          "file": "IBMPlexMono-400Italic.ttf",
+          "bytes": 136412
+        },
+        {
+          "file": "IBMPlexMono-600.ttf",
+          "bytes": 133444
+        }
+      ],
+      "opentype_features": [
+        "ccmp",
+        "dnom",
+        "frac",
+        "mark",
+        "numr"
+      ]
+    },
+    {
+      "family": "Cormorant Garamond",
+      "role": "candidate",
+      "dir": "fonts/candidates/Cormorant-Garamond",
+      "source": "Google Fonts static instances",
+      "specimen": "https://fonts.google.com/specimen/Cormorant+Garamond",
+      "faces": [
+        {
+          "file": "CormorantGaramond-300.ttf",
+          "bytes": 289788
+        },
+        {
+          "file": "CormorantGaramond-400.ttf",
+          "bytes": 290236
+        },
+        {
+          "file": "CormorantGaramond-400Italic.ttf",
+          "bytes": 293036
+        },
+        {
+          "file": "CormorantGaramond-600.ttf",
+          "bytes": 290392
+        }
+      ],
+      "opentype_features": [
+        "calt",
+        "ccmp",
+        "dnom",
+        "frac",
+        "kern",
+        "liga",
+        "lnum",
+        "locl",
+        "mark",
+        "mkmk",
+        "numr",
+        "tnum"
+      ]
+    },
+    {
+      "family": "Spectral",
+      "role": "candidate",
+      "dir": "fonts/candidates/Spectral",
+      "source": "Google Fonts static instances",
+      "specimen": "https://fonts.google.com/specimen/Spectral",
+      "faces": [
+        {
+          "file": "Spectral-400.ttf",
+          "bytes": 164228
+        },
+        {
+          "file": "Spectral-400Italic.ttf",
+          "bytes": 173820
+        },
+        {
+          "file": "Spectral-600.ttf",
+          "bytes": 171516
+        },
+        {
+          "file": "Spectral-600Italic.ttf",
+          "bytes": 181376
+        }
+      ],
+      "opentype_features": [
+        "ccmp",
+        "dnom",
+        "frac",
+        "kern",
+        "liga",
+        "locl",
+        "mark",
+        "mkmk",
+        "numr",
+        "pnum",
+        "tnum"
+      ]
+    },
+    {
+      "family": "Alegreya",
+      "role": "candidate",
+      "dir": "fonts/candidates/Alegreya",
+      "source": "Google Fonts static instances",
+      "specimen": "https://fonts.google.com/specimen/Alegreya",
+      "faces": [
+        {
+          "file": "Alegreya-400.ttf",
+          "bytes": 161856
+        },
+        {
+          "file": "Alegreya-400Italic.ttf",
+          "bytes": 160996
+        },
+        {
+          "file": "Alegreya-600.ttf",
+          "bytes": 164656
+        },
+        {
+          "file": "Alegreya-600Italic.ttf",
+          "bytes": 162024
+        }
+      ],
+      "opentype_features": [
+        "ccmp",
+        "dnom",
+        "frac",
+        "kern",
+        "liga",
+        "lnum",
+        "locl",
+        "mark",
+        "mkmk",
+        "numr",
+        "pnum",
+        "tnum"
+      ]
+    },
+    {
+      "family": "Crimson Pro",
+      "role": "candidate",
+      "dir": "fonts/candidates/Crimson-Pro",
+      "source": "Google Fonts static instances",
+      "specimen": "https://fonts.google.com/specimen/Crimson+Pro",
+      "faces": [
+        {
+          "file": "CrimsonPro-400.ttf",
+          "bytes": 97164
+        },
+        {
+          "file": "CrimsonPro-400Italic.ttf",
+          "bytes": 98972
+        },
+        {
+          "file": "CrimsonPro-600.ttf",
+          "bytes": 97888
+        },
+        {
+          "file": "CrimsonPro-600Italic.ttf",
+          "bytes": 99608
+        }
+      ],
+      "opentype_features": [
+        "ccmp",
+        "dnom",
+        "frac",
+        "kern",
+        "liga",
+        "locl",
+        "mark",
+        "mkmk",
+        "numr",
+        "pnum",
+        "tnum"
+      ]
+    },
+    {
+      "family": "Literata",
+      "role": "candidate",
+      "dir": "fonts/candidates/Literata",
+      "source": "Google Fonts static instances",
+      "specimen": "https://fonts.google.com/specimen/Literata",
+      "faces": [
+        {
+          "file": "Literata-400.ttf",
+          "bytes": 170668
+        },
+        {
+          "file": "Literata-400Italic.ttf",
+          "bytes": 166072
+        },
+        {
+          "file": "Literata-600.ttf",
+          "bytes": 170948
+        },
+        {
+          "file": "Literata-600Italic.ttf",
+          "bytes": 166480
+        }
+      ],
+      "opentype_features": [
+        "ccmp",
+        "dnom",
+        "frac",
+        "kern",
+        "liga",
+        "locl",
+        "mark",
+        "numr",
+        "pnum",
+        "tnum"
+      ]
+    }
+  ],
+  "total_bytes": 6757280
+}
