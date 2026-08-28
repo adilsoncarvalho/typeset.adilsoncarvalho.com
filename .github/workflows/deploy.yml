@@ -41,8 +41,10 @@ jobs:
         run: node tools/build-bundle.mjs
 
       # Assembled explicitly rather than uploading the repository root, so the
-      # deployed site never contains .git or the workflow itself.
+      # deployed site never contains .git or the workflow itself. Skipped on a
+      # tag, which publishes a release rather than a deployment.
       - name: Assemble the site
+        if: startsWith(github.ref, 'refs/heads/')
         run: |
           mkdir -p _site
           rsync -a \
@@ -52,11 +54,16 @@ jobs:
             ./ _site/
 
       - uses: actions/upload-pages-artifact@v3
+        if: startsWith(github.ref, 'refs/heads/')
         with:
           path: _site
 
   deploy:
     needs: build
+    # Branch pushes only. The github-pages environment restricts deployments to
+    # the default branch, so running this on a tag fails with "not allowed to
+    # deploy to github-pages due to environment protection rules".
+    if: startsWith(github.ref, 'refs/heads/')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
