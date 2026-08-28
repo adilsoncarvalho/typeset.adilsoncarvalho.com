@@ -1,0 +1,101 @@
+name: Deploy
+
+# Every push to master rebuilds the site and the Typst bundle and publishes both
+# to Pages. A tag additionally attaches a version-stamped bundle to a release.
+#
+# The bundle is never committed: it is derived from implementations/ and fonts/,
+# so building it here is the only way it cannot drift from them.
+
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Gate: the committed pages must match what the sources generate, SPEC.md
+      # must be current, and both implementations must still match spec.json.
+      # A stale commit fails here rather than shipping.
+      - name: Check
+        run: node tools/check.mjs
+
+      - name: Build the Typst bundle
+        run: node tools/build-bundle.mjs
+
+      # Assembled explicitly rather than uploading the repository root, so the
+      # deployed site never contains .git or the workflow itself.
+      - name: Assemble the site
+        run: |
+          mkdir -p _site
+          rsync -a \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude '_site' \
+            ./ _site/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build the Typst bundle
+        run: node tools/build-bundle.mjs
+
+      # The asset carries the spec version, which is the version that matters:
+      # the bundle is an implementation of a numbered specification.
+      - name: Name the asset
+        run: |
+          version=$(node -p "require('./spec.json').version")
+          asset="downloads/typeset-typst-${version}.zip"
+          cp downloads/typeset-typst.zip "$asset"
+          echo "ASSET=$asset" >> "$GITHUB_ENV"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Publish the release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "$ASSET" \
+            --title "typeset $GITHUB_REF_NAME" \
+            --notes "Typst implementation of typeset spec $VERSION, with every font file. Compile with \`typst compile --font-path fonts implementations/example-essay.typ out.pdf\`." \
+          || gh release upload "$GITHUB_REF_NAME" "$ASSET" --clobber

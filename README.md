@@ -17,37 +17,74 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `spec.json` | **Normative.** 22 sections, 93 elements, every length absolute. |
 | `SPEC.md` | The spec as prose, generated from `spec.json`. For pasting into a model's context. |
 | `llms.txt` | What a machine should read first, and in what order. |
-| `index.html` | The specimen: rendered example, spec values, and both implementations, per section. |
+| `index.html` | **Generated.** The specimen page. Do not edit — edit `src/` and rebuild. |
 | `typeset.css` | Reference implementation — CSS. |
 | `implementations/typeset.typ` | Reference implementation — Typst. |
 | `implementations/example-essay.typ` | The essay set in Typst. A conformance sample. |
+| `implementations/example-letter.typ` | The letter set in Typst — ragged right, real page-foot footnote. |
 | `examples/essay.html`, `examples/letter.html` | The same documents in CSS, paginated with Paged.js. |
 | `examples/two-column.html` | The two-column template in CSS. Prints from the browser — see below. |
 | `implementations/example-two-column.typ` | The two-column template in Typst. |
 | `specimen.css`, `specimen.js` | Chrome for the specimen page. Never shipped in a document. |
+| `files/*.html` | **Generated.** One viewer page per downloadable file. |
+| `src/sections.json` | The section manifest: order, group, title, prose, which panel to render. |
+| `src/demos/*.html` | The rendered example for each section — one file per section. |
+| `src/panels.mjs`, `src/highlight.mjs` | Build-time panel rendering and syntax highlighting. |
+| `src/masthead.html`, `src/footer.html`, `src/nav-*.html`, `src/viewers.json` | Page furniture. |
+| `tools/build-site.mjs` | Generates `index.html` and `files/*.html` from all of the above. |
+| `downloads/` | **Build output, gitignored.** The Typst bundle. `node tools/build-bundle.mjs`. |
+| `tools/build-bundle.mjs` | Builds the Typst bundle from `implementations/` and `fonts/`. |
+| `.github/workflows/deploy.yml` | Checks, builds the bundle, deploys Pages; on a tag, publishes a release asset. |
+| `proofs/font-proof.html` | Six body-face candidates, one per A4 page, for printing. |
+| `highlight.js` | The syntax highlighter, shared by the specimen page and the viewers. |
+| `examples/preview-bar.js` | The back bar for example documents. See the Paged.js notes below. |
 | `tools/build-spec.mjs` | Generates `SPEC.md` from `spec.json`. |
 | `tools/check.mjs` | Verifies the implementations still match the spec. |
 
-The site quotes real code: every CSS and Typst panel is extracted at page load
-from the marker pairs in the source files (`/*! @s id :: Title */` and
-`// @s id`). Nothing is transcribed, so a panel cannot drift from the file it
-describes.
+The site quotes real code: every CSS and Typst panel is extracted from the marker
+pairs in the source files (`/*! @s id :: Title */` and `// @s id`). Nothing is
+transcribed, so a panel cannot drift from the file it describes.
+
+## The site is generated
+
+`index.html` and `files/*.html` are **build output**. Editing them by hand is
+wasted work — the next build overwrites it, and `tools/check.mjs` fails if the
+committed pages do not match what the sources produce.
+
+```sh
+node tools/build-site.mjs   # regenerate the pages
+node tools/check.mjs        # fails if anything is stale or inconsistent
+```
+
+Everything is resolved at build time: the spec tables, both code panels, and the
+syntax highlighting are plain markup in the published page, and the Spec / CSS /
+Typst tabs are radio inputs driven by CSS. **The page renders completely with
+JavaScript disabled**, and opens straight from the filesystem — the two scripts
+that remain (about 1.8 KB together) exist only for the copy buttons.
+
+What this bought, concretely: the 30% of `index.html` that was repeated scaffold
+is gone; the nav is derived from the section list so it cannot drift; section
+numbers come from position rather than being typed (which immediately surfaced a
+duplicate `09` that had been sitting in the page); and the four viewer pages come
+from one template instead of four near-identical files.
+
+To add a section: add an entry to `src/sections.json`, write
+`src/demos/<id>.html`, add the marker pairs in `typeset.css` and
+`implementations/typeset.typ`, rebuild, and run the checker.
 
 ## Working on it
 
 ```sh
 node tools/build-spec.mjs   # regenerate SPEC.md after editing spec.json
-node tools/check.mjs        # verify implementations against the spec
-python3 -m http.server      # then open http://localhost:8000
+node tools/build-site.mjs   # regenerate index.html and files/*.html from src/
+node tools/check.mjs        # verify everything, including that the pages are current
+python3 -m http.server      # optional — the pages also open straight from disk
 ```
 
-`check.mjs` fails the build when a token in `typeset.css` no longer matches
-`spec.json`, when a spec section has no panel or no CSS marker, or when
-`SPEC.md` is stale. Run it before pushing.
-
-The specimen page fetches `spec.json`, `typeset.css` and `typeset.typ`, which
-`file://` blocks — serve the directory or every panel reports that it could not
-load the spec.
+`check.mjs` fails when a token in `typeset.css` no longer matches `spec.json`,
+when a spec section has no panel or no CSS marker, when a demo file is missing,
+when `SPEC.md` is stale, or when a generated page is out of date. Run it before
+pushing.
 
 ## Templates
 
@@ -81,6 +118,40 @@ forbidden** (there is no margin left, so they degrade to an inline aside).
 Adding an engine means adding an implementation that hits the values in
 `spec.json`, plus `// @s <section-id>` marker pairs so the site can quote it.
 
+## The Typst bundle is built, not committed
+
+Typst has no equivalent of a CSS font URL: a font is either in the project or it
+is silently substituted. So the implementation is distributed as a zip carrying
+the three font families the spec names — verified by extracting it and compiling
+all three example documents with `--font-path fonts` and nothing else present.
+
+**It is derived from the repository, so it is not committed** — the same argument
+that makes `index.html` generated. `downloads/` is gitignored:
+
+```sh
+node tools/build-bundle.mjs      # ~1.7 MB, 24 files
+```
+
+Two published forms, both from `.github/workflows/deploy.yml`:
+
+| | URL | Versioning |
+|---|---|---|
+| Pages deploy, every push to `master` | `typeset.adilsoncarvalho.com/downloads/typeset-typst.zip` | always current |
+| Release asset, on a `v*` tag | `github.com/…/releases/download/v1.0.0/typeset-typst-1.0.0.zip` | immutable, named for the spec version |
+
+The workflow runs `tools/check.mjs` first, so a commit whose generated pages are
+stale fails before it can deploy.
+
+**Not Git LFS.** GitHub Pages does not serve LFS objects — it serves the pointer
+file, so the download link would hand people a few lines of text claiming to be a
+zip. **Not GitHub Packages** either: it has no generic file registry, and its npm
+registry requires a token even for public packages, which makes a
+click-to-download link impossible.
+
+All bundled fonts are OFL-1.1 and each family directory carries its `OFL.txt`,
+which is what the licence requires for redistribution. `build-bundle.mjs` fails
+if one is missing, or if `typeset.typ` stops naming one of the three families.
+
 ## Engine capability
 
 Some of the spec needs an engine that can measure the page while laying it out.
@@ -105,6 +176,32 @@ The two-column CSS example therefore drops Paged.js: it simulates one sheet on
 screen and lets the browser's own print do the pagination, which handles multicol
 fragmentation natively. The cost is the running head and folio, which return
 under WeasyPrint or Prince.
+
+## Paged.js is more hostile than it looks
+
+Four separate defects here came from Paged.js, and they share a shape: it
+rewrites the document's stylesheets through its own parser and re-hosts the
+content inside its page boxes, so things that are true of a normal page are not
+true under it.
+
+- **It cannot parse `:is()` or `:has()`.** It splits the selector on the commas
+  inside the argument list, emits a fragment like `.ts-callout)+p`, and that
+  throws on `querySelectorAll` — aborting pagination entirely. Blank document, no
+  error on the page. Keep selector lists flat.
+- **It applies `@media print` rules unconditionally**, since that is how it builds
+  a print preview on screen. Anything marked screen-only disappears.
+- **It drops rules from the stylesheets it rewrites.** The `.preview-bar` rule and
+  a whole `@media print` block both vanished. Screen chrome is therefore styled
+  inline by `preview-bar.js`, and the print reset is applied as inline styles as
+  well, because inline styles cannot be dropped.
+- **It moves every child of `<body>` into its page boxes**, navigation included,
+  and its `after` hook did not reliably put it back — so the bar is mounted only
+  once pagination has produced pages.
+
+And separately: **headless `--print-to-pdf` races Paged.js.** It snapshots before
+pagination finishes, so page counts come back as 1, 2 or 3 for the same document
+across runs and content is silently truncated. Verify pagination with a tall
+screenshot, not with a printed page count.
 
 ## Three traps worth knowing
 
