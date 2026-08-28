@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>typeset — a print stylesheet</title>
+<meta name="description" content="Adilson Carvalho's typographic standard for printed documents: essays, letters, and reports. Rendered examples beside the CSS that produces them.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Source+Sans+3:ital,wght@0,300..700;1,300..700&family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="stylesheet" href="typeset.css">
+<link rel="stylesheet" href="specimen.css">
+<script src="specimen.js" defer></script>
+</head>
+<body>
+<div class="shell">
+
+<nav class="nav">
+  <p class="nav__brand"><a href="#top">typeset</a></p>
+  <p class="nav__tagline">A typographic standard for printed documents.</p>
+
+  <p class="nav__group">Read first</p>
+  <ol>
+    <li><a href="#top">What this is</a></li>
+    <li><a href="SPEC.md">SPEC.md →</a></li>
+    <li><a href="spec.json">spec.json →</a></li>
+  </ol>
+
+  <p class="nav__group">Foundations</p>
+  <ol>
+    <li><a href="#tokens">Tokens &amp; scale</a></li>
+    <li><a href="#foundation">Measure &amp; rhythm</a></li>
+    <li><a href="#page">Page setup</a></li>
+  </ol>
+
+  <p class="nav__group">Structure</p>
+  <ol>
+    <li><a href="#headings">Headings</a></li>
+    <li><a href="#numbering">Section numbering</a></li>
+  </ol>
+
+  <p class="nav__group">Prose</p>
+  <ol>
+    <li><a href="#paragraphs">Paragraphs</a></li>
+    <li><a href="#justification">Justification</a></li>
+    <li><a href="#dropcap">Drop cap</a></li>
+    <li><a href="#inline">Inline emphasis</a></li>
+    <li><a href="#links">Links in print</a></li>
+    <li><a href="#figures-numeric">Numerals</a></li>
+  </ol>
+
+  <p class="nav__group">Blocks</p>
+  <ol>
+    <li><a href="#quotes">Quotations</a></li>
+    <li><a href="#lists">Lists</a></li>
+    <li><a href="#tables">Tables</a></li>
+    <li><a href="#codeblock">Code</a></li>
+    <li><a href="#figures">Figures</a></li>
+    <li><a href="#callouts">Callouts</a></li>
+    <li><a href="#breaks">Section breaks</a></li>
+  </ol>
+
+  <p class="nav__group">Apparatus</p>
+  <ol>
+    <li><a href="#notes">Footnotes &amp; sidenotes</a></li>
+    <li><a href="#toc">Table of contents</a></li>
+    <li><a href="#bibliography">Bibliography</a></li>
+  </ol>
+
+  <p class="nav__group">Documents</p>
+  <ol>
+    <li><a href="#frontmatter">Front matter</a></li>
+    <li><a href="#letter">Letter</a></li>
+    <li><a href="#utilities">Pagination utilities</a></li>
+  </ol>
+
+  <p class="nav__group">Conformance</p>
+  <ol>
+    <li><a href="examples/essay.html">Essay, in CSS →</a></li>
+    <li><a href="examples/letter.html">Letter, in CSS →</a></li>
+    <li><a href="implementations/typeset.typ">typeset.typ →</a></li>
+    <li><a href="implementations/example-essay.typ">Essay, in Typst →</a></li>
+  </ol>
+</nav>
+
+<main class="main" id="top">
+
+<header class="masthead">
+  <h1>type<b>set</b></h1>
+  <p>A <b>typographic specification</b> for printed documents — essays, letters, reports. Anything destined for paper or a PDF.</p>
+  <p>Each section below shows what an element must look like, the normative values it must hit, and the same values expressed in two engines. <b>The specification is the source of truth</b>; CSS and Typst are conformant implementations of it, not the definition. Point an engine — or an AI wiring one up — at this page and the output should match.</p>
+
+  <div class="feeds">
+    <p class="feeds__label">For a machine</p>
+    <ul>
+      <li><a href="spec.json"><code>spec.json</code></a> — the normative source. 22 sections, 93 elements, every length absolute.</li>
+      <li><a href="SPEC.md"><code>SPEC.md</code></a> — the same thing as prose, generated from <code>spec.json</code>. Paste this into a model's context.</li>
+      <li><a href="llms.txt"><code>llms.txt</code></a> — what to read first, and in what order.</li>
+    </ul>
+  </div>
+
+  <div class="meta">
+    <span><b>Serif</b> EB Garamond</span>
+    <span><b>Sans</b> Source Sans 3</span>
+    <span><b>Mono</b> IBM Plex Mono</span>
+    <span><b>Base</b> 11pt / 1.45</span>
+    <span><b>Page</b> A4, 25×22mm</span>
+    <span><b>Spec</b> <span data-spec-version>—</span></span>
+  </div>
+  <div class="btnrow">
+    <a class="btn" href="spec.json">spec.json</a>
+    <a class="btn" href="typeset.css">typeset.css</a>
+    <a class="btn" href="implementations/typeset.typ">typeset.typ</a>
+    <a class="btn" href="examples/essay.html">Essay</a>
+    <a class="btn" href="examples/letter.html">Letter</a>
+  </div>
+</header>
+
+<!-- ================= FOUNDATIONS ================= -->
+
+<section class="section" id="tokens">
+  <div class="section__head">
+    <p class="section__num">01 — Foundations</p>
+    <h2>Tokens &amp; scale</h2>
+    <p>One named value per decision. The scale is 11pt base on roughly a 1.2 ratio — calm enough that four heading levels fit inside it, so an engine needs no sizes of its own invention.</p>
+    <p>The ink is <code>#1a1a1a</code>, not black. Pure black blooms on a laser printer and glares on a backlit PDF.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <div class="scale-row"><b>24pt</b> <span style="font:300 24pt/1.1 var(--ts-sans)">Heading one</span></div>
+        <div class="scale-row"><b>18pt</b> <span style="font:600 18pt/1.15 var(--ts-sans)">Heading two</span></div>
+        <div class="scale-row"><b>14pt</b> <span style="font:600 14pt/1.2 var(--ts-sans)">Heading three</span></div>
+        <div class="scale-row"><b>12pt</b> <span style="font:600 12pt/1.2 var(--ts-sans)">Heading four</span></div>
+        <div class="scale-row"><b>11pt</b> <span>Body text — EB Garamond</span></div>
+        <div class="scale-row"><b>9.5pt</b> <span style="font-size:9.5pt">Captions, footnotes, tables</span></div>
+        <div class="scale-row"><b>8pt</b> <span style="font-size:8pt">Labels and running heads</span></div>
+
+        <div class="swatches" style="margin-top:1.5rem">
+          <span class="swatch"><i style="background:#1a1a1a"></i>ink</span>
+          <span class="swatch"><i style="background:#5a5a5a"></i>muted</span>
+          <span class="swatch"><i style="background:#8a8a8a"></i>faint</span>
+          <span class="swatch"><i style="background:#c9c4bd"></i>rule</span>
+          <span class="swatch"><i style="background:#f4f1ec"></i>wash</span>
+          <span class="swatch"><i style="background:#7a1f1f"></i>accent</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="tokens"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="foundation">
+  <div class="section__head">
+    <p class="section__num">02 — Foundations</p>
+    <h2>Measure &amp; rhythm</h2>
+    <p>The single largest legibility lever in a printed document. A line longer than about 75 characters loses the reader on the return sweep; shorter than 45 and the eye jumps too often. <code>33em</code> at 11pt lands near 66.</p>
+    <p>The measure constrains the text column, not the page. A table or a figure may exceed it; a paragraph never may.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <p>Typography exists to honour content. A page set to a comfortable measure asks nothing of the reader; they simply arrive at the end having forgotten there was a page at all. This paragraph is set to the default 33em.</p>
+        <p style="max-width:52em;border-left:2px solid #d9c48a;padding-left:.8em">And this one is deliberately overset to 52em, so you can feel the return sweep failing. By the third line your eye has to hunt for the start of the next, and the hunt is what tires a reader out over twenty pages.</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="foundation"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="page">
+  <div class="section__head">
+    <p class="section__num">03 — Foundations</p>
+    <h2>Page setup</h2>
+    <p>A4 at 25×22mm, with mirrored margins so a duplex-printed document keeps its gutter. The running head is the current level-2 heading, resolved by the engine — never typed by the author, and never allowed to drift from the section it names.</p>
+  </div>
+  <div class="note"><b>Engine capability.</b> Running heads and folios require the engine to write into the page margin. Typst and LaTeX do this natively. In CSS it is Paged Media, which no browser implements — Chrome's print dialog ignores it and substitutes its own header and footer, so the CSS implementation needs <a href="https://pagedjs.org">Paged.js</a>, WeasyPrint or Prince. The two CSS examples do exactly that.</div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper" style="background:var(--ui-bg-sunken);display:flex;justify-content:center;padding:2rem">
+        <div style="position:relative;width:14rem;aspect-ratio:210/297;background:#fffefb;border:1px solid #cdc6bd;box-shadow:0 8px 24px -12px rgb(0 0 0/.2)">
+          <div style="position:absolute;inset:8.4% 10.5%;border:1px dashed #d9c48a"></div>
+          <div style="position:absolute;top:4%;left:0;right:0;text-align:center;font:7px/1 'Source Sans 3',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a8a8a">Measure &amp; rhythm</div>
+          <div style="position:absolute;bottom:3.5%;left:0;right:0;text-align:center;font:8px/1 'EB Garamond',serif;color:#5a5a5a">7</div>
+          <div style="position:absolute;left:10.5%;right:10.5%;top:14%;display:flex;flex-direction:column;gap:3px">
+            <span style="height:5px;background:#e6e2db;width:70%"></span>
+            <span style="height:2px;background:#efece6"></span><span style="height:2px;background:#efece6"></span>
+            <span style="height:2px;background:#efece6"></span><span style="height:2px;background:#efece6;width:60%"></span>
+          </div>
+          <div style="position:absolute;left:-2.2rem;top:8.4%;bottom:8.4%;display:flex;align-items:center"><span style="font:400 8px 'IBM Plex Mono',monospace;color:#8a8a8a">25mm</span></div>
+          <div style="position:absolute;bottom:-1.4rem;left:0;right:0;text-align:center;font:400 8px 'IBM Plex Mono',monospace;color:#8a8a8a">A4 · 22mm outer / 28mm inner</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="page"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STRUCTURE ================= -->
+
+<section class="section" id="headings">
+  <div class="section__head">
+    <p class="section__num">04 — Structure</p>
+    <h2>Headings</h2>
+    <p>Sans against the serif body, so hierarchy reads by contrast rather than by size alone. Below level 4 the size stops changing and the register shifts instead: small caps, then italic. Six visually distinct levels inside a 24pt–11pt range.</p>
+    <p>Two non-negotiable rules: the space above is four times the space below, because a heading belongs to what follows it; and a heading must never be the last thing on a page. Whatever the engine calls that — <code>break-after: avoid</code>, <code>sticky</code>, <code>\needspace</code> — it is mandatory, not a preference.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <h1>The Elements</h1>
+        <p>Body text follows, set flush.</p>
+        <h2>Composition</h2>
+        <p>A section opens here, and the running head of the page changes to match it.</p>
+        <h3>The measure</h3>
+        <p>A subsection, still clearly subordinate.</p>
+        <h4>Choosing a ratio</h4>
+        <p>Fourth level, the last with a size change.</p>
+        <h5>On old-style figures</h5>
+        <p>Fifth level: small caps at body size.</p>
+        <h6>A closing remark</h6>
+        <p>Sixth level: italic at body size.</p>
+        <h6 class="ts-run-in">Run-in</h6><p>a heading that shares the first line of its paragraph, which saves vertical space in a dense report.</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="headings"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="numbering">
+  <div class="section__head">
+    <p class="section__num">05 — Structure</p>
+    <h2>Section numbering</h2>
+    <p>Opt-in. Numbers are generated by a counter, never typed, so they cannot drift out of sync when a section moves — and they disappear cleanly when the option comes off, which matters because an essay wants no numbers and a report wants them.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset typeset--numbered">
+        <h2>Scope</h2>
+        <p>The opening section.</p>
+        <h3>Out of scope</h3>
+        <p>A subsection, numbered from its parent.</p>
+        <h3>Assumptions</h3>
+        <p>The second subsection.</p>
+        <h2>Method</h2>
+        <p>The counter for subsections resets here.</p>
+        <h3>Instrumentation</h3>
+        <p>Numbered 2.1, without anyone typing “2.1”.</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="numbering"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROSE ================= -->
+
+<section class="section" id="paragraphs">
+  <div class="section__head">
+    <p class="section__num">06 — Prose</p>
+    <h2>Paragraphs</h2>
+    <p>Two conventions, one switch. Spaced paragraphs are the default and suit reports and letters. Indented paragraphs with no gap are the book convention and read better in continuous prose; the first paragraph after any heading, block or break stays flush left in both.</p>
+    <p>Orphan and widow control set to 2: never a single line left behind at a page foot, never one carried alone to the next head.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">Rendered — spaced</p>
+      <div class="paper typeset">
+        <p>The first duty of a paragraph is to be findable. Spaced paragraphs announce themselves with white space, which is why they suit documents that get skimmed: memos, reports, letters.</p>
+        <p>The cost is vertical space, and a certain restlessness over many pages. Every gap is a small invitation to stop reading.</p>
+      </div>
+      <p class="pair__label" style="margin-top:1.25rem">Rendered — indented</p>
+      <div class="paper typeset typeset--indented">
+        <h4>On continuous prose</h4>
+        <p>The first paragraph after a heading needs no indent: the heading has already marked the start. So it sits flush.</p>
+        <p>Subsequent paragraphs indent by 1.5em, with no gap. The page becomes a continuous field of text, which is exactly what you want when the reader is meant to read every word rather than hunt for one.</p>
+        <p>This is the convention of nearly every printed book you own, and it is almost never seen on the web — which is the clearest sign that print and screen are different media.</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="paragraphs"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="justification">
+  <div class="section__head">
+    <p class="section__num">07 — Prose</p>
+    <h2>Justification &amp; hyphenation</h2>
+    <p>These two are a single decision. Justified text without hyphenation opens rivers of white space down the page; hyphenation without justification produces broken words for no gain. Take both or neither.</p>
+    <p>Hyphenation is per-language and depends entirely on a correct <code>lang</code> attribute — an English dictionary applied to Portuguese produces confident nonsense. <code>hyphenate-limit-lines: 2</code> stops three hyphens stacking at the right edge.</p>
+    <p>Two traps, both learned the hard way on this stylesheet. <code>text-align</code> <b>inherits</b>, so setting it on the document container justifies the subtitle, the byline, the captions and the address blocks too — every block that must stay flush declares its own <code>text-align: left</code> rather than relying on an exception list here. And <code>text-align-last: left</code> has to be explicit: under a paginating engine the fragmented text no longer looks like the end of a paragraph, and every last line gets stretched.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">Rendered — justified, hyphenated</p>
+      <div class="paper typeset typeset--justified" lang="en">
+        <p>Typographical craftsmanship consists in the appropriate use of the incomparable resources of a well-designed typeface, and in the discipline required to leave those resources alone when the content does not need them. Justification is one such resource: expensive, occasionally beautiful, and demanding of the hyphenation dictionary that makes it possible.</p>
+      </div>
+      <p class="pair__label" style="margin-top:1.25rem">Rendered — justified, no hyphenation</p>
+      <div class="paper typeset" style="text-align:justify;text-align-last:left;hyphens:manual">
+        <p>Typographical craftsmanship consists in the appropriate use of the incomparable resources of a well-designed typeface, and in the discipline required to leave those resources alone when the content does not need them. Justification is one such resource: expensive, occasionally beautiful, and demanding of the hyphenation dictionary that makes it possible.</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="justification"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="dropcap">
+  <div class="section__head">
+    <p class="section__num">08 — Prose</p>
+    <h2>Drop cap</h2>
+    <p>For the opening of an essay or a chapter, and nowhere else. The <code>font-size</code> and <code>line-height</code> are tuned together so the cap covers exactly three lines at the default leading — change the leading and this needs retuning.</p>
+    <p>The opening words go in small caps: without them the jump from 33pt to 11pt is too abrupt, and the eye skips the first line.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <p class="ts-dropcap"><span class="ts-lede">There is nothing</span> especially modern about wanting a document to look considered. The drop cap descends from the illuminated initial, which existed for a practical reason: in a manuscript with no title page and no table of contents, a large decorated letter was the only way to tell the reader that something had begun.</p>
+        <p>The practical reason is gone. The signal is not.</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="dropcap"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="inline">
+  <div class="section__head">
+    <p class="section__num">09 — Prose</p>
+    <h2>Inline emphasis</h2>
+    <p>Nested emphasis flips to roman rather than compounding — correct typographic behaviour, and something most engines get wrong by default. A superscript or subscript must not alter the leading of the line it sits on; a footnote reference that opens up its line is a defect.</p>
+    <p>Underline is deliberately reserved for <code>&lt;ins&gt;</code>. On paper it is a typewriter's substitute for italic, and there is no reason to imitate a typewriter.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <p>Ordinary text, with <strong>bold for the load-bearing clause</strong> and <em>italic for a title or a term of art</em>. Emphasis nested <em>inside <em>emphasis</em></em> flips back to roman. <strong>Bold and <em>italic together</em></strong> when both apply.</p>
+        <p>Named entities take small caps: the <span class="ts-sc">Bauhaus</span> closed in 1933, and <abbr title="Portable Document Format">PDF</abbr> arrived sixty years later. Water is H<sub>2</sub>O; the claim is contested.<sup>3</sup></p>
+        <p>Revisions read as <del>struck through</del> <ins>and inserted</ins>, a phrase can be <mark>marked</mark>, and a key is <kbd>⌘P</kbd>.</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="inline"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="links">
+  <div class="section__head">
+    <p class="section__num">10 — Prose</p>
+    <h2>Links in print</h2>
+    <p>Paper has no hover and no click. An external link whose URL carries information must have that URL printed after the link text. Internal anchors and <code>mailto:</code> links read fine as they are and are excluded, and any link may opt out where its URL would be noise.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">Rendered — print view</p>
+      <div class="paper typeset">
+        <p>The argument is set out in full <a href="https://example.org/on-the-measure">on the measure of a line</a>, and summarised <a href="#foundation">in section 02</a>. Corrections to <a href="mailto:hello@example.org">hello@example.org</a>.</p>
+        <p style="font-family:var(--ts-sans);font-size:9pt;color:var(--ts-ink-muted);border-top:.5pt solid var(--ts-rule);padding-top:.5em">Printed, the first link becomes: on the measure of a line <span style="font-family:var(--ts-mono);font-size:8pt">(https://example.org/on-the-measure)</span> — the other two are left alone.</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="links"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="figures-numeric">
+  <div class="section__head">
+    <p class="section__num">11 — Prose</p>
+    <h2>Numerals</h2>
+    <p>Three kinds, three jobs. <b>Old-style</b> figures have ascenders and descenders, sit inside the x-height, and belong in running prose where uniform-height digits shout. <b>Lining</b> figures are all cap-height, for headings. <b>Tabular</b> figures share one advance width, which is the only reason a column of numbers can align.</p>
+    <p>Getting this wrong is the most visible amateur tell in a set document — and in every engine it is one setting.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <p class="ts-nums-oldstyle">Old-style, in prose — between 1908 and 1935 the foundry cut 47 sizes, of which 12 survive.</p>
+        <p class="ts-nums-lining">Lining, for display — BETWEEN 1908 AND 1935, 47 SIZES</p>
+        <table>
+          <thead><tr><th>Cut</th><th class="ts-num">Sizes</th><th class="ts-num">Surviving</th></tr></thead>
+          <tbody>
+            <tr><td>Original</td><td class="ts-num">47</td><td class="ts-num">12</td></tr>
+            <tr><td>Revival</td><td class="ts-num">8</td><td class="ts-num">8</td></tr>
+            <tr><td>Digital</td><td class="ts-num">1,204</td><td class="ts-num">1,204</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:9.5pt;color:var(--ts-ink-muted)">Fractions: <span class="ts-frac">1/2</span>, <span class="ts-frac">3/4</span>, <span class="ts-frac">7/8</span></p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="figures-numeric"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BLOCKS ================= -->
+
+<section class="section" id="quotes">
+  <div class="section__head">
+    <p class="section__num">12 — Blocks</p>
+    <h2>Quotations</h2>
+    <p>Four distinct jobs, four treatments. A <b>block quote</b> is evidence: a rule, an indent, one point smaller. An <b>epigraph</b> opens a chapter and sits right-aligned in italic with no rule. A <b>pull quote</b> is display type lifted out of the body — so it must never be the only place a claim appears, or a skimming reader gets the claim without its qualification. <b>Verse</b> preserves the poet's line breaks and indents the runovers.</p>
+    <p>Attribution always lives outside the quotation, prefixed with an em dash. Putting it inside makes the source part of what was said.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <blockquote class="ts-epigraph">
+          <p>A book is a machine to think with.</p>
+          <cite>I. A. Richards</cite>
+        </blockquote>
+
+        <p>The distinction matters because the two are read differently:</p>
+
+        <blockquote>
+          <p>Typography has one plain duty before it and that is to convey information in writing. No argument or consideration can absolve typography from this duty.</p>
+          <cite>Emil Ruder, <em>Typographie</em>, 1967</cite>
+        </blockquote>
+
+        <blockquote class="ts-pullquote">
+          <p>No argument can absolve typography from this duty.</p>
+        </blockquote>
+
+        <blockquote class="ts-verse">Whose woods these are I think I know.
+His house is in the village though;
+He will not see me stopping here
+To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="quotes"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="lists">
+  <div class="section__head">
+    <p class="section__num">13 — Blocks</p>
+    <h2>Lists</h2>
+    <p>The marker's colour, weight and column width must be under the spec's control, not the engine's defaults. A grey marker with black text reads as one thing; a black marker competes with the first word. Runover lines align to the text, never to the marker.</p>
+    <p>Definition lists are underused. They are the right shape for a glossary, a set of terms, or the field-and-value blocks in a letter — anywhere a short label governs a paragraph.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <ul>
+          <li>An unordered item, with a grey mid-dot for a marker.</li>
+          <li>A second item, long enough to wrap onto a second line so you can see that the runover aligns to the text, not to the marker.</li>
+          <li>A nested list follows:
+            <ul>
+              <li>The nested marker is an en dash.</li>
+              <li>Two levels is the limit worth designing for.</li>
+            </ul>
+          </li>
+        </ul>
+
+        <ol>
+          <li>Ordered items use tabular lining figures, so 9 and 10 align.</li>
+          <li>Sub-items switch to lower alpha:
+            <ol><li>First sub-item.</li><li>Second sub-item.</li></ol>
+          </li>
+          <li>The tenth item would still align. It is the small things.</li>
+        </ol>
+
+        <dl>
+          <dt>Measure</dt>
+          <dd>The length of a line of type, counted in characters rather than in millimetres.</dd>
+          <dt>Leading</dt>
+          <dd>The vertical distance between baselines. Named for the strips of lead once inserted between lines of metal type.</dd>
+          <dt>Widow</dt>
+          <dd>A last line of a paragraph carried alone to the top of a page. An orphan is the mirror case at the foot.</dd>
+        </dl>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="lists"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="tables">
+  <div class="section__head">
+    <p class="section__num">14 — Blocks</p>
+    <h2>Tables</h2>
+    <p>Rules, not grids. Vertical rules are almost never needed — the columns already read as columns, and every line you add is ink competing with data. Three horizontal rules: above the header, below it, and below the body.</p>
+    <p>Numbers align right, on tabular figures, and units go in the header rather than being repeated in every cell. Sans-serif at 9.5pt: a table is scanned, not read, and the serif's job is reading.</p>
+    <p>A table that spans pages repeats its header on every one. Without that, page two of a table is unreadable — this is a requirement, not a nicety.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <table>
+          <caption><span class="ts-label">Table 1</span> — Setting widths for a single-column A4 page, by point size.</caption>
+          <thead>
+            <tr>
+              <th>Typeface</th>
+              <th class="ts-num">Size (pt)</th>
+              <th class="ts-num">Leading</th>
+              <th class="ts-num">Measure (mm)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>EB Garamond</td><td class="ts-num">11.0</td><td class="ts-num">1.45</td><td class="ts-num">126</td></tr>
+            <tr><td>Source Serif</td><td class="ts-num">10.5</td><td class="ts-num">1.42</td><td class="ts-num">124</td></tr>
+            <tr><td>Charis SIL</td><td class="ts-num">10.0</td><td class="ts-num">1.40</td><td class="ts-num">119</td></tr>
+            <tr><td>IBM Plex Serif</td><td class="ts-num">10.5</td><td class="ts-num">1.45</td><td class="ts-num">131</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td>Median</td><td class="ts-num">10.5</td><td class="ts-num">1.43</td><td class="ts-num">125</td></tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="tables"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="codeblock">
+  <div class="section__head">
+    <p class="section__num">15 — Blocks</p>
+    <h2>Code</h2>
+    <p>Monospaced faces run optically large beside a serif, so inline code is pulled back to 0.86em and ligatures are switched off — an arrow rendered as a single glyph is charming in an editor and wrong in a document that quotes source.</p>
+    <p>Paper cannot scroll, so blocks wrap rather than overflow. And long listings must be <em>allowed</em> to split across pages: forbidding the break on a fifty-line block pushes a blank page ahead of it.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <p>The declaration is a single line — set <code>font-variant-numeric</code> on the table and every cell inherits it:</p>
+        <pre><code>.typeset table {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Repeat the header on every page the table spans. */
+.typeset thead { display: table-header-group; }</code></pre>
+        <p>Which is all it takes.</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="code-inline,codeblock" data-css="code-inline,codeblock"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="figures">
+  <div class="section__head">
+    <p class="section__num">16 — Blocks</p>
+    <h2>Figures &amp; captions</h2>
+    <p>A caption is not a title. It goes below the figure, sans at 9.5pt, separated by a hair rule, and it carries a small-caps label so a cross-reference in the text has something to point at. A figure and its caption stay on one page — the one place a no-break rule is unambiguously right.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <figure>
+          <svg viewBox="0 0 400 150" role="img" aria-label="Characters per line plotted against reading comfort, peaking between 55 and 75.">
+            <line x1="30" y1="120" x2="380" y2="120" stroke="#6f6a64" stroke-width="1"/>
+            <line x1="30" y1="120" x2="30" y2="15" stroke="#6f6a64" stroke-width="1"/>
+            <path d="M40 112 C 90 100, 120 40, 175 32 C 230 26, 260 34, 300 62 C 335 88, 355 106, 375 114" fill="none" stroke="#7a1f1f" stroke-width="1.6"/>
+            <rect x="150" y="20" width="90" height="100" fill="#7a1f1f" opacity="0.07"/>
+            <text x="195" y="138" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="9" fill="#5a5a5a">characters per line</text>
+            <text x="195" y="14" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="9" fill="#7a1f1f">55–75</text>
+            <text x="40" y="132" font-family="IBM Plex Mono, monospace" font-size="8" fill="#8a8a8a">30</text>
+            <text x="360" y="132" font-family="IBM Plex Mono, monospace" font-size="8" fill="#8a8a8a">120</text>
+          </svg>
+          <figcaption><span class="ts-label">Figure 1</span> — Reading comfort against line length. The plateau between 55 and 75 characters is why the measure, not the font size, is the first decision.</figcaption>
+        </figure>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="figures"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="callouts">
+  <div class="section__head">
+    <p class="section__num">17 — Blocks</p>
+    <h2>Callouts</h2>
+    <p>For a report or a technical note: an aside the reader may skip without losing the argument. If skipping it <em>would</em> lose the argument, it is not a callout, it is a paragraph. Two variants only — neutral and warning — because a document with five callout colours has none.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <div class="ts-callout">
+          <p class="ts-callout-title">Note</p>
+          <p>Point sizes assume the document is printed at 100%. “Fit to page” scaling in a print dialog silently invalidates every measurement in this stylesheet.</p>
+        </div>
+        <div class="ts-callout ts-callout--warning">
+          <p class="ts-callout-title">Before you send it</p>
+          <p>Check that fonts are embedded in the PDF. A document that falls back to Times on the recipient's machine has lost every decision above.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="callouts"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="breaks">
+  <div class="section__head">
+    <p class="section__num">18 — Blocks</p>
+    <h2>Section breaks</h2>
+    <p>A blank line cannot survive a page break. If the break happens to fall exactly on the gap, the reader never learns that the scene changed — and this is not a rare accident, it is a one-in-forty-lines certainty over a long document. Use a visible mark.</p>
+    <p>Four registers: three asterisks for prose, an asterism for a heavier division, a fleuron for a decorative one, a plain rule for a report.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <p>…and so the first argument closes, having established rather less than it set out to.</p>
+        <hr>
+        <p>The second begins somewhere else entirely.</p>
+        <div class="ts-break ts-break--asterism"></div>
+        <p>An asterism marks a heavier division — a change of part, not of scene.</p>
+        <div class="ts-break ts-break--fleuron"></div>
+        <p>A fleuron, where the document can afford ornament.</p>
+        <div class="ts-break ts-break--rule"></div>
+        <p>And a plain rule, where it cannot.</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="breaks"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= APPARATUS ================= -->
+
+<section class="section" id="notes">
+  <div class="section__head">
+    <p class="section__num">19 — Apparatus</p>
+    <h2>Footnotes &amp; sidenotes</h2>
+    <p>The honest position on footnotes in CSS: true bottom-of-page footnotes require an engine that implements the CSS footnote spec. <b>WeasyPrint 53+ and Prince do. No browser does.</b> So the note text lives in the document, inside <code>.ts-note</code>, and <code>@supports (float: footnote)</code> promotes it to a real footnote where the engine can — degrading to a numbered endnotes block where it cannot.</p>
+    <p><b>Sidenotes are the alternative worth considering.</b> They need no page-break arithmetic, they work in every renderer, and the reader never loses their place. The price is a wide right margin, which a single-column A4 essay can usually afford.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">Rendered — endnote fallback</p>
+      <div class="paper typeset">
+        <p>Bringhurst puts the ideal measure between 45 and 75 characters,<a class="ts-noteref" href="#n1"></a> a range narrow enough to be useful and wide enough to survive a change of typeface. The lower bound matters more in a two-column layout.<a class="ts-noteref" href="#n2"></a></p>
+        <div class="ts-endnotes">
+          <p style="font-family:var(--ts-sans);font-size:8pt;letter-spacing:.1em;text-transform:uppercase;color:var(--ts-ink-faint);margin-bottom:.4em">Notes</p>
+          <ol>
+            <li id="n1">Robert Bringhurst, <cite>The Elements of Typographic Style</cite>, 4th ed., §2.1.2.</li>
+            <li id="n2">Below about 40 characters, hyphenation stops being optional.</li>
+          </ol>
+        </div>
+      </div>
+      <p class="pair__label" style="margin-top:1.25rem">Rendered — sidenotes</p>
+      <div class="paper" style="overflow-x:auto">
+        <div class="typeset typeset--sidenotes" style="min-width:34rem">
+          <p>Bringhurst puts the ideal measure between 45 and 75 characters, a range wide enough to survive a change of typeface.<span class="ts-noteref"></span><span class="ts-sidenote"><cite>The Elements of Typographic Style</cite>, 4th ed., §2.1.2.</span> The lower bound matters more in two columns.</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="notes"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="toc">
+  <div class="section__head">
+    <p class="section__num">20 — Apparatus</p>
+    <h2>Table of contents</h2>
+    <p>Dot leaders work anywhere. Page numbers require the engine to resolve a cross-reference <em>after</em> pagination — native in Typst and LaTeX, Paged Media in CSS. Where it cannot, the leaders render and the number is simply absent. That is the correct failure: a table of contents with wrong page numbers is worse than one with none.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <h3 style="margin-top:0">Contents</h3>
+        <nav class="ts-toc">
+          <ol>
+            <li><a href="#page"><span>Composition</span><span class="ts-leader"></span></a></li>
+            <li class="ts-toc-2"><a href="#foundation"><span>The measure of a line</span><span class="ts-leader"></span></a></li>
+            <li class="ts-toc-2"><a href="#justification"><span>Justification and its costs</span><span class="ts-leader"></span></a></li>
+            <li><a href="#tables"><span>Tabular matter</span><span class="ts-leader"></span></a></li>
+            <li><a href="#notes"><span>Apparatus</span><span class="ts-leader"></span></a></li>
+          </ol>
+        </nav>
+        <p style="font-family:var(--ts-sans);font-size:8.5pt;color:var(--ts-ink-faint);margin-top:1em">In a browser the numbers are absent, as above. Through Paged.js or WeasyPrint they appear at the right of each leader.</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="toc"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="bibliography">
+  <div class="section__head">
+    <p class="section__num">21 — Apparatus</p>
+    <h2>Bibliography</h2>
+    <p>Hanging indent, always. The surname is the thing being scanned, so it must be the leftmost thing on the entry — an indented first line puts the one useful token where the eye is not looking.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <h3 style="margin-top:0">References</h3>
+        <ol class="ts-bibliography">
+          <li>Bringhurst, Robert. <cite>The Elements of Typographic Style</cite>. 4th ed. Hartley &amp; Marks, 2012.</li>
+          <li>Hochuli, Jost. <cite>Detail in Typography</cite>. Hyphen Press, 2008.</li>
+          <li>Ruder, Emil. <cite>Typographie: A Manual of Design</cite>. Niggli, 1967. Still the clearest statement of the case for the grid, and long enough ago to be read without argument.</li>
+          <li>Tschichold, Jan. <cite>The Form of the Book</cite>. Hartley &amp; Marks, 1991.</li>
+        </ol>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="bibliography"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DOCUMENTS ================= -->
+
+<section class="section" id="frontmatter">
+  <div class="section__head">
+    <p class="section__num">22 — Documents</p>
+    <h2>Front matter</h2>
+    <p>Title, subtitle, byline, dateline, abstract — and a colophon to close. The colophon is the note at the back of a book recording how it was made and in what type. It is the one piece of front-and-back matter that is purely for pleasure, and the cheapest thing in this stylesheet to include.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <div class="ts-titleblock">
+          <h1>On the Measure of a Line</h1>
+          <p class="ts-subtitle">Why the width of a text column is the first decision, and the font is the last</p>
+          <p class="ts-byline">Adilson Carvalho</p>
+          <p class="ts-dateline">Sydney, 28 August 2026</p>
+        </div>
+        <div class="ts-abstract">
+          <span class="ts-label">Abstract</span>
+          Every argument about typefaces is downstream of an argument about column width. This essay makes the case that a document set at the wrong measure cannot be rescued by any choice of face, and that a document set at the right one is nearly indifferent to it.
+        </div>
+        <p>The claim is not original, and it is not complicated…</p>
+        <div class="ts-colophon">
+          Set in EB Garamond, with Source Sans 3 for headings and IBM Plex Mono for code. Composed in HTML and rendered to PDF with Paged.js. A4, 11 on 16 points.
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="frontmatter"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="letter">
+  <div class="section__head">
+    <p class="section__num">23 — Documents</p>
+    <h2>Letter</h2>
+    <p>The full anatomy: letterhead, recipient block, date, salutation, body, closing, signature, enclosures, postscript. Address blocks are line-broken data rather than prose, so they get their own line height and are never justified.</p>
+    <p>The signature block reserves vertical space above the rule for an actual signature — the point of printing a letter is that someone signs it.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <div class="ts-letterhead">
+          <p class="ts-name">Adilson Carvalho</p>
+          <p class="ts-contact">14 Wentworth Avenue, Surry Hills NSW 2010<br>hello@example.org · +61 2 5550 0100</p>
+        </div>
+
+        <address class="ts-address">
+          <span class="ts-label">To</span>
+          The Registrar<br>
+          Institute of Typographic Studies<br>
+          88 Rundle Street<br>
+          Adelaide SA 5000
+        </address>
+
+        <p class="ts-date">28 August 2026</p>
+
+        <p class="ts-salutation">Dear Registrar,</p>
+
+        <p>I am writing about the setting of the Institute's annual report, which arrived this morning and which I read with more attention to its margins than to its contents. The measure runs to something near 110 characters, and by the second page I had lost my place twice.</p>
+
+        <p>This is a fixable problem, and fixing it costs nothing. I would be glad to send the specification I use for my own documents, which sets the column at 66 characters and reserves the remaining width for sidenotes.</p>
+
+        <p class="ts-closing">Yours sincerely,</p>
+
+        <div class="ts-signature">
+          <span class="ts-rule">Adilson Carvalho</span>
+        </div>
+
+        <p class="ts-enclosures"><span class="ts-label">Enc.</span> typeset.css; two specimen pages</p>
+        <p class="ts-ps"><span class="ts-label">P.S.</span> The tables were excellent.</p>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="letter"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="utilities">
+  <div class="section__head">
+    <p class="section__num">24 — Documents</p>
+    <h2>Pagination utilities</h2>
+    <p>The small set of overrides reached for while proofing a real document: force a break, forbid one, stop a hyphen, tie two words together. Every one is a manual decision about a specific page, not a style. The last of them tells the output device not to strip backgrounds and rules to save ink.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label">How it must look</p>
+      <div class="paper typeset">
+        <dl>
+          <dt>.ts-page-break-before</dt><dd>Start this element on a new page. For chapter openings.</dd>
+          <dt>.ts-keep-together</dt><dd>Never split this element across pages. For a short table, a signature block, a callout.</dd>
+          <dt>.ts-tie</dt><dd>Keep a figure with its unit: <span class="ts-tie">11 pt</span>, <span class="ts-tie">§2.1</span>, <span class="ts-tie">Fig. 1</span>.</dd>
+          <dt>.ts-print-only / .ts-screen-only</dt><dd>For the URL list a printed page needs and a screen does not, and the navigation a screen needs and a page does not.</dd>
+        </dl>
+      </div>
+    </div>
+    <div>
+      <div class="panel" data-section="utilities"></div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <p><b>typeset</b> — Adilson Carvalho. <a href="spec.json">spec.json</a> is normative. The CSS and Typst panels are read out of <a href="typeset.css">typeset.css</a> and <a href="implementations/typeset.typ">typeset.typ</a> at page load, so a panel cannot drift from the file it quotes.</p>
+  <p>Adding an engine means adding an implementation that hits the values in <code>spec.json</code> and a marker pair so this page can quote it. If an implementation and the spec disagree, the spec is right and the implementation is broken.</p>
+</footer>
+
+</main>
+</div>
+</body>
+</html>

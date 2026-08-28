@@ -1,0 +1,1600 @@
+{
+  "name": "typeset",
+  "version": "1.0.0",
+  "updated": "2026-08-28",
+  "owner": "Adilson Carvalho",
+  "canonical_url": "https://typeset.adilsoncarvalho.com",
+  "intent": "A normative typographic specification for printed documents — essays, letters, reports. This file is the source of truth. CSS, Typst, LaTeX or any other implementation conforms to it; where an implementation and this file disagree, this file is right.",
+  "target": "Paper and PDF at 100% scale. Not screens, not reflowing layouts.",
+  "conformance": [
+    "Every length is absolute. Points (pt) and millimetres (mm) mean the same thing in every engine; 1pt = 1/72in.",
+    "A length given in em is relative to the font size of the element it is declared on, not to the document base.",
+    "line_height is a multiple of the element's own font size, and defines the baseline-to-baseline advance. An engine whose leading is measured between line boxes rather than between baselines must derive its value from the resulting advance, stated per element in baseline_advance.",
+    "An implementation MUST reproduce every value under `properties`. It MAY add anything the target engine needs to achieve them.",
+    "Where an engine cannot express a property, it must fail visibly or degrade as named in `fallback` — never silently.",
+    "Colour is sRGB. Ink is never pure black: #000 blooms on laser output and glares in a backlit PDF.",
+    "Deriving leading: where the engine measures the gap between line boxes rather than between baselines, pin the line box to the band from the baseline up to 1em (in Typst: top-edge: 1em, bottom-edge: 0pt). The advance is then 1em + leading, so leading = (line_height - 1) em, independent of the font's own metrics."
+  ],
+  "foundation": {
+    "page": {
+      "size": "A4",
+      "size_mm": [
+        210,
+        297
+      ],
+      "alternate_size": "Letter",
+      "margin_top_mm": 25,
+      "margin_bottom_mm": 25,
+      "margin_outer_mm": 22,
+      "margin_inner_mm": 28,
+      "duplex": "Margins mirror: the inner (binding) margin is 28mm on both left and right pages, so the gutter stays put when printed double-sided.",
+      "text_width_mm": 160,
+      "running_head": {
+        "position": "top centre",
+        "content": "the current level-2 heading, uppercased",
+        "font": "sans",
+        "size": "8pt",
+        "tracking": "0.08em",
+        "color": "ink_faint",
+        "suppressed_on": "first page"
+      },
+      "folio": {
+        "position": "bottom centre",
+        "content": "page number",
+        "font": "serif",
+        "size": "9pt",
+        "numerals": "oldstyle",
+        "color": "ink_muted",
+        "suppressed_on": "first page"
+      }
+    },
+    "fonts": {
+      "serif": {
+        "role": "body text — the reading face",
+        "family": "EB Garamond",
+        "license": "OFL",
+        "fallbacks": [
+          "Iowan Old Style",
+          "Palatino",
+          "Georgia",
+          "serif"
+        ],
+        "weights": [
+          400,
+          600
+        ],
+        "styles": [
+          "normal",
+          "italic"
+        ],
+        "features": [
+          "oldstyle figures",
+          "small caps",
+          "standard ligatures",
+          "kerning"
+        ],
+        "note": "Set no smaller than 11pt. Below that the strokes thin out on office laser output."
+      },
+      "sans": {
+        "role": "headings, tables, captions, labels",
+        "family": "Source Sans 3",
+        "license": "OFL",
+        "fallbacks": [
+          "Helvetica Neue",
+          "Helvetica",
+          "Arial",
+          "sans-serif"
+        ],
+        "weights": [
+          300,
+          600,
+          700
+        ],
+        "styles": [
+          "normal",
+          "italic"
+        ],
+        "note": "Humanist, so it sits with an old-style serif instead of fighting it."
+      },
+      "mono": {
+        "role": "code, listings, technical identifiers",
+        "family": "IBM Plex Mono",
+        "license": "OFL",
+        "fallbacks": [
+          "SF Mono",
+          "Menlo",
+          "Consolas",
+          "monospace"
+        ],
+        "weights": [
+          400,
+          600
+        ],
+        "styles": [
+          "normal",
+          "italic"
+        ],
+        "features": [
+          "ligatures disabled"
+        ],
+        "note": "Monospaced faces run optically large beside a serif; every size below is already corrected for it."
+      },
+      "embedding": "Font files MUST be embedded in the output. A document that resolves its fonts at print time is not reproducible."
+    },
+    "scale": {
+      "ratio": 1.2,
+      "base": "11pt",
+      "steps": {
+        "xs": "8pt",
+        "sm": "9.5pt",
+        "base": "11pt",
+        "h4": "12pt",
+        "h3": "14pt",
+        "h2": "18pt",
+        "h1": "24pt"
+      }
+    },
+    "rhythm": {
+      "line_height": 1.45,
+      "line_height_tight": 1.2,
+      "baseline_advance": "15.95pt",
+      "space": "11pt",
+      "space_note": "One unit of vertical space is 11pt — one line of base leading, near enough. Every gap below is a multiple of it.",
+      "measure": "33em",
+      "measure_mm": 126,
+      "measure_chars": 66,
+      "measure_note": "The single largest legibility lever. Past about 75 characters the return sweep fails and readers re-read lines without noticing; below 45 the eye fixates too often.",
+      "measure_variants": {
+        "narrow": "27em",
+        "wide": "40em"
+      }
+    },
+    "color": {
+      "ink": {
+        "hex": "#1a1a1a",
+        "role": "body text"
+      },
+      "ink_muted": {
+        "hex": "#5a5a5a",
+        "role": "captions, attributions, secondary text"
+      },
+      "ink_faint": {
+        "hex": "#8a8a8a",
+        "role": "labels, list markers, running heads"
+      },
+      "rule": {
+        "hex": "#c9c4bd",
+        "role": "hairlines, table body rules"
+      },
+      "rule_strong": {
+        "hex": "#6f6a64",
+        "role": "table header and footer rules, block accents"
+      },
+      "wash": {
+        "hex": "#f4f1ec",
+        "role": "code and callout backgrounds"
+      },
+      "accent": {
+        "hex": "#7a1f1f",
+        "role": "drop caps, note markers, fleurons",
+        "note": "Oxblood. Chosen to read as a dark grey when printed in greyscale."
+      }
+    }
+  },
+  "sections": [
+    {
+      "id": "headings",
+      "title": "Headings",
+      "group": "Structure",
+      "principles": [
+        "Sans against the serif body, so hierarchy reads by contrast rather than by size alone.",
+        "Below level 4 the size stops changing and the register shifts instead — small caps, then italic. Six distinct levels inside a 24pt–11pt range.",
+        "Space above is four times the space below: a heading belongs to what follows it.",
+        "A heading MUST NOT be the last thing on a page. This is the most common defect in printed documents."
+      ],
+      "elements": [
+        {
+          "id": "h1",
+          "name": "Heading 1 — document title",
+          "properties": {
+            "font": "sans",
+            "weight": 300,
+            "size": "24pt",
+            "line_height": 1.2,
+            "baseline_advance": "28.8pt",
+            "tracking": "-0.015em",
+            "color": "ink",
+            "align": "left",
+            "space_before": "0",
+            "space_after": "5.5pt",
+            "break_after": "avoid",
+            "break_inside": "avoid",
+            "wrap": "balanced"
+          }
+        },
+        {
+          "id": "h2",
+          "name": "Heading 2 — section",
+          "properties": {
+            "font": "sans",
+            "weight": 600,
+            "size": "18pt",
+            "line_height": 1.2,
+            "baseline_advance": "21.6pt",
+            "tracking": "-0.01em",
+            "color": "ink",
+            "align": "left",
+            "space_before": "22pt",
+            "space_after": "5.5pt",
+            "break_after": "avoid",
+            "break_inside": "avoid",
+            "wrap": "balanced",
+            "sets_running_head": true
+          }
+        },
+        {
+          "id": "h3",
+          "name": "Heading 3 — subsection",
+          "properties": {
+            "font": "sans",
+            "weight": 600,
+            "size": "14pt",
+            "line_height": 1.2,
+            "baseline_advance": "16.8pt",
+            "color": "ink",
+            "align": "left",
+            "space_before": "22pt",
+            "space_after": "5.5pt",
+            "break_after": "avoid"
+          }
+        },
+        {
+          "id": "h4",
+          "name": "Heading 4",
+          "properties": {
+            "font": "sans",
+            "weight": 600,
+            "size": "12pt",
+            "line_height": 1.2,
+            "baseline_advance": "14.4pt",
+            "color": "ink",
+            "align": "left",
+            "space_before": "22pt",
+            "space_after": "5.5pt",
+            "break_after": "avoid"
+          }
+        },
+        {
+          "id": "h5",
+          "name": "Heading 5",
+          "properties": {
+            "font": "serif",
+            "weight": 600,
+            "size": "11pt",
+            "variant": "all small caps",
+            "tracking": "0.06em",
+            "color": "ink",
+            "space_before": "22pt",
+            "space_after": "5.5pt",
+            "break_after": "avoid"
+          },
+          "notes": [
+            "No size change from body — the register carries the level."
+          ]
+        },
+        {
+          "id": "h6",
+          "name": "Heading 6",
+          "properties": {
+            "font": "serif",
+            "weight": 400,
+            "style": "italic",
+            "size": "11pt",
+            "color": "ink",
+            "space_before": "22pt",
+            "space_after": "5.5pt",
+            "break_after": "avoid"
+          }
+        },
+        {
+          "id": "heading-run-in",
+          "name": "Run-in heading",
+          "properties": {
+            "display": "inline with the first line of its paragraph",
+            "separator": " · ",
+            "separator_color": "ink_faint",
+            "space_before": "0",
+            "space_after": "0"
+          },
+          "notes": [
+            "For dense reports where a full heading line is too much vertical cost."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "numbering",
+      "title": "Section numbering",
+      "group": "Structure",
+      "opt_in": "typeset--numbered",
+      "principles": [
+        "Numbers are generated by a counter, never typed. A typed number drifts the moment a section moves.",
+        "Reports are numbered; essays and letters are not. It must be one switch."
+      ],
+      "elements": [
+        {
+          "id": "number-h2",
+          "name": "Level-2 number",
+          "properties": {
+            "format": "1",
+            "separator": "two spaces",
+            "color": "ink_faint",
+            "numerals": "lining tabular",
+            "resets": "the level-3 counter"
+          }
+        },
+        {
+          "id": "number-h3",
+          "name": "Level-3 number",
+          "properties": {
+            "format": "1.1",
+            "separator": "two spaces",
+            "color": "ink_faint",
+            "numerals": "lining tabular"
+          }
+        }
+      ]
+    },
+    {
+      "id": "paragraphs",
+      "title": "Paragraphs",
+      "group": "Prose",
+      "principles": [
+        "Two conventions, one switch. Spaced paragraphs suit documents that get skimmed. Indented paragraphs with no gap suit continuous prose and are the convention of nearly every printed book.",
+        "The first paragraph after any heading, block or break is flush left: the thing above it has already marked the start."
+      ],
+      "elements": [
+        {
+          "id": "paragraph",
+          "name": "Paragraph — spaced (default)",
+          "properties": {
+            "font": "serif",
+            "weight": 400,
+            "size": "11pt",
+            "line_height": 1.45,
+            "baseline_advance": "15.95pt",
+            "numerals": "oldstyle proportional",
+            "color": "ink",
+            "space_after": "11pt",
+            "first_line_indent": "0",
+            "orphans": 2,
+            "widows": 2,
+            "max_width": "33em"
+          }
+        },
+        {
+          "id": "paragraph-indented",
+          "name": "Paragraph — indented",
+          "opt_in": "typeset--indented",
+          "properties": {
+            "space_after": "0",
+            "first_line_indent": "1.5em",
+            "first_line_indent_after_block": "0"
+          },
+          "notes": [
+            "Applies after a heading, blockquote, figure or section break, and to the first paragraph of the document."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "justification",
+      "title": "Justification & hyphenation",
+      "group": "Prose",
+      "opt_in": "typeset--justified",
+      "principles": [
+        "These are a single decision. Justification without hyphenation opens rivers of white space; hyphenation without justification breaks words for no gain. Take both or neither.",
+        "Hyphenation is per-language and requires the document language to be declared. An English dictionary applied to Portuguese produces confident nonsense.",
+        "The last line of a paragraph is NEVER stretched. State this explicitly — a paginating engine fragments the text, so the visual last line stops looking like the end of a paragraph and gets justified. It does not reproduce in an unpaginated preview.",
+        "Justification applies to prose only. It MUST NOT reach a subtitle, byline, caption, address block, table cell, heading or listing. In an engine where alignment inherits, every such block declares its own alignment rather than relying on an exception list."
+      ],
+      "elements": [
+        {
+          "id": "justified-prose",
+          "name": "Justified prose",
+          "properties": {
+            "align": "justify",
+            "align_last_line": "left",
+            "justify_method": "inter-word",
+            "hyphenation": "automatic",
+            "hyphenation_min_word_chars": 6,
+            "hyphenation_min_chars_before_break": 3,
+            "hyphenation_min_chars_after_break": 3,
+            "max_consecutive_hyphens": 2,
+            "applies_to": [
+              "paragraph",
+              "list item",
+              "blockquote",
+              "definition description",
+              "callout"
+            ]
+          }
+        },
+        {
+          "id": "justified-exclusions",
+          "name": "Never justified",
+          "properties": {
+            "align": "left",
+            "hyphenation": "manual",
+            "applies_to": [
+              "all headings",
+              "subtitle",
+              "byline",
+              "dateline",
+              "abstract",
+              "attribution",
+              "epigraph",
+              "verse",
+              "caption",
+              "figure caption",
+              "address block",
+              "table cell",
+              "table header",
+              "code block",
+              "table of contents",
+              "bibliography",
+              "endnotes",
+              "sidenote",
+              "letterhead",
+              "salutation",
+              "closing",
+              "signature",
+              "enclosures",
+              "postscript",
+              "definition term"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "dropcap",
+      "title": "Drop cap",
+      "group": "Prose",
+      "principles": [
+        "For the opening of an essay or a chapter, and nowhere else.",
+        "The size and line height are tuned together to cover exactly three lines. Change the leading and the cap must be retuned.",
+        "The opening words go in small caps. Without them the jump from 33pt to 11pt is too abrupt and the eye skips the first line."
+      ],
+      "elements": [
+        {
+          "id": "dropcap",
+          "name": "Drop cap",
+          "properties": {
+            "font": "serif",
+            "weight": 400,
+            "size": "3.05em",
+            "size_pt": "33.55pt",
+            "line_height": 0.86,
+            "color": "accent",
+            "float": "left",
+            "lines_covered": 3,
+            "padding_right": "0.06em",
+            "padding_top": "0.02em",
+            "first_line_indent": "0"
+          }
+        },
+        {
+          "id": "dropcap-lede",
+          "name": "Opening words",
+          "properties": {
+            "variant": "all small caps",
+            "tracking": "0.04em",
+            "extent": "the first two to four words"
+          }
+        }
+      ]
+    },
+    {
+      "id": "inline",
+      "title": "Inline emphasis",
+      "group": "Prose",
+      "principles": [
+        "Nested emphasis FLIPS to roman rather than compounding. This is correct typographic behaviour and most engines get it wrong by default.",
+        "Superscripts and subscripts must not disturb the line's leading.",
+        "Underline is reserved for insertions. On paper it is a typewriter's substitute for italic, and there is no reason to imitate a typewriter."
+      ],
+      "elements": [
+        {
+          "id": "strong",
+          "name": "Bold",
+          "properties": {
+            "weight": 600
+          },
+          "notes": [
+            "For the load-bearing clause."
+          ]
+        },
+        {
+          "id": "emphasis",
+          "name": "Italic",
+          "properties": {
+            "style": "italic"
+          },
+          "notes": [
+            "For a title or a term of art."
+          ]
+        },
+        {
+          "id": "emphasis-nested",
+          "name": "Nested italic",
+          "properties": {
+            "style": "normal"
+          }
+        },
+        {
+          "id": "small-caps",
+          "name": "Small caps",
+          "properties": {
+            "variant": "all small caps",
+            "tracking": "0.05em",
+            "numerals": "oldstyle"
+          },
+          "notes": [
+            "Named entities, acronyms, stage directions."
+          ]
+        },
+        {
+          "id": "abbr",
+          "name": "Abbreviation",
+          "properties": {
+            "variant": "all small caps",
+            "tracking": "0.05em",
+            "underline": "0.5pt dotted",
+            "underline_color": "ink_faint"
+          }
+        },
+        {
+          "id": "superscript",
+          "name": "Superscript",
+          "properties": {
+            "size": "0.72em",
+            "baseline_shift": "+0.45em",
+            "line_height": 0,
+            "affects_leading": false
+          }
+        },
+        {
+          "id": "subscript",
+          "name": "Subscript",
+          "properties": {
+            "size": "0.72em",
+            "baseline_shift": "-0.22em",
+            "line_height": 0,
+            "affects_leading": false
+          }
+        },
+        {
+          "id": "deleted",
+          "name": "Deletion",
+          "properties": {
+            "decoration": "line-through",
+            "color": "ink_muted"
+          }
+        },
+        {
+          "id": "inserted",
+          "name": "Insertion",
+          "properties": {
+            "decoration": "underline",
+            "underline_offset": "0.15em"
+          }
+        },
+        {
+          "id": "highlight",
+          "name": "Highlight",
+          "properties": {
+            "background": "wash",
+            "bleed": "2pt beyond the glyphs"
+          }
+        },
+        {
+          "id": "kbd",
+          "name": "Key",
+          "properties": {
+            "font": "sans",
+            "size": "0.85em",
+            "padding": "0.15em 0.35em",
+            "border": "0.5pt rule",
+            "border_bottom": "1.5pt rule",
+            "radius": "2pt"
+          }
+        }
+      ]
+    },
+    {
+      "id": "code-inline",
+      "title": "Inline code",
+      "group": "Prose",
+      "elements": [
+        {
+          "id": "code-inline",
+          "name": "Inline code",
+          "properties": {
+            "font": "mono",
+            "size": "0.86em",
+            "ligatures": "disabled",
+            "background": "wash",
+            "padding": "0.1em 0.28em",
+            "radius": "2pt",
+            "wrap": "may break within a word"
+          },
+          "notes": [
+            "The 0.86em corrects for the monospace face running optically large beside the serif.",
+            "Ligatures off: an arrow rendered as one glyph is charming in an editor and wrong in a document that quotes source."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "links",
+      "title": "Links in print",
+      "group": "Prose",
+      "principles": [
+        "Paper has no hover and no click. A URL that carries information must be printed."
+      ],
+      "elements": [
+        {
+          "id": "link",
+          "name": "Link",
+          "properties": {
+            "color": "inherit",
+            "decoration": "underline",
+            "underline_thickness": "0.5pt",
+            "underline_offset": "0.14em",
+            "skip_descenders": true
+          }
+        },
+        {
+          "id": "link-print-url",
+          "name": "Printed URL",
+          "properties": {
+            "content": "the href in parentheses, after the link text",
+            "font": "mono",
+            "size": "0.82em",
+            "color": "ink_muted",
+            "wrap": "may break anywhere",
+            "applies_to": "external (http/https) links only",
+            "excluded": [
+              "internal anchors",
+              "mailto:",
+              "links marked bare"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "figures-numeric",
+      "title": "Numerals",
+      "group": "Prose",
+      "principles": [
+        "Three kinds, three jobs. Getting this wrong is the most visible amateur tell in a set document, and it is one setting.",
+        "Old-style figures have ascenders and descenders and sit inside the x-height. Lining figures are uniform cap height. Tabular figures share one advance width, which is the only reason a column of numbers can align."
+      ],
+      "elements": [
+        {
+          "id": "numerals-prose",
+          "name": "In running prose",
+          "properties": {
+            "numerals": "oldstyle proportional"
+          }
+        },
+        {
+          "id": "numerals-display",
+          "name": "In headings and display",
+          "properties": {
+            "numerals": "lining proportional"
+          }
+        },
+        {
+          "id": "numerals-tabular",
+          "name": "In tables and columns",
+          "properties": {
+            "numerals": "lining tabular"
+          }
+        },
+        {
+          "id": "numerals-fractions",
+          "name": "Fractions",
+          "properties": {
+            "form": "diagonal"
+          }
+        }
+      ]
+    },
+    {
+      "id": "quotes",
+      "title": "Quotations",
+      "group": "Blocks",
+      "principles": [
+        "Four jobs, four treatments. A block quote is evidence. An epigraph opens a chapter. A pull quote is display type lifted from the body. Verse preserves the poet's line breaks.",
+        "A pull quote repeats text that already appears in the body, so it MUST NOT be the only place a claim appears — a skimming reader would get the claim without its qualification.",
+        "Attribution always sits outside the quotation. Inside, it becomes part of what was said."
+      ],
+      "elements": [
+        {
+          "id": "blockquote",
+          "name": "Block quote",
+          "properties": {
+            "font": "serif",
+            "size": "10.5pt",
+            "line_height": 1.45,
+            "color": "ink",
+            "space_before": "13.75pt",
+            "space_after": "13.75pt",
+            "indent_left": "16.5pt",
+            "border_left": "1pt rule",
+            "break_inside": "avoid",
+            "last_child_space_after": "0"
+          }
+        },
+        {
+          "id": "attribution",
+          "name": "Attribution",
+          "properties": {
+            "display": "block",
+            "align": "left",
+            "space_before": "5.5pt",
+            "size": "9.5pt",
+            "style": "normal",
+            "color": "ink_muted",
+            "prefix": "em dash and a space"
+          }
+        },
+        {
+          "id": "epigraph",
+          "name": "Epigraph",
+          "properties": {
+            "font": "serif",
+            "style": "italic",
+            "size": "10pt",
+            "color": "ink_muted",
+            "align": "left",
+            "block_alignment": "flush right",
+            "max_width": "24em",
+            "border": "none",
+            "space_after": "22pt"
+          },
+          "notes": [
+            "Cite inside an epigraph is roman, not italic — the surrounding block is already italic."
+          ]
+        },
+        {
+          "id": "pullquote",
+          "name": "Pull quote",
+          "properties": {
+            "font": "sans",
+            "weight": 300,
+            "size": "15pt",
+            "line_height": 1.3,
+            "align": "centre",
+            "wrap": "balanced",
+            "border_top": "1.5pt rule_strong",
+            "border_bottom": "0.5pt rule",
+            "padding_top": "11pt",
+            "padding_bottom": "11pt",
+            "space_before": "16.5pt",
+            "space_after": "16.5pt"
+          }
+        },
+        {
+          "id": "verse",
+          "name": "Verse",
+          "properties": {
+            "font": "serif",
+            "size": "11pt",
+            "align": "left",
+            "line_breaks": "preserved as authored",
+            "indent_left": "22pt",
+            "runover_indent": "1.5em",
+            "border": "none"
+          },
+          "notes": [
+            "Runover lines indent further than the verse line they continue, so a wrapped line cannot be mistaken for a new one."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lists",
+      "title": "Lists",
+      "group": "Blocks",
+      "principles": [
+        "The marker's colour, weight and width must be under control. A grey marker with black text reads as one thing; a black marker competes with the first word.",
+        "Runover lines align to the text, never to the marker.",
+        "Two levels of nesting is the limit worth designing for.",
+        "Definition lists are underused: they are the right shape for a glossary, a set of terms, or the field-and-value blocks of a letter."
+      ],
+      "elements": [
+        {
+          "id": "list-unordered",
+          "name": "Unordered list",
+          "properties": {
+            "marker": "·",
+            "marker_color": "ink_muted",
+            "marker_weight": 700,
+            "marker_column_width": "1.4em",
+            "indent": "1.4em",
+            "item_space_after": "2.75pt",
+            "space_after": "11pt"
+          }
+        },
+        {
+          "id": "list-unordered-nested",
+          "name": "Unordered list, nested",
+          "properties": {
+            "marker": "–",
+            "marker_weight": 400,
+            "space_before": "2.75pt"
+          }
+        },
+        {
+          "id": "list-ordered",
+          "name": "Ordered list",
+          "properties": {
+            "marker": "1.",
+            "marker_color": "ink_muted",
+            "numerals": "lining tabular",
+            "marker_column_width": "1.4em",
+            "indent": "1.4em",
+            "item_space_after": "2.75pt"
+          },
+          "notes": [
+            "Tabular numerals so 9 and 10 align."
+          ]
+        },
+        {
+          "id": "list-ordered-nested",
+          "name": "Ordered list, nested",
+          "properties": {
+            "marker": "a."
+          }
+        },
+        {
+          "id": "list-tight",
+          "name": "Tight list",
+          "opt_in": "ts-list-tight",
+          "properties": {
+            "item_space_after": "0"
+          },
+          "notes": [
+            "For enumerations that are not prose."
+          ]
+        },
+        {
+          "id": "definition-term",
+          "name": "Definition term",
+          "properties": {
+            "font": "sans",
+            "weight": 600,
+            "size": "9.5pt",
+            "align": "left",
+            "space_before": "6.6pt",
+            "space_before_first": "0",
+            "break_after": "avoid"
+          }
+        },
+        {
+          "id": "definition-description",
+          "name": "Definition description",
+          "properties": {
+            "font": "serif",
+            "size": "11pt",
+            "indent_left": "16.5pt",
+            "space_after": "0"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tables",
+      "title": "Tables",
+      "group": "Blocks",
+      "principles": [
+        "Rules, not grids. Vertical rules are almost never needed — the columns already read as columns, and every added line is ink competing with data.",
+        "Three horizontal rules only: above the header, below the header, below the body.",
+        "A table is scanned, not read. Sans at 9.5pt; the serif's job is reading.",
+        "Numbers align on their right edge, on tabular figures. Units go in the header, not in every cell.",
+        "A table that spans pages MUST repeat its header on each. Without it, page two of a table is unreadable."
+      ],
+      "elements": [
+        {
+          "id": "table",
+          "name": "Table",
+          "properties": {
+            "font": "sans",
+            "size": "9.5pt",
+            "line_height": 1.35,
+            "numerals": "lining tabular",
+            "width": "full measure",
+            "space_before": "13.75pt",
+            "space_after": "13.75pt",
+            "border_collapse": true
+          }
+        },
+        {
+          "id": "table-header-cell",
+          "name": "Header cell",
+          "properties": {
+            "font": "sans",
+            "weight": 600,
+            "size": "8pt",
+            "case": "uppercase",
+            "tracking": "0.07em",
+            "color": "ink_muted",
+            "align": "left",
+            "border_bottom": "1pt rule_strong",
+            "padding": "0.45em 0.7em 0.45em 0",
+            "repeats_across_pages": true
+          }
+        },
+        {
+          "id": "table-cell",
+          "name": "Body cell",
+          "properties": {
+            "align": "left",
+            "vertical_align": "baseline",
+            "border_bottom": "0.5pt rule",
+            "padding": "0.45em 0.7em 0.45em 0",
+            "last_row_border_bottom": "1pt rule_strong"
+          }
+        },
+        {
+          "id": "table-cell-numeric",
+          "name": "Numeric cell",
+          "properties": {
+            "align": "right",
+            "numerals": "lining tabular"
+          }
+        },
+        {
+          "id": "table-footer-cell",
+          "name": "Footer cell",
+          "properties": {
+            "weight": 600,
+            "border_bottom": "none"
+          }
+        },
+        {
+          "id": "table-caption",
+          "name": "Caption",
+          "properties": {
+            "position": "above the table",
+            "align": "left",
+            "font": "sans",
+            "size": "9.5pt",
+            "color": "ink",
+            "space_after": "0.5em",
+            "label": "small caps, weight 600, tracking 0.06em",
+            "max_width": "none"
+          }
+        },
+        {
+          "id": "table-row",
+          "name": "Row",
+          "properties": {
+            "break_inside": "avoid"
+          }
+        },
+        {
+          "id": "table-zebra",
+          "name": "Zebra striping",
+          "opt_in": "ts-table-zebra",
+          "properties": {
+            "background": "wash on even body rows"
+          },
+          "notes": [
+            "For wide, dense tables only. Not a default."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "codeblock",
+      "title": "Code blocks",
+      "group": "Blocks",
+      "principles": [
+        "Paper cannot scroll. Lines wrap; they are never clipped.",
+        "A long listing MUST be allowed to split across pages. Forbidding the break pushes a blank page ahead of it."
+      ],
+      "elements": [
+        {
+          "id": "codeblock",
+          "name": "Code block",
+          "properties": {
+            "font": "mono",
+            "size": "8.5pt",
+            "line_height": 1.45,
+            "background": "wash",
+            "border_left": "2pt rule_strong",
+            "padding": "0.8em 1em",
+            "space_before": "13.75pt",
+            "space_after": "13.75pt",
+            "wrap": "soft-wrap long lines",
+            "tab_size": 2,
+            "break_inside": "avoid on screen, allowed in print"
+          }
+        }
+      ]
+    },
+    {
+      "id": "figures",
+      "title": "Figures & captions",
+      "group": "Blocks",
+      "principles": [
+        "A caption is not a title: it goes below the figure.",
+        "A figure and its caption stay on one page. This is the one place a no-break rule is unambiguously right.",
+        "The caption carries a small-caps label so a cross-reference in the text has something to point at."
+      ],
+      "elements": [
+        {
+          "id": "figure",
+          "name": "Figure",
+          "properties": {
+            "space_before": "16.5pt",
+            "space_after": "16.5pt",
+            "break_inside": "avoid",
+            "image_max_width": "full measure"
+          }
+        },
+        {
+          "id": "figure-caption",
+          "name": "Figure caption",
+          "properties": {
+            "position": "below the figure",
+            "font": "sans",
+            "size": "9.5pt",
+            "line_height": 1.4,
+            "color": "ink_muted",
+            "align": "left",
+            "space_before": "0.5em",
+            "border_top": "0.5pt rule",
+            "padding_top": "0.4em",
+            "label": "small caps, weight 600, colour ink, tracking 0.06em"
+          }
+        }
+      ]
+    },
+    {
+      "id": "callouts",
+      "title": "Callouts",
+      "group": "Blocks",
+      "principles": [
+        "A callout is an aside the reader may skip without losing the argument. If skipping it would lose the argument, it is a paragraph.",
+        "Two variants only. A document with five callout colours has none."
+      ],
+      "elements": [
+        {
+          "id": "callout",
+          "name": "Callout",
+          "properties": {
+            "font": "serif",
+            "size": "10pt",
+            "background": "wash",
+            "border": "0.5pt rule",
+            "border_left": "2.5pt rule_strong",
+            "padding": "0.75em 1em",
+            "space_before": "13.75pt",
+            "space_after": "13.75pt",
+            "break_inside": "avoid"
+          }
+        },
+        {
+          "id": "callout-title",
+          "name": "Callout title",
+          "properties": {
+            "font": "sans",
+            "weight": 700,
+            "size": "8pt",
+            "case": "uppercase",
+            "tracking": "0.09em",
+            "color": "ink_muted",
+            "space_after": "0.35em"
+          }
+        },
+        {
+          "id": "callout-warning",
+          "name": "Callout — warning",
+          "properties": {
+            "border_left": "2.5pt accent",
+            "title_color": "accent"
+          }
+        }
+      ]
+    },
+    {
+      "id": "breaks",
+      "title": "Section breaks",
+      "group": "Blocks",
+      "principles": [
+        "A blank line cannot survive a page break: if the break falls on the gap, the reader never learns the scene changed. Over a long document this is a certainty, not an accident. The mark MUST be visible.",
+        "Four registers, one per kind of division."
+      ],
+      "elements": [
+        {
+          "id": "break-asterisks",
+          "name": "Break — three asterisks",
+          "properties": {
+            "content": "* * *",
+            "size": "10pt",
+            "tracking": "0.6em",
+            "color": "ink_faint",
+            "align": "centre",
+            "space_before": "16.5pt",
+            "space_after": "16.5pt",
+            "break_after": "avoid"
+          },
+          "notes": [
+            "The default, for a change of scene in prose."
+          ]
+        },
+        {
+          "id": "break-asterism",
+          "name": "Break — asterism",
+          "properties": {
+            "content": "⁂",
+            "size": "14pt",
+            "color": "ink_faint",
+            "align": "centre"
+          },
+          "notes": [
+            "A heavier division: a change of part."
+          ]
+        },
+        {
+          "id": "break-fleuron",
+          "name": "Break — fleuron",
+          "properties": {
+            "content": "❦",
+            "size": "12pt",
+            "color": "accent",
+            "align": "centre"
+          },
+          "notes": [
+            "Where the document can afford ornament."
+          ]
+        },
+        {
+          "id": "break-rule",
+          "name": "Break — rule",
+          "properties": {
+            "border_top": "0.5pt rule",
+            "content": "none"
+          },
+          "notes": [
+            "Where it cannot. Reports."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "notes",
+      "title": "Footnotes, endnotes & sidenotes",
+      "group": "Apparatus",
+      "principles": [
+        "Bottom-of-page footnotes require an engine that can measure the page while laying it out. Typst and LaTeX do this natively. WeasyPrint 53+ and Prince implement the CSS footnote model. No browser does.",
+        "Where footnotes are unavailable the note text MUST still live in the document, degrading to a numbered endnotes block — never to a lost note.",
+        "Sidenotes are the better default where the page can afford the margin: no page-break arithmetic, and the reader never leaves the sentence they are in.",
+        "The reference mark must not disturb the leading of the line it sits on."
+      ],
+      "elements": [
+        {
+          "id": "note-marker",
+          "name": "Reference mark",
+          "properties": {
+            "content": "the note number",
+            "size": "0.7em",
+            "baseline_shift": "+0.45em",
+            "line_height": 0,
+            "color": "accent",
+            "numerals": "lining",
+            "decoration": "none",
+            "brackets": "none",
+            "affects_leading": false
+          }
+        },
+        {
+          "id": "footnote",
+          "name": "Footnote",
+          "properties": {
+            "position": "foot of the page carrying the mark",
+            "font": "serif",
+            "size": "9.5pt",
+            "line_height": 1.35,
+            "separator": "a rule above the notes area"
+          },
+          "fallback": "an endnotes block at the end of the document"
+        },
+        {
+          "id": "endnotes",
+          "name": "Endnotes block",
+          "properties": {
+            "font": "serif",
+            "size": "9.5pt",
+            "line_height": 1.4,
+            "align": "left",
+            "space_before": "22pt",
+            "border_top": "0.5pt rule",
+            "padding_top": "11pt",
+            "list_indent": "1.8em",
+            "item_space_after": "0.4em",
+            "heading": "NOTES — sans, 8pt, uppercase, tracking 0.1em, colour ink_faint"
+          }
+        },
+        {
+          "id": "sidenote",
+          "name": "Sidenote",
+          "opt_in": "typeset--sidenotes",
+          "properties": {
+            "font": "sans",
+            "size": "8pt",
+            "line_height": 1.4,
+            "color": "ink_muted",
+            "align": "left",
+            "width": "12em",
+            "position": "right margin, 2em past the measure",
+            "vertical_offset": "-0.3em from the marker's line",
+            "marker_prefix": "the note number in accent, weight 600",
+            "measure_when_active": "27em"
+          }
+        }
+      ]
+    },
+    {
+      "id": "toc",
+      "title": "Table of contents",
+      "group": "Apparatus",
+      "principles": [
+        "Page numbers require the engine to resolve a cross-reference after pagination. Where it cannot, the entry MUST omit the number rather than print a wrong one — a TOC with wrong numbers is worse than one with none."
+      ],
+      "elements": [
+        {
+          "id": "toc-entry",
+          "name": "Entry",
+          "properties": {
+            "font": "sans",
+            "size": "9.5pt",
+            "align": "left",
+            "space_after": "0.35em",
+            "decoration": "none",
+            "leader": "dotted 0.5pt rule, colour rule, filling the space between title and number",
+            "leader_baseline_offset": "-0.15em",
+            "page_number": "resolved after pagination",
+            "page_number_numerals": "lining tabular",
+            "page_number_color": "ink_muted"
+          },
+          "fallback": "leaders render, page numbers are omitted"
+        },
+        {
+          "id": "toc-entry-2",
+          "name": "Entry — level 2",
+          "properties": {
+            "indent_left": "1.5em"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bibliography",
+      "title": "Bibliography",
+      "group": "Apparatus",
+      "principles": [
+        "Hanging indent, always. The surname is what is being scanned, so it must be the leftmost thing on the entry."
+      ],
+      "elements": [
+        {
+          "id": "bibliography-entry",
+          "name": "Entry",
+          "properties": {
+            "font": "serif",
+            "size": "9.5pt",
+            "line_height": 1.4,
+            "align": "left",
+            "hanging_indent": "1.8em",
+            "space_after": "0.55em",
+            "marker": "none",
+            "break_inside": "avoid",
+            "title_style": "italic"
+          }
+        }
+      ]
+    },
+    {
+      "id": "frontmatter",
+      "title": "Front matter",
+      "group": "Documents",
+      "principles": [
+        "A colophon closes the document, recording how it was made and in what type. It is the one piece of matter that is purely for pleasure, and the cheapest thing here to include."
+      ],
+      "elements": [
+        {
+          "id": "title-block",
+          "name": "Title block",
+          "properties": {
+            "space_after": "33pt",
+            "padding_bottom": "11pt",
+            "border_bottom": "0.5pt rule"
+          }
+        },
+        {
+          "id": "subtitle",
+          "name": "Subtitle",
+          "properties": {
+            "font": "sans",
+            "weight": 300,
+            "size": "14pt",
+            "line_height": 1.25,
+            "color": "ink_muted",
+            "align": "left",
+            "wrap": "balanced",
+            "space_after": "11pt"
+          }
+        },
+        {
+          "id": "byline",
+          "name": "Byline",
+          "properties": {
+            "font": "serif",
+            "size": "11pt",
+            "variant": "all small caps",
+            "tracking": "0.08em",
+            "align": "left",
+            "space_after": "0"
+          }
+        },
+        {
+          "id": "dateline",
+          "name": "Dateline",
+          "properties": {
+            "font": "sans",
+            "size": "9.5pt",
+            "color": "ink_muted",
+            "align": "left",
+            "space_before": "0.2em"
+          }
+        },
+        {
+          "id": "abstract",
+          "name": "Abstract",
+          "properties": {
+            "font": "serif",
+            "size": "10pt",
+            "line_height": 1.45,
+            "color": "ink_muted",
+            "align": "left",
+            "max_width": "30em",
+            "space_after": "22pt",
+            "label": "ABSTRACT — sans, 700, 8pt, uppercase, tracking 0.1em, colour ink_faint, on its own line"
+          }
+        },
+        {
+          "id": "colophon",
+          "name": "Colophon",
+          "properties": {
+            "font": "serif",
+            "style": "italic",
+            "size": "9.5pt",
+            "color": "ink_muted",
+            "align": "left",
+            "max_width": "26em",
+            "space_before": "33pt",
+            "padding_top": "11pt",
+            "border_top": "0.5pt rule",
+            "break_before": "avoid"
+          }
+        }
+      ]
+    },
+    {
+      "id": "letter",
+      "title": "Letter",
+      "group": "Documents",
+      "principles": [
+        "Address blocks are line-broken data, not prose: tighter leading, never justified, line breaks as authored.",
+        "The signature block reserves vertical space above its rule. The point of printing a letter is that someone signs it.",
+        "A letter carries no running head and no folio."
+      ],
+      "elements": [
+        {
+          "id": "letter-page",
+          "name": "Letter page",
+          "properties": {
+            "margin_top_mm": 32,
+            "margin_bottom_mm": 28,
+            "margin_sides_mm": 25,
+            "running_head": "none",
+            "folio": "none"
+          },
+          "notes": [
+            "The deeper top margin puts the letterhead where an envelope window expects it."
+          ]
+        },
+        {
+          "id": "letterhead-name",
+          "name": "Letterhead name",
+          "properties": {
+            "font": "sans",
+            "weight": 600,
+            "size": "14pt",
+            "tracking": "-0.01em",
+            "align": "left",
+            "space_after": "0.3em"
+          }
+        },
+        {
+          "id": "letterhead-contact",
+          "name": "Letterhead contact",
+          "properties": {
+            "font": "sans",
+            "size": "8pt",
+            "line_height": 1.5,
+            "color": "ink_muted",
+            "align": "left",
+            "block_space_after": "27.5pt"
+          }
+        },
+        {
+          "id": "address-block",
+          "name": "Address block",
+          "properties": {
+            "font": "serif",
+            "size": "11pt",
+            "line_height": 1.35,
+            "style": "normal",
+            "align": "left",
+            "line_breaks": "as authored",
+            "space_after": "16.5pt",
+            "label": "sans, 8pt, uppercase, tracking 0.1em, colour ink_faint, on its own line"
+          }
+        },
+        {
+          "id": "letter-date",
+          "name": "Date line",
+          "properties": {
+            "numerals": "oldstyle",
+            "align": "left",
+            "space_after": "16.5pt"
+          }
+        },
+        {
+          "id": "salutation",
+          "name": "Salutation",
+          "properties": {
+            "align": "left",
+            "space_after": "11pt"
+          }
+        },
+        {
+          "id": "closing",
+          "name": "Closing",
+          "properties": {
+            "align": "left",
+            "space_before": "16.5pt"
+          }
+        },
+        {
+          "id": "signature",
+          "name": "Signature block",
+          "properties": {
+            "align": "left",
+            "space_before": "33pt",
+            "rule_width": "16em",
+            "rule": "0.5pt rule_strong above the typed name",
+            "name_size": "9.5pt",
+            "padding_top": "0.3em",
+            "break_inside": "avoid",
+            "signature_image_max_height": "16mm"
+          }
+        },
+        {
+          "id": "enclosures",
+          "name": "Enclosures",
+          "properties": {
+            "font": "serif",
+            "size": "9.5pt",
+            "color": "ink_muted",
+            "align": "left",
+            "space_before": "22pt",
+            "label": "small caps, weight 600, colour ink"
+          }
+        },
+        {
+          "id": "postscript",
+          "name": "Postscript",
+          "properties": {
+            "font": "serif",
+            "size": "9.5pt",
+            "align": "left",
+            "space_before": "11pt",
+            "label": "small caps, weight 600, tracking 0.08em"
+          }
+        }
+      ]
+    },
+    {
+      "id": "utilities",
+      "title": "Pagination utilities",
+      "group": "Documents",
+      "principles": [
+        "The small set of overrides reached for while proofing a real document. Every one of them is a manual decision about a specific page, not a style."
+      ],
+      "elements": [
+        {
+          "id": "util-break-before",
+          "name": "Break before",
+          "properties": {
+            "effect": "start this element on a new page"
+          },
+          "notes": [
+            "Chapter openings."
+          ]
+        },
+        {
+          "id": "util-break-after",
+          "name": "Break after",
+          "properties": {
+            "effect": "start the next element on a new page"
+          }
+        },
+        {
+          "id": "util-keep-together",
+          "name": "Keep together",
+          "properties": {
+            "effect": "never split this element across pages"
+          },
+          "notes": [
+            "A short table, a signature block, a callout."
+          ]
+        },
+        {
+          "id": "util-no-hyphens",
+          "name": "No hyphenation",
+          "properties": {
+            "hyphenation": "manual"
+          }
+        },
+        {
+          "id": "util-tie",
+          "name": "Tie",
+          "properties": {
+            "effect": "no line break inside"
+          },
+          "notes": [
+            "A figure with its unit, an initial with a surname, a section mark with its number."
+          ]
+        },
+        {
+          "id": "util-print-only",
+          "name": "Print only / screen only",
+          "properties": {
+            "effect": "present in one medium, absent in the other"
+          },
+          "notes": [
+            "The URL list a page needs and a screen does not; the navigation a screen needs and a page does not."
+          ]
+        },
+        {
+          "id": "util-color-adjust",
+          "name": "Exact colour",
+          "properties": {
+            "effect": "backgrounds and rules survive the output device's ink-saving"
+          },
+          "notes": [
+            "Without it a print dialog can strip every rule in a table."
+          ]
+        }
+      ]
+    }
+  ]
+}

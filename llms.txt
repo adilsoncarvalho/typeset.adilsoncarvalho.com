@@ -1,0 +1,38 @@
+# typeset
+
+> A normative typographic specification for printed documents — essays, letters,
+> reports. Anything destined for paper or a PDF. Owned by Adilson Carvalho.
+
+You are most likely here because someone is wiring up a rendering engine —
+Typst, LaTeX, WeasyPrint, InDesign, a PDF library — and wants the output to match
+this specification.
+
+Read in this order:
+
+1. `/spec.json` — the normative source. Every value, with units. If your output
+   disagrees with this file, your output is wrong.
+2. `/SPEC.md` — the same content as prose, generated from `spec.json`. Use this
+   when you want the whole spec in context at once.
+3. `/index.html` — rendered examples beside the spec values, for checking what a
+   conformant result actually looks like.
+
+## Reference implementations
+
+- [typeset.css](https://typeset.adilsoncarvalho.com/typeset.css): CSS. Complete except for footnotes, running heads and TOC page numbers, which need a paged-media engine.
+- [typeset.typ](https://typeset.adilsoncarvalho.com/implementations/typeset.typ): Typst. Complete except for the three-line drop-cap wrap, which Typst cannot float.
+- [example-essay.typ](https://typeset.adilsoncarvalho.com/implementations/example-essay.typ): the essay set in Typst — a conformance sample.
+- [essay.html](https://typeset.adilsoncarvalho.com/examples/essay.html), [letter.html](https://typeset.adilsoncarvalho.com/examples/letter.html): the same documents in CSS, paginated with Paged.js.
+
+## Rules for an implementer
+
+- The spec is the contract. An implementation may add whatever the engine needs
+  to hit the values; it may not change the values.
+- Every length in `spec.json` is absolute. Points and millimetres mean the same
+  thing everywhere.
+- `line_height` is a baseline-to-baseline advance, not a line-box height. If your
+  engine measures the gap between boxes, see the leading derivation in
+  `conformance`.
+- Where an engine cannot express a property, degrade as named in that element's
+  `fallback` field, and never silently.
+- Report what you could not implement. A conformance claim that hides a gap is
+  worse than an honest partial implementation.
