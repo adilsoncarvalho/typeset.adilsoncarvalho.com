@@ -9,14 +9,49 @@ fonts/
   EB-Garamond/          serif — body text          4 faces, OTF
   Source-Sans-3/        sans  — headings, tables   6 faces, TTF
   IBM-Plex-Mono/        mono  — code               3 faces, TTF
+  Cormorant-Garamond/   letter quote + letterhead  2 faces, TTF
   candidates/           the five faces under consideration
   manifest.json         inventory + OpenType features per family
 ```
+
+The three families at the top are the ones `spec.json` names, and the only ones
+`typeset.css` and `typeset.typ` refer to. Cormorant Garamond is not part
+of the specification: Cormorant Garamond exists for the iA Writer **letter**
+template — the italic for its display quote, the upright for its letterhead
+address — is bound in that template's own `page.css`, and ships only in that
+template's bundle. `fonts/candidates/Cormorant-Garamond/` is a separate thing
+again — upright faces kept for the printed font proof, and nothing links them.
+
+The two-column template and the Typst bundle carry the three spec families only.
 
 **Static instances only, no variable fonts.** Typst 0.14 exposes a variable font
 as its *default weight only* — `typst fonts --variants` lists EB Garamond
 `[wght]` as weight 400 and nothing else — so every other weight would be
 synthesised (faux bold) with no warning. One file per weight avoids that.
+
+### Both Cormorant Garamond cuts are instanced, not downloaded
+
+Every other face here is a static instance taken as-is. Google Fonts ships
+Cormorant Garamond as a variable font only — `ofl/cormorantgaramond/`
+contains `CormorantGaramond[wght].ttf` and `CormorantGaramond-Italic[wght].ttf`
+and no statics at all. A variable font is what this directory exists to avoid, so
+it is instanced at the italic's default weight and renamed to this directory's
+convention — family `Cormorant Garamond Light`, typographic family
+`Cormorant Garamond`, subfamily `Light Italic`. The result carries no `fvar`, so
+it is a static instance in the sense this directory requires. The rename is the
+part `fonttools` will not do for you:
+
+```sh
+B=https://raw.githubusercontent.com/google/fonts/main/ofl/cormorantgaramond
+curl -sfLO "$B/CormorantGaramond%5Bwght%5D.ttf"
+curl -sfLO "$B/CormorantGaramond-Italic%5Bwght%5D.ttf"
+fonttools varLib.instancer -o CormorantGaramond-300.ttf       "CormorantGaramond[wght].ttf"        wght=300 --update-name-table
+fonttools varLib.instancer -o CormorantGaramond-300Italic.ttf "CormorantGaramond-Italic[wght].ttf" wght=300 --update-name-table
+```
+
+`fonts/candidates/Cormorant-Garamond/` holds Google's own statics for the printed
+font proof. They are not used here: their coverage is narrower than the instanced
+pair, and nothing links them.
 
 ## Using them with Typst
 

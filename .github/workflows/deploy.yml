@@ -1,10 +1,11 @@
 name: Deploy
 
-# Every push to master rebuilds the site and the Typst bundle and publishes both
-# to Pages. A tag additionally attaches a version-stamped bundle to a release.
+# Every push to master rebuilds the site, the Typst bundle and the iA Writer
+# template, and publishes them all to Pages. A tag additionally attaches a
+# version-stamped copy of each to a release.
 #
-# The bundle is never committed: it is derived from implementations/ and fonts/,
-# so building it here is the only way it cannot drift from them.
+# None of the bundles is ever committed: each is derived from implementations/
+# and fonts/, so building them here is the only way they cannot drift.
 
 on:
   push:
@@ -39,6 +40,9 @@ jobs:
 
       - name: Build the Typst bundle
         run: node tools/build-bundle.mjs
+
+      - name: Build the iA Writer template
+        run: node tools/build-iawriter.mjs
 
       # Assembled explicitly rather than uploading the repository root, so the
       # deployed site never contains .git or the workflow itself. Skipped on a
@@ -88,21 +92,31 @@ jobs:
       - name: Build the Typst bundle
         run: node tools/build-bundle.mjs
 
-      # The asset carries the spec version, which is the version that matters:
-      # the bundle is an implementation of a numbered specification.
-      - name: Name the asset
+      - name: Build the iA Writer template
+        run: node tools/build-iawriter.mjs
+
+      # Every asset carries the spec version, which is the version that matters:
+      # each is an implementation of a numbered specification, and a reader who
+      # downloads one needs to know which revision they are holding.
+      - name: Name the assets
         run: |
           version=$(node -p "require('./spec.json').version")
-          asset="downloads/typeset-typst-${version}.zip"
-          cp downloads/typeset-typst.zip "$asset"
-          echo "ASSET=$asset" >> "$GITHUB_ENV"
+          cp downloads/typeset-typst.zip "downloads/typeset-typst-${version}.zip"
+          cp downloads/typeset-letter.iatemplate.zip "downloads/typeset-letter-${version}.iatemplate.zip"
           echo "VERSION=$version" >> "$GITHUB_ENV"
 
-      - name: Publish the release asset
+      - name: Publish the release assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" "$ASSET" \
+          assets=(
+            "downloads/typeset-typst-${VERSION}.zip"
+            "downloads/typeset-letter-${VERSION}.iatemplate.zip"
+          )
+          gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
             --title "typeset $GITHUB_REF_NAME" \
-            --notes "Typst implementation of typeset spec $VERSION, with every font file. Compile with \`typst compile --font-path fonts implementations/example-essay.typ out.pdf\`." \
-          || gh release upload "$GITHUB_REF_NAME" "$ASSET" --clobber
+            --notes "Implementations of typeset spec $VERSION, each carrying every font file.
+
+          - \`typeset-typst-${VERSION}.zip\` — Typst. Compile with \`typst compile --font-path fonts implementations/example-essay.typ out.pdf\`.
+          - \`typeset-letter-${VERSION}.iatemplate.zip\` — iA Writer, letter. Ragged right at the 11pt base." \
+          || gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber

@@ -25,6 +25,8 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `examples/essay.html`, `examples/letter.html` | The same documents in CSS, paginated with Paged.js. |
 | `examples/two-column.html` | The two-column template in CSS. Prints from the browser — see below. |
 | `implementations/example-two-column.typ` | The two-column template in Typst. |
+| `implementations/iawriter/` | The iA Writer templates — one bundle for the letter, one for two columns. |
+| `implementations/iawriter/iawriter.css` | The layer between iA Writer's Markdown output and `typeset.css`. |
 | `specimen.css`, `specimen.js` | Chrome for the specimen page. Never shipped in a document. |
 | `files/*.html` | **Generated.** One viewer page per downloadable file. |
 | `src/sections.json` | The section manifest: order, group, title, prose, which panel to render. |
@@ -32,9 +34,10 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `src/panels.mjs`, `src/highlight.mjs` | Build-time panel rendering and syntax highlighting. |
 | `src/masthead.html`, `src/footer.html`, `src/nav-*.html`, `src/viewers.json` | Page furniture. |
 | `tools/build-site.mjs` | Generates `index.html` and `files/*.html` from all of the above. |
-| `downloads/` | **Build output, gitignored.** The Typst bundle. `node tools/build-bundle.mjs`. |
+| `downloads/` | **Build output, gitignored.** The Typst bundle and the two iA Writer templates. |
 | `tools/build-bundle.mjs` | Builds the Typst bundle from `implementations/` and `fonts/`. |
-| `.github/workflows/deploy.yml` | Checks, builds the bundle, deploys Pages; on a tag, publishes a release asset. |
+| `tools/build-iawriter.mjs` | Builds the two iA Writer template bundles from `implementations/iawriter/`, `typeset.css` and `fonts/`. |
+| `.github/workflows/deploy.yml` | Checks, builds every bundle, deploys Pages; on a tag, publishes the release assets. |
 | `proofs/font-proof.html` | Six body-face candidates, one per A4 page, for printing. |
 | `highlight.js` | The syntax highlighter, shared by the specimen page and the viewers. |
 | `examples/preview-bar.js` | The back bar for example documents. See the Paged.js notes below. |
@@ -152,19 +155,122 @@ All bundled fonts are OFL-1.1 and each family directory carries its `OFL.txt`,
 which is what the licence requires for redistribution. `build-bundle.mjs` fails
 if one is missing, or if `typeset.typ` stops naming one of the three families.
 
+## The iA Writer template
+
+iA Writer is a Markdown editor, and Markdown is a small vocabulary: headings,
+body text, bold, italic, tables, footnotes, and one quoting construct. That is
+the whole of it. So the template implements exactly that much of the spec, and
+does not pretend to the rest — the signature block, callouts, sidenotes and drop
+caps all need markup Markdown has no way to write.
+
+`typeset-letter.iatemplate` is A4 at 20mm on all four sides, ragged right at the
+11pt base, filling the 170mm the margins leave. It is `typeset.css` plus
+`implementations/iawriter/iawriter.css`, which binds the bundled fonts to the
+family names the spec asserts and maps the MultiMarkdown constructs that have no
+counterpart in a hand-written document (footnotes, citations, task lists, column
+alignment). It adds no typography. What the letter wants for itself — the page,
+the display quote and the letterhead — is in `letter/page.css`.
+
+```sh
+node tools/build-iawriter.mjs   # ~2.1 MB
+```
+
+### What the letter sets for itself
+
+| Markdown | Set as |
+|---|---|
+| `> a quote` | Cormorant Garamond Light Italic, centred, 1.3x the base, no rule |
+| a tab- or four-space-indented block | Cormorant Garamond Light upright at 11pt, as the letterhead address |
+
+Markdown has no letterhead, so the two constructs that fall at the top of a
+letter get the job: the level-1 heading is the name, and an indented block
+beneath it is the address. That block is Markdown's code block, and the template
+strips every mark of code off it — the wash, the rule, the padding and the
+monospaced face — keeping only `white-space: pre-wrap`, which is the whole reason
+the construct is usable here: it preserves the line breaks an address is written
+with, where a paragraph would collapse them. The consequence is the one the
+"typography only" approach always has: an indented block anywhere else in a
+letter is an address too, because there is no second construct to distinguish.
+
+Both letterhead elements are Cormorant Garamond — the italic for the quote, the
+upright for the address — so the letter speaks in one voice at two sizes. It is
+not part of `spec.json`; it is the template's own choice, bound in
+`letter/page.css`, and `build-iawriter.mjs` derives the bundle's font families
+from the `@font-face` rules the stylesheets actually link.
+
+### There is no two-column iA Writer template
+
+One was built and withdrawn. **WebKit's print path ignores CSS multi-column
+entirely** — `column-count`, `column-width`, `columns`, the `-webkit-` forms,
+`column-fill: auto` and an explicit height all render a single column on export,
+on the body or on a wrapper div. The *screen* path honours all of them, so a
+template previews in two columns and exports in one, and nothing reports the
+difference. Chrome prints the same file in two columns, which is what makes this
+easy to miss.
+
+Laying the columns out in JavaScript instead — plain fixed-height page boxes with
+`break-before: page`, which WebKit does print correctly — worked in every harness
+it was tested through, including a `WKWebView` print operation, and still did not
+work in iA Writer itself. Two columns belong to an engine that can paginate them:
+Typst does it natively, and `examples/two-column.html` prints from a browser.
+
+### Three things the format decides for you
+
+- **`@page` is the whole page mechanism, and it excludes the alternative.** iA
+  Writer renders the header and the footer as separate HTML documents and reserves
+  space for them by setting the page margins *itself*, to the depths given by
+  `IATemplateHeaderHeight` and `IATemplateFooterHeight`. A `@page` margin in the
+  template therefore **replaces** those margins rather than adding to them. Declare
+  both and the band has no space left to draw in; declare `@page { margin: 0 }` and
+  the page loses its top and bottom margins altogether. So the template declares
+  `@page` and no bands.
+- **Which costs the running head and the folio.** They lived in those bands. The
+  spec resolves a running head from the current level-2 heading during layout,
+  which needs a paged-media engine; WebKit implements none of CSS Paged Media, so
+  the band could only ever have shown the document title.
+- **An `<html>` background paints the page content box, not the sheet.** Set one
+  and an export comes out with a tinted rectangle inset by the page margin and a
+  white border around it — and `typeset.css` sets `print-color-adjust: exact`,
+  which stops the print pipeline dropping it to save ink. The Preview tint is
+  therefore scoped to `@media screen`, and paper supplies its own ground.
+
+### The letter departs from the measure, deliberately
+
+A4 at 20mm leaves 170mm, which at the 11pt base carries about 88 characters —
+past the 75-character ceiling `foundation.rhythm` sets, and the measure is the
+rule this spec says everything else is downstream of. The letter template lifts
+the cap anyway and fills the page, because a 12.8cm column inside 2cm margins
+reads as a column adrift on a sheet.
+
+This is the one place the template knowingly contradicts `spec.json`, and it is
+asserted in `tools/check.mjs` rather than left to drift back silently.
+
+Fonts ship inside the bundle. A template is a local page with no network, and
+WebKit substitutes a missing face without saying so — the same argument that makes
+the Typst bundle carry them. `build-iawriter.mjs` fails if an `@font-face` points
+at a file that does not exist, if an `OFL.txt` is missing, or if the bundle
+declares a version other than the spec's. `tools/check.mjs` additionally fails if
+any family, weight or style the template asks for has no face bound for it.
+
 ## Engine capability
 
 Some of the spec needs an engine that can measure the page while laying it out.
 This is not optional detail — it decides what you can implement.
 
-| Feature | Typst / LaTeX | WeasyPrint 53+ / Prince | Browser print |
-|---|---|---|---|
-| Running heads, folios | native | yes | **no** |
-| Footnotes at the page foot | native | yes | **no** — degrades to endnotes |
-| TOC page numbers | native | yes | **no** — omits the number |
-| Repeating table headers | native | yes | yes |
-| Three-line drop-cap wrap | **no** (needs `droplet`) | yes | yes |
-| Two equal columns | native | yes | yes — but **not** under Paged.js |
+| Feature | Typst / LaTeX | WeasyPrint 53+ / Prince | Chrome print | WebKit print |
+|---|---|---|---|---|
+| Running heads, folios | native | yes | **no** | **no** |
+| Footnotes at the page foot | native | yes | **no** — degrades to endnotes | **no** |
+| TOC page numbers | native | yes | **no** — omits the number | **no** |
+| Repeating table headers | native | yes | yes | yes |
+| Three-line drop-cap wrap | **no** (needs `droplet`) | yes | yes | yes |
+| Two equal columns | native | yes | yes — but **not** under Paged.js | **no** — see below |
+
+**WebKit prints no CSS columns at all.** Every multi-column property is honoured
+on screen and ignored on export, so a document previews in two columns and prints
+in one with nothing to say it changed. This is the column of the table that
+matters for iA Writer, which renders and exports through WebKit, and it is why
+there is no two-column iA Writer template.
 
 The CSS implementation loads [Paged.js](https://pagedjs.org) in the essay and
 letter examples to cover the first three rows.
