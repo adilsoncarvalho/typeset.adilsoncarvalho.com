@@ -1,0 +1,272 @@
+/* ==========================================================================
+   iawriter.css — the layer between iA Writer's Markdown output and typeset.css.
+
+   Loaded after typeset.css, which does the typography. This file does only the
+   three things typeset.css cannot know about:
+
+     1. binds the bundled font files to the family names the spec asserts;
+     2. maps the handful of constructs MultiMarkdown emits that have no
+        counterpart in a hand-written typeset document — footnotes, citations,
+        task lists, column alignment.
+
+   Everything the letter wants for itself is in letter/page.css: the page, the
+   display quote and the letterhead.
+
+   It adds no typography of its own. Where a rule here sets a size, a colour or
+   a space, it does so through a typeset token so it cannot drift from the spec.
+   ========================================================================== */
+
+/* --- 1. Fonts -------------------------------------------------------------
+   typeset.css names three families and leaves loading them to the document.
+   A template is a local web page with no network, so the files ship inside the
+   bundle and are bound here. Static instances, one file per weight: a synthesised
+   bold is the failure this avoids, and it fails silently. */
+
+@font-face {
+  font-family: "EB Garamond";
+  src: url("fonts/EB-Garamond/EBGaramond-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "EB Garamond";
+  src: url("fonts/EB-Garamond/EBGaramond-Italic.otf") format("opentype");
+  font-weight: 400;
+  font-style: italic;
+}
+@font-face {
+  font-family: "EB Garamond";
+  src: url("fonts/EB-Garamond/EBGaramond-SemiBold.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+}
+@font-face {
+  font-family: "EB Garamond";
+  src: url("fonts/EB-Garamond/EBGaramond-SemiBoldItalic.otf") format("opentype");
+  font-weight: 600;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  src: url("fonts/Source-Sans-3/SourceSans3-300.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Source Sans 3";
+  src: url("fonts/Source-Sans-3/SourceSans3-400.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Source Sans 3";
+  src: url("fonts/Source-Sans-3/SourceSans3-400Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+}
+@font-face {
+  font-family: "Source Sans 3";
+  src: url("fonts/Source-Sans-3/SourceSans3-600.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Source Sans 3";
+  src: url("fonts/Source-Sans-3/SourceSans3-600Italic.ttf") format("truetype");
+  font-weight: 600;
+  font-style: italic;
+}
+@font-face {
+  font-family: "Source Sans 3";
+  src: url("fonts/Source-Sans-3/SourceSans3-700.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("fonts/IBM-Plex-Mono/IBMPlexMono-400.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("fonts/IBM-Plex-Mono/IBMPlexMono-400Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("fonts/IBM-Plex-Mono/IBMPlexMono-600.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+}
+
+/* --- 2. The page ----------------------------------------------------------
+   Nothing here. The page belongs to the template's own page.css — the letter is
+   A4 at 20mm on all four sides.
+
+   What is worth recording once, rather than twice, is why `@page` is the only
+   mechanism available. iA Writer renders the header and the footer as separate
+   HTML documents and reserves space for them by setting the page margins itself,
+   to the depths given by IATemplateHeaderHeight and IATemplateFooterHeight. A
+   `@page` margin in the template therefore REPLACES those margins rather than
+   adding to them — set both and the band has no space left to draw in, and set
+   `@page { margin: 0 }` and the page loses its top and bottom margins entirely.
+
+   That is why neither template declares a header or a footer, and why neither
+   has a running head or a folio. The specification resolves the running head
+   from the current level-2 heading during layout, which needs a paged-media
+   engine; WebKit implements none of CSS Paged Media, so the band was already
+   only able to show the document title. Losing it costs the title, not the
+   section name. */
+
+/* --- 3. Preview -----------------------------------------------------------
+   In Preview iA Writer sets its own padding on <html> to line the text up with
+   the Editor, so the document page must not add vertical space of its own —
+   this is the one hard instruction in the template documentation. There is no
+   page on screen either, so the margins declared in page.css do not apply and
+   nothing needs to stand in for them. */
+
+@media screen {
+  body.typeset {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* iA Writer tints the Preview toolbar from the <html> element's own colours, so
+   they are set on the element rather than inherited up from the body. Literals,
+   not tokens: the tokens are declared on `.typeset`, which is the body.
+
+   Screen only, and the background especially. An <html> background paints the
+   page CONTENT box, not the sheet, so in an export it comes out as a tinted
+   rectangle inset by the page margin with a white border around it — and
+   typeset.css sets `print-color-adjust: exact`, which stops the print pipeline
+   from dropping it to save ink. The paper supplies the ground. */
+@media screen {
+  html {
+    color: #1a1a1a;
+    background-color: #fffefb;
+  }
+}
+
+/* Night mode. Screen only — an export is ink on paper whatever the editor is
+   wearing, and the tokens must stay at their spec values there. */
+@media screen {
+  html.night-mode {
+    color: #d8d4cd;
+    background-color: #1c1c1e;
+  }
+  html.night-mode body.typeset {
+    --ts-ink: #d8d4cd;
+    --ts-ink-muted: #9a958d;
+    --ts-ink-faint: #6f6a64;
+    --ts-rule: #3a3a3c;
+    --ts-rule-strong: #6f6a64;
+    --ts-wash: #2a2a2c;
+    --ts-accent: #d98a8a;   /* the oxblood lifted to hold its hue on a dark ground */
+  }
+}
+
+/* --- 4. Footnotes ---------------------------------------------------------
+   A hand-written typeset document marks a note with `.ts-noteref` and carries
+   the text in `.ts-endnotes`. MultiMarkdown emits its own shape instead:
+
+     …text<sup><a class="footnote" href="#fn1" id="fnr1">1</a></sup>…
+     <div class="footnotes"><hr /><ol><li id="fn1">…</li></ol></div>
+
+   The number is real text rather than a counter, so the reference is styled
+   rather than generated. Everything else matches `.ts-noteref` exactly —
+   `.typeset sup` has already taken the superscript and the zero line-height, so
+   what is left is the colour, the lining figures and the missing underline. */
+
+.typeset sup > a.footnote {
+  font-variant-numeric: lining-nums;
+  text-decoration: none;
+  color: var(--ts-accent);
+}
+
+/* The notes block, styled as `.ts-endnotes`. There is deliberately no heading:
+   the rule above it is the only mark it needs. MultiMarkdown supplies that rule
+   as an <hr>, which typeset.css would otherwise set as a `* * *` section break,
+   so it is removed and the border replaces it. */
+.typeset .footnotes {
+  text-align: left;
+  margin-top: calc(var(--ts-space) * 2);
+  padding-top: var(--ts-space);
+  border-top: 0.5pt solid var(--ts-rule);
+  font-size: var(--ts-sm);
+  line-height: 1.4;
+}
+.typeset .footnotes > hr { display: none; }
+.typeset .footnotes ol { padding-left: 1.8em; }
+.typeset .footnotes li { margin-bottom: 0.4em; }
+.typeset .footnotes li > p {
+  margin: 0;
+  text-indent: 0;
+}
+
+/* The back-reference arrow is a Preview affordance. Paper has nothing to click. */
+@media print {
+  .typeset a.reversefootnote { display: none; }
+}
+
+/* A MultiMarkdown citation is set inline rather than as a superscript, and its
+   key is already hidden by an inline style. It reads as a reference, so it takes
+   the reference's colour and loses the underline. */
+.typeset a.citation {
+  text-decoration: none;
+  color: var(--ts-accent);
+  font-variant-numeric: lining-nums;
+}
+
+/* --- 5. Markdown constructs typeset.css does not see ---------------------- */
+
+/* A task list item carries a real checkbox, so typeset's own bullet would sit
+   in front of it. The bullet goes, and the control is redrawn: a printed OS
+   checkbox is a screenshot of an operating system in the middle of a document. */
+.typeset li.task-list-item::before { content: none; }
+.typeset .task-list-item-checkbox {
+  -webkit-appearance: none;
+  appearance: none;
+  float: left;
+  width: 0.66em;
+  height: 0.66em;
+  margin: 0.24em 0 0 -1.4em;
+  padding: 0;
+  border: 0.5pt solid var(--ts-rule-strong);
+  background: none;
+}
+.typeset .task-list-item-checkbox:checked {
+  border-color: var(--ts-ink-muted);
+  background: var(--ts-ink-muted);
+  box-shadow: inset 0 0 0 0.75pt #fffefb;
+}
+
+/* Column alignment is the one thing a Markdown table can state, and it arrives
+   as an inline style on every cell. A right-aligned column is a column of
+   numbers, and a column of numbers only aligns on tabular figures — so the
+   inline style is read as the signal it is. This is what `.ts-num` does in a
+   hand-written document; the attribute match is the only hook Markdown offers. */
+.typeset th[style*="right"],
+.typeset td[style*="right"] {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* typeset.css sets the paragraph after a heading, a block or a section break
+   flush left, and enumerates the elements that can precede one. `.ts-break` is
+   in that list; a bare `hr` is not, because a hand-written document writes its
+   breaks as `.ts-break`. Markdown has no such class — `---` is the only section
+   break it can write, and it arrives as an `hr`. Without this the first
+   paragraph after every break is indented, which is the one place it must not be.
+
+   The same is true of a table caption's anchor and of a figure: both already
+   appear in typeset's list. Only `hr` is missing, and only because Markdown
+   reaches it by a different route. */
+.typeset hr + p { text-indent: 0; }
+
+/* MultiMarkdown puts the table caption first in source order. typeset.css
+   already sets `caption-side: top`, so nothing moves; the id anchor a table
+   reference points at needs no styling of its own. */

@@ -1,5 +1,5 @@
 {
-  "note": "Generated inventory. Every face is a static instance \u2014 no variable fonts, because Typst 0.14 exposes a variable font as its default weight only and would synthesise the rest.",
+  "note": "Generated inventory. Every face is a static instance — no variable fonts, because Typst 0.14 exposes a variable font as its default weight only and would synthesise the rest.",
   "licence": "All families are OFL-1.1. Each directory carries its own OFL.txt; keep it with the fonts.",
   "families": [
     {
@@ -136,6 +136,62 @@
         "frac",
         "mark",
         "numr"
+      ]
+    },
+    {
+      "family": "Cormorant Garamond",
+      "role": "letter",
+      "dir": "fonts/Cormorant-Garamond",
+      "source": "instanced from the Google Fonts variable fonts at wght=300",
+      "specimen": "https://fonts.google.com/specimen/Cormorant+Garamond",
+      "used_by": "the iA Writer letter template: the italic for the display quote, the upright for the letterhead address",
+      "faces": [
+        {
+          "file": "CormorantGaramond-300.ttf",
+          "bytes": 773016
+        },
+        {
+          "file": "CormorantGaramond-300Italic.ttf",
+          "bytes": 453952
+        }
+      ],
+      "opentype_features": [
+        "aalt",
+        "calt",
+        "case",
+        "ccmp",
+        "cv01",
+        "cv02",
+        "cv03",
+        "cv04",
+        "cv05",
+        "dlig",
+        "dnom",
+        "frac",
+        "hlig",
+        "kern",
+        "liga",
+        "lnum",
+        "locl",
+        "mark",
+        "mkmk",
+        "numr",
+        "onum",
+        "ordn",
+        "pnum",
+        "sinf",
+        "ss01",
+        "ss03",
+        "ss04",
+        "ss07",
+        "ss08",
+        "ss09",
+        "ss10",
+        "ss13",
+        "subs",
+        "sups",
+        "tnum",
+        "zero"
       ]
     },
     {

@@ -28,6 +28,8 @@ Read in this order:
 - [example-letter.typ](https://typeset.adilsoncarvalho.com/implementations/example-letter.typ): the letter in Typst — ragged right, real page-foot footnote.
 - [example-two-column.typ](https://typeset.adilsoncarvalho.com/implementations/example-two-column.typ): the two-column template in Typst.
 - [typeset-typst.zip](https://typeset.adilsoncarvalho.com/downloads/typeset-typst.zip): the Typst implementation with every font file. Typst cannot fetch a font from a URL, so a bundle is the only way to hand it over complete.
+- [iawriter.css](https://typeset.adilsoncarvalho.com/implementations/iawriter/iawriter.css): the layer between iA Writer's Markdown output and typeset.css. iA Writer is Markdown only, so the template covers headings, body text, bold, italic, tables and footnotes — and nothing that Markdown cannot write.
+- [typeset-letter.iatemplate.zip](https://typeset.adilsoncarvalho.com/downloads/typeset-letter.iatemplate.zip): the iA Writer letter template, carrying typeset.css and every font face it binds. There is no two-column iA Writer template: WebKit's print path ignores every CSS multi-column property, so it previews in two columns and exports in one. Use Typst for two columns.
 - [two-column.html](https://typeset.adilsoncarvalho.com/examples/two-column.html): the two-column template in CSS. Note: it does NOT use Paged.js — Paged.js cannot fragment a CSS column flow and silently produces zero pages.
 - [essay.html](https://typeset.adilsoncarvalho.com/examples/essay.html), [letter.html](https://typeset.adilsoncarvalho.com/examples/letter.html): the same documents in CSS, paginated with Paged.js.
 

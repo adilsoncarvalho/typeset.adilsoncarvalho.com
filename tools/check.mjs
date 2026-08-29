@@ -164,6 +164,124 @@ for (const id of cssIds) {
 const noTypst = spec.sections.filter((s) => !typIds.has(s.id)).map((s) => s.id);
 if (noTypst.length) warn.push(`typeset.typ: no marked region for ${noTypst.join(', ')} (the page falls back to a pointer or a note)`);
 
+/* ---- 3d. The iA Writer template ----------------------------------------- */
+
+/* A template is a packaging of typeset.css, not a second implementation, so what
+   is checked here is the page it declares and the modifier it opts into — the
+   two things a bundle states for itself. Everything else it inherits, and
+   tools/build-iawriter.mjs refuses to package a bundle whose files, fonts or
+   version do not line up.
+
+   There is one template. A two-column one was built and withdrawn: WebKit's
+   print path ignores every CSS multi-column property, so it previewed in two
+   columns and exported in one. Two columns belong to an engine that paginates
+   them — see the engine capability table in README.md. */
+
+const IAW = 'implementations/iawriter';
+
+const plistValue = (plist, key) =>
+  plist.match(new RegExp(`<key>${key}</key>\\s*<(?:string|integer)>([^<]+)</`))?.[1] ?? null;
+
+/* The page margin. iA Writer reserves its header and footer bands by setting the
+   page margins itself, so a `@page` margin replaces them rather than adding to
+   them — which makes `@page` the whole mechanism, and makes a template that
+   declares a band as well a template whose header has no space to draw in. */
+const letterPage = readFileSync(`${IAW}/letter/page.css`, 'utf8');
+const pageMargin = letterPage.match(/@page\s*\{[^}]*?\bmargin:\s*([\d.]+)mm\s*;/);
+if (!pageMargin) {
+  fail.push(`${IAW}/letter/page.css: no @page margin — the export would have no page margins at all`);
+}
+
+const plist = readFileSync(`${IAW}/letter/Info.plist`, 'utf8');
+const doc = readFileSync(`${IAW}/letter/document.html`, 'utf8');
+
+if (plistValue(plist, 'CFBundleShortVersionString') !== spec.version) {
+  fail.push(`${IAW}/letter/Info.plist: version is ${plistValue(plist, 'CFBundleShortVersionString')}, spec.json says ${spec.version}`);
+}
+if (!doc.includes('data-document')) {
+  fail.push(`${IAW}/letter/document.html: no data-document element — iA Writer would render an empty page`);
+}
+if (!doc.includes('class="typeset')) {
+  fail.push(`${IAW}/letter/document.html: the document element does not carry .typeset, so none of the stylesheet applies`);
+}
+for (const key of ['IATemplateHeaderFile', 'IATemplateHeaderHeight',
+                   'IATemplateFooterFile', 'IATemplateFooterHeight']) {
+  if (plistValue(plist, key) !== null) {
+    fail.push(`${IAW}/letter/Info.plist: ${key} is set, but the band it reserves replaces the @page margin in page.css rather than adding to it`);
+  }
+}
+
+/* The letter deliberately lets the text fill the page rather than stopping at
+   the measure, so the cap must actually be lifted — with the cap in place the
+   column would sit adrift with the margins asked for. This is the one place a
+   template departs from the spec, so it is asserted rather than left to drift
+   back silently. */
+if (!/max-width:\s*none/.test(letterPage)) {
+  fail.push(`${IAW}/letter/page.css: the measure cap is not lifted, so the column will not fill the page the margins leave`);
+}
+
+/* A letter is set ragged right; the spec forbids justifying one. */
+if (!doc.includes('typeset--ragged')) {
+  fail.push(`${IAW}/letter/document.html: a letter is set ragged right — typeset--ragged is missing`);
+}
+if (doc.includes('typeset--justified') || doc.includes('typeset--two-column')) {
+  fail.push(`${IAW}/letter/document.html: a letter must not be justified`);
+}
+
+/* Every family/weight/style the template asks for must have a face bound for it.
+   This is the failure the bundle exists to prevent and the one that never
+   announces itself: asked for a weight it does not have, WebKit synthesises —
+   a smeared bold, or an italic obtained by shearing an upright — and reports
+   nothing. It is invisible on screen at small sizes and obvious in print.
+
+   The families reached through a token are resolved through typeset.css, so a
+   rule written as `font-family: var(--ts-sans)` is checked like a literal one. */
+
+const tokenFamily = Object.fromEntries(
+  [...css.matchAll(/--ts-(serif|sans|mono):\s*"([^"]+)"/g)].map((m) => [`--ts-${m[1]}`, m[2]]));
+
+/* Declaration blocks, flattened. Good enough for stylesheets with no nesting,
+   which is what these are. Comments come out first, or every selector arrives
+   with the paragraph above it attached. */
+const blocks = (text) => [...text.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]*)\{([^{}]*)\}/g)]
+  .map((m) => ({ selector: m[1].trim().replace(/\s+/g, ' '), body: m[2] }));
+
+const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]+)`))?.[1].trim();
+
+{
+  const sheets = ['iawriter.css', 'letter/page.css']
+    .map((f) => readFileSync(`${IAW}/${f}`, 'utf8')).join('\n');
+
+  const bound = blocks(sheets)
+    .filter((b) => b.selector.endsWith('@font-face'))
+    .map((b) => ({
+      family: decl(b.body, 'font-family')?.replace(/["']/g, ''),
+      weight: decl(b.body, 'font-weight') ?? '400',
+      style: decl(b.body, 'font-style') ?? 'normal',
+    }));
+
+  for (const b of blocks(sheets)) {
+    if (b.selector.endsWith('@font-face')) continue;
+    const raw = decl(b.body, 'font-family');
+    if (!raw) continue;
+    const first = raw.split(',')[0].trim();
+    const family = first.startsWith('var(')
+      ? tokenFamily[first.slice(4, -1).trim()]
+      : first.replace(/["']/g, '');
+    if (!family || first === 'inherit') continue;
+    /* Only families this template binds itself are checked. The rest come from
+       typeset.css, whose own faces are covered by the token checks above. */
+    if (!bound.some((f) => f.family === family)) continue;
+
+    const weight = decl(b.body, 'font-weight') ?? '400';
+    const style = decl(b.body, 'font-style') ?? 'normal';
+    if (!bound.some((f) => f.family === family && f.weight === weight && f.style === style)) {
+      fail.push(`${IAW}/letter: "${b.selector}" asks for ${family} ${weight} ${style}, `
+        + `but no @font-face binds that face — WebKit would synthesise it silently`);
+    }
+  }
+}
+
 /* ---- 4. SPEC.md must be current ----------------------------------------- */
 
 if (!specMd.includes(`Version ${spec.version} · updated ${spec.updated}`)) {

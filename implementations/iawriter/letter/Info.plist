@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.adilsoncarvalho.typeset.letter</string>
+	<key>CFBundleName</key>
+	<string>typeset Letter</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+
+	<key>IATemplateDocumentFile</key>
+	<string>document</string>
+
+
+	<key>IATemplateDescription</key>
+	<string>A letter on A4: EB Garamond at 11pt over a 66-character measure, set ragged right. From the typeset specification.</string>
+	<key>IATemplateAuthor</key>
+	<string>Adilson Carvalho</string>
+	<key>IATemplateAuthorURL</key>
+	<string>https://typeset.adilsoncarvalho.com</string>
+</dict>
+</plist>

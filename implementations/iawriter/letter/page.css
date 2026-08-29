@@ -1,0 +1,145 @@
+/* ==========================================================================
+   The letter's page. Loaded last, so it wins over typeset.css and iawriter.css.
+   ========================================================================== */
+
+/* A4 at 20mm on all four sides.
+
+   `@page` is the whole mechanism, and it is the ONLY one: iA Writer draws the
+   header and the footer into bands whose depth is IATemplateHeaderHeight and
+   IATemplateFooterHeight, and it reserves those bands by setting the page
+   margins itself. A `@page` margin here therefore REPLACES them rather than
+   adding to them — declaring both leaves the band with no space to draw in.
+   So this template declares no header and no footer at all, and `@page` owns
+   all four margins. */
+@page {
+  size: A4;
+  margin: 20mm;
+}
+
+/* The text fills the 170mm the margins leave, rather than stopping at the
+   33em measure.
+
+   This is a DEPARTURE FROM THE SPECIFICATION, made deliberately and worth
+   stating plainly: 170mm at the 11pt base carries about 88 characters, against
+   the 75-character ceiling `foundation.rhythm` sets. The spec's own position is
+   that the measure is the rule everything else is downstream of. This template
+   overrides it because a letter with 2cm margins and a 12.8cm column reads as
+   a column of text adrift on a sheet, and the page is what was asked for.
+
+   Anything narrower than A4, or any larger base size, brings the two back into
+   agreement; nothing else in the template depends on the cap. */
+body.typeset,
+body.typeset > * {
+  max-width: none;
+}
+
+/* --- The letter's own face --------------------------------------------------
+   Cormorant Garamond, in two cuts: the italic sets the display quote, the
+   upright sets the letterhead address. One family across both, so the letterhead
+   reads as one thing rather than two borrowed ones.
+
+   Bound here rather than in iawriter.css because the adapter is shared plumbing
+   and this is the letter's own choice. Both are static instances: Cormorant
+   Garamond ships as a variable font upstream and no statics at all, so each is
+   instanced at wght=300 — see fonts/README.md. */
+
+@font-face {
+  font-family: "Cormorant Garamond";
+  src: url("fonts/Cormorant-Garamond/CormorantGaramond-300Italic.ttf") format("truetype");
+  font-weight: 300;
+  font-style: italic;
+}
+@font-face {
+  font-family: "Cormorant Garamond";
+  src: url("fonts/Cormorant-Garamond/CormorantGaramond-300.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+}
+
+/* The display quote. `>` is the only quoting construct Markdown has, so in a
+   letter it carries the job `.ts-pullquote` does in a hand-written document
+   rather than `blockquote`'s: no rule, no indent, centred, and lifted off the
+   body in Cormorant Garamond Light Italic at 1.3x the base.
+
+   This is a letter-only treatment. The two-column template keeps typeset.css's
+   standard block quotation — the indented block with a left rule — because a
+   paper quotes sources, where a letter quotes for emphasis.
+
+   The face is real, not synthesised: the Light Italic is bound above as a
+   static instance, and asking for weight 300 in italic without it would give a
+   slanted Light or an emboldened Italic with no warning from WebKit. */
+body.typeset blockquote {
+  border: 0;
+  padding: 0;
+  margin: calc(var(--ts-space) * 2) 0;
+  font-family: "Cormorant Garamond", "EB Garamond", Palatino, Georgia, serif;
+  font-size: calc(var(--ts-base) * 1.3);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--ts-ink);
+
+  /* Cormorant is a fine, small-x-height face: at 14.3pt it sets lighter and
+     shorter than the body, so the leading closes up with it. */
+  line-height: 1.3;
+
+  /* `text-align` and `text-align-last` both inherit from the ragged container,
+     so a block that centres itself has to set both — otherwise the last line,
+     which on a one-line quote is the only line, is flushed left. */
+  text-align: center;
+  text-align-last: center;
+  text-wrap: balance;
+}
+body.typeset blockquote p {
+  margin: 0;
+  text-indent: 0;
+}
+body.typeset blockquote p + p { margin-top: 0.4em; }
+
+/* The attribution stays prose: it is not part of what was said. */
+body.typeset blockquote cite {
+  display: block;
+  margin-top: 0.5em;
+  font-family: var(--ts-serif);
+  font-size: var(--ts-sm);
+  font-style: normal;
+  font-weight: 400;
+  color: var(--ts-ink-muted);
+}
+
+/* The address. Markdown renders a tab- or four-space-indented block as a code
+   block, which is the only way it can carry line breaks without a paragraph's
+   justification and indent rules — so in a letter that block is the address,
+   and every mark of code comes off it: the wash, the rule, the padding and the
+   monospaced face.
+
+   `white-space: pre-wrap` stays, from typeset.css. It is the whole reason this
+   construct is usable here: it preserves the line breaks the address is written
+   with, which a paragraph would collapse. */
+body.typeset pre {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0 0 calc(var(--ts-space) * 2);
+  font-family: "Cormorant Garamond", "EB Garamond", Palatino, Georgia, serif;
+
+  /* Upright, not the quote's italic: an address is line-broken data, not
+     emphasis. Same family and same weight, so the two letterhead elements are
+     one voice at two sizes. */
+  font-style: normal;
+
+  /* An absolute size, not the base token: this is a stated value for the
+     address block, and it should not follow the body if the body ever moves. */
+  font-size: 11pt;
+  font-weight: 300;
+  line-height: 1.4;
+}
+
+/* `code` carries the monospaced family and the wash on its own account, so the
+   element inside the block has to be unset as well as the block. */
+body.typeset pre code {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  background: none;
+  padding: 0;
+}
