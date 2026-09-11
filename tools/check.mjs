@@ -155,7 +155,7 @@ if (two) {
 }
 for (const id of cssIds) {
   const isFoundation = ['tokens', 'foundation', 'page', 'justification', 'numbering', 'dropcap',
-    'links', 'code-inline', 'figures-numeric', 'utilities'].includes(id);
+    'links', 'code-inline', 'utilities'].includes(id);
   const isTemplate = Object.keys(spec.templates).includes(id);
   if (!spec.sections.some((s) => s.id === id) && !isFoundation && !isTemplate) {
     warn.push(`typeset.css: section "${id}" has no counterpart in spec.json`);
