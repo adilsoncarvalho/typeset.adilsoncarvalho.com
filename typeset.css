@@ -147,30 +147,30 @@
 }
 
 /* A run-in heading: the h6 sits on the first line of its paragraph. */
-.typeset .ts-run-in {
+.typeset .ts-headings-run-in {
   display: inline;
   margin: 0;
 }
-.typeset .ts-run-in + p { display: inline; }
-.typeset .ts-run-in::after { content: " · "; color: var(--ts-ink-faint); }
+.typeset .ts-headings-run-in + p { display: inline; }
+.typeset .ts-headings-run-in::after { content: " · "; color: var(--ts-ink-faint); }
 /*! @e */
 
 /*! @s numbering :: Section numbering */
-.typeset--numbered { counter-reset: ts-h2; }
+.typeset--numbered { counter-reset: ts-headings-h2; }
 
 .typeset--numbered h2 {
-  counter-increment: ts-h2;
-  counter-reset: ts-h3;
+  counter-increment: ts-headings-h2;
+  counter-reset: ts-headings-h3;
 }
 .typeset--numbered h2::before {
-  content: counter(ts-h2) "  ";
+  content: counter(ts-headings-h2) "  ";
   color: var(--ts-ink-faint);
   font-variant-numeric: lining-nums tabular-nums;
 }
 
-.typeset--numbered h3 { counter-increment: ts-h3; }
+.typeset--numbered h3 { counter-increment: ts-headings-h3; }
 .typeset--numbered h3::before {
-  content: counter(ts-h2) "." counter(ts-h3) "  ";
+  content: counter(ts-headings-h2) "." counter(ts-headings-h3) "  ";
   color: var(--ts-ink-faint);
   font-variant-numeric: lining-nums tabular-nums;
 }
@@ -202,7 +202,7 @@
    Enumerated rather than written as `:is(...)`. Paged.js rewrites every
    stylesheet through its own CSS parser, which does not understand `:is()`: it
    splits the selector on the commas INSIDE the argument list and emits fragments
-   like ` .ts-callout)+p`, which throw on querySelectorAll and abort pagination
+   like ` .ts-callouts-callout)+p`, which throw on querySelectorAll and abort pagination
    entirely — a blank document, not a degraded one. Keep this list flat. */
 .typeset h1 + p,
 .typeset h2 + p,
@@ -215,7 +215,7 @@
 .typeset pre + p,
 .typeset table + p,
 .typeset .ts-break + p,
-.typeset .ts-callout + p,
+.typeset .ts-callouts-callout + p,
 .typeset > p:first-child {
   text-indent: 0;
 }
@@ -253,7 +253,7 @@
 
 /* `text-align-last` inherits as well, so a block that centres itself must
    restore it — otherwise its last line, which for a one-line block is its only
-   line, is flushed left. See .ts-pullquote and .ts-break.
+   line, is flushed left. See .ts-quotes-pullquote and .ts-break.
 
    Never justify a heading, a cell, or a listing. Every other block that must
    stay flush left — subtitle, byline, caption, address, notes — declares
@@ -281,7 +281,7 @@
 .typeset .ts-dropcap { text-indent: 0; }
 
 /* A drop cap wants the opening words in small caps to bridge the size jump. */
-.typeset .ts-lede { font-variant-caps: all-small-caps; letter-spacing: 0.04em; }
+.typeset .ts-dropcap-lede { font-variant-caps: all-small-caps; letter-spacing: 0.04em; }
 /*! @e */
 
 /*! @s inline :: Inline emphasis */
@@ -291,7 +291,7 @@
 .typeset strong em, .typeset em strong { font-weight: 600; font-style: italic; }
 
 /* Small caps for named entities, acronyms, and stage directions. */
-.typeset .ts-sc {
+.typeset .ts-inline-small-caps {
   font-variant-caps: all-small-caps;
   letter-spacing: 0.05em;
   font-variant-numeric: oldstyle-nums;
@@ -359,7 +359,7 @@
   /* Internal and mailto links read fine as-is. */
   .typeset a[href^="#"]::after,
   .typeset a[href^="mailto"]::after,
-  .typeset a.ts-bare::after { content: none; }
+  .typeset a.ts-links-bare::after { content: none; }
 }
 /*! @e */
 
@@ -367,10 +367,10 @@
 /* Old-style figures sit in the x-height and belong in running prose.
    Lining figures are uniform-height and belong in headings and tables.
    Tabular figures share one advance width so columns align. */
-.typeset .ts-nums-oldstyle { font-variant-numeric: oldstyle-nums proportional-nums; }
-.typeset .ts-nums-lining   { font-variant-numeric: lining-nums proportional-nums; }
-.typeset .ts-nums-tabular  { font-variant-numeric: lining-nums tabular-nums; }
-.typeset .ts-frac          { font-variant-numeric: diagonal-fractions; }
+.typeset .ts-numerals-prose { font-variant-numeric: oldstyle-nums proportional-nums; }
+.typeset .ts-numerals-display   { font-variant-numeric: lining-nums proportional-nums; }
+.typeset .ts-numerals-tabular  { font-variant-numeric: lining-nums tabular-nums; }
+.typeset .ts-numerals-fractions          { font-variant-numeric: diagonal-fractions; }
 /*! @e */
 
 /*! @s quotes :: Block quotations */
@@ -386,7 +386,7 @@
 
 /* Attribution: an em dash, and never inside the quote. */
 .typeset blockquote cite,
-.typeset .ts-attribution {
+.typeset .ts-quotes-attribution {
   display: block;
   text-align: left;
   margin-top: calc(var(--ts-space) * 0.5);
@@ -395,10 +395,10 @@
   color: var(--ts-ink-muted);
 }
 .typeset blockquote cite::before,
-.typeset .ts-attribution::before { content: "— "; }
+.typeset .ts-quotes-attribution::before { content: "— "; }
 
 /* An epigraph opens a chapter: no rule, indented from the right, italic. */
-.typeset .ts-epigraph {
+.typeset .ts-quotes-epigraph {
   border: 0;
   text-align: left;
   margin: 0 0 calc(var(--ts-space) * 2) auto;
@@ -408,11 +408,11 @@
   font-size: 10pt;
   color: var(--ts-ink-muted);
 }
-.typeset .ts-epigraph cite { font-style: normal; }
+.typeset .ts-quotes-epigraph cite { font-style: normal; }
 
 /* A pull quote is display type lifted from the body. It repeats — so it must
    never be the only place a claim appears. */
-.typeset .ts-pullquote {
+.typeset .ts-quotes-pullquote {
   border: 0;
   text-align: center;
   text-align-last: center;
@@ -428,7 +428,7 @@
 }
 
 /* Verse: preserve the poet's line breaks, indent the runovers. */
-.typeset .ts-verse {
+.typeset .ts-quotes-verse {
   border: 0;
   text-align: left;
   padding-left: calc(var(--ts-space) * 2);
@@ -478,7 +478,7 @@
 .typeset ol ol > li::before { content: counter(ts-ol, lower-alpha) "."; }
 
 /* A tight list for enumerations that are not prose. */
-.typeset .ts-list-tight li { margin-bottom: 0; }
+.typeset .ts-lists-tight li { margin-bottom: 0; }
 
 /* Definition lists: the right shape for terms, glossaries, and letter fields. */
 .typeset dl { margin: 0 0 var(--ts-space); }
@@ -529,8 +529,8 @@
 .typeset tfoot td { font-weight: 600; border-bottom: 0; }
 
 /* Numbers align on their right edge. Units go in the header, not every cell. */
-.typeset .ts-num { text-align: right; font-variant-numeric: lining-nums tabular-nums; }
-.typeset th.ts-num { text-align: right; }
+.typeset .ts-tables-cell-numeric { text-align: right; font-variant-numeric: lining-nums tabular-nums; }
+.typeset th.ts-tables-cell-numeric { text-align: right; }
 
 /* Repeat the header on every page a long table spans. */
 .typeset thead { display: table-header-group; }
@@ -546,14 +546,20 @@
   padding-bottom: 0.5em;
   max-width: none;
 }
-.typeset caption .ts-label {
+/* The shared base under every caption/label variant: small-caps, weight and
+   tracking common to a table caption's label, a figure caption's label, the
+   abstract's label and a letter address block's label. Not a style in its
+   own right — always written alongside one of the four named classes below,
+   which each carry what makes their label different from the others. */
+.typeset .ts-label {
   font-weight: 600;
   font-variant-caps: all-small-caps;
   letter-spacing: 0.06em;
 }
+.typeset .ts-tables-caption-label { }
 
 /* Optional zebra for wide, dense tables only. */
-.typeset .ts-table-zebra tbody tr:nth-child(even) { background: var(--ts-wash); }
+.typeset .ts-tables-zebra tbody tr:nth-child(even) { background: var(--ts-wash); }
 /*! @e */
 
 /*! @s codeblock :: Code blocks */
@@ -605,18 +611,13 @@
   padding-top: 0.4em;
   border-top: 0.5pt solid var(--ts-rule);
 }
-.typeset figcaption .ts-label {
-  font-weight: 600;
-  color: var(--ts-ink);
-  font-variant-caps: all-small-caps;
-  letter-spacing: 0.06em;
-}
+.typeset .ts-figures-caption-label { color: var(--ts-ink); }
 /*! @e */
 
 /*! @s notes :: Footnotes & endnotes */
 /* The reference mark. Superscript, no brackets, and it must not disturb
    the line's leading. */
-.typeset .ts-noteref {
+.typeset .ts-notes-marker {
   font-size: 0.7em;
   line-height: 0;
   position: relative;
@@ -625,25 +626,25 @@
   text-decoration: none;
   color: var(--ts-accent);
 }
-.typeset .ts-noteref::before { content: counter(ts-note); }
-.typeset { counter-reset: ts-note; }
-.typeset .ts-noteref { counter-increment: ts-note; }
+.typeset .ts-notes-marker::before { content: counter(ts-notes-footnote); }
+.typeset { counter-reset: ts-notes-footnote; }
+.typeset .ts-notes-marker { counter-increment: ts-notes-footnote; }
 
 /* True bottom-of-page footnotes need an engine that implements the CSS
    footnote spec — WeasyPrint 53+ and Prince do; browsers do not. Where they
    are unavailable this degrades to an endnotes block, which is why the notes
    live in the document rather than in a generated-content property. */
 @supports (float: footnote) {
-  .typeset .ts-note {
+  .typeset .ts-notes-footnote {
     float: footnote;
     footnote-display: block;
     font-size: var(--ts-sm);
     line-height: 1.35;
   }
-  .typeset .ts-endnotes { display: none; }
+  .typeset .ts-notes-endnotes { display: none; }
 }
 
-.typeset .ts-endnotes {
+.typeset .ts-notes-endnotes {
   text-align: left;
   margin-top: calc(var(--ts-space) * 2);
   padding-top: var(--ts-space);
@@ -652,8 +653,8 @@
   line-height: 1.4;
   counter-reset: ts-endnote;
 }
-.typeset .ts-endnotes ol { padding-left: 1.8em; }
-.typeset .ts-endnotes li { margin-bottom: 0.4em; }
+.typeset .ts-notes-endnotes ol { padding-left: 1.8em; }
+.typeset .ts-notes-endnotes li { margin-bottom: 0.4em; }
 
 /* Sidenotes: no page-break arithmetic, and the reader never loses their
    place. They cost you a wide right margin. */
@@ -661,7 +662,7 @@
    here, with an em to spare. */
 .typeset--sidenotes { --ts-measure: 27em; padding-right: 14em; }
 .typeset--sidenotes p { position: relative; }
-.typeset .ts-sidenote {
+.typeset .ts-notes-sidenote {
   position: absolute;
 
   /* Anchored to the paragraph's own right edge, NOT to `calc(measure + 2em)`.
@@ -680,15 +681,15 @@
   text-align: left;
   text-indent: 0;
 }
-.typeset .ts-sidenote::before {
-  content: counter(ts-note) " ";
+.typeset .ts-notes-sidenote::before {
+  content: counter(ts-notes-footnote) " ";
   color: var(--ts-accent);
   font-weight: 600;
 }
 /*! @e */
 
 /*! @s callouts :: Callouts */
-.typeset .ts-callout {
+.typeset .ts-callouts-callout {
   margin: calc(var(--ts-space) * 1.25) 0;
   padding: 0.75em 1em;
   border: 0.5pt solid var(--ts-rule);
@@ -697,8 +698,8 @@
   font-size: 10pt;
   break-inside: avoid;
 }
-.typeset .ts-callout > :last-child { margin-bottom: 0; }
-.typeset .ts-callout-title {
+.typeset .ts-callouts-callout > :last-child { margin-bottom: 0; }
+.typeset .ts-callouts-title {
   font-family: var(--ts-sans);
   font-size: var(--ts-xs);
   font-weight: 700;
@@ -707,8 +708,8 @@
   color: var(--ts-ink-muted);
   margin-bottom: 0.35em;
 }
-.typeset .ts-callout--warning { border-left-color: var(--ts-accent); }
-.typeset .ts-callout--warning .ts-callout-title { color: var(--ts-accent); }
+.typeset .ts-callouts-warning { border-left-color: var(--ts-accent); }
+.typeset .ts-callouts-warning .ts-callouts-title { color: var(--ts-accent); }
 /*! @e */
 
 /*! @s breaks :: Section breaks */
@@ -724,30 +725,31 @@
   color: var(--ts-ink-faint);
   break-after: avoid;
 }
-.typeset hr::before,
-.typeset .ts-break::before {
+.typeset hr::before {
   content: "* * *";
   letter-spacing: 0.6em;
   font-size: 10pt;
 }
 
+/* Three widely spaced asterisks, the default treatment. */
+.typeset .ts-breaks-asterisks::before { content: "* * *"; letter-spacing: 0.6em; font-size: 10pt; }
 /* An asterism, for a heavier division. */
-.typeset .ts-break--asterism::before { content: "⁂"; letter-spacing: 0; font-size: 14pt; }
+.typeset .ts-breaks-asterism::before { content: "⁂"; letter-spacing: 0; font-size: 14pt; }
 /* A fleuron, for a decorative one. */
-.typeset .ts-break--fleuron::before { content: "❦"; letter-spacing: 0; font-size: 12pt; color: var(--ts-accent); }
+.typeset .ts-breaks-fleuron::before { content: "❦"; letter-spacing: 0; font-size: 12pt; color: var(--ts-accent); }
 /* A plain rule, for a report. */
-.typeset .ts-break--rule::before { content: none; }
-.typeset .ts-break--rule { border-top: 0.5pt solid var(--ts-rule); height: 0; }
+.typeset .ts-breaks-rule::before { content: none; }
+.typeset .ts-breaks-rule { border-top: 0.5pt solid var(--ts-rule); height: 0; }
 /*! @e */
 
 /*! @s frontmatter :: Front matter */
-.typeset .ts-titleblock {
+.typeset .ts-frontmatter-title-block {
   margin-bottom: calc(var(--ts-space) * 3);
   padding-bottom: var(--ts-space);
   border-bottom: 0.5pt solid var(--ts-rule);
 }
-.typeset .ts-titleblock h1 { margin-bottom: 0.25em; }
-.typeset .ts-subtitle {
+.typeset .ts-frontmatter-title-block h1 { margin-bottom: 0.25em; }
+.typeset .ts-frontmatter-subtitle {
   text-align: left;
   font-family: var(--ts-sans);
   font-size: var(--ts-h3);
@@ -757,14 +759,14 @@
   margin: 0 0 var(--ts-space);
   text-wrap: balance;
 }
-.typeset .ts-byline {
+.typeset .ts-frontmatter-byline {
   text-align: left;
   font-variant-caps: all-small-caps;
   letter-spacing: 0.08em;
   font-size: var(--ts-base);
   margin: 0;
 }
-.typeset .ts-dateline {
+.typeset .ts-frontmatter-dateline {
   text-align: left;
   font-family: var(--ts-sans);
   font-size: var(--ts-sm);
@@ -772,7 +774,7 @@
   margin: 0.2em 0 0;
 }
 
-.typeset .ts-abstract {
+.typeset .ts-frontmatter-abstract {
   text-align: left;
   font-size: 10pt;
   line-height: 1.45;
@@ -780,10 +782,11 @@
   max-width: 30em;
   margin-bottom: calc(var(--ts-space) * 2);
 }
-.typeset .ts-abstract .ts-label {
+.typeset .ts-frontmatter-abstract-label {
   font-family: var(--ts-sans);
   font-size: var(--ts-xs);
   font-weight: 700;
+  font-variant-caps: normal;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ts-ink-faint);
@@ -792,7 +795,7 @@
 }
 
 /* The colophon closes the document: how it was made, and in what. */
-.typeset .ts-colophon {
+.typeset .ts-frontmatter-colophon {
   text-align: left;
   margin-top: calc(var(--ts-space) * 3);
   padding-top: var(--ts-space);
@@ -808,47 +811,47 @@
 /*! @s toc :: Table of contents */
 /* Dot leaders and real page numbers need `target-counter()` — a paged-media
    engine only. In a browser the leaders render and the numbers do not. */
-.typeset .ts-toc { text-align: left; font-family: var(--ts-sans); font-size: var(--ts-sm); }
-.typeset .ts-toc ol { padding-left: 0; counter-reset: ts-toc; }
-.typeset .ts-toc li { margin-bottom: 0.35em; }
-.typeset .ts-toc li::before { content: none; }
-.typeset .ts-toc a {
+.typeset .ts-toc-entry { text-align: left; font-family: var(--ts-sans); font-size: var(--ts-sm); }
+.typeset .ts-toc-entry ol { padding-left: 0; counter-reset: ts-toc-entry; }
+.typeset .ts-toc-entry li { margin-bottom: 0.35em; }
+.typeset .ts-toc-entry li::before { content: none; }
+.typeset .ts-toc-entry a {
   display: flex;
   align-items: baseline;
   gap: 0.4em;
   text-decoration: none;
 }
-.typeset .ts-toc a::after {
+.typeset .ts-toc-entry a::after {
   content: target-counter(attr(href url), page);
   font-variant-numeric: lining-nums tabular-nums;
   color: var(--ts-ink-muted);
 }
-.typeset .ts-toc .ts-leader {
+.typeset .ts-toc-entry .ts-toc-leader {
   flex: 1;
   border-bottom: 0.5pt dotted var(--ts-rule);
   transform: translateY(-0.15em);
 }
-.typeset .ts-toc .ts-toc-2 { padding-left: 1.5em; }
+.typeset .ts-toc-entry .ts-toc-entry-2 { padding-left: 1.5em; }
 /*! @e */
 
 /*! @s bibliography :: Bibliography */
 /* Hanging indent: the author's surname is the thing being scanned, so it must
    be the leftmost thing on the entry. */
-.typeset .ts-bibliography {
+.typeset .ts-bibliography-entry {
   text-align: left;
   font-size: var(--ts-sm);
   line-height: 1.4;
   padding-left: 0;
   list-style: none;
 }
-.typeset .ts-bibliography li {
+.typeset .ts-bibliography-entry li {
   padding-left: 1.8em;
   text-indent: -1.8em;
   margin-bottom: 0.55em;
   break-inside: avoid;
 }
-.typeset .ts-bibliography li::before { content: none; }
-.typeset .ts-bibliography cite { font-style: italic; }
+.typeset .ts-bibliography-entry li::before { content: none; }
+.typeset .ts-bibliography-entry cite { font-style: italic; }
 /*! @e */
 
 /*! @s letter :: Letter */
@@ -856,36 +859,38 @@
    body size, in the reading face. A personal letter does not announce itself —
    the recipient knows who writes to them. Nothing here is bold, and nothing is
    set in the sans, so the block recedes and the letter starts sooner. */
-.typeset .ts-letterhead {
+.typeset .ts-letter-sender {
   text-align: left;
   font-size: var(--ts-base);
   line-height: 1.35;
   color: var(--ts-ink);
   margin: 0 0 calc(var(--ts-space) * 2.5);
 }
-.typeset .ts-letterhead p {
+.typeset .ts-letter-sender p {
   margin: 0;
   text-indent: 0;
 }
 
 /* Address blocks are not prose: they are line-broken data. */
-.typeset .ts-address {
+.typeset .ts-letter-address-block {
   text-align: left;
   font-style: normal;
   line-height: 1.35;
   margin-bottom: calc(var(--ts-space) * 1.5);
 }
-.typeset .ts-address .ts-label {
+.typeset .ts-letter-address-label {
   display: block;
   font-family: var(--ts-sans);
   font-size: var(--ts-xs);
+  font-weight: 400;
+  font-variant-caps: normal;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ts-ink-faint);
   margin-bottom: 0.25em;
 }
 
-.typeset .ts-date {
+.typeset .ts-letter-date {
   margin-bottom: calc(var(--ts-space) * 1.5);
   font-variant-numeric: oldstyle-nums;
   text-align: left;
@@ -896,31 +901,31 @@
    date's gap and carries that gap itself. Written against the same token as the
    date's margin so the two cannot drift apart.
 
-   Deliberately not `.ts-date:has(+ .ts-date-note)`: Paged.js's CSS parser does
+   Deliberately not `.ts-letter-date:has(+ .ts-letter-date-note)`: Paged.js's CSS parser does
    not understand `:has()` any more than it understands `:is()`, and a selector
    it cannot parse aborts pagination outright. */
-.typeset .ts-date-note {
+.typeset .ts-letter-date-note {
   margin: calc(var(--ts-space) * -1.5 + 0.1em) 0 calc(var(--ts-space) * 1.5);
   font-style: italic;
   text-indent: 0;
 }
-.typeset .ts-salutation { margin-bottom: var(--ts-space); text-align: left; }
-.typeset .ts-closing { margin: calc(var(--ts-space) * 1.5) 0 0; text-align: left; }
+.typeset .ts-letter-salutation { margin-bottom: var(--ts-space); text-align: left; }
+.typeset .ts-letter-closing { margin: calc(var(--ts-space) * 1.5) 0 0; text-align: left; }
 
 /* The typed name, with room above it to sign. No rule: a ruled line is a form
    to be filled in, and this is a letter. */
-.typeset .ts-signature {
+.typeset .ts-letter-signature {
   text-align: left;
   margin-top: calc(var(--ts-space) * 3);
   text-indent: 0;
   break-inside: avoid;
 }
-.typeset .ts-signature img { display: block; max-height: 16mm; margin-bottom: 0.2em; }
+.typeset .ts-letter-signature img { display: block; max-height: 16mm; margin-bottom: 0.2em; }
 
 /* Same reasoning as the postscript: "Enc." introduces a sentence, it does not
    head a section. Left as the only small-caps label in a letter it was the one
    thing on the page shouting. */
-.typeset .ts-enclosures {
+.typeset .ts-letter-enclosures {
   text-align: left;
   margin-top: calc(var(--ts-space) * 2);
   font-size: var(--ts-base);
@@ -928,7 +933,7 @@
 }
 /* A postscript is a sentence that happens to begin with "P.S." — the label is
    not a heading, so it matches the text it introduces exactly. */
-.typeset .ts-ps {
+.typeset .ts-letter-postscript {
   text-align: left;
   margin-top: var(--ts-space);
   font-size: var(--ts-base);
@@ -987,10 +992,10 @@
 
 /* Spans both columns, always. Each is a direct child of the multicol container,
    which is what column-span requires. */
-.typeset--two-column > .ts-titleblock,
-.typeset--two-column > .ts-abstract,
+.typeset--two-column > .ts-frontmatter-title-block,
+.typeset--two-column > .ts-frontmatter-abstract,
 .typeset--two-column > h1,
-.typeset--two-column > .ts-colophon,
+.typeset--two-column > .ts-frontmatter-colophon,
 .typeset--two-column > .ts-span {
   column-span: all;
 }
@@ -1011,7 +1016,7 @@
 
 /* A sidenote has no margin to live in here. Rather than let it be positioned
    off the page and silently lost, it degrades to an inline aside. */
-.typeset--two-column .ts-sidenote {
+.typeset--two-column .ts-notes-sidenote {
   position: static;
   display: block;
   width: auto;
@@ -1036,23 +1041,21 @@
 .typeset--two-column table { font-size: 8pt; line-height: 1.3; }
 .typeset--two-column pre { font-size: 7.5pt; }
 .typeset--two-column figcaption { font-size: 8pt; }
-.typeset--two-column .ts-endnotes { font-size: 8.5pt; }
-.typeset--two-column .ts-pullquote { font-size: 12pt; }
-.typeset--two-column .ts-abstract { font-size: 9pt; max-width: none; }
-.typeset--two-column .ts-epigraph { max-width: none; }
+.typeset--two-column .ts-notes-endnotes { font-size: 8.5pt; }
+.typeset--two-column .ts-quotes-pullquote { font-size: 12pt; }
+.typeset--two-column .ts-frontmatter-abstract { font-size: 9pt; max-width: none; }
+.typeset--two-column .ts-quotes-epigraph { max-width: none; }
 /*! @e */
 
 /*! @s utilities :: Pagination utilities */
-.ts-page-break-before { break-before: page; }
-.ts-page-break-after  { break-after: page; }
-.ts-page-break-avoid  { break-inside: avoid; }
-.ts-keep-together     { break-inside: avoid; page-break-inside: avoid; }
-.ts-no-hyphens        { hyphens: manual; }
-.ts-nowrap            { white-space: nowrap; }
+.ts-utilities-break-before { break-before: page; }
+.ts-utilities-break-after  { break-after: page; }
+.ts-utilities-keep-together { break-inside: avoid; page-break-inside: avoid; }
+.ts-utilities-no-hyphens        { hyphens: manual; }
 
 /* Non-breaking spaces belong in the markup, but these catch the common cases:
    a figure and its unit, an initial and a surname. */
-.ts-tie { white-space: nowrap; }
+.ts-utilities-tie { white-space: nowrap; }
 
 @media print {
   .ts-screen-only { display: none !important; }
