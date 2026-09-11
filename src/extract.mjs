@@ -38,8 +38,9 @@ const GENERIC_LABEL = 'How it must look';
 /* Classes the stylesheet gives significant whitespace to, so that a line
    break inside the element is content rather than source layout. Only
    .ts-quotes-verse qualifies: `white-space: pre-line` is what keeps the
-   poet's line breaks, and it is the sole rule in typeset.css that preserves
-   a break. A <pre> is the same thing declared by tag rather than by class.
+   poet's line breaks, and it is the sole class-declared rule in typeset.css
+   that preserves a break. The other is `white-space: pre-wrap` on `.typeset
+   pre`, which is the same thing declared by tag and is handled as one.
 
    The tag alone is not enough to find these. A verse blockquote's own tag
    sits at the fragment's indent while its content sits at column zero, so
@@ -59,7 +60,14 @@ function opensVerbatimRegion(tagName, attrs) {
 
 /* The [start, end) interior of every verbatim region in `text`, outermost
    first and nested ones skipped: a region inside another is already covered
-   by its parent's span. */
+   by its parent's span.
+
+   A region that never closes runs to the end of the text. Treating it as no
+   region at all would be the worse failure: the content would be dedented
+   silently, and the gate that would otherwise catch that cannot fire, because
+   finding an interior to compare needs the closing tag this text does not
+   have. Running to the end protects the content and leaves the unclosed tag
+   to be noticed as a fragment that stops making sense. */
 function verbatimRegions(text) {
   const regions = [];
   ANY_OPEN_TAG_RE.lastIndex = 0;
@@ -67,8 +75,8 @@ function verbatimRegions(text) {
   while ((m = ANY_OPEN_TAG_RE.exec(text)) !== null) {
     if (!opensVerbatimRegion(m[1], m[2])) continue;
     const close = findMatchingClose(text, ANY_OPEN_TAG_RE.lastIndex, m[1]);
-    if (close === -1) continue;
-    regions.push([ANY_OPEN_TAG_RE.lastIndex, close]);
+    regions.push([ANY_OPEN_TAG_RE.lastIndex, close === -1 ? text.length : close]);
+    if (close === -1) break;
     ANY_OPEN_TAG_RE.lastIndex = close;
   }
   return regions;

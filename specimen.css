@@ -616,7 +616,13 @@ table.spec-table code {
 
 /* A sample set past the measure the spec allows, so the return sweep can be
    felt failing. The guide down its left edge marks it as an annotation: the
-   stylesheet offers no 52em setting, and this must not read as one. */
+   stylesheet offers no 52em setting, and this must not read as one.
+
+   The override is order-dependent. `max-width` ties `.typeset > *` at one
+   class each, so it wins only because this file is linked after typeset.css.
+   Link them the other way and the sample quietly returns to the 33em measure
+   it exists to contrast with — the section stops making its point, and
+   nothing reports it. */
 .demo-overset {
   max-width: 52em;
   border-left: 2px solid var(--ui-guide);

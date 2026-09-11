@@ -38,10 +38,11 @@ without the class. The four variants render the same either way, as does the
 paragraph that follows one. The single difference is that a browser's own
 stylesheet gives `<hr>` `overflow: hidden`, so a document that also clamps the
 mark's `height` or `line-height` tightly enough for the glyph to spill out of
-its box would see it clipped on the `<hr>` and not on the `<div>`. Nothing in
-the stylesheet does that — the mark's height is `auto` and grows to fit — so
-this is a reason to be careful when overriding, not a reason to prefer one
-element. There is no need to convert a migrated document.
+its box would see it clipped on the `<hr>` and not on the `<div>`. No variant
+is exposed to it as shipped: three leave the height `auto` so the box grows to
+fit the mark, and `.ts-breaks-rule` does set `height: 0` but renders no mark to
+clip. So this is a reason to be careful when overriding, not a reason to prefer
+one element. There is no need to convert a migrated document.
 
 ### Labels
 
