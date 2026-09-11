@@ -3,14 +3,14 @@
 
 #show: typeset.with(justified: true, indented: true)
 
-#title-block(
+#frontmatter-title-block(
   title: [On the Measure of a Line],
   subtitle: [Why the width of a text column is the first decision, and the typeface is very nearly the last],
   author: [Adilson Carvalho],
   place-date: [Sydney, 28 August 2026],
 )
 
-#abstract[
+#frontmatter-abstract[
   Every argument about typefaces is downstream of an argument about column
   width. This essay makes the narrow case that a document set at the wrong
   measure cannot be rescued by any choice of face.
@@ -37,9 +37,9 @@ The width of the range is the interesting part.
   writing. No argument or consideration can absolve typography from this duty.
 ]
 
-#pullquote[No argument can absolve typography from this duty.]
+#quotes-pullquote[No argument can absolve typography from this duty.]
 
-#break-scene(kind: "asterism")
+#breaks-asterism()
 
 == What the measure costs
 
@@ -58,7 +58,7 @@ is not empty, and you can put something in it.
   ),
 )
 
-#callout(title: [Note])[
+#callouts-callout(title: [Note])[
   Point sizes assume the document is printed at 100%. Fit-to-page scaling
   silently invalidates every measurement here.
 ]
@@ -69,12 +69,12 @@ is not empty, and you can put something in it.
 / Measure: The length of a line of type, counted in characters.
 / Leading: The vertical distance between baselines.
 
-#verse[
+#quotes-verse[
   Whose woods these are I think I know. \
   His house is in the village though;
 ]
 
-#colophon[
+#frontmatter-colophon[
   Set in EB Garamond, 11 on 16 points, with Source Sans 3 for headings.
   Composed in Typst.
 ]

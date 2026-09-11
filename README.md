@@ -14,7 +14,7 @@ spec disagree, **the spec is right and the implementation is broken.**
 
 | File | What it is |
 |---|---|
-| `spec.json` | **Normative.** 22 sections, 93 elements, every length absolute. |
+| `spec.json` | **Normative.** Every length absolute. Section and element counts are generated onto the masthead by `tools/build-site.mjs`, not hand-maintained here. |
 | `SPEC.md` | The spec as prose, generated from `spec.json`. For pasting into a model's context. |
 | `llms.txt` | What a machine should read first, and in what order. |
 | `index.html` | **Generated.** The specimen page. Do not edit — edit `src/` and rebuild. |
@@ -39,7 +39,6 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `tools/build-iawriter.mjs` | Builds the two iA Writer template bundles from `implementations/iawriter/`, `typeset.css` and `fonts/`. |
 | `.github/workflows/deploy.yml` | Checks, builds every bundle, deploys Pages; on a tag, publishes the release assets. |
 | `proofs/font-proof.html` | Six body-face candidates, one per A4 page, for printing. |
-| `highlight.js` | The syntax highlighter, shared by the specimen page and the viewers. |
 | `examples/preview-bar.js` | The back bar for example documents. See the Paged.js notes below. |
 | `tools/build-spec.mjs` | Generates `SPEC.md` from `spec.json`. |
 | `tools/check.mjs` | Verifies the implementations still match the spec. |
@@ -72,8 +71,15 @@ duplicate `09` that had been sitting in the page); and the four viewer pages com
 from one template instead of four near-identical files.
 
 To add a section: add an entry to `src/sections.json`, write
-`src/demos/<id>.html`, add the marker pairs in `typeset.css` and
-`implementations/typeset.typ`, rebuild, and run the checker.
+`src/demos/<id>.html`, add the `@s` marker pairs in `typeset.css` and
+`implementations/typeset.typ`, give each element a `.ts-<id>` class or a
+`/* @style <id> */` marker, rebuild, and run the checker.
+
+Naming the elements: an element id is either the bare section id or
+`<section-id>-<leaf>`. A plural section name enumerates its members, so every
+element takes a leaf (`tables-table`, `tables-cell`); a singular one names a
+single style, so its principal element takes the section id alone (`dropcap`,
+`codeblock`, `toc`) and any others hang off it (`dropcap-lede`, `toc-entry`).
 
 ## Working on it
 
@@ -291,7 +297,7 @@ content inside its page boxes, so things that are true of a normal page are not
 true under it.
 
 - **It cannot parse `:is()` or `:has()`.** It splits the selector on the commas
-  inside the argument list, emits a fragment like `.ts-callout)+p`, and that
+  inside the argument list, emits a fragment like `.ts-callouts-callout)+p`, and that
   throws on `querySelectorAll` — aborting pagination entirely. Blank document, no
   error on the page. Keep selector lists flat.
 - **It applies `@media print` rules unconditionally**, since that is how it builds

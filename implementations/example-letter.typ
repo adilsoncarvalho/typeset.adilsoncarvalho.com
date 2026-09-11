@@ -5,14 +5,14 @@
 #show: letter-page
 #show: typeset          // justified: false — a letter is set ragged right
 
-#letterhead[
+#letter-sender[
   Adilson Carvalho \
   10 Wentworth Avenue \
   Surry Hills NSW 2010 \
   Australia
 ]
 
-#address(label: [To])[
+#letter-address-block(label: [To])[
   The Registrar \
   Institute of Typographic Studies \
   88 Rundle Street \
@@ -20,7 +20,7 @@
 ]
 
 27 August 2026
-#date-note[St Monica, mother of St Augustine Bishop, ora pro nobis]
+#letter-date-note[St Monica, mother of St Augustine Bishop, ora pro nobis]
 
 Dear Registrar,
 
@@ -42,9 +42,9 @@ demonstration.
 
 Yours sincerely,
 
-#signature[Adilson Carvalho]
+#letter-signature[Adilson Carvalho]
 
-#enclosures[typeset.css; two specimen pages]
+#letter-enclosures[typeset.css; two specimen pages]
 
-#postscript[The tables were excellent — tabular figures throughout, which is
+#letter-postscript[The tables were excellent — tabular figures throughout, which is
 more than most annual reports manage.]

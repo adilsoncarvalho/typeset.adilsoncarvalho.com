@@ -155,7 +155,7 @@ if (two) {
 }
 for (const id of cssIds) {
   const isFoundation = ['tokens', 'foundation', 'page', 'justification', 'numbering', 'dropcap',
-    'links', 'code-inline', 'figures-numeric', 'utilities'].includes(id);
+    'links', 'code-inline', 'utilities'].includes(id);
   const isTemplate = Object.keys(spec.templates).includes(id);
   if (!spec.sections.some((s) => s.id === id) && !isFoundation && !isTemplate) {
     warn.push(`typeset.css: section "${id}" has no counterpart in spec.json`);
@@ -289,6 +289,194 @@ if (!specMd.includes(`Version ${spec.version} · updated ${spec.updated}`)) {
 }
 for (const sec of spec.sections) {
   if (!specMd.includes(`\`${sec.id}\``)) fail.push(`SPEC.md is missing section "${sec.id}" — regenerate`);
+}
+
+/* ---- 5. Every named style is findable in the stylesheet by its name ------ */
+
+/* The contract: a style is named either by a .ts-<id> class, or by a
+   /* @style <id> *\/ marker comment above the rule that implements it.
+
+   Not every element can carry a class. Many are styled through a bare
+   semantic selector (h1, strong, sub), and a few describe a rule rather than
+   a selector at all: justification-exclusions says what is never justified,
+   numbering-h2 is counter-generated content with no element to mark. A class
+   is a name and a handle, not a requirement — so the gate accepts either, and
+   checks that the canonical name is *present where a reader editing that rule
+   will see it*, not that a class exists.
+
+   Both directions are checked: an element with neither class nor marker
+   fails, and a class or marker naming no element fails. */
+
+const INTERNAL_CLASSES = new Set([
+  'ts-label',        // shared base under the four caption/label variants
+  'ts-break',        // shared base under the four section-break variants
+  'ts-span',         // two-column template, not a document style
+  'ts-print-only',   // paired with ts-screen-only under one spec element
+  'ts-screen-only',
+]);
+
+const specIds = new Set(
+  spec.sections.flatMap((s) => s.elements.map((e) => e.id)));
+
+/* Markers live inside comments, so they are read before comments are
+   stripped for the class extraction below — stripping first would silently
+   empty this set. */
+const styleMarkers = new Set(
+  [...css.matchAll(/\/\*\s*@style\s+([a-z0-9-]+)/g)].map((m) => m[1]));
+
+const cssNoComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
+
+const cssClasses = new Set(
+  [...cssNoComments.matchAll(/\.(ts-[a-z0-9-]+)/g)].map((m) => m[1]));
+
+const typSymbols = new Set(
+  [...typ.matchAll(/^#let\s+([a-z0-9_-]+)\s*[=(]/gm)].map((m) => m[1]));
+
+for (const id of specIds) {
+  if (!cssClasses.has(`ts-${id}`) && !styleMarkers.has(id))
+    fail.push(`typeset.css: style "${id}" has neither a .ts-${id} class nor a @style marker`);
+}
+
+for (const cls of cssClasses) {
+  if (INTERNAL_CLASSES.has(cls)) continue;
+  if (!specIds.has(cls.replace(/^ts-/, '')))
+    fail.push(`typeset.css: .${cls} has no spec element behind it`);
+}
+
+for (const id of styleMarkers) {
+  if (!specIds.has(id))
+    fail.push(`typeset.css: @style ${id} names no spec element`);
+}
+
+/* Observes the shape of an element id: either the bare section id, or the
+   section id followed by a leaf. specIds above is a Set, so a repeated id
+   collapses into one entry rather than announcing itself — the uniqueness
+   check therefore counts the array. */
+const specIdList = spec.sections.flatMap((s) => s.elements.map((e) => e.id));
+const seenIds = new Set();
+for (const id of specIdList) {
+  if (seenIds.has(id)) fail.push(`spec.json: element id "${id}" appears more than once`);
+  seenIds.add(id);
+}
+for (const sec of spec.sections) {
+  for (const el of sec.elements) {
+    if (el.id !== sec.id && !el.id.startsWith(`${sec.id}-`)) {
+      fail.push(`spec.json: element "${el.id}" is in section "${sec.id}", so its id must be `
+        + `"${sec.id}" or "${sec.id}-<leaf>"`);
+    }
+  }
+}
+
+/* Observes the class names spec.json publishes. An opt_in is rendered into
+   SPEC.md and onto the site as the class a reader is told to type, so one that
+   names no rule is an instruction to write something inert. Values that are
+   not a bare class name — a document modifier, or a sentence — are left alone. */
+const optIns = [
+  ...spec.sections.map((s) => [s.id, s.opt_in]),
+  ...spec.sections.flatMap((s) => s.elements.map((e) => [e.id, e.opt_in])),
+];
+for (const [id, value] of optIns) {
+  if (typeof value !== 'string' || !/^ts-[a-z0-9-]+$/.test(value)) continue;
+  if (!cssClasses.has(value)) {
+    fail.push(`spec.json: ${id} publishes opt_in "${value}", which is not a selector in typeset.css`);
+  }
+}
+
+/* Observes the classes the documents in this repo actually write. The gates
+   above read the stylesheet and the spec against each other; neither looks at
+   a class attribute, so a misspelling in a demo, an example, a proof, a
+   template or a script renders unstyled and reports nothing.
+
+   The predicate for a document is resolution, not naming: the class must
+   appear as a selector in one of the stylesheets. Naming a spec element is
+   too weak, because most of an element's names reach it through a bare
+   semantic selector and never become a class — so a document writing one of
+   those names matches no rule at all while satisfying a check that asked only
+   whether the name existed. */
+
+/* Chrome for the specimen page: these dress a demo so it reads in a browser
+   and never appear in a document, so they are the only .ts- selectors
+   specimen.css may carry with no spec element behind them. */
+const SPECIMEN_CHROME = new Set(['ts-toc--demo', 'ts-folio']);
+
+/* A class name is written in three shapes across these files: a class
+   attribute, a selector, and a bare quoted token in a script or in JSON
+   prose. The attribute pattern reads escaped quotes too, because the site
+   manifest carries markup inside JSON strings. */
+const classesIn = (text) => new Set([
+  ...[...text.replace(/\\"/g, '"').matchAll(/class=["']([^"']*)["']/g)]
+    .flatMap((m) => m[1].trim().split(/\s+/)),
+  ...[...text.matchAll(/\.(ts-[a-z0-9-]+)/g)].map((m) => m[1]),
+  ...[...text.matchAll(/['"`](ts-[a-z0-9-]+)['"`]/g)].map((m) => m[1]),
+].filter((c) => c.startsWith('ts-')));
+
+const documentFiles = ['specimen.css', 'src/sections.json'];
+const collectDocuments = (dir) => {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) collectDocuments(path);
+    else if (/\.(html|css|js)$/.test(path)) documentFiles.push(path);
+  }
+};
+for (const dir of ['src/demos', 'examples', 'proofs', 'implementations/iawriter']) {
+  collectDocuments(dir);
+}
+
+const sheets = ['typeset.css', ...documentFiles.filter((f) => f.endsWith('.css'))];
+const definedSelectors = new Set(sheets.flatMap((f) =>
+  [...readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.(ts-[a-z0-9-]+)/g)]
+    .map((m) => m[1])));
+
+for (const path of documentFiles) {
+  const used = classesIn(readFileSync(path, 'utf8'));
+  for (const cls of used) {
+    /* A stylesheet's own .ts- occurrences are mostly definitions, so asking
+       whether they resolve is circular — they are held to the spec instead,
+       the way the gate above holds typeset.css. */
+    if (sheets.includes(path)) {
+      if (specIds.has(cls.replace(/^ts-/, ''))) continue;
+      if (INTERNAL_CLASSES.has(cls) || SPECIMEN_CHROME.has(cls)) continue;
+      fail.push(`${path}: .${cls} is a selector with no spec element behind it`);
+    } else {
+      if (definedSelectors.has(cls)) continue;
+      fail.push(`${path}: ${cls} matches no .ts- selector in any stylesheet, so it renders unstyled`);
+    }
+  }
+}
+
+/* Observes the exported Typst surface. Every symbol is either a named style or
+   written down here, so a new export has to be a deliberate choice between the
+   two. */
+const INTERNAL_SYMBOLS = new Set([
+  /* the palette, the scales and the spacing unit a template reads */
+  'ink', 'ink-muted', 'ink-faint', 'rule-color', 'rule-strong', 'wash', 'accent',
+  'serif', 'sans', 'mono',
+  'scale-single-column', 'scale-two-column', 'base-size', 'sm', 'xs', 'sp',
+  /* helpers the styles are built from */
+  'leading-for', 'smcp', 'oldstyle', 'lining', 'tabular', '_break-mark',
+  /* document and template entry points */
+  'typeset', 'two-column', 'span',
+  /* ts-table implements element tables-table under its 1.x spelling, which the
+     migration note discloses; epigraph-right has no element behind it at all */
+  'ts-table', 'epigraph-right',
+]);
+
+for (const sym of typSymbols) {
+  if (INTERNAL_SYMBOLS.has(sym) || specIds.has(sym)) continue;
+  fail.push(`typeset.typ: #let ${sym} names no spec element and is not listed as internal`);
+}
+
+/* Typst covers a subset by design — many styles are show rules on native
+   elements rather than exported functions. Only the styles a document has to
+   call by name need a symbol; those are the ones carrying a CSS class that is
+   not a plain element alias. A missing one is a warning, not a failure — the
+   list of styles that must expose a callable Typst symbol is not final, and
+   promoting this direction means settling every one of the notes it prints
+   first. The reverse direction above is a failure, because an export with no
+   name behind it is a decision someone can write down in one line. */
+for (const id of specIds) {
+  if (!typSymbols.has(id) && !new RegExp(`//\\s*@s\\s+${id}\\s*\\n`).test(typ))
+    warn.push(`typeset.typ: no symbol or marker region named "${id}"`);
 }
 
 /* ---- Report ------------------------------------------------------------- */

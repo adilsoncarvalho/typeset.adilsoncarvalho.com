@@ -2,3 +2,6 @@
 
 # Build output. Rebuild with: node tools/build-bundle.mjs
 downloads/
+
+# subagent-driven-development scratch
+.superpowers/

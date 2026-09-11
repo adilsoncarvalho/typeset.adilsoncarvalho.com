@@ -19,7 +19,7 @@ const TYPST_ELSEWHERE = {
   numbering: 'headings',
   'code-inline': 'codeblock',
   links: 'inline',
-  'figures-numeric': 'foundation',
+  numerals: 'foundation',
 };
 
 const NO_TYPST = 'No Typst-specific code. This section states rules rather than '

@@ -131,9 +131,11 @@ ones worth calling out because they are easy to miss:
 - `src/sections.json`, `tools/check.mjs`, `README.md`, `SPEC.md` — prose and
   configuration that name classes rather than use them.
 
-**Migration.** `tools/codemod-classes.mjs` rewrites old class names to new in a
-document given on the command line. `spec.json` goes to `2.0.0`; `SPEC.md` is
-regenerated; the release notes carry the complete old→new table.
+**Migration.** `tools/codemod-names.mjs` rewrites old names to new in a
+document given on the command line. It covers CSS classes and Typst symbols
+alike, which is why it is named for names rather than for classes. `spec.json`
+goes to `2.0.0`, `SPEC.md` is regenerated, and the migration note carries the
+complete old→new table.
 
 **Done when:** the checker enforces the mapping in both directions, every
 in-repo document uses the new names, and the rendered site is visually
@@ -180,7 +182,7 @@ One labelled example per named style, in the pattern the quotations section
 already uses, with the label generated from the spec rather than typed.
 
 **Priority order**, worst first: `inline` (11 named styles in a single prose
-blob, counted from `spec.json` on 2026-09-11), `figures-numeric`, `lists`, `utilities`, `links`, `headings`.
+blob, counted from `spec.json` on 2026-09-11), `numerals`, `lists`, `utilities`, `links`, `headings`.
 
 Plain HTML and plain Typst elements are fine as the demonstrated source — the
 point is that the layout configuration does the work in the background, and the
@@ -218,6 +220,21 @@ boxes apply only under the mirrored opt-in.
 
 **Consumers.** Examples and templates move to `symmetric`. The letter in
 particular: a letter is not bound, and mirrored margins on it are simply wrong.
+
+**A conformance gap this group must close, found while naming the styles in
+Group 1.** `spec.json` declares `letter-page` as 32mm top, 28mm bottom, 25mm
+sides, with no running head and no folio. `implementations/typeset.typ:501-508`
+honours all five unconditionally. **`typeset.css` implements none of them** — it
+has no letter-specific `@page` rule at all, so a letter rendered through the
+stylesheet comes out on the document's default mirrored page, carrying a running
+head and a folio it is not supposed to have.
+
+This is not an engine-capability limit — `@page` selectors are exactly what the
+CSS implementation already uses for the default page — so it does not belong in
+the element's `fallback` field, which reads on the site as "Where unsupported"
+and would present the gap as an acceptable degradation. It is simply unwritten
+CSS, and this group is where the page box gets restructured, so this is where it
+gets written.
 
 **Verification.** The arithmetic above is checked against `spec.json` but must
 be confirmed against a rendered page before the values land — compile an

@@ -1,6 +1,6 @@
 # typeset — typographic specification
 
-Version 1.0.0 · updated 2026-08-28 · Adilson Carvalho
+Version 2.0.0 · updated 2026-09-11 · Adilson Carvalho
 Canonical: https://typeset.adilsoncarvalho.com
 
 A normative typographic specification for printed documents — essays, letters, reports. This file is the source of truth. CSS, Typst, LaTeX or any other implementation conforms to it; where an implementation and this file disagree, this file is right.
@@ -828,9 +828,17 @@ Default: `single-column`
 | applies to | external (http/https) links only |
 | excluded | `internal anchors`, `mailto:`, `links marked bare` |
 
+##### Link — URL suppressed
+
+| Property | Value |
+| --- | --- |
+| print url | no |
+
+> Opt-out for a link whose URL would be noise in print: a shortened URL, a tracking URL, or one the surrounding sentence already gives.
+
 #### Numerals
 
-`figures-numeric`
+`numerals`
 
 - Three kinds, three jobs. Getting this wrong is the most visible amateur tell in a set document, and it is one setting.
 - Old-style figures have ascenders and descenders and sit inside the x-height. Lining figures are uniform cap height. Tabular figures share one advance width, which is the only reason a column of numbers can align.
@@ -991,7 +999,7 @@ Default: `single-column`
 | --- | --- |
 | marker | `a.` |
 
-##### Tight list (opt-in: `ts-list-tight`)
+##### Tight list (opt-in: `ts-lists-tight`)
 
 | Property | Value |
 | --- | --- |
@@ -1092,7 +1100,6 @@ Default: `single-column`
 | size | `9.5pt` |
 | color | `ink` |
 | space after | `0.5em` |
-| label | small caps, weight 600, tracking 0.06em |
 | max width | `none` |
 
 ##### Row
@@ -1101,13 +1108,21 @@ Default: `single-column`
 | --- | --- |
 | break inside | `avoid` |
 
-##### Zebra striping (opt-in: `ts-table-zebra`)
+##### Zebra striping (opt-in: `ts-tables-zebra`)
 
 | Property | Value |
 | --- | --- |
 | background | `wash on even body rows` |
 
 > For wide, dense tables only. Not a default.
+
+##### Caption label
+
+| Property | Value |
+| --- | --- |
+| weight | `600` |
+| caps | `all small caps` |
+| tracking | `0.06em` |
 
 #### Code blocks
 
@@ -1162,7 +1177,15 @@ Default: `single-column`
 | space before | `0.5em` |
 | border top | `0.5pt rule` |
 | padding top | `0.4em` |
-| label | small caps, weight 600, colour ink, tracking 0.06em |
+
+##### Figure caption label
+
+| Property | Value |
+| --- | --- |
+| weight | `600` |
+| color | `ink` |
+| caps | `all small caps` |
+| tracking | `0.06em` |
 
 #### Callouts
 
@@ -1337,17 +1360,20 @@ Where unsupported: an endnotes block at the end of the document
 
 - Page numbers require the engine to resolve a cross-reference after pagination. Where it cannot, the entry MUST omit the number rather than print a wrong one — a TOC with wrong numbers is worse than one with none.
 
-##### Entry
+##### Table of contents
 
 | Property | Value |
 | --- | --- |
 | font | `sans` |
 | size | `9.5pt` |
 | align | `left` |
+
+##### Entry
+
+| Property | Value |
+| --- | --- |
 | space after | `0.35em` |
 | decoration | `none` |
-| leader | dotted 0.5pt rule, colour rule, filling the space between title and number |
-| leader baseline offset | `-0.15em` |
 | page number | `resolved after pagination` |
 | page number numerals | `lining tabular` |
 | page number color | `ink_muted` |
@@ -1359,6 +1385,13 @@ Where unsupported: leaders render, page numbers are omitted
 | Property | Value |
 | --- | --- |
 | indent left | `1.5em` |
+
+##### Dot leader
+
+| Property | Value |
+| --- | --- |
+| leader | dotted 0.5pt rule, colour rule, filling the space between title and number |
+| baseline offset | `-0.15em` |
 
 #### Bibliography
 
@@ -1441,7 +1474,6 @@ Where unsupported: leaders render, page numbers are omitted
 | align | `left` |
 | max width | `30em` |
 | space after | `22pt` |
-| label | ABSTRACT — sans, 700, 8pt, uppercase, tracking 0.1em, colour ink_faint, on its own line |
 
 ##### Colophon
 
@@ -1457,6 +1489,18 @@ Where unsupported: leaders render, page numbers are omitted
 | padding top | `11pt` |
 | border top | `0.5pt rule` |
 | break before | `avoid` |
+
+##### Abstract label
+
+| Property | Value |
+| --- | --- |
+| display | `block` |
+| font | `sans` |
+| size | `xs` |
+| weight | `700` |
+| tracking | `0.1em` |
+| caps | `uppercase` |
+| color | `ink_faint` |
 
 #### Letter
 
@@ -1509,7 +1553,6 @@ Where unsupported: leaders render, page numbers are omitted
 | align | `left` |
 | line breaks | `as authored` |
 | space after | `16.5pt` |
-| label | sans, 8pt, uppercase, tracking 0.1em, colour ink_faint, on its own line |
 
 ##### Date line
 
@@ -1585,7 +1628,7 @@ Where unsupported: leaders render, page numbers are omitted
 
 > A postscript is a sentence that happens to begin with "P.S.". The label is not a heading.
 
-##### Footnote
+##### Footnote — in a letter
 
 | Property | Value |
 | --- | --- |
@@ -1597,6 +1640,17 @@ Where unsupported: leaders render, page numbers are omitted
 | heading | `none` |
 
 Where unsupported: a numbered note after the signature, under a rule — which on a one-page letter is the page foot anyway
+
+##### Address label
+
+| Property | Value |
+| --- | --- |
+| display | `block` |
+| font | `sans` |
+| size | `xs` |
+| tracking | `0.1em` |
+| caps | `uppercase` |
+| color | `ink_faint` |
 
 #### Pagination utilities
 
