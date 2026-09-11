@@ -2,7 +2,9 @@
 
 **Date:** 2026-09-11
 **Ticket:** NT (no ticket — personal project)
-**Status:** approved, not yet implemented
+
+Progress is tracked by the branches and pull requests named below, not by a
+status line here.
 
 Five pieces of work, each a feature branch merged to `master` before the next
 begins. No two branches open at once.
@@ -40,7 +42,7 @@ Five problems with the site as it stands, in the order they get fixed:
 |---|---|
 | Class naming scheme | Derived mechanically from the `spec.json` element id: `.ts-<element-id>`, with element ids normalised to `<section>-<style>`. The Typst symbol uses the same name. |
 | Migration for old class names | Hard cutover. Major version bump, full old→new table in the release notes, plus a codemod script that rewrites a document. |
-| Document-level modifiers | Out of scope. `.typeset--justified`, `--indented`, `--numbered`, `--sidenotes`, `--two-column`, `--ragged`, `--narrow`, `--wide`, `--column-rule` stay as they are: they are document options, not element styles. |
+| Document-level modifiers | Out of scope. All 9 of them — `.typeset--justified`, `--indented`, `--numbered`, `--sidenotes`, `--two-column`, `--ragged`, `--narrow`, `--wide`, `--column-rule` — stay as they are. They are document options, not element styles. |
 | Page layout naming | Two named layouts, `symmetric` and `mirrored`. `symmetric` is the default. |
 | Templates | Split by path inside this repository rather than extracted to a second one. The template builds consume the built bundle rather than raw source, which makes a later extraction a rename. |
 | Typst example snippets | Compile-verified in CI. `typst` joins the deploy workflow. |
@@ -63,13 +65,21 @@ Five problems with the site as it stands, in the order they get fixed:
 One canonical name per style, carried into all three representations and
 enforced by the checker.
 
-**Spec.** Normalise all 95 element ids to `<section>-<style>`. Some already
-have this shape (`break-asterisks`, `callout-warning`, `util-tie`); others do
-not (`epigraph`, `pullquote`, `verse`, `attribution`). Each element keeps its
-human `name` alongside the id.
+**Spec.** Normalise every element id to `<section>-<style>`. There are 95 of
+them, counted on 2026-09-11 with
+
+```sh
+node -e "const s=require('./spec.json'); console.log(s.sections.reduce((n,x)=>n+x.elements.length,0))"
+```
+
+Some already have this shape (`break-asterisks`, `callout-warning`,
+`util-tie`); others do not (`epigraph`, `pullquote`, `verse`, `attribution`).
+Each element keeps its human `name` alongside the id.
 
 **CSS.** The class for an element is `.ts-<element-id>`, derived, never chosen.
-Worked examples:
+There are 57 distinct `.ts-*` classes to map today
+(`grep -o '\.ts-[a-z0-9-]*' typeset.css | sort -u | wc -l`, 2026-09-11), plus
+the 9 document modifiers that stay as they are. Worked examples:
 
 ```
 .ts-epigraph      → .ts-quote-epigraph
@@ -100,12 +110,26 @@ promoted to a spec element with a name of its own, or declared internal in a
 short list the checker reads. Promote where the thing is genuinely a named
 style a reader would reach for; declare internal only where it is plumbing.
 
-**Consumers to update in the same branch.** 26 files under `src/demos/`,
-`examples/essay.html`, `examples/letter.html`, `examples/two-column.html`,
-`proofs/font-proof.html`, `implementations/iawriter/iawriter.css`,
-`implementations/iawriter/letter/document.html`,
-`implementations/iawriter/letter/example.md`, and the three
-`implementations/example-*.typ` documents.
+**Consumers to update in the same branch.** Enumerated on 2026-09-11 with
+
+```sh
+git grep -lE 'ts-[a-z0-9-]+' | grep -v -e '^index.html$' -e '^files/' -e '^typeset.css$' -e '^docs/'
+git grep -lE '(epigraph|pullquote|verse|callout|break-scene|dropcap|sidenote)' -- '*.typ'
+```
+
+which together return 35 files — re-run both before starting, since the list moves. The
+ones worth calling out because they are easy to miss:
+
+- 19 of the 26 files under `src/demos/`.
+- `examples/essay.html`, `examples/letter.html`, `examples/two-column.html`.
+- `proofs/font-proof.html`.
+- `implementations/iawriter/iawriter.css` and
+  `implementations/iawriter/letter/page.css`.
+- All four `.typ` files, `implementations/typeset.typ` included.
+- `specimen.css` and `examples/preview-bar.js` — page furniture that reaches
+  into document classes, and the least obvious hits in the list.
+- `src/sections.json`, `tools/check.mjs`, `README.md`, `SPEC.md` — prose and
+  configuration that name classes rather than use them.
 
 **Migration.** `tools/codemod-classes.mjs` rewrites old class names to new in a
 document given on the command line. `spec.json` goes to `2.0.0`; `SPEC.md` is
@@ -155,8 +179,8 @@ example, CI compiles all of it, and no panel repeats the boilerplate.
 One labelled example per named style, in the pattern the quotations section
 already uses, with the label generated from the spec rather than typed.
 
-**Priority order**, worst first: `inline` (eleven named styles in a single
-prose blob), `figures-numeric`, `lists`, `utilities`, `links`, `headings`.
+**Priority order**, worst first: `inline` (11 named styles in a single prose
+blob, counted from `spec.json` on 2026-09-11), `figures-numeric`, `lists`, `utilities`, `links`, `headings`.
 
 Plain HTML and plain Typst elements are fine as the demonstrated source — the
 point is that the layout configuration does the work in the background, and the
