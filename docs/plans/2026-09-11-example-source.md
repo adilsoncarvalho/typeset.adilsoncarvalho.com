@@ -411,6 +411,75 @@ Expect zero snippet failures. Report any section where the Typst snippet and the
 
 ---
 
+### Task 4b: Show the snippets, and unblock the two they route around
+
+Two gaps, one blocking the other.
+
+**The plan never wired the Typst pane to the snippets.** Task 2 wired the HTML
+pane; nothing wired Typst. `src/panels.mjs:183` still builds that pane from
+`typMap` — the `@s` marker regions of `implementations/typeset.typ` — so 24
+snippets exist, compile, and are gated, but no reader sees one.
+
+**And two of them route around broken library functions**, which a pane teaching
+"what you would write" must not do:
+
+- `toc()` **does not compile**: `outline(fill:)` moved to `outline.entry` in
+  Typst 0.14. Verified: `error: unexpected argument: fill` at
+  `implementations/typeset.typ:583`. Nothing had ever called it, so no gate saw it.
+- `typeset(numbered: true)` is **dead**: its `set heading(numbering:)` sits inside
+  an `if` block, so it never applies. Verified with
+  `typst query … 'heading' --field numbering` → `[null,null]`.
+
+`src/demos/toc.typ` and `src/demos/numbering.typ` each inline the working
+equivalent. That is correct output from a broken library, and the wrong thing to
+publish as an example.
+
+**Files:** `src/panels.mjs`, `tools/build-site.mjs`, `implementations/typeset.typ`,
+`src/demos/toc.typ`, `src/demos/numbering.typ`, `tools/check.mjs`
+
+- [ ] **Step 1: Fix the two functions**
+
+`toc()` — move `fill` onto `outline.entry`, matching what the snippet already
+proves works. `typeset(numbered:)` — lift the `set` out of the `if` so the
+parameter reaches the document.
+
+Both are small. Neither changes a value the spec declares: `spec.json`'s
+`numbering` section states the format, and the fix makes the implementation
+honour it rather than altering it.
+
+- [ ] **Step 2: Prove each fix, and that nothing else moved**
+
+Compile a document calling `toc()`; it must produce an outline with dot leaders.
+Compile one with `typeset.with(numbered: true)`; `typst query` must report the
+numbering rather than `null`. Then recompile all three example documents and
+confirm they are byte-identical — neither fix may disturb a document that did
+not use the broken path.
+
+- [ ] **Step 3: Simplify the two snippets to use the API**
+
+They should now show `#toc()` and `typeset.with(numbered: true)` — what a reader
+would actually write. Both must still compile under the gate.
+
+- [ ] **Step 4: Wire the pane**
+
+`renderPanel` takes the snippet for the section and shows it, the way the HTML
+pane takes its fragments. Keep the marker-region fallback only where a section
+genuinely has no snippet — and since the coverage gate now requires one for every
+section, say whether that fallback is still reachable. If it is dead, remove it.
+
+- [ ] **Step 5: The full source stays reachable**
+
+The Typst pane was the way to find the implementation, as the CSS pane was. Give
+each section a deep link into `files/typeset-typ.html`, derived from the file the
+way Task 2 derived the CSS links. Do not hand-maintain line numbers.
+
+- [ ] **Step 6: Rebuild and verify**
+
+The rendered example column must not move. The Typst pane of every section must
+now show that section's snippet. Quote three.
+
+---
+
 ### Task 5: The boilerplate, once
 
 **Files:**
