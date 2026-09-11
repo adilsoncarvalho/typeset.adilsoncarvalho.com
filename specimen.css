@@ -16,6 +16,7 @@
   --ui-border: #e2ddd6;
   --ui-border-strong: #cdc6bd;
   --ui-accent: #7a1f1f;
+  --ui-guide: #d9c48a;      /* annotation marks drawn over a sample, never in it */
   --ui-code-bg: #24211e;
   --ui-code-fg: #e8e3db;
   --ui-code-comment: #8f877c;
@@ -245,7 +246,7 @@ a { color: inherit; }
 }
 .note b { color: var(--ui-fg); }
 
-.swatches { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.swatches { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; }
 .swatch { font-size: 0.6875rem; font-family: var(--ui-mono); color: #5a5a5a; }
 .swatch i {
   display: block;
@@ -255,6 +256,16 @@ a { color: inherit; }
   border: 1px solid rgb(0 0 0 / 0.1);
   margin-bottom: 0.3rem;
 }
+
+/* A swatch reads its fill from the token it is labelled with. Restating the
+   hex would let the page disagree with the stylesheet it documents: change
+   the token, and the square named after it would still show the old ink. */
+.swatch--ink { background: var(--ts-ink); }
+.swatch--ink-muted { background: var(--ts-ink-muted); }
+.swatch--ink-faint { background: var(--ts-ink-faint); }
+.swatch--rule { background: var(--ts-rule); }
+.swatch--wash { background: var(--ts-wash); }
+.swatch--accent { background: var(--ts-accent); }
 
 .scale-row {
   display: flex;
@@ -269,6 +280,16 @@ a { color: inherit; }
   font: 400 0.6875rem var(--ui-mono);
   color: #8a8a8a;
 }
+
+/* Each sample is set at the token it stands for, for the same reason the
+   swatches are filled from theirs. The 11pt row needs no rule: the body size
+   is what .typeset already gives it. */
+.scale-h1 { font: 300 var(--ts-h1)/1.1 var(--ts-sans); }
+.scale-h2 { font: 600 var(--ts-h2)/1.15 var(--ts-sans); }
+.scale-h3 { font: 600 var(--ts-h3)/1.2 var(--ts-sans); }
+.scale-h4 { font: 600 var(--ts-h4)/1.2 var(--ts-sans); }
+.scale-sm { font-size: var(--ts-sm); }
+.scale-xs { font-size: var(--ts-xs); }
 
 .footer {
   max-width: 44rem;
@@ -592,4 +613,79 @@ table.spec-table code {
 
 @media (max-width: 60rem) {
   .mini--wide .mini__sheet { transform: scale(0.62); }
+}
+
+/* ---- Page diagram -------------------------------------------------------- */
+
+/* A picture of a page rather than a document: no element inside it is a
+   document element. It carries `typeset` so the ink and type it is drawn in
+   come from the tokens the page it depicts would be set in. */
+.pagemap {
+  background: var(--ui-bg-sunken);
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+.pagemap__sheet {
+  position: relative;
+  width: 14rem;
+  aspect-ratio: 210 / 297;
+  background: #fffefb;
+  border: 1px solid var(--ui-border-strong);
+  box-shadow: 0 8px 24px -12px rgb(0 0 0 / 0.2);
+}
+.pagemap__margins {
+  position: absolute;
+  inset: 8.4% 10.5%;
+  border: 1px dashed var(--ui-guide);
+}
+.pagemap__runhead {
+  position: absolute;
+  top: 4%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 7px/1 var(--ts-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ts-ink-faint);
+}
+.pagemap__folio {
+  position: absolute;
+  bottom: 3.5%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 8px/1 var(--ts-serif);
+  color: var(--ts-ink-muted);
+}
+.pagemap__lines {
+  position: absolute;
+  left: 10.5%;
+  right: 10.5%;
+  top: 14%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pagemap__line { height: 2px; background: #efece6; }
+.pagemap__line--head { height: 5px; width: 70%; background: #e6e2db; }
+.pagemap__line--short { width: 60%; }
+.pagemap__gauge {
+  position: absolute;
+  left: -2.2rem;
+  top: 8.4%;
+  bottom: 8.4%;
+  display: flex;
+  align-items: center;
+}
+.pagemap__gauge-label { font: 400 8px var(--ts-mono); color: var(--ts-ink-faint); }
+.pagemap__caption {
+  position: absolute;
+  bottom: -1.4rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 400 8px var(--ts-mono);
+  color: var(--ts-ink-faint);
 }

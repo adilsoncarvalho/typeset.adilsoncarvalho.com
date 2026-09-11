@@ -148,21 +148,21 @@
     <div>
       <p class="pair__label">How it must look</p>
       <div class="paper typeset">
-        <div class="scale-row"><b>24pt</b> <span style="font:300 24pt/1.1 var(--ts-sans)">Heading one</span></div>
-        <div class="scale-row"><b>18pt</b> <span style="font:600 18pt/1.15 var(--ts-sans)">Heading two</span></div>
-        <div class="scale-row"><b>14pt</b> <span style="font:600 14pt/1.2 var(--ts-sans)">Heading three</span></div>
-        <div class="scale-row"><b>12pt</b> <span style="font:600 12pt/1.2 var(--ts-sans)">Heading four</span></div>
+        <div class="scale-row"><b>24pt</b> <span class="scale-h1">Heading one</span></div>
+        <div class="scale-row"><b>18pt</b> <span class="scale-h2">Heading two</span></div>
+        <div class="scale-row"><b>14pt</b> <span class="scale-h3">Heading three</span></div>
+        <div class="scale-row"><b>12pt</b> <span class="scale-h4">Heading four</span></div>
         <div class="scale-row"><b>11pt</b> <span>Body text — EB Garamond</span></div>
-        <div class="scale-row"><b>9.5pt</b> <span style="font-size:9.5pt">Captions, footnotes, tables</span></div>
-        <div class="scale-row"><b>8pt</b> <span style="font-size:8pt">Labels and running heads</span></div>
+        <div class="scale-row"><b>9.5pt</b> <span class="scale-sm">Captions, footnotes, tables</span></div>
+        <div class="scale-row"><b>8pt</b> <span class="scale-xs">Labels and running heads</span></div>
 
-        <div class="swatches" style="margin-top:1.5rem">
-          <span class="swatch"><i style="background:#1a1a1a"></i>ink</span>
-          <span class="swatch"><i style="background:#5a5a5a"></i>muted</span>
-          <span class="swatch"><i style="background:#8a8a8a"></i>faint</span>
-          <span class="swatch"><i style="background:#c9c4bd"></i>rule</span>
-          <span class="swatch"><i style="background:#f4f1ec"></i>wash</span>
-          <span class="swatch"><i style="background:#7a1f1f"></i>accent</span>
+        <div class="swatches">
+          <span class="swatch"><i class="swatch--ink"></i>ink</span>
+          <span class="swatch"><i class="swatch--ink-muted"></i>muted</span>
+          <span class="swatch"><i class="swatch--ink-faint"></i>faint</span>
+          <span class="swatch"><i class="swatch--rule"></i>rule</span>
+          <span class="swatch"><i class="swatch--wash"></i>wash</span>
+          <span class="swatch"><i class="swatch--accent"></i>accent</span>
         </div>
       </div>
     </div>
@@ -333,18 +333,18 @@
   <div class="pair">
     <div>
       <p class="pair__label">How it must look</p>
-      <div class="paper" style="background:var(--ui-bg-sunken);display:flex;justify-content:center;padding:2rem">
-        <div style="position:relative;width:14rem;aspect-ratio:210/297;background:#fffefb;border:1px solid #cdc6bd;box-shadow:0 8px 24px -12px rgb(0 0 0/.2)">
-          <div style="position:absolute;inset:8.4% 10.5%;border:1px dashed #d9c48a"></div>
-          <div style="position:absolute;top:4%;left:0;right:0;text-align:center;font:7px/1 'Source Sans 3',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a8a8a">Measure &amp; rhythm</div>
-          <div style="position:absolute;bottom:3.5%;left:0;right:0;text-align:center;font:8px/1 'EB Garamond',serif;color:#5a5a5a">7</div>
-          <div style="position:absolute;left:10.5%;right:10.5%;top:14%;display:flex;flex-direction:column;gap:3px">
-            <span style="height:5px;background:#e6e2db;width:70%"></span>
-            <span style="height:2px;background:#efece6"></span><span style="height:2px;background:#efece6"></span>
-            <span style="height:2px;background:#efece6"></span><span style="height:2px;background:#efece6;width:60%"></span>
+      <div class="paper typeset pagemap">
+        <div class="pagemap__sheet">
+          <div class="pagemap__margins"></div>
+          <div class="pagemap__runhead">Measure &amp; rhythm</div>
+          <div class="pagemap__folio">7</div>
+          <div class="pagemap__lines">
+            <span class="pagemap__line pagemap__line--head"></span>
+            <span class="pagemap__line"></span><span class="pagemap__line"></span>
+            <span class="pagemap__line"></span><span class="pagemap__line pagemap__line--short"></span>
           </div>
-          <div style="position:absolute;left:-2.2rem;top:8.4%;bottom:8.4%;display:flex;align-items:center"><span style="font:400 8px 'IBM Plex Mono',monospace;color:#8a8a8a">25mm</span></div>
-          <div style="position:absolute;bottom:-1.4rem;left:0;right:0;text-align:center;font:400 8px 'IBM Plex Mono',monospace;color:#8a8a8a">A4 · 22mm outer / 28mm inner</div>
+          <div class="pagemap__gauge"><span class="pagemap__gauge-label">25mm</span></div>
+          <div class="pagemap__caption">A4 · 22mm outer / 28mm inner</div>
         </div>
       </div>
     </div>
