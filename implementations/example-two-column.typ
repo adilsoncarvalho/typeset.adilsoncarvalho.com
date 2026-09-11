@@ -3,13 +3,13 @@
 
 #show: two-column.with(
   front: [
-    #title-block(
+    #frontmatter-title-block(
       title: [The Measure of a Column],
       subtitle: [What changes when a page is divided in two, and what must not],
       author: [Adilson Carvalho],
       place-date: [Sydney, 28 August 2026],
     )
-    #abstract(width: 100%)[
+    #frontmatter-abstract(width: 100%)[
       Dividing an A4 page into two equal columns leaves 77mm of measure. At the
       single-column base of 11pt that carries 40 characters — below the floor at
       which a line of prose stays readable. This note works through what a
@@ -38,7 +38,7 @@ Headings come down hardest. A 24pt level-2 heading inside a 77mm column spends
 three lines saying two words, so the scale runs 20/13/11/9.5 and the level-1
 heading keeps display size only because it spans both columns.
 
-#callout(title: [What does not change])[
+#callouts-callout(title: [What does not change])[
   The colour palette, the rule weights, the numeral conventions, the treatment of
   quotations and the pagination rules are all identical. A template sets the page
   and the scale; it does not get its own typography.
@@ -50,7 +50,7 @@ At 47 characters a ragged right edge serrates the column visibly, and the word
 gaps in an unhyphenated justified column read as rivers. Both faults are
 tolerable at 66 characters and neither is tolerable here.
 
-#pullquote[This is the one place the spec removes a choice it otherwise offers.]
+#quotes-pullquote[This is the one place the spec removes a choice it otherwise offers.]
 
 So the two-column template asserts justification rather than accepting it as a
 parameter. An implementation that offers ragged-right two columns is not
@@ -85,7 +85,7 @@ positioning them off the page.
 A three-line drop cap at 3.05em is 29pt — a quarter of the column width for one
 letter. The opening words go in small caps instead.
 
-#colophon[
+#frontmatter-colophon[
   Set in EB Garamond, 9.5 on 13.3 points, two columns of 77mm with a 6mm gutter.
   Composed in Typst.
 ]

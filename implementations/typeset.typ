@@ -4,7 +4,8 @@
 // this file and the spec disagree, the spec is right.
 //
 // Usage:
-//   #import "typeset.typ": typeset, letter, epigraph, pullquote, callout, break-scene
+//   #import "typeset.typ": typeset, letter-page, quotes-epigraph, quotes-pullquote,
+//                          callouts-callout, breaks-asterisks
 //   #show: typeset.with(justified: true, indented: true)
 
 // ── Foundation ──────────────────────────────────────────────────────────────
@@ -264,7 +265,7 @@
 
 // ── Blocks the spec names but no engine provides ────────────────────────────
 
-#let epigraph(attribution: none, body) = context {
+#let quotes-epigraph(attribution: none, body) = context {
   let u = text.size
   block(above: 0pt, below: u * 2, width: 24em, {
     set align(left)
@@ -276,9 +277,9 @@
     }
   })
 }
-#let epigraph-right(attribution: none, body) = align(right, epigraph(attribution: attribution, body))
+#let epigraph-right(attribution: none, body) = align(right, quotes-epigraph(attribution: attribution, body))
 
-#let pullquote(body) = context {
+#let quotes-pullquote(body) = context {
   let u = text.size
   block(
     above: u * 1.5, below: u * 1.5, width: 100%,
@@ -292,7 +293,7 @@
   )
 }
 
-#let verse(body) = block(
+#let quotes-verse(body) = block(
   above: sp * 1.25, below: sp * 1.25,
   inset: (left: sp * 2),
   {
@@ -302,7 +303,7 @@
 )
 
 // @s callouts
-#let callout(title: none, warning: false, body) = context {
+#let callouts-callout(title: none, warning: false, body) = context {
   let u = text.size
   block(
   above: u * 1.25, below: u * 1.25, width: 100%,
@@ -329,14 +330,19 @@
 // @e
 
 // Section breaks. A blank line cannot survive a page break, so the mark is
-// always visible.
+// always visible. The spec names four registers, so there are four symbols
+// here — a caller should not have to know a string literal to pick one.
 // @s breaks
-#let break-scene(kind: "asterisks") = block(above: sp * 1.5, below: sp * 1.5, sticky: true, width: 100%, align(center, {
-  if kind == "asterisks" { box(text(size: 10pt, fill: ink-faint, tracking: 0.6em)[\* \* \*]) }
-  else if kind == "asterism" { box(text(size: 14pt, fill: ink-faint)[⁂]) }
-  else if kind == "fleuron" { box(text(size: 12pt, fill: accent)[❦]) }
-  else if kind == "rule" { line(length: 100%, stroke: 0.5pt + rule-color) }
-}))
+#let _break-mark(mark, size: 10pt, tracking: 0em, color: ink-faint) = block(
+  above: sp * 1.5, below: sp * 1.5, sticky: true, width: 100%,
+  align(center, box(text(size: size, fill: color, tracking: tracking, mark))),
+)
+
+#let breaks-asterisks() = _break-mark([\* \* \*], tracking: 0.6em)
+#let breaks-asterism() = _break-mark([⁂], size: 14pt)
+#let breaks-fleuron() = _break-mark([❦], size: 12pt, color: accent)
+#let breaks-rule() = block(above: sp * 1.5, below: sp * 1.5, sticky: true, width: 100%,
+  align(center, line(length: 100%, stroke: 0.5pt + rule-color)))
 // @e
 
 // Drop cap. Typst has no float, so the spec's three-line wrap is NOT
@@ -450,7 +456,7 @@
 // ── Front matter ────────────────────────────────────────────────────────────
 
 // @s frontmatter
-#let title-block(title: none, subtitle: none, author: none, place-date: none) = context {
+#let frontmatter-title-block(title: none, subtitle: none, author: none, place-date: none) = context {
   let u = text.size
   block(
     below: u * 3, width: 100%,
@@ -471,7 +477,7 @@
 }
 // @e
 
-#let abstract(width: 30em, body) = context {
+#let frontmatter-abstract(width: 30em, body) = context {
   let u = text.size
   block(below: u * 2, width: width, {
     set text(size: u * 0.91, fill: ink-muted)
@@ -481,7 +487,7 @@
   })
 }
 
-#let colophon(body) = context {
+#let frontmatter-colophon(body) = context {
   let u = text.size
   block(
     above: u * 3, width: 26em,
@@ -510,7 +516,7 @@
 
 // The sender block is address data, not a masthead: one style throughout, at
 // body size, in the reading face. Nothing bold, nothing in the sans.
-#let letterhead(body) = context {
+#let letter-sender(body) = context {
   let u = text.size
   block(below: u * 2.5, {
     set par(justify: false, leading: leading-for(1.35), first-line-indent: 0pt)
@@ -520,7 +526,7 @@
 
 // A line under the date — a dedication, a feast, a devotion. It belongs to the
 // date, so it takes no gap of its own.
-#let date-note(body) = context {
+#let letter-date-note(body) = context {
   let u = text.size
   block(above: 0.1em, below: u * 1.5, {
     set par(justify: false, first-line-indent: 0pt)
@@ -528,7 +534,7 @@
   })
 }
 
-#let address(label: none, body) = block(below: sp * 1.5, {
+#let letter-address-block(label: none, body) = block(below: sp * 1.5, {
   set par(justify: false, leading: leading-for(1.35), first-line-indent: 0pt)
   if label != none {
     block(below: 0.25em, text(font: sans, size: xs, tracking: 0.1em, fill: ink-faint, upper(label)))
@@ -538,7 +544,7 @@
 
 // The typed name, with room above it to sign. No rule: a ruled line is a form
 // to be filled in, and this is a letter.
-#let signature(name) = context {
+#let letter-signature(name) = context {
   let u = text.size
   block(above: u * 3, breakable: false, {
     set par(justify: false, first-line-indent: 0pt)
@@ -547,7 +553,7 @@
 }
 
 // "Enc." introduces a sentence; it does not head a section.
-#let enclosures(body) = context {
+#let letter-enclosures(body) = context {
   let u = text.size
   block(above: u * 2, {
     set par(justify: false, first-line-indent: 0pt)
@@ -558,7 +564,7 @@
 
 // A postscript is a sentence that happens to begin with "P.S." — the label is
 // not a heading, so it matches the text it introduces exactly.
-#let postscript(body) = context {
+#let letter-postscript(body) = context {
   let u = text.size
   block(above: u, {
     set par(justify: false, first-line-indent: 0pt)
@@ -570,7 +576,7 @@
 // ── Apparatus ───────────────────────────────────────────────────────────────
 
 // @s toc
-#let toc() = {
+#let toc-entry() = {
   show outline.entry: set text(font: sans, size: sm)
   outline(title: none, fill: repeat(gap: 0.4em)[.], indent: 1.5em)
 }
@@ -579,7 +585,7 @@
 // @s notes
 // Anchored past the text column's right edge. In Typst the column width is
 // explicit (the `measure` argument), so the offset is taken from it directly.
-#let sidenote(body) = place(
+#let notes-sidenote(body) = place(
   right,
   dx: 13em,
   dy: -0.3em,
@@ -594,6 +600,6 @@
 // ── Utilities ───────────────────────────────────────────────────────────────
 
 // @s utilities
-#let keep-together(body) = block(breakable: false, body)
-#let tie(body) = box(body)
+#let utilities-keep-together(body) = block(breakable: false, body)
+#let utilities-tie(body) = box(body)
 // @e
