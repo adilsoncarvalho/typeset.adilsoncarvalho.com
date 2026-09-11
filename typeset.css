@@ -58,7 +58,7 @@
 /*! @e */
 
 /*! @s page :: Page setup */
-/* @style letter-page — the page setup every document renders through; the letter's own margins, running head, and folio are not set here. */
+/* @style letter-page — the page setup every document renders through; the letter's own margins, running head, and folio are not set anywhere in this stylesheet. */
 @page {
   size: A4;                        /* or: Letter */
   margin: 25mm 22mm 25mm 22mm;
@@ -95,12 +95,7 @@
 /*! @e */
 
 /*! @s headings :: Headings */
-/* @style headings-h1 */
-/* @style headings-h2 */
-/* @style headings-h3 */
-/* @style headings-h4 */
-/* @style headings-h5 */
-/* @style headings-h6 */
+/* The shared base every heading level builds on: line-height, color, margin rhythm and break behaviour. Not a style in its own right — each level below overrides family, weight and size to become itself. */
 .typeset h1,
 .typeset h2,
 .typeset h3,
@@ -121,6 +116,7 @@
   text-wrap: balance;
 }
 
+/* @style headings-h1 */
 .typeset h1 {
   font-size: var(--ts-h1);
   font-weight: 300;
@@ -128,16 +124,20 @@
   margin-top: 0;
 }
 
+/* @style headings-h2 */
 .typeset h2 {
   font-size: var(--ts-h2);
   letter-spacing: -0.01em;
 }
 
+/* @style headings-h3 */
 .typeset h3 { font-size: var(--ts-h3); }
 
+/* @style headings-h4 */
 .typeset h4 { font-size: var(--ts-h4); }
 
 /* Below h4, drop the size change and shift register instead. */
+/* @style headings-h5 */
 .typeset h5 {
   font-size: var(--ts-base);
   font-family: var(--ts-serif);
@@ -146,6 +146,7 @@
   letter-spacing: 0.06em;
 }
 
+/* @style headings-h6 */
 .typeset h6 {
   font-size: var(--ts-base);
   font-family: var(--ts-serif);
@@ -274,7 +275,7 @@
    `text-align: left` in its own rule, because a direct match always beats an
    inherited value and its descendants then inherit `left` in turn. Relying on
    an exception list here instead means every new block silently opts in. */
-/* @style justification-exclusions — headings, cells and code blocks stay flush even under .typeset--justified: text-align inherits, so this is the one place that names what a justified document must never justify. */
+/* @style justification-exclusions — headings h1-h4, body cells and listings are pulled back to flush under .typeset--justified; every other never-justified block declares text-align: left in its own rule, per the note above. */
 .typeset--justified h1,
 .typeset--justified h2,
 .typeset--justified h3,
@@ -681,7 +682,7 @@
    are unavailable this degrades to an endnotes block, which is why the notes
    live in the document rather than in a generated-content property. */
 @supports (float: footnote) {
-  /* @style letter-footnote — a letter's footnote is the document footnote mechanism: marker, float-footnote placement, and the endnotes fallback below. */
+  /* @style letter-footnote — a letter's footnote is the document footnote mechanism: the marker above and the endnotes block below. */
   .typeset .ts-notes-footnote {
     float: footnote;
     footnote-display: block;
@@ -1112,7 +1113,7 @@
    a figure and its unit, an initial and a surname. */
 .ts-utilities-tie { white-space: nowrap; }
 
-/* @style utilities-print-only */
+/* @style utilities-print-only — names the pair: this block and the .ts-print-only block right below it. */
 @media print {
   .ts-screen-only { display: none !important; }
 }
