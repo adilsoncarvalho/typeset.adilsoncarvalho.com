@@ -4,8 +4,10 @@
 // this file and the spec disagree, the spec is right.
 //
 // Usage:
-//   #import "typeset.typ": typeset, letter-page, quotes-epigraph, quotes-pullquote,
-//                          callouts-callout, breaks-asterisks
+//   #import "typeset.typ": (
+//     typeset, letter-page, quotes-epigraph, quotes-pullquote,
+//     callouts-callout, breaks-asterisks,
+//   )
 //   #show: typeset.with(justified: true, indented: true)
 
 // ── Foundation ──────────────────────────────────────────────────────────────
