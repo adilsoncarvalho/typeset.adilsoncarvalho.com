@@ -1333,9 +1333,6 @@
           "id": "toc-entry",
           "name": "Entry",
           "properties": {
-            "font": "sans",
-            "size": "9.5pt",
-            "align": "left",
             "space_after": "0.35em",
             "decoration": "none",
             "page_number": "resolved after pagination",

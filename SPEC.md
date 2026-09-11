@@ -1372,9 +1372,6 @@ Where unsupported: an endnotes block at the end of the document
 
 | Property | Value |
 | --- | --- |
-| font | `sans` |
-| size | `9.5pt` |
-| align | `left` |
 | space after | `0.35em` |
 | decoration | `none` |
 | page number | `resolved after pagination` |
