@@ -291,6 +291,68 @@ for (const sec of spec.sections) {
   if (!specMd.includes(`\`${sec.id}\``)) fail.push(`SPEC.md is missing section "${sec.id}" — regenerate`);
 }
 
+/* ---- 5. Every named style is findable in the stylesheet by its name ------ */
+
+/* The contract: a style is named either by a .ts-<id> class, or by a
+   /* @style <id> *\/ marker comment above the rule that implements it.
+
+   Not every element can carry a class. 73 of them are styled through a bare
+   semantic selector (h1, strong, sub), and a few describe a rule rather than
+   a selector at all: justification-exclusions says what is never justified,
+   numbering-h2 is counter-generated content with no element to mark. Rule 8
+   says a class is a name and a handle, not a requirement — so the gate checks
+   that the canonical name is *present where a reader editing that rule will
+   see it*, not that a class exists.
+
+   Both directions are checked: an element with neither class nor marker
+   fails, and a class or marker naming no element fails. */
+
+const INTERNAL_CLASSES = new Set([
+  'ts-label',        // shared base under the four caption/label variants
+  'ts-break',        // shared base under the four section-break variants
+  'ts-span',         // two-column template, not a document style
+  'ts-print-only',   // paired with ts-screen-only under one spec element
+  'ts-screen-only',
+]);
+
+const specIds = new Set(
+  spec.sections.flatMap((s) => s.elements.map((e) => e.id)));
+
+const cssClasses = new Set(
+  [...css.matchAll(/\.(ts-[a-z0-9-]+)/g)].map((m) => m[1]));
+
+const styleMarkers = new Set(
+  [...css.matchAll(/\/\*\s*@style\s+([a-z0-9-]+)\s*\*\//g)].map((m) => m[1]));
+
+const typSymbols = new Set(
+  [...typ.matchAll(/^#let\s+([a-z0-9-]+)\s*[=(]/gm)].map((m) => m[1]));
+
+for (const id of specIds) {
+  if (!cssClasses.has(`ts-${id}`) && !styleMarkers.has(id))
+    fail.push(`typeset.css: style "${id}" has neither a .ts-${id} class nor a @style marker`);
+}
+
+for (const cls of cssClasses) {
+  if (INTERNAL_CLASSES.has(cls)) continue;
+  if (!specIds.has(cls.replace(/^ts-/, '')))
+    fail.push(`typeset.css: .${cls} has no spec element behind it`);
+}
+
+for (const id of styleMarkers) {
+  if (!specIds.has(id))
+    fail.push(`typeset.css: @style ${id} names no spec element`);
+}
+
+/* Typst covers a subset by design — many styles are show rules on native
+   elements rather than exported functions. Only the styles a document has to
+   call by name need a symbol; those are the ones carrying a CSS class that is
+   not a plain element alias. A missing one is a warning, not a failure, until
+   Group 2 pins the list down. */
+for (const id of specIds) {
+  if (!typSymbols.has(id) && !typ.includes(`// @s ${id}`))
+    warn.push(`typeset.typ: no symbol or marker region named "${id}"`);
+}
+
 /* ---- Report ------------------------------------------------------------- */
 
 const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);
