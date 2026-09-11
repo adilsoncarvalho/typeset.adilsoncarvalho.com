@@ -456,6 +456,53 @@ for (const section of manifest.filter((s) => s.panel.pane === 'html')) {
   }
 }
 
+/* ---- 3f. The scale demo's labels must be the spec's own values ----------- */
+
+/* tokens.html names each size in text beside the sample it stands for —
+   <b>24pt</b> — so the demo file reads on its own, without opening either the
+   stylesheet or spec.json. That makes the label a second copy of a number
+   spec.json owns, and a second copy can go stale in silence: the sample is
+   set from --ts-h1 and would move with it, while the text beside it would sit
+   still, in the one section whose whole subject is that the page and the
+   stylesheet cannot disagree.
+
+   The label stays literal text — templating it would buy drift-safety by
+   making the demo unreadable on its own, which is the property worth keeping.
+   This check is what stops a stale label shipping instead.
+
+   Each row is bound to its step by the sample's own class: scale-h1 for h1,
+   and no class at all for base, which takes the body size .typeset already
+   sets. Both directions are checked, so a step that gains a row with the
+   wrong label and a step that loses its row both fail. */
+
+const SCALE_ROW_RE = /<div class="scale-row"><b>([^<]*)<\/b>\s*<span(?: class="([^"]*)")?>/g;
+const scaleSteps = spec.foundation.scale.steps;
+const scaleShown = new Set();
+
+for (const [, label, sampleClass] of
+     readFileSync('src/demos/tokens.html', 'utf8').matchAll(SCALE_ROW_RE)) {
+  const step = (sampleClass ?? 'scale-base').replace(/^scale-/, '');
+  const expected = scaleSteps[step];
+  if (expected === undefined) {
+    fail.push(`src/demos/tokens.html: the scale row labelled "${label}" is bound to `
+      + `"${step}", which spec.foundation.scale.steps does not define`);
+    continue;
+  }
+  scaleShown.add(step);
+  if (label.trim() !== expected) {
+    fail.push(`src/demos/tokens.html: the scale row for --ts-${step} is labelled `
+      + `"${label.trim()}" but spec.json sets that step to "${expected}" — the label `
+      + 'and the sample beside it no longer agree');
+  }
+}
+
+for (const step of Object.keys(scaleSteps)) {
+  if (!scaleShown.has(step)) {
+    fail.push(`src/demos/tokens.html: spec.foundation.scale.steps defines "${step}" `
+      + 'but the scale demo has no row for it');
+  }
+}
+
 /* ---- 3d. The generated pages must be current ----------------------------- */
 
 const { output } = buildAll();
