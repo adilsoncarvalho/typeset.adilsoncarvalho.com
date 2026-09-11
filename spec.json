@@ -1321,6 +1321,15 @@
       ],
       "elements": [
         {
+          "id": "toc",
+          "name": "Table of contents",
+          "properties": {
+            "font": "sans",
+            "size": "9.5pt",
+            "align": "left"
+          }
+        },
+        {
           "id": "toc-entry",
           "name": "Entry",
           "properties": {

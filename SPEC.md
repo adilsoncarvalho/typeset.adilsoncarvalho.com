@@ -1360,6 +1360,14 @@ Where unsupported: an endnotes block at the end of the document
 
 - Page numbers require the engine to resolve a cross-reference after pagination. Where it cannot, the entry MUST omit the number rather than print a wrong one — a TOC with wrong numbers is worse than one with none.
 
+##### Table of contents
+
+| Property | Value |
+| --- | --- |
+| font | `sans` |
+| size | `9.5pt` |
+| align | `left` |
+
 ##### Entry
 
 | Property | Value |
