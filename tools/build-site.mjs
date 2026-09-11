@@ -115,12 +115,16 @@ function section(s, index) {
     ? '\n' + read(`src/demos/${s.id}.fullrow.html`).trimEnd()
         .split('\n').map((l) => (l ? `  ${l}` : l)).join('\n') + '\n'
     : '';
+  /* Left at its own indent, not re-indented line by line like demo/fullrow
+     below: the panel's HTML and Typst panes hold <pre> content a reader
+     copies, where whitespace is part of what gets copied, and prefixing
+     every line would corrupt it. */
   const panel = renderPanel({
     spec, cssLines, typMap, id: s.id,
     specIds: s.panel.spec,
     cssKeys: (s.panel.css || s.panel.spec).split(',').map((k) => k.trim()),
     fragments: extractDemos(demoSource),
-  }).split('\n').map((l) => (l ? `      ${l}` : l)).join('\n');
+  });
 
   return `<section class="section" id="${s.id}">
   <div class="section__head">
