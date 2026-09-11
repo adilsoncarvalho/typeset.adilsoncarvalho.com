@@ -784,14 +784,53 @@ over a document to migrate it."
 grep -n '^#let [a-z-]*' implementations/typeset.typ
 ```
 
-- [ ] **Step 2: Apply the codemod, then fix the marker ids**
+- [ ] **Step 2: Rename the symbols by hand — the codemod cannot do this**
+
+`tools/codemod-names.mjs` applies `map.classes` (every key is `ts-`-prefixed) and `map.sections`. A Typst symbol is a **bare identifier** — `epigraph`, `pullquote` — so no key matches and the tool rewrites nothing. It loads `map.elements`, which is the table you need, and never uses it. Running the codemod over this file is a no-op that looks like success; do not rely on it.
+
+Applying `map.elements` blindly would also be wrong: it maps `link → links-link` and `table → tables-table`, which would wreck any prose or identifier containing those words.
+
+**The 13 symbols the map renames** — apply exactly these:
+
+```
+epigraph      -> quotes-epigraph          title-block -> frontmatter-title-block
+pullquote     -> quotes-pullquote         abstract    -> frontmatter-abstract
+verse         -> quotes-verse             colophon    -> frontmatter-colophon
+callout       -> callouts-callout         letterhead  -> letter-sender
+sidenote      -> notes-sidenote           date-note   -> letter-date-note
+signature     -> letter-signature         enclosures  -> letter-enclosures
+postscript    -> letter-postscript
+```
+
+**Four more that name a style but sit outside the map**, because their symbol name never matched their element id:
+
+```
+address          -> letter-address-block
+toc              -> toc-entry
+keep-together    -> utilities-keep-together
+tie              -> utilities-tie
+```
+
+**Symbols that are NOT styles and keep their names.** These are the Typst counterpart of the CSS custom properties and the `.typeset--*` document modifiers, both of which this branch leaves alone:
+
+```
+ink  ink-muted  ink-faint  rule-color  rule-strong  wash  accent
+serif  sans  mono  scale-single-column  scale-two-column
+base-size  sm  xs  sp  leading-for  oldstyle  lining  tabular  smcp
+typeset  two-column  letter-page  span  ts-table  epigraph-right
+```
+
+`dropcap` and `letter-page` already match their element ids — leave them.
+
+`break-scene` is handled in Step 3.
+
+- [ ] **Step 2b: Fix the marker ids**
 
 ```bash
-node tools/codemod-names.mjs implementations/typeset.typ
 grep -n '// @s ' implementations/typeset.typ
 ```
 
-Every `// @s <id>` must name a section id that exists in `spec.json`. `// @s figures-numeric` becomes `// @s numerals`.
+Every `// @s <id>` must name a section id that exists in `spec.json`. Task 3 confirmed this file has no `@s figures-numeric` marker, so there should be nothing to change — verify rather than assume.
 
 - [ ] **Step 3: Split `break-scene` into four named symbols**
 
@@ -827,6 +866,16 @@ It must name the new ones, and it must be true — import exactly what the examp
 //   #import "typeset.typ": typeset, letter-page, quotes-epigraph, quotes-pullquote,
 //                          callouts-callout, breaks-asterisks
 ```
+
+- [ ] **Step 4b: Confirm no call site was missed**
+
+A renamed symbol with a surviving call site is a compile error, which Step 5 catches. A renamed symbol whose OLD name still exists as a different binding is not. Check that no old name survives:
+
+```bash
+grep -nE '\b(epigraph|pullquote|verse|callout|sidenote|signature|postscript|enclosures|letterhead|date-note|title-block|abstract|colophon|address|toc|keep-together|tie|break-scene)\b' implementations/*.typ
+```
+
+Every hit must be part of a NEW name (`quotes-epigraph` contains `epigraph`) or prose in a comment. A bare old identifier is a miss.
 
 - [ ] **Step 5: Check every symbol resolves**
 
