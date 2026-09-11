@@ -39,7 +39,6 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `tools/build-iawriter.mjs` | Builds the two iA Writer template bundles from `implementations/iawriter/`, `typeset.css` and `fonts/`. |
 | `.github/workflows/deploy.yml` | Checks, builds every bundle, deploys Pages; on a tag, publishes the release assets. |
 | `proofs/font-proof.html` | Six body-face candidates, one per A4 page, for printing. |
-| `highlight.js` | The syntax highlighter, shared by the specimen page and the viewers. |
 | `examples/preview-bar.js` | The back bar for example documents. See the Paged.js notes below. |
 | `tools/build-spec.mjs` | Generates `SPEC.md` from `spec.json`. |
 | `tools/check.mjs` | Verifies the implementations still match the spec. |
@@ -75,6 +74,12 @@ To add a section: add an entry to `src/sections.json`, write
 `src/demos/<id>.html`, add the `@s` marker pairs in `typeset.css` and
 `implementations/typeset.typ`, give each element a `.ts-<id>` class or a
 `/* @style <id> */` marker, rebuild, and run the checker.
+
+Naming the elements: an element id is either the bare section id or
+`<section-id>-<leaf>`. A plural section name enumerates its members, so every
+element takes a leaf (`tables-table`, `tables-cell`); a singular one names a
+single style, so its principal element takes the section id alone (`dropcap`,
+`codeblock`, `toc`) and any others hang off it (`dropcap-lede`, `toc-entry`).
 
 ## Working on it
 

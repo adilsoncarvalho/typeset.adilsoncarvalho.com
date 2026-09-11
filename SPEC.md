@@ -999,7 +999,7 @@ Default: `single-column`
 | --- | --- |
 | marker | `a.` |
 
-##### Tight list (opt-in: `ts-list-tight`)
+##### Tight list (opt-in: `ts-lists-tight`)
 
 | Property | Value |
 | --- | --- |
@@ -1108,7 +1108,7 @@ Default: `single-column`
 | --- | --- |
 | break inside | `avoid` |
 
-##### Zebra striping (opt-in: `ts-table-zebra`)
+##### Zebra striping (opt-in: `ts-tables-zebra`)
 
 | Property | Value |
 | --- | --- |
@@ -1628,7 +1628,7 @@ Where unsupported: leaders render, page numbers are omitted
 
 > A postscript is a sentence that happens to begin with "P.S.". The label is not a heading.
 
-##### Footnote
+##### Footnote — in a letter
 
 | Property | Value |
 | --- | --- |

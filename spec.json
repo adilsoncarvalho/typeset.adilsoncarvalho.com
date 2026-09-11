@@ -900,7 +900,7 @@
         {
           "id": "lists-tight",
           "name": "Tight list",
-          "opt_in": "ts-list-tight",
+          "opt_in": "ts-lists-tight",
           "properties": {
             "item_space_after": "0"
           },
@@ -1025,7 +1025,7 @@
         {
           "id": "tables-zebra",
           "name": "Zebra striping",
-          "opt_in": "ts-table-zebra",
+          "opt_in": "ts-tables-zebra",
           "properties": {
             "background": "wash on even body rows"
           },
@@ -1626,7 +1626,7 @@
         },
         {
           "id": "letter-footnote",
-          "name": "Footnote",
+          "name": "Footnote — in a letter",
           "properties": {
             "marker": "as the note marker in Apparatus — superscript, accent, no brackets",
             "position": "foot of the page where the engine can; otherwise after the signature block",

@@ -182,7 +182,7 @@ One labelled example per named style, in the pattern the quotations section
 already uses, with the label generated from the spec rather than typed.
 
 **Priority order**, worst first: `inline` (11 named styles in a single prose
-blob, counted from `spec.json` on 2026-09-11), `figures-numeric`, `lists`, `utilities`, `links`, `headings`.
+blob, counted from `spec.json` on 2026-09-11), `numerals`, `lists`, `utilities`, `links`, `headings`.
 
 Plain HTML and plain Typst elements are fine as the demonstrated source — the
 point is that the layout configuration does the work in the background, and the

@@ -868,7 +868,7 @@
 /* Dot leaders and real page numbers need `target-counter()` — a paged-media
    engine only. In a browser the leaders render and the numbers do not. */
 .typeset .ts-toc { text-align: left; font-family: var(--ts-sans); font-size: var(--ts-sm); }
-.typeset .ts-toc ol { padding-left: 0; counter-reset: ts-toc-entry; }
+.typeset .ts-toc ol { padding-left: 0; }
 /* @style toc-entry */
 .typeset .ts-toc li { margin-bottom: 0.35em; }
 .typeset .ts-toc li::before { content: none; }

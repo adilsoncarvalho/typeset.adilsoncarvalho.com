@@ -21,6 +21,8 @@ for (const k of Object.keys(map.sections)) assertSafeKey(k);
    shorter match eats its prefix and leaves "s-asterism" behind. */
 const pairs = Object.entries(map.classes)
   .sort(([a], [b]) => b.length - a.length);
+const sectionPairs = Object.entries(map.sections)
+  .sort(([a], [b]) => b.length - a.length);
 
 export function rewrite(text) {
   let out = text;
@@ -35,8 +37,12 @@ export function rewrite(text) {
        those still need rewriting. */
     out = out.replace(new RegExp(`(?<!--)\\b${from}\\b(?!-)`, 'g'), to);
   }
-  for (const [from, to] of Object.entries(map.sections)) {
-    out = out.replace(new RegExp(`\\b${from}\\b`, 'g'), to);
+  /* A section id is rewritten under the same rules as a class name: longest
+     first, so a shorter id cannot consume a longer one's prefix, and the same
+     two guards, so it is left alone inside a custom property or a longer
+     hyphenated token. */
+  for (const [from, to] of sectionPairs) {
+    out = out.replace(new RegExp(`(?<!--)\\b${from}\\b(?!-)`, 'g'), to);
   }
   return out;
 }

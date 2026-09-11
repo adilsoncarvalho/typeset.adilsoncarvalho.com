@@ -330,7 +330,7 @@ const cssClasses = new Set(
   [...cssNoComments.matchAll(/\.(ts-[a-z0-9-]+)/g)].map((m) => m[1]));
 
 const typSymbols = new Set(
-  [...typ.matchAll(/^#let\s+([a-z0-9-]+)\s*[=(]/gm)].map((m) => m[1]));
+  [...typ.matchAll(/^#let\s+([a-z0-9_-]+)\s*[=(]/gm)].map((m) => m[1]));
 
 for (const id of specIds) {
   if (!cssClasses.has(`ts-${id}`) && !styleMarkers.has(id))
@@ -348,11 +348,102 @@ for (const id of styleMarkers) {
     fail.push(`typeset.css: @style ${id} names no spec element`);
 }
 
+/* Observes the shape of an element id: either the bare section id, or the
+   section id followed by a leaf. specIds above is a Set, so a repeated id
+   collapses into one entry rather than announcing itself — the uniqueness
+   check therefore counts the array. */
+const specIdList = spec.sections.flatMap((s) => s.elements.map((e) => e.id));
+const seenIds = new Set();
+for (const id of specIdList) {
+  if (seenIds.has(id)) fail.push(`spec.json: element id "${id}" appears more than once`);
+  seenIds.add(id);
+}
+for (const sec of spec.sections) {
+  for (const el of sec.elements) {
+    if (el.id !== sec.id && !el.id.startsWith(`${sec.id}-`)) {
+      fail.push(`spec.json: element "${el.id}" is in section "${sec.id}", so its id must be `
+        + `"${sec.id}" or "${sec.id}-<leaf>"`);
+    }
+  }
+}
+
+/* Observes the class names spec.json publishes. An opt_in is rendered into
+   SPEC.md and onto the site as the class a reader is told to type, so one that
+   names no rule is an instruction to write something inert. Values that are
+   not a bare class name — a document modifier, or a sentence — are left alone. */
+const optIns = [
+  ...spec.sections.map((s) => [s.id, s.opt_in]),
+  ...spec.sections.flatMap((s) => s.elements.map((e) => [e.id, e.opt_in])),
+];
+for (const [id, value] of optIns) {
+  if (typeof value !== 'string' || !/^ts-[a-z0-9-]+$/.test(value)) continue;
+  if (!cssClasses.has(value)) {
+    fail.push(`spec.json: ${id} publishes opt_in "${value}", which is not a selector in typeset.css`);
+  }
+}
+
+/* Observes the classes the documents in this repo actually write. The gates
+   above read the stylesheet and the spec against each other; neither looks at
+   a class attribute, so a misspelling in a demo, an example, a proof or a
+   template renders unstyled and reports nothing. */
+
+/* Chrome for the specimen page: these dress a demo so it reads in a browser,
+   and never appear in a document. */
+const SPECIMEN_CHROME = new Set(['ts-toc--demo', 'ts-folio']);
+
+const documentFiles = ['specimen.css'];
+const collectDocuments = (dir) => {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) collectDocuments(path);
+    else if (path.endsWith('.html') || path.endsWith('.css')) documentFiles.push(path);
+  }
+};
+for (const dir of ['src/demos', 'examples', 'proofs', 'implementations/iawriter']) {
+  collectDocuments(dir);
+}
+
+for (const path of documentFiles) {
+  const text = readFileSync(path, 'utf8');
+  const used = new Set([
+    ...[...text.matchAll(/class="([^"]*)"/g)].flatMap((m) => m[1].trim().split(/\s+/)),
+    ...[...text.matchAll(/\.(ts-[a-z0-9-]+)/g)].map((m) => m[1]),
+  ].filter((c) => c.startsWith('ts-')));
+  for (const cls of used) {
+    if (specIds.has(cls.replace(/^ts-/, ''))) continue;
+    if (INTERNAL_CLASSES.has(cls) || SPECIMEN_CHROME.has(cls)) continue;
+    fail.push(`${path}: ${cls} names neither a spec element nor a declared-internal class`);
+  }
+}
+
+/* Observes the exported Typst surface. Every symbol is either a named style or
+   written down here, so a new export has to be a deliberate choice between the
+   two. */
+const INTERNAL_SYMBOLS = new Set([
+  /* the palette, the scales and the spacing unit a template reads */
+  'ink', 'ink-muted', 'ink-faint', 'rule-color', 'rule-strong', 'wash', 'accent',
+  'serif', 'sans', 'mono',
+  'scale-single-column', 'scale-two-column', 'base-size', 'sm', 'xs', 'sp',
+  /* helpers the styles are built from */
+  'leading-for', 'smcp', 'oldstyle', 'lining', 'tabular', '_break-mark',
+  /* document and template entry points, and the two styles a document reaches
+     through a shape of its own rather than through an element name */
+  'typeset', 'two-column', 'span', 'toc', 'ts-table', 'epigraph-right',
+]);
+
+for (const sym of typSymbols) {
+  if (INTERNAL_SYMBOLS.has(sym) || specIds.has(sym)) continue;
+  fail.push(`typeset.typ: #let ${sym} names no spec element and is not listed as internal`);
+}
+
 /* Typst covers a subset by design — many styles are show rules on native
    elements rather than exported functions. Only the styles a document has to
    call by name need a symbol; those are the ones carrying a CSS class that is
    not a plain element alias. A missing one is a warning, not a failure — the
-   list of styles that must expose a callable Typst symbol is not final. */
+   list of styles that must expose a callable Typst symbol is not final, and
+   promoting this direction means settling every one of the notes it prints
+   first. The reverse direction above is a failure, because an export with no
+   name behind it is a decision someone can write down in one line. */
 for (const id of specIds) {
   if (!typSymbols.has(id) && !new RegExp(`//\\s*@s\\s+${id}\\s*\\n`).test(typ))
     warn.push(`typeset.typ: no symbol or marker region named "${id}"`);

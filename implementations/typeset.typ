@@ -578,7 +578,7 @@
 // ── Apparatus ───────────────────────────────────────────────────────────────
 
 // @s toc
-#let toc-entry() = {
+#let toc() = {
   show outline.entry: set text(font: sans, size: sm)
   outline(title: none, fill: repeat(gap: 0.4em)[.], indent: 1.5em)
 }

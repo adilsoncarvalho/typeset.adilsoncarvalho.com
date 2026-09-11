@@ -1,5 +1,5 @@
 {
-  "note": "Frozen at the 1.x -> 2.0.0 rename. Describes spec 1.0.0 ids, which no longer exist in spec.json. Do not regenerate against a later spec.",
+  "note": "Frozen at the 1.x -> 2.0.0 rename. Describes spec 1.0.0 ids, which no longer exist in spec.json. Do not regenerate against a later spec; edit by hand, because a row that rewrites a document onto a selector the stylesheet does not carry is a defect to correct here.",
   "sections": {
     "figures-numeric": "numerals"
   },
@@ -114,7 +114,7 @@
     "ts-sc": "ts-inline-small-caps",
     "ts-date": "ts-letter-date",
     "ts-address": "ts-letter-address-block",
-    "ts-toc": "ts-toc-entry",
+    "ts-toc": "ts-toc",
     "ts-toc-2": "ts-toc-entry-2",
     "ts-run-in": "ts-headings-run-in",
     "ts-frac": "ts-numerals-fractions",
@@ -224,7 +224,6 @@
     "ts-util-keep-together": "ts-utilities-keep-together",
     "ts-util-no-hyphens": "ts-utilities-no-hyphens",
     "ts-util-tie": "ts-utilities-tie",
-    "ts-util-print-only": "ts-utilities-print-only",
     "ts-util-color-adjust": "ts-utilities-color-adjust"
   }
 }

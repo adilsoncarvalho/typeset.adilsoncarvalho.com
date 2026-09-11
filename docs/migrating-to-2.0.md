@@ -13,7 +13,9 @@ Nothing about the typography changed. This release renames things.
     node tools/codemod-names.mjs path/to/document.html
 
 The codemod rewrites every 1.x `ts-*` class name to its 2.0 name, in place.
-Run it against each document. Three things it cannot decide for you:
+Run it against each document. It is idempotent against this map, so a second
+run over an already-migrated file finds nothing left to rewrite and reports it
+unchanged. Three things the rewrite does not settle on its own:
 
 ### Section breaks
 
@@ -40,12 +42,22 @@ one different onto four named variants chosen by context:
 left bare, with no variant, renders with only the shared treatment and none
 of the context-specific styling it had in 1.x.
 
-### The two collapsed pairs
+### Collapsed spellings
 
-`ts-nowrap` collapsed onto `ts-utilities-tie`, and `ts-page-break-avoid`
-collapsed onto `ts-utilities-keep-together` — each pair named the same rule
-twice in 1.x, and 2.0 keeps one name. The codemod rewrites both old spellings
-to the surviving name, so no action is needed beyond running it.
+1.x spelled a number of rules more than one way, so 52 of its class names
+collapse onto 25 names in 2.0. The codemod resolves every one of them inside
+the documents you point it at.
+
+Two are worth knowing about by name. `ts-nowrap` and `ts-tie` were two 1.x
+names for one rule, and `ts-page-break-avoid` and `ts-keep-together` were two
+names for another; 2.0 keeps `ts-utilities-tie` and
+`ts-utilities-keep-together`. If your own stylesheet or scripts select on the
+1.x spellings, update those selectors by hand — the codemod rewrites documents,
+not the code that reads them.
+
+The remaining collapses are alias spellings of a single rule — `ts-sc` beside
+`ts-small-caps`, `ts-break--rule` beside `ts-break-rule` — and need no
+attention beyond running the tool.
 
 ## Migrating a Typst document
 
@@ -71,21 +83,21 @@ It does not touch Typst source. Rename these symbols by hand:
 | `signature` | `letter-signature` |
 | `enclosures` | `letter-enclosures` |
 | `postscript` | `letter-postscript` |
-| `toc` | `toc-entry` |
 | `sidenote` | `notes-sidenote` |
 | `keep-together` | `utilities-keep-together` |
 | `tie` | `utilities-tie` |
 
 `break-scene` took a `kind:` argument selecting one of four looks; 2.0 gives
-each look its own zero-argument function. `dropcap`, `ts-table`,
+each look its own zero-argument function. `dropcap`, `toc`, `ts-table`,
 `two-column`, `span`, `letter-page` and `epigraph-right` keep their 1.x
 names.
 
 ## The full class table
 
-111 classes change name between 1.x and 2.0. 14 more — `ts-dropcap`,
-`ts-code-inline`, the numerals classes and others — are spelled identically
-in both and are not listed below.
+109 classes change name between 1.x and 2.0. 15 more — `ts-dropcap`,
+`ts-code-inline`, `ts-toc`, the numerals classes and others — are spelled
+identically in both and are not listed below. `.ts-print-only` and
+`.ts-screen-only` are unchanged in 2.0 as well.
 
 | 1.x | 2.0 |
 |---|---|
@@ -190,13 +202,11 @@ in both and are not listed below.
 | `.ts-tie` | `.ts-utilities-tie` |
 | `.ts-title-block` | `.ts-frontmatter-title-block` |
 | `.ts-titleblock` | `.ts-frontmatter-title-block` |
-| `.ts-toc` | `.ts-toc-entry` |
 | `.ts-toc-2` | `.ts-toc-entry-2` |
 | `.ts-util-break-after` | `.ts-utilities-break-after` |
 | `.ts-util-break-before` | `.ts-utilities-break-before` |
 | `.ts-util-color-adjust` | `.ts-utilities-color-adjust` |
 | `.ts-util-keep-together` | `.ts-utilities-keep-together` |
 | `.ts-util-no-hyphens` | `.ts-utilities-no-hyphens` |
-| `.ts-util-print-only` | `.ts-utilities-print-only` |
 | `.ts-util-tie` | `.ts-utilities-tie` |
 | `.ts-verse` | `.ts-quotes-verse` |
