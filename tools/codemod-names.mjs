@@ -8,6 +8,15 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 const map = JSON.parse(readFileSync('tools/rename-map.json', 'utf8'));
 
+/* Every key is interpolated straight into a RegExp source below. This holds
+   only while a key is a plain identifier — a key carrying a regex
+   metacharacter would change what the pattern matches, silently. */
+const assertSafeKey = (k) => {
+  if (!/^[a-z0-9-]+$/.test(k)) throw new Error(`unsafe rename-map key: ${k}`);
+};
+for (const k of Object.keys(map.classes)) assertSafeKey(k);
+for (const k of Object.keys(map.sections)) assertSafeKey(k);
+
 /* Longest first: ts-break--asterism must be rewritten before ts-break, or the
    shorter match eats its prefix and leaves "s-asterism" behind. */
 const pairs = Object.entries(map.classes)
@@ -17,11 +26,14 @@ export function rewrite(text) {
   let out = text;
   for (const [from, to] of pairs) {
     /* Word-boundary on both ends so ts-note does not match inside
-       ts-noteref. A custom property (--ts-h1) reuses the same bare token
-       as its class-name counterpart, so the leading-dash guard keeps the
-       rewrite off the token scale — a class is never itself preceded by
-       another hyphen. */
-    out = out.replace(new RegExp(`(?<!-)\\b${from}\\b(?!-)`, 'g'), to);
+       ts-noteref. A CSS custom property (--ts-h1) reuses the same bare
+       token as its class-name counterpart, so the leading-double-hyphen
+       guard keeps the rewrite off the token scale. A single hyphen is not
+       enough of a signal to skip: this tool also runs on Typst source and
+       HTML documents, where a class name can legitimately sit right after
+       one hyphen — a compound id, a filename, a Typst identifier — and
+       those still need rewriting. */
+    out = out.replace(new RegExp(`(?<!--)\\b${from}\\b(?!-)`, 'g'), to);
   }
   for (const [from, to] of Object.entries(map.sections)) {
     out = out.replace(new RegExp(`\\b${from}\\b`, 'g'), to);

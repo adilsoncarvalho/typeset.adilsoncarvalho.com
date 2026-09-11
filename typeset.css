@@ -201,9 +201,10 @@
 
    Enumerated rather than written as `:is(...)`. Paged.js rewrites every
    stylesheet through its own CSS parser, which does not understand `:is()`: it
-   splits the selector on the commas INSIDE the argument list and emits fragments
-   like ` .ts-callouts-callout)+p`, which throw on querySelectorAll and abort pagination
-   entirely — a blank document, not a degraded one. Keep this list flat. */
+   splits the selector on the commas INSIDE the argument list and emits
+   fragments like ` .ts-callouts-callout)+p`, which throw on querySelectorAll
+   and abort pagination entirely — a blank document, not a degraded one. Keep
+   this list flat. */
 .typeset h1 + p,
 .typeset h2 + p,
 .typeset h3 + p,
@@ -367,10 +368,10 @@
 /* Old-style figures sit in the x-height and belong in running prose.
    Lining figures are uniform-height and belong in headings and tables.
    Tabular figures share one advance width so columns align. */
-.typeset .ts-numerals-prose { font-variant-numeric: oldstyle-nums proportional-nums; }
+.typeset .ts-numerals-prose     { font-variant-numeric: oldstyle-nums proportional-nums; }
 .typeset .ts-numerals-display   { font-variant-numeric: lining-nums proportional-nums; }
-.typeset .ts-numerals-tabular  { font-variant-numeric: lining-nums tabular-nums; }
-.typeset .ts-numerals-fractions          { font-variant-numeric: diagonal-fractions; }
+.typeset .ts-numerals-tabular   { font-variant-numeric: lining-nums tabular-nums; }
+.typeset .ts-numerals-fractions { font-variant-numeric: diagonal-fractions; }
 /*! @e */
 
 /*! @s quotes :: Block quotations */
@@ -556,6 +557,8 @@
   font-variant-caps: all-small-caps;
   letter-spacing: 0.06em;
 }
+/* Empty on purpose: the base above already carries everything a table
+   caption's label needs. The class exists so the style has a name. */
 .typeset .ts-tables-caption-label { }
 
 /* Optional zebra for wide, dense tables only. */
@@ -714,7 +717,12 @@
 
 /*! @s breaks :: Section breaks */
 /* A blank line cannot survive a page break — if the break falls on the gap,
-   the reader never sees it. Use a visible mark. */
+   the reader never sees it. Use a visible mark: one of the four variants
+   below, each supplying its own ::before content.
+
+   This rule is the block geometry a bare <hr> and .ts-break both need —
+   internal, and it renders no mark of its own. The mark comes from the
+   ::before of a specific variant (or, for <hr>, the rule right below). */
 .typeset hr,
 .typeset .ts-break {
   border: 0;
@@ -725,6 +733,9 @@
   color: var(--ts-ink-faint);
   break-after: avoid;
 }
+/* A bare <hr> carries no variant class, so its mark is fixed here: three
+   widely spaced asterisks, the same values .ts-breaks-asterisks::before
+   uses below for a document that spells the choice out explicitly. */
 .typeset hr::before {
   content: "* * *";
   letter-spacing: 0.6em;
@@ -901,9 +912,9 @@
    date's gap and carries that gap itself. Written against the same token as the
    date's margin so the two cannot drift apart.
 
-   Deliberately not `.ts-letter-date:has(+ .ts-letter-date-note)`: Paged.js's CSS parser does
-   not understand `:has()` any more than it understands `:is()`, and a selector
-   it cannot parse aborts pagination outright. */
+   Deliberately not `.ts-letter-date:has(+ .ts-letter-date-note)`: Paged.js's
+   CSS parser does not understand `:has()` any more than it understands `:is()`,
+   and a selector it cannot parse aborts pagination outright. */
 .typeset .ts-letter-date-note {
   margin: calc(var(--ts-space) * -1.5 + 0.1em) 0 calc(var(--ts-space) * 1.5);
   font-style: italic;
@@ -1048,10 +1059,10 @@
 /*! @e */
 
 /*! @s utilities :: Pagination utilities */
-.ts-utilities-break-before { break-before: page; }
-.ts-utilities-break-after  { break-after: page; }
+.ts-utilities-break-before  { break-before: page; }
+.ts-utilities-break-after   { break-after: page; }
 .ts-utilities-keep-together { break-inside: avoid; page-break-inside: avoid; }
-.ts-utilities-no-hyphens        { hyphens: manual; }
+.ts-utilities-no-hyphens    { hyphens: manual; }
 
 /* Non-breaking spaces belong in the markup, but these catch the common cases:
    a figure and its unit, an initial and a surname. */
