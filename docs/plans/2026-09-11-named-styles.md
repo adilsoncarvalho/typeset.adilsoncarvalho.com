@@ -972,17 +972,27 @@ The contextual selectors that used to do this work were deleted in Task 5 Step 4
 
 - [ ] **Step 4: Confirm no old name survives in a document**
 
+**Do not use `\b` here.** POSIX ERE has no word-boundary escape, so `git grep -E '\b...'` matches *nothing* and reports clean whether or not old names survive — the check would pass by failing. Guard with an explicit character class instead, which is portable ERE:
+
 ```bash
 node -e '
 const map = require("./tools/rename-map.json");
 const { execSync } = require("child_process");
-const olds = Object.keys(map.classes).join("|");
-const hits = execSync(`git grep -nE "\\b(${olds})\\b" -- src/demos examples proofs implementations || true`).toString();
+/* Longest first so a short key cannot match inside a longer one, and the
+   surrounding [^a-z0-9-] guards stop a 1.x name matching inside its own 2.0
+   replacement — ts-tie would otherwise match inside ts-utilities-tie. */
+const olds = Object.keys(map.classes).sort((a, b) => b.length - a.length).join("|");
+const re = `(^|[^a-z0-9-])(${olds})([^a-z0-9-]|$)`;
+const hits = execSync(
+  `git grep -nE ${JSON.stringify(re)} -- src/demos examples proofs implementations || true`
+).toString();
 console.log(hits || "clean");
 '
 ```
 
 Expected: `clean`.
+
+Prove the check can fail before you trust it passing: append `class="ts-epigraph"` to any demo, re-run, confirm it is reported, then revert. A verification you have never seen fail is not a verification.
 
 - [ ] **Step 5: Commit**
 
