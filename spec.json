@@ -1500,7 +1500,8 @@
           },
           "notes": [
             "The deeper top margin puts the letterhead where an envelope window expects it."
-          ]
+          ],
+          "fallback": "the document's default page — margins, running head and folio included"
         },
         {
           "id": "letter-sender",

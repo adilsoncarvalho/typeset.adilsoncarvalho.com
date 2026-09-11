@@ -1518,6 +1518,8 @@ Where unsupported: leaders render, page numbers are omitted
 | running head | `none` |
 | folio | `none` |
 
+Where unsupported: the document's default page — margins, running head and folio included
+
 > The deeper top margin puts the letterhead where an envelope window expects it.
 
 ##### Sender block

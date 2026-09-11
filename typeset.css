@@ -58,7 +58,7 @@
 /*! @e */
 
 /*! @s page :: Page setup */
-/* @style letter-page — the page setup every document type renders through; a letter uses the same @page rule as any other. */
+/* @style letter-page — the page setup every document renders through; the letter's own margins, running head, and folio are not set here. */
 @page {
   size: A4;                        /* or: Letter */
   margin: 25mm 22mm 25mm 22mm;
