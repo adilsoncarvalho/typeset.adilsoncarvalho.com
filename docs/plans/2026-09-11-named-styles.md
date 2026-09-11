@@ -993,10 +993,19 @@ const { execSync } = require("child_process");
    ts-table inside ts-tables-table, ts-link inside ts-links-link, ts-callout
    inside ts-callouts-callout, and six more. Without the guards every one of
    them reports a false hit on correctly-migrated markup. */
-const olds = Object.keys(map.classes).sort((a, b) => b.length - a.length).join("|");
+/* Filter to keys that actually change. 14 map entries are identities —
+   ts-dropcap, ts-code-inline, the numerals — a name spelled the same in 1.x
+   and 2.0. Leaving them in flags every correctly-migrated document. */
+const olds = Object.keys(map.classes)
+  .filter((k) => map.classes[k] !== k)
+  .sort((a, b) => b.length - a.length)
+  .join("|");
 const re = `(^|[^a-z0-9-])(${olds})([^a-z0-9-]|$)`;
+/* implementations/iawriter, not all of implementations: typeset.typ defines a
+   Typst function `ts-table`, which collides textually with the 1.x CSS class
+   of that name and is not a class at all. */
 const hits = execSync(
-  `git grep -nE ${JSON.stringify(re)} -- src/demos examples proofs implementations || true`
+  `git grep -nE ${JSON.stringify(re)} -- src/demos examples proofs implementations/iawriter || true`
 ).toString();
 console.log(hits || "clean");
 '
