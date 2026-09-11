@@ -296,13 +296,13 @@ for (const sec of spec.sections) {
 /* The contract: a style is named either by a .ts-<id> class, or by a
    /* @style <id> *\/ marker comment above the rule that implements it.
 
-   Not every element can carry a class. 73 of them are styled through a bare
+   Not every element can carry a class. Many are styled through a bare
    semantic selector (h1, strong, sub), and a few describe a rule rather than
    a selector at all: justification-exclusions says what is never justified,
    numbering-h2 is counter-generated content with no element to mark. A class
-   is a name and a handle, not a requirement — so the gate checks that the
-   canonical name is *present where a reader editing that rule will see it*,
-   not that a class exists.
+   is a name and a handle, not a requirement — so the gate accepts either, and
+   checks that the canonical name is *present where a reader editing that rule
+   will see it*, not that a class exists.
 
    Both directions are checked: an element with neither class nor marker
    fails, and a class or marker naming no element fails. */
