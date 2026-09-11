@@ -5,6 +5,7 @@
 
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { buildAll } from './build-site.mjs';
+import { extractDemos } from '../src/extract.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
@@ -114,7 +115,121 @@ for (const f of readdirSync('src/demos')) {
   if (!declared.has(id)) warn.push(`src/demos/${f} is not referenced by src/sections.json`);
 }
 
-/* ---- 3c. The generated pages must be current ----------------------------- */
+/* ---- 3c. A demo's document fragment must round-trip losslessly ----------- */
+
+/* src/extract.mjs pulls the document markup out of a demo file's page
+   apparatus. It is correct only if it is invertible: this rebuilds each
+   demo file from what it extracted and diffs the result against the file
+   on disk. Any difference means the extractor lost or altered something —
+   silently, since the panel that will consume this output is generated and
+   always looks plausible.
+
+   The boundary-finder below is written independently of extract.mjs's own
+   (index-of scanning here, a combined regex there), so a bug in how one of
+   them walks the tag stream — an off-by-one, a wrong cursor advance, the
+   classic non-greedy match to the next "</div>" — surfaces as a mismatch
+   instead of being invisible to both. Neither scanner distinguishes markup
+   from text, so the one thing this does not catch is literal "<div"/"</div>"
+   characters inside an element's own text content: both would parse that
+   the same wrong way and agree with each other. */
+
+function findMatchingDivClose(source, from) {
+  let depth = 1;
+  let i = from;
+  while (i < source.length) {
+    const open = source.indexOf('<div', i);
+    const close = source.indexOf('</div>', i);
+    if (close === -1) return -1;
+    if (open !== -1 && open < close) {
+      depth += 1;
+      i = source.indexOf('>', open) + 1;
+    } else {
+      depth -= 1;
+      if (depth === 0) return close;
+      i = close + '</div>'.length;
+    }
+  }
+  return -1;
+}
+
+/* Finds the same label → note → wrapper triples extract.mjs finds, but
+   returns the raw span of each wrapper's inner content instead of processed
+   output, so extractDemos()'s html can be spliced back into an otherwise
+   untouched copy of the file. */
+function locateWrapperContents(source) {
+  const spans = [];
+  let i = 0;
+  while (true) {
+    const labelOpen = source.indexOf('<p class="pair__label"', i);
+    if (labelOpen === -1) break;
+    const labelClose = source.indexOf('</p>', labelOpen) + '</p>'.length;
+
+    let cursor = labelClose;
+    if (/^\s*<p class="demo-note"/.test(source.slice(cursor))) {
+      cursor = source.indexOf('</p>', cursor) + '</p>'.length;
+    }
+
+    const wrapperMatch = source.slice(cursor).match(/^\s*<div\b[^>]*>/);
+    if (!wrapperMatch) { i = labelClose; continue; }
+    const contentStart = cursor + wrapperMatch[0].length;
+
+    const closeIndex = findMatchingDivClose(source, contentStart);
+    if (closeIndex === -1) { i = labelClose; continue; }
+
+    spans.push({ contentStart, closeIndex });
+    i = closeIndex + '</div>'.length;
+  }
+  return spans;
+}
+
+function commonIndent(text) {
+  let common = Infinity;
+  for (const line of text.split('\n')) {
+    if (line.trim() === '') continue;
+    common = Math.min(common, line.match(/^ */)[0].length);
+  }
+  return Number.isFinite(common) ? common : 0;
+}
+
+/* Reverses extract.mjs's dedent: pads every non-blank line back out by the
+   amount it was originally indented. */
+function reindent(fragment, amount) {
+  const pad = ' '.repeat(amount);
+  return fragment.split('\n').map((line) => (line === '' ? '' : pad + line)).join('\n');
+}
+
+for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
+  const demoPath = `src/demos/${file}`;
+  const original = readFileSync(demoPath, 'utf8');
+  const demos = extractDemos(original);
+  const spans = locateWrapperContents(original);
+
+  if (demos.length !== spans.length) {
+    fail.push(`${demoPath}: extractDemos() found ${demos.length} example(s), `
+      + `the round-trip scanner found ${spans.length} — they must find the same wrappers`);
+    continue;
+  }
+
+  let rebuilt = '';
+  let cursor = 0;
+  for (let k = 0; k < spans.length; k += 1) {
+    const { contentStart, closeIndex } = spans[k];
+    const originalContent = original.slice(contentStart, closeIndex);
+    const indent = commonIndent(originalContent);
+    const trailing = originalContent.slice(originalContent.lastIndexOf('\n') + 1);
+    rebuilt += original.slice(cursor, contentStart)
+      + `\n${reindent(demos[k].html, indent)}\n${trailing}`;
+    cursor = closeIndex;
+  }
+  rebuilt += original.slice(cursor);
+
+  if (rebuilt !== original) {
+    fail.push(`${demoPath}: extractDemos() round-trip does not reproduce the file — `
+      + 'the extractor lost or altered content');
+  }
+}
+
+/* ---- 3d. The generated pages must be current ----------------------------- */
 
 const { output } = buildAll();
 for (const [path, contents] of output) {
@@ -164,7 +279,7 @@ for (const id of cssIds) {
 const noTypst = spec.sections.filter((s) => !typIds.has(s.id)).map((s) => s.id);
 if (noTypst.length) warn.push(`typeset.typ: no marked region for ${noTypst.join(', ')} (the page falls back to a pointer or a note)`);
 
-/* ---- 3d. The iA Writer template ----------------------------------------- */
+/* ---- 3e. The iA Writer template ----------------------------------------- */
 
 /* A template is a packaging of typeset.css, not a second implementation, so what
    is checked here is the page it declares and the modifier it opts into — the
