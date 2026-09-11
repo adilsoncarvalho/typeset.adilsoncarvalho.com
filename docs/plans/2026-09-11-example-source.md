@@ -23,9 +23,49 @@
 | CI | `typst` is installed, snippets are compiled, and the workflow gains a `pull_request` trigger so the checker runs before merge rather than after. |
 | Tabs | **Spec · HTML · Typst**. |
 
+## Amendment, after reviewing the first panes
+
+The panes exposed something nobody had had to look at before: **the demos were
+written as website furniture, not as exemplary documents.** Read as source, they
+are full of inline CSS, and several demonstrate their point through a class the
+fragment-only rule strips. Shipping them as "source you can copy" would defeat
+the group, so the demos are reworked here rather than later.
+
+Five decisions taken with the repo's owner after seeing the panes:
+
+1. **No inline CSS in an example.** Styling comes from classes. Inline CSS stays
+   acceptable only in the website's *emulation chrome* — the scaled `.paper`,
+   `.mini` sheet and page diagram that exist to show a document on a web page —
+   because that is not the document.
+2. **Include the container when it carries a modifier.** Six demos put the
+   demonstrated thing on the wrapper: `justification`, `paragraphs`, `numbering`,
+   `letter`, `two-column`, `notes.fullrow`. Fragment-only loses the point there —
+   the justification pane currently shows three *identical* paragraphs under
+   three different labels. Rule: include the wrapper when it carries any class
+   beyond `paper typeset`; otherwise keep the fragment alone.
+3. **Start at the element carrying `typeset`.** `two-column` nests its document
+   two levels inside `.mini` page chrome. The pane starts at the `.typeset`
+   element and goes inward.
+4. **Foundations keep a CSS pane.** `tokens`, `foundation` and `page` illustrate
+   the spec rather than demonstrate a document — there is no markup a reader
+   would paste, and the values *are* the subject. Those three keep Spec · CSS ·
+   Typst; every other section gets Spec · HTML · Typst. The pane kind is
+   declared per section in `src/sections.json`, not inferred.
+5. **Section breaks become `<hr>`.** It is the semantic element for a thematic
+   break and the stylesheet already styles it — `.typeset .ts-breaks-asterism::before`
+   at (0,2,1) beats `.typeset hr::before` at (0,1,2), so the variant wins with no
+   CSS change. Verified before adopting.
+
 ## What this group must not break
 
 `node tools/check.mjs` passes on `master` today. It must pass at every commit here.
+
+**The invariant has changed.** The original plan said no demo may change. Reworking
+the demos is now the point, so that is replaced by: **every demo change is
+deliberate, enumerated in the task report, and its rendered result verified.** A
+demo that changes without being named is still a defect — the protection is now a
+list you can check rather than a diff that must be empty.
+
 Group 1 left three standing invariants; a change that moves any of them is a defect:
 
 - The naming gate reports **0 failures** in all its directions.
@@ -153,6 +193,125 @@ Expect the diff to be confined to the panels. Any change in a *demo's* text is a
 git add src/panels.mjs tools/build-site.mjs specimen.css index.html files
 git commit -m "feat(site): show the markup that produces each example"
 ```
+
+---
+
+### Task 2b: Extraction rules the first pass got wrong
+
+**Files:** `src/extract.mjs`, `src/panels.mjs`, `src/sections.json`, `tools/check.mjs`
+
+- [ ] **Step 1: Per-section pane kind**
+
+Add a field to each entry in `src/sections.json` declaring which second pane it
+gets — the markup source, or the CSS region. `tokens`, `foundation` and `page`
+take the CSS pane; the other 22 take HTML. Declare it; do not infer it from the
+group name, which would break the moment a section moves group.
+
+- [ ] **Step 2: Include the container when it carries a modifier**
+
+The extractor currently returns the wrapper's inner markup. Where the wrapper
+carries a class beyond `paper typeset` — `typeset--justified`, `typeset--indented`,
+`typeset--numbered`, `typeset--ragged` — that class is the demonstration, and the
+pane must include the element. Emit it as `<div class="typeset typeset--justified">`:
+drop `paper`, which is website chrome, and keep the rest.
+
+Preserve any other attribute the wrapper carries. `justification.html` sets
+`lang="en"`, which is not decoration — hyphenation requires a declared language,
+and the section's own prose says so.
+
+- [ ] **Step 3: Start at the element carrying `typeset`**
+
+`two-column` and `notes.fullrow` nest the document inside `.mini` page chrome.
+Where the `.paper` wrapper does not itself carry `typeset`, descend to the
+element that does and take that. Verify every demo still extracts, and that the
+25 unaffected ones produce byte-identical fragments to before.
+
+- [ ] **Step 4: The justification pane must now differ between examples**
+
+It is the proof this task worked. Extract the three fragments and confirm they
+are no longer identical. Paste all three into the report.
+
+- [ ] **Step 5: Gate it**
+
+A pane that is supposed to demonstrate a difference must contain one. Add a
+check: within a section, no two extracted fragments may be byte-identical. Watch
+it fail — revert one wrapper to bare `paper typeset` in a scratch edit, confirm
+the check names the section, revert.
+
+---
+
+### Task 2c: Rework the demos so the examples are exemplary
+
+The largest task in the group, and the one that changes rendered output.
+
+**Files:** `src/demos/*.html`, `specimen.css`, `examples/*.html`
+
+- [ ] **Step 1: Enumerate what you are changing, before changing it**
+
+```bash
+grep -c 'style="' src/demos/*.html | grep -v ':0$'
+grep -rn 'ts-break' src/demos/ examples/
+grep -rn 'style="margin-top:0"' src/demos/ examples/
+```
+
+Write the list into your report first. Every entry gets a line saying what it
+became and why. A demo that changes without appearing on that list is a defect.
+
+- [ ] **Step 2: Inline CSS out of the examples**
+
+For each inline style, decide which it is:
+
+- **Document styling** — must become a class. If no class exists, that is a
+  finding: either the spec is missing an element, or the example is
+  demonstrating something the stylesheet does not support. `justification.html`'s
+  third example uses `style="text-align:justify;text-align-last:left;hyphens:manual"`
+  to show justification *without* hyphenation — the mistake the section warns
+  about. There is no class for it. Report it and propose one rather than
+  inventing a class name unilaterally.
+- **Website emulation chrome** — may stay inline, but prefer a class in
+  `specimen.css` where one is natural. The page diagram in `page.html` and the
+  scale rows and swatches in `tokens.html` are chrome; those two sections no
+  longer publish their markup as source, so the bar is readability, not
+  pasteability. Move the repeated hardcoded colours onto the existing
+  `--ts-*` custom properties: a swatch showing `--ts-ink` should read from it,
+  not restate `#1a1a1a`, or the page can disagree with the stylesheet it documents.
+
+- [ ] **Step 3: `margin-top:0` becomes a class**
+
+Three sites: `toc.html`, `bibliography.html`, `notes.fullrow.html`. Each suppresses
+the top margin on a heading that opens a demo. That is a chrome concern — the
+document would not do it — so the class belongs in `specimen.css`, not in the spec.
+
+- [ ] **Step 4: Section breaks become `<hr>`**
+
+`<div class="ts-break ts-breaks-asterism">` becomes `<hr class="ts-breaks-asterism">`.
+Confirmed to render identically before adopting: `.typeset .ts-breaks-asterism::before`
+at specificity (0,2,1) beats `.typeset hr::before` at (0,1,2).
+
+Check whether `.ts-break` remains necessary once every break is an `<hr>` — the
+base rule already targets `hr`. **Do not remove it if anything still uses it**;
+report what you find and leave the removal to a decision, since it is a second
+change to the class surface so soon after 2.0.0.
+
+- [ ] **Step 5: The verse fragment**
+
+`.ts-quotes-verse` uses `white-space: pre-line`, so its content sits at column 0
+while its tag sits at 8, and the common indent degrades to 0 — the same shape as
+the `codeblock` bug, one layer deeper, because the mask only knows `<pre>` tags.
+
+Fix the mask to cover elements whose CSS makes whitespace significant, or fix the
+demo so it does not depend on source indentation. Say which you chose and why.
+The `<pre>`-interior gate from Task 1 is the model: whatever you change, the
+verse content must still match its source verbatim.
+
+- [ ] **Step 6: Verify the rendered result, not just the source**
+
+This task changes rendered output. For each changed demo, state what moved and
+confirm it is equivalent or better. Where a change is meant to be invisible — the
+`<hr>` swap, the `margin-top` class — prove it by comparing computed effect, not
+by asserting it.
+
+Rebuild, run the checker, and re-run Task 1's three extractor gates.
 
 ---
 
