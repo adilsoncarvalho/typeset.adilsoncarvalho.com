@@ -828,6 +828,14 @@ Default: `single-column`
 | applies to | external (http/https) links only |
 | excluded | `internal anchors`, `mailto:`, `links marked bare` |
 
+##### Link — URL suppressed
+
+| Property | Value |
+| --- | --- |
+| print url | no |
+
+> Opt-out for a link whose URL would be noise in print: a shortened URL, a tracking URL, or one the surrounding sentence already gives.
+
 #### Numerals
 
 `numerals`
@@ -1109,6 +1117,14 @@ Default: `single-column`
 
 > For wide, dense tables only. Not a default.
 
+##### Caption label
+
+| Property | Value |
+| --- | --- |
+| weight | `600` |
+| caps | `all small caps` |
+| tracking | `0.06em` |
+
 #### Code blocks
 
 `codeblock`
@@ -1163,6 +1179,17 @@ Default: `single-column`
 | border top | `0.5pt rule` |
 | padding top | `0.4em` |
 | label | small caps, weight 600, colour ink, tracking 0.06em |
+
+##### Figure caption label
+
+| Property | Value |
+| --- | --- |
+| weight | `600` |
+| color | `ink` |
+| caps | `all small caps` |
+| tracking | `0.06em` |
+
+> Carries the cross-reference target: a mention in the text points at this, so it must be the thing a reader scans for.
 
 #### Callouts
 
@@ -1360,6 +1387,15 @@ Where unsupported: leaders render, page numbers are omitted
 | --- | --- |
 | indent left | `1.5em` |
 
+##### Dot leader
+
+| Property | Value |
+| --- | --- |
+| content | `dotted 0.5pt rule` |
+| color | `rule` |
+| baseline offset | `-0.15em` |
+| fills | the space between the title and the page number |
+
 #### Bibliography
 
 `bibliography`
@@ -1457,6 +1493,17 @@ Where unsupported: leaders render, page numbers are omitted
 | padding top | `11pt` |
 | border top | `0.5pt rule` |
 | break before | `avoid` |
+
+##### Abstract label
+
+| Property | Value |
+| --- | --- |
+| font | `sans` |
+| size | `xs` |
+| weight | `700` |
+| tracking | `0.1em` |
+| caps | `uppercase` |
+| color | `ink_faint` |
 
 #### Letter
 
@@ -1597,6 +1644,17 @@ Where unsupported: leaders render, page numbers are omitted
 | heading | `none` |
 
 Where unsupported: a numbered note after the signature, under a rule — which on a one-page letter is the page foot anyway
+
+##### Address label
+
+| Property | Value |
+| --- | --- |
+| display | `block` |
+| font | `sans` |
+| size | `xs` |
+| tracking | `0.1em` |
+| caps | `uppercase` |
+| color | `ink_faint` |
 
 #### Pagination utilities
 

@@ -697,6 +697,16 @@
               "links marked bare"
             ]
           }
+        },
+        {
+          "id": "links-bare",
+          "name": "Link — URL suppressed",
+          "properties": {
+            "print_url": false
+          },
+          "notes": [
+            "Opt-out for a link whose URL would be noise in print: a shortened URL, a tracking URL, or one the surrounding sentence already gives."
+          ]
         }
       ]
     },
@@ -1023,6 +1033,15 @@
           "notes": [
             "For wide, dense tables only. Not a default."
           ]
+        },
+        {
+          "id": "tables-caption-label",
+          "name": "Caption label",
+          "properties": {
+            "weight": 600,
+            "caps": "all small caps",
+            "tracking": "0.06em"
+          }
         }
       ]
     },
@@ -1089,6 +1108,19 @@
             "padding_top": "0.4em",
             "label": "small caps, weight 600, colour ink, tracking 0.06em"
           }
+        },
+        {
+          "id": "figures-caption-label",
+          "name": "Figure caption label",
+          "properties": {
+            "weight": 600,
+            "color": "ink",
+            "caps": "all small caps",
+            "tracking": "0.06em"
+          },
+          "notes": [
+            "Carries the cross-reference target: a mention in the text points at this, so it must be the thing a reader scans for."
+          ]
         }
       ]
     },
@@ -1316,6 +1348,16 @@
           "properties": {
             "indent_left": "1.5em"
           }
+        },
+        {
+          "id": "toc-leader",
+          "name": "Dot leader",
+          "properties": {
+            "content": "dotted 0.5pt rule",
+            "color": "rule",
+            "baseline_offset": "-0.15em",
+            "fills": "the space between the title and the page number"
+          }
         }
       ]
     },
@@ -1426,6 +1468,18 @@
             "padding_top": "11pt",
             "border_top": "0.5pt rule",
             "break_before": "avoid"
+          }
+        },
+        {
+          "id": "frontmatter-abstract-label",
+          "name": "Abstract label",
+          "properties": {
+            "font": "sans",
+            "size": "xs",
+            "weight": 700,
+            "tracking": "0.1em",
+            "caps": "uppercase",
+            "color": "ink_faint"
           }
         }
       ]
@@ -1586,6 +1640,18 @@
             "heading": "none"
           },
           "fallback": "a numbered note after the signature, under a rule — which on a one-page letter is the page foot anyway"
+        },
+        {
+          "id": "letter-address-label",
+          "name": "Address label",
+          "properties": {
+            "display": "block",
+            "font": "sans",
+            "size": "xs",
+            "tracking": "0.1em",
+            "caps": "uppercase",
+            "color": "ink_faint"
+          }
         }
       ]
     },
