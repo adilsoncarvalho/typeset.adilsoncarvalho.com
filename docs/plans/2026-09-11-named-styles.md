@@ -980,7 +980,10 @@ const map = require("./tools/rename-map.json");
 const { execSync } = require("child_process");
 /* Longest first so a short key cannot match inside a longer one, and the
    surrounding [^a-z0-9-] guards stop a 1.x name matching inside its own 2.0
-   replacement — ts-tie would otherwise match inside ts-utilities-tie. */
+   replacement. Ten keys have that shape — ts-note inside ts-notes-footnote,
+   ts-table inside ts-tables-table, ts-link inside ts-links-link, ts-callout
+   inside ts-callouts-callout, and six more. Without the guards every one of
+   them reports a false hit on correctly-migrated markup. */
 const olds = Object.keys(map.classes).sort((a, b) => b.length - a.length).join("|");
 const re = `(^|[^a-z0-9-])(${olds})([^a-z0-9-]|$)`;
 const hits = execSync(

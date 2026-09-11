@@ -221,6 +221,21 @@ boxes apply only under the mirrored opt-in.
 **Consumers.** Examples and templates move to `symmetric`. The letter in
 particular: a letter is not bound, and mirrored margins on it are simply wrong.
 
+**A conformance gap this group must close, found while naming the styles in
+Group 1.** `spec.json` declares `letter-page` as 32mm top, 28mm bottom, 25mm
+sides, with no running head and no folio. `implementations/typeset.typ:501-508`
+honours all five unconditionally. **`typeset.css` implements none of them** — it
+has no letter-specific `@page` rule at all, so a letter rendered through the
+stylesheet comes out on the document's default mirrored page, carrying a running
+head and a folio it is not supposed to have.
+
+This is not an engine-capability limit — `@page` selectors are exactly what the
+CSS implementation already uses for the default page — so it does not belong in
+the element's `fallback` field, which reads on the site as "Where unsupported"
+and would present the gap as an acceptable degradation. It is simply unwritten
+CSS, and this group is where the page box gets restructured, so this is where it
+gets written.
+
 **Verification.** The arithmetic above is checked against `spec.json` but must
 be confirmed against a rendered page before the values land — compile an
 example in both layouts and measure the text block.
