@@ -384,35 +384,63 @@ for (const [id, value] of optIns) {
 
 /* Observes the classes the documents in this repo actually write. The gates
    above read the stylesheet and the spec against each other; neither looks at
-   a class attribute, so a misspelling in a demo, an example, a proof or a
-   template renders unstyled and reports nothing. */
+   a class attribute, so a misspelling in a demo, an example, a proof, a
+   template or a script renders unstyled and reports nothing.
 
-/* Chrome for the specimen page: these dress a demo so it reads in a browser,
-   and never appear in a document. */
+   The predicate for a document is resolution, not naming: the class must
+   appear as a selector in one of the stylesheets. Naming a spec element is
+   too weak, because most of an element's names reach it through a bare
+   semantic selector and never become a class — so a document writing one of
+   those names matches no rule at all while satisfying a check that asked only
+   whether the name existed. */
+
+/* Chrome for the specimen page: these dress a demo so it reads in a browser
+   and never appear in a document, so they are the only .ts- selectors
+   specimen.css may carry with no spec element behind them. */
 const SPECIMEN_CHROME = new Set(['ts-toc--demo', 'ts-folio']);
 
-const documentFiles = ['specimen.css'];
+/* A class name is written in three shapes across these files: a class
+   attribute, a selector, and a bare quoted token in a script or in JSON
+   prose. The attribute pattern reads escaped quotes too, because the site
+   manifest carries markup inside JSON strings. */
+const classesIn = (text) => new Set([
+  ...[...text.replace(/\\"/g, '"').matchAll(/class=["']([^"']*)["']/g)]
+    .flatMap((m) => m[1].trim().split(/\s+/)),
+  ...[...text.matchAll(/\.(ts-[a-z0-9-]+)/g)].map((m) => m[1]),
+  ...[...text.matchAll(/['"`](ts-[a-z0-9-]+)['"`]/g)].map((m) => m[1]),
+].filter((c) => c.startsWith('ts-')));
+
+const documentFiles = ['specimen.css', 'src/sections.json'];
 const collectDocuments = (dir) => {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const path = `${dir}/${entry.name}`;
     if (entry.isDirectory()) collectDocuments(path);
-    else if (path.endsWith('.html') || path.endsWith('.css')) documentFiles.push(path);
+    else if (/\.(html|css|js)$/.test(path)) documentFiles.push(path);
   }
 };
 for (const dir of ['src/demos', 'examples', 'proofs', 'implementations/iawriter']) {
   collectDocuments(dir);
 }
 
+const sheets = ['typeset.css', ...documentFiles.filter((f) => f.endsWith('.css'))];
+const definedSelectors = new Set(sheets.flatMap((f) =>
+  [...readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.(ts-[a-z0-9-]+)/g)]
+    .map((m) => m[1])));
+
 for (const path of documentFiles) {
-  const text = readFileSync(path, 'utf8');
-  const used = new Set([
-    ...[...text.matchAll(/class="([^"]*)"/g)].flatMap((m) => m[1].trim().split(/\s+/)),
-    ...[...text.matchAll(/\.(ts-[a-z0-9-]+)/g)].map((m) => m[1]),
-  ].filter((c) => c.startsWith('ts-')));
+  const used = classesIn(readFileSync(path, 'utf8'));
   for (const cls of used) {
-    if (specIds.has(cls.replace(/^ts-/, ''))) continue;
-    if (INTERNAL_CLASSES.has(cls) || SPECIMEN_CHROME.has(cls)) continue;
-    fail.push(`${path}: ${cls} names neither a spec element nor a declared-internal class`);
+    /* A stylesheet's own .ts- occurrences are mostly definitions, so asking
+       whether they resolve is circular — they are held to the spec instead,
+       the way the gate above holds typeset.css. */
+    if (sheets.includes(path)) {
+      if (specIds.has(cls.replace(/^ts-/, ''))) continue;
+      if (INTERNAL_CLASSES.has(cls) || SPECIMEN_CHROME.has(cls)) continue;
+      fail.push(`${path}: .${cls} is a selector with no spec element behind it`);
+    } else {
+      if (definedSelectors.has(cls)) continue;
+      fail.push(`${path}: ${cls} matches no .ts- selector in any stylesheet, so it renders unstyled`);
+    }
   }
 }
 
@@ -426,9 +454,11 @@ const INTERNAL_SYMBOLS = new Set([
   'scale-single-column', 'scale-two-column', 'base-size', 'sm', 'xs', 'sp',
   /* helpers the styles are built from */
   'leading-for', 'smcp', 'oldstyle', 'lining', 'tabular', '_break-mark',
-  /* document and template entry points, and the two styles a document reaches
-     through a shape of its own rather than through an element name */
-  'typeset', 'two-column', 'span', 'toc', 'ts-table', 'epigraph-right',
+  /* document and template entry points */
+  'typeset', 'two-column', 'span',
+  /* ts-table implements element tables-table under its 1.x spelling, which the
+     migration note discloses; epigraph-right has no element behind it at all */
+  'ts-table', 'epigraph-right',
 ]);
 
 for (const sym of typSymbols) {

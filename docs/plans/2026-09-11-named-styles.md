@@ -689,14 +689,19 @@ signature     -> letter-signature         enclosures  -> letter-enclosures
 postscript    -> letter-postscript
 ```
 
-**Four more that name a style but sit outside the map**, because their symbol name never matched their element id:
+**Three more that name a style but sit outside the map**, because their symbol name never matched their element id:
 
 ```
 address          -> letter-address-block
-toc              -> toc-entry
 keep-together    -> utilities-keep-together
 tie              -> utilities-tie
 ```
+
+`toc` is not among them. It emits the whole outline, which makes it a
+template-level entry point rather than a style, and the design doc lists it
+beside `typeset`, `letter-page` and `two-column` as one of the entry points
+that keep their names. Element `toc-entry` is reached through the `@s toc`
+marker region, not through a symbol of its own.
 
 **Symbols that are NOT styles and keep their names.** These are the Typst counterpart of the CSS custom properties and the `.typeset--*` document modifiers, both of which this branch leaves alone:
 
@@ -704,7 +709,7 @@ tie              -> utilities-tie
 ink  ink-muted  ink-faint  rule-color  rule-strong  wash  accent
 serif  sans  mono  scale-single-column  scale-two-column
 base-size  sm  xs  sp  leading-for  oldstyle  lining  tabular  smcp
-typeset  two-column  letter-page  span  ts-table  epigraph-right
+typeset  two-column  letter-page  span  ts-table  epigraph-right  toc
 ```
 
 `dropcap` and `letter-page` already match their element ids — leave them.
