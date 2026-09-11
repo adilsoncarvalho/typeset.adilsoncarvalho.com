@@ -271,7 +271,7 @@
       <p class="pair__label">How it must look</p>
       <div class="paper typeset">
         <p>Typography exists to honour content. A page set to a comfortable measure asks nothing of the reader; they simply arrive at the end having forgotten there was a page at all. This paragraph is set to the default 33em.</p>
-        <p style="max-width:52em;border-left:2px solid #d9c48a;padding-left:.8em">And this one is deliberately overset to 52em, so you can feel the return sweep failing. By the third line your eye has to hunt for the start of the next, and the hunt is what tires a reader out over twenty pages.</p>
+        <p class="demo-overset">And this one is deliberately overset to 52em, so you can feel the return sweep failing. By the third line your eye has to hunt for the start of the next, and the hunt is what tires a reader out over twenty pages.</p>
       </div>
     </div>
     <div>
@@ -843,7 +843,7 @@
 
       <p class="pair__label">Justified, no hyphenation — the mistake</p>
       <p class="demo-note">Neither edge nor spacing. With no hyphens to absorb the slack, the gaps open into rivers running down the page.</p>
-      <div class="paper typeset" style="text-align:justify;text-align-last:left;hyphens:manual">
+      <div class="paper typeset typeset--justified ts-utilities-no-hyphens">
         <p>Typographical craftsmanship consists in the appropriate use of the incomparable resources of a well-designed typeface, and in the discipline required to leave those resources alone when the content does not need them. Justification is one such resource: expensive, occasionally beautiful, and demanding of the hyphenation dictionary that makes it possible.</p>
       </div>
     </div>
@@ -869,7 +869,9 @@
 &lt;/div&gt;
 
 &lt;!-- Justified, no hyphenation — the mistake --&gt;
-&lt;p&gt;Typographical craftsmanship consists in the appropriate use of the incomparable resources of a well-designed typeface, and in the discipline required to leave those resources alone when the content does not need them. Justification is one such resource: expensive, occasionally beautiful, and demanding of the hyphenation dictionary that makes it possible.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+&lt;div class=&quot;typeset typeset--justified ts-utilities-no-hyphens&quot;&gt;
+  &lt;p&gt;Typographical craftsmanship consists in the appropriate use of the incomparable resources of a well-designed typeface, and in the discipline required to leave those resources alone when the content does not need them. Justification is one such resource: expensive, occasionally beautiful, and demanding of the hyphenation dictionary that makes it possible.&lt;/p&gt;
+&lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ.</p><pre><span class="c-at">set</span> text(
     <span class="c-prop">font</span>: serif,
     <span class="c-prop">size</span>: scale.base,
@@ -990,7 +992,7 @@
       <p class="pair__label">Rendered — print view</p>
       <div class="paper typeset">
         <p>The argument is set out in full <a href="https://example.org/on-the-measure">on the measure of a line</a>, and summarised <a href="#foundation">in section 02</a>. Corrections to <a href="mailto:hello@example.org">hello@example.org</a>.</p>
-        <p style="font-family:var(--ts-sans);font-size:9pt;color:var(--ts-ink-muted);border-top:.5pt solid var(--ts-rule);padding-top:.5em">Printed, the first link becomes: on the measure of a line <span style="font-family:var(--ts-mono);font-size:8pt">(https://example.org/on-the-measure)</span> — the other two are left alone.</p>
+        <p class="demo-aside demo-aside--ruled">Printed, the first link becomes: on the measure of a line <span class="demo-aside__url">(https://example.org/on-the-measure)</span> — the other two are left alone.</p>
       </div>
     </div>
     <div>
@@ -1006,7 +1008,7 @@
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>Paper has no hover and no click. A URL that carries information must be printed.</li></ul><h4 class="spec-el">Link</h4><table class="spec-table"><tbody><tr><th>color</th><td><code>inherit</code></td></tr><tr><th>decoration</th><td><code>underline</code></td></tr><tr><th>underline thickness</th><td><code>0.5pt</code></td></tr><tr><th>underline offset</th><td><code>0.14em</code></td></tr><tr><th>skip descenders</th><td>yes</td></tr></tbody></table><h4 class="spec-el">Printed URL</h4><table class="spec-table"><tbody><tr><th>content</th><td>the href in parentheses, after the link text</td></tr><tr><th>font</th><td><code>mono</code></td></tr><tr><th>size</th><td><code>0.82em</code></td></tr><tr><th>color</th><td><code>ink_muted</code></td></tr><tr><th>wrap</th><td><code>may break anywhere</code></td></tr><tr><th>applies to</th><td>external (http/https) links only</td></tr><tr><th>excluded</th><td><code>internal anchors</code>, <code>mailto:</code>, <code>links marked bare</code></td></tr></tbody></table><h4 class="spec-el">Link — URL suppressed</h4><table class="spec-table"><tbody><tr><th>print url</th><td>no</td></tr></tbody></table><p class="spec-note">Opt-out for a link whose URL would be noise in print: a shortened URL, a tracking URL, or one the surrounding sentence already gives.</p></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L369">links</a></p><pre>&lt;!-- Rendered — print view --&gt;
 &lt;p&gt;The argument is set out in full &lt;a href=&quot;https://example.org/on-the-measure&quot;&gt;on the measure of a line&lt;/a&gt;, and summarised &lt;a href=&quot;#foundation&quot;&gt;in section 02&lt;/a&gt;. Corrections to &lt;a href=&quot;mailto:hello@example.org&quot;&gt;hello@example.org&lt;/a&gt;.&lt;/p&gt;
-&lt;p style=&quot;font-family:var(--ts-sans);font-size:9pt;color:var(--ts-ink-muted);border-top:.5pt solid var(--ts-rule);padding-top:.5em&quot;&gt;Printed, the first link becomes: on the measure of a line &lt;span style=&quot;font-family:var(--ts-mono);font-size:8pt&quot;&gt;(https://example.org/on-the-measure)&lt;/span&gt; — the other two are left alone.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+&lt;p class=&quot;demo-aside demo-aside--ruled&quot;&gt;Printed, the first link becomes: on the measure of a line &lt;span class=&quot;demo-aside__url&quot;&gt;(https://example.org/on-the-measure)&lt;/span&gt; — the other two are left alone.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “inline” region of typeset.typ.</p><pre><span class="c-at">show</span> <span class="c-prop">strong</span>: <span class="c-at">set</span> text(<span class="c-prop">weight</span>: <span class="c-val">600</span>)
   <span class="c-at">show</span> <span class="c-prop">link</span>: it =&gt; underline(<span class="c-prop">offset</span>: <span class="c-val">0.14em</span>, <span class="c-prop">stroke</span>: <span class="c-val">0.5pt</span>, it)
   <span class="c-at">show</span> <span class="c-prop">footnote</span>: <span class="c-at">set</span> text(<span class="c-prop">fill</span>: accent, <span class="c-prop">size</span>: <span class="c-val">0.7em</span>, ..lining)
@@ -1039,7 +1041,7 @@
             <tr><td>Digital</td><td class="ts-tables-cell-numeric">1,204</td><td class="ts-tables-cell-numeric">1,204</td></tr>
           </tbody>
         </table>
-        <p style="font-size:9.5pt;color:var(--ts-ink-muted)">Fractions: <span class="ts-numerals-fractions">1/2</span>, <span class="ts-numerals-fractions">3/4</span>, <span class="ts-numerals-fractions">7/8</span></p>
+        <p class="demo-aside">Fractions: <span class="ts-numerals-fractions">1/2</span>, <span class="ts-numerals-fractions">3/4</span>, <span class="ts-numerals-fractions">7/8</span></p>
       </div>
     </div>
     <div>
@@ -1063,7 +1065,7 @@
     &lt;tr&gt;&lt;td&gt;Digital&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;1,204&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;1,204&lt;/td&gt;&lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;p style=&quot;font-size:9.5pt;color:var(--ts-ink-muted)&quot;&gt;Fractions: &lt;span class=&quot;ts-numerals-fractions&quot;&gt;1/2&lt;/span&gt;, &lt;span class=&quot;ts-numerals-fractions&quot;&gt;3/4&lt;/span&gt;, &lt;span class=&quot;ts-numerals-fractions&quot;&gt;7/8&lt;/span&gt;&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+&lt;p class=&quot;demo-aside&quot;&gt;Fractions: &lt;span class=&quot;ts-numerals-fractions&quot;&gt;1/2&lt;/span&gt;, &lt;span class=&quot;ts-numerals-fractions&quot;&gt;3/4&lt;/span&gt;, &lt;span class=&quot;ts-numerals-fractions&quot;&gt;7/8&lt;/span&gt;&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ.</p><pre><span class="c-at">set</span> text(
     <span class="c-prop">font</span>: serif,
     <span class="c-prop">size</span>: scale.base,
