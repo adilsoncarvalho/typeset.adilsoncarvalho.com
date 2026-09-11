@@ -202,6 +202,23 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
   const demoPath = `src/demos/${file}`;
   const original = readFileSync(demoPath, 'utf8');
   const demos = extractDemos(original);
+
+  /* Both boundary-finders above share one model of HTML: neither
+     distinguishes tag context from text or comment context. A wrapper
+     hidden in a comment, a self-closing <div … /> that never returns the
+     depth counter to zero, or a label with no wrapper right after it all
+     make extractDemos() quietly drop that example — and both scanners
+     agree on nothing being there, so the round-trip below stays silent.
+     A literal count of "pair__label" paragraphs needs no tag-matching at
+     all, so it is not subject to that shared blind spot: every demo file
+     here has exactly one example per label, so any shortfall is a bug. */
+  const labelCount = (original.match(/<p class="pair__label"/g) ?? []).length;
+  if (labelCount > 0 && demos.length !== labelCount) {
+    fail.push(`${demoPath}: has ${labelCount} pair__label paragraph(s) but extractDemos() `
+      + `returned ${demos.length} example(s) — it dropped at least one silently`);
+    continue;
+  }
+
   const spans = locateWrapperContents(original);
 
   if (demos.length !== spans.length) {
