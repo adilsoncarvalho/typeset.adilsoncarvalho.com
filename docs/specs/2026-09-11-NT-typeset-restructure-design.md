@@ -131,9 +131,11 @@ ones worth calling out because they are easy to miss:
 - `src/sections.json`, `tools/check.mjs`, `README.md`, `SPEC.md` — prose and
   configuration that name classes rather than use them.
 
-**Migration.** `tools/codemod-classes.mjs` rewrites old class names to new in a
-document given on the command line. `spec.json` goes to `2.0.0`; `SPEC.md` is
-regenerated; the release notes carry the complete old→new table.
+**Migration.** `tools/codemod-names.mjs` rewrites old names to new in a
+document given on the command line. It covers CSS classes and Typst symbols
+alike, which is why it is named for names rather than for classes. `spec.json`
+goes to `2.0.0`, `SPEC.md` is regenerated, and the migration note carries the
+complete old→new table.
 
 **Done when:** the checker enforces the mapping in both directions, every
 in-repo document uses the new names, and the rendered site is visually
