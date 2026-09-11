@@ -629,13 +629,19 @@ Delete the four old contextual rules (`caption .ts-label`, `figcaption .ts-label
 
 An empty `.ts-tables-caption-label { }` is correct: the base already carries everything it needs, and the empty rule is what makes the name real and the gate pass.
 
-- [ ] **Step 5: Confirm the collapses landed**
+- [ ] **Step 5: Confirm every 1.x class name is gone**
+
+Check both halves of each collapsed pair, not just the half named in the commit message — the earlier version of this step checked `ts-nowrap` and `ts-page-break-avoid` but not `ts-tie` and `ts-keep-together`, which is how six uncovered classes stayed invisible to the plan's own gate.
+
+The leading `[^a-z-]` matters: a bare `ts-keep-together` also matches inside `ts-utilities-keep-together`, so a naive grep reports a false positive on the correctly-renamed name.
 
 ```bash
-grep -c 'ts-nowrap\|ts-page-break-avoid\|ts-sc\b\|ts-frac\b' typeset.css
+grep -nE '(^|[^a-z-])ts-(nowrap|tie|keep-together|no-hyphens|page-break-(before|after|avoid)|sc|frac|num|lede|note|noteref|leader|bare|ps|date|address|toc|toc-2|run-in|titleblock|bibliography|nums-[a-z]+)([^a-z-]|$)' typeset.css
 ```
 
-Expected: `0`. Each collapsed onto the class it duplicated.
+Expected: no output. Every 1.x spelling has been replaced.
+
+The authoritative version of this check is the coverage gate inside `tools/build-rename-map.mjs`, which refuses to emit a map that misses any class occurring in the stylesheet. This grep is the cheap confirmation that the map was actually applied.
 
 - [ ] **Step 5b: Name the bare-selector styles with `@style` markers**
 
