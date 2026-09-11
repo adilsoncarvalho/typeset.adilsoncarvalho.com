@@ -67,6 +67,12 @@ const EXTRA_CLASSES = {
   'ts-break--asterism': 'ts-breaks-asterism',
   'ts-break--fleuron': 'ts-breaks-fleuron',
   'ts-break--rule': 'ts-breaks-rule',
+  'ts-bibliography': 'ts-bibliography-entry',
+  'ts-tie': 'ts-utilities-tie',
+  'ts-keep-together': 'ts-utilities-keep-together',
+  'ts-no-hyphens': 'ts-utilities-no-hyphens',
+  'ts-page-break-before': 'ts-utilities-break-before',
+  'ts-page-break-after': 'ts-utilities-break-after',
   /* ts-break is deliberately absent. It means the shared base in the
      stylesheet and three asterisks in a document, so any single mapping
      corrupts one of the two. Both are migrated by hand — Task 5 Step 4
@@ -81,6 +87,27 @@ const classes = { ...EXTRA_CLASSES };
 for (const [oldId, nid] of Object.entries(elements)) {
   const oldClass = `ts-${oldId}`;
   if (!(oldClass in classes)) classes[oldClass] = `ts-${nid}`;
+}
+
+/* Classes that carry no per-document rename: a layout primitive, a print/screen
+   toggle, or the ts-break base covered by the comment above. */
+const DECLARED_INTERNAL = new Set([
+  'ts-label', 'ts-break', 'ts-span', 'ts-print-only', 'ts-screen-only',
+]);
+
+/* Confirms that every ts-* class the stylesheet actually selects on has a key
+   in `classes`, so a class spelled differently from its element id cannot
+   fall out of the map unnoticed. */
+const css = readFileSync('typeset.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+const cssClasses = new Set(css.match(/\.ts-[a-zA-Z0-9-]+/g)?.map((m) => m.slice(1)));
+const uncovered = [...cssClasses]
+  .filter((c) => !DECLARED_INTERNAL.has(c))
+  .filter((c) => !(c in classes))
+  .sort();
+
+if (uncovered.length) {
+  console.error('rename map is missing these classes found in typeset.css:', uncovered);
+  process.exit(1);
 }
 
 console.log(JSON.stringify({
