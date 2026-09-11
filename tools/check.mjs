@@ -5,7 +5,7 @@
 
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { buildAll } from './build-site.mjs';
-import { extractDemos } from '../src/extract.mjs';
+import { extractDemos, preLineMask } from '../src/extract.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
@@ -182,20 +182,32 @@ function locateWrapperContents(source) {
   return spans;
 }
 
+/* Matches extract.mjs's dedent(): a line inside a <pre> carries code content
+   in its leading whitespace, not markup indentation, so it is excluded from
+   the shared-amount computation the same way dedent() excludes it from the
+   stripping. This is reused from extract.mjs rather than re-derived, because
+   it is not the boundary-finding this file keeps independent — it is the
+   inverse of a specific, deterministic text transform, and a second,
+   separately-maintained copy could only drift from the one it must invert. */
 function commonIndent(text) {
+  const lines = text.split('\n');
+  const inPre = preLineMask(text);
   let common = Infinity;
-  for (const line of text.split('\n')) {
-    if (line.trim() === '') continue;
-    common = Math.min(common, line.match(/^ */)[0].length);
+  for (let i = 0; i < lines.length; i += 1) {
+    if (inPre[i] || lines[i].trim() === '') continue;
+    common = Math.min(common, lines[i].match(/^ */)[0].length);
   }
   return Number.isFinite(common) ? common : 0;
 }
 
-/* Reverses extract.mjs's dedent: pads every non-blank line back out by the
-   amount it was originally indented. */
+/* Reverses extract.mjs's dedent: pads every non-blank, non-<pre> line back
+   out by the amount it was originally indented, and leaves a <pre> line
+   exactly as extractDemos() returned it. */
 function reindent(fragment, amount) {
   const pad = ' '.repeat(amount);
-  return fragment.split('\n').map((line) => (line === '' ? '' : pad + line)).join('\n');
+  const lines = fragment.split('\n');
+  const inPre = preLineMask(fragment);
+  return lines.map((line, i) => (inPre[i] || line === '' ? line : pad + line)).join('\n');
 }
 
 for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
