@@ -58,6 +58,7 @@
 /*! @e */
 
 /*! @s page :: Page setup */
+/* @style letter-page — the page setup every document type renders through; a letter uses the same @page rule as any other. */
 @page {
   size: A4;                        /* or: Letter */
   margin: 25mm 22mm 25mm 22mm;
@@ -94,6 +95,12 @@
 /*! @e */
 
 /*! @s headings :: Headings */
+/* @style headings-h1 */
+/* @style headings-h2 */
+/* @style headings-h3 */
+/* @style headings-h4 */
+/* @style headings-h5 */
+/* @style headings-h6 */
 .typeset h1,
 .typeset h2,
 .typeset h3,
@@ -158,6 +165,7 @@
 /*! @s numbering :: Section numbering */
 .typeset--numbered { counter-reset: ts-headings-h2; }
 
+/* @style numbering-h2 */
 .typeset--numbered h2 {
   counter-increment: ts-headings-h2;
   counter-reset: ts-headings-h3;
@@ -168,6 +176,7 @@
   font-variant-numeric: lining-nums tabular-nums;
 }
 
+/* @style numbering-h3 */
 .typeset--numbered h3 { counter-increment: ts-headings-h3; }
 .typeset--numbered h3::before {
   content: counter(ts-headings-h2) "." counter(ts-headings-h3) "  ";
@@ -177,6 +186,7 @@
 /*! @e */
 
 /*! @s paragraphs :: Paragraphs */
+/* @style paragraphs-spaced */
 .typeset {
   /* Paragraph separation is one decision expressed as two values: a gap, or an
      indent, never both. A template sets these; nothing else needs to know. */
@@ -184,6 +194,7 @@
   --ts-para-indent: 0;
 }
 
+/* @style paragraphs-indented */
 .typeset--indented {
   --ts-para-gap: 0;
   --ts-para-indent: 1.5em;
@@ -225,6 +236,7 @@
 /*! @s justification :: Justification & hyphenation */
 /* Justification without hyphenation opens rivers of white space.
    Both, or neither. And `lang` must be set — hyphenation is per-language. */
+/* @style justification-justified */
 .typeset--justified {
   text-align: justify;
   text-align-last: left;      /* the last line is never stretched */
@@ -245,6 +257,7 @@
    thing a ragged setting can get wrong. Hyphenation stays off — a hyphen exists
    to help justification, and without justification it only breaks a word for
    no gain. */
+/* @style justification-ragged */
 .typeset--ragged {
   text-align: left;
   text-align-last: left;
@@ -261,6 +274,7 @@
    `text-align: left` in its own rule, because a direct match always beats an
    inherited value and its descendants then inherit `left` in turn. Relying on
    an exception list here instead means every new block silently opts in. */
+/* @style justification-exclusions — headings, cells and code blocks stay flush even under .typeset--justified: text-align inherits, so this is the one place that names what a justified document must never justify. */
 .typeset--justified h1,
 .typeset--justified h2,
 .typeset--justified h3,
@@ -286,8 +300,11 @@
 /*! @e */
 
 /*! @s inline :: Inline emphasis */
+/* @style inline-strong */
 .typeset strong, .typeset b { font-weight: 600; }
+/* @style inline-emphasis */
 .typeset em, .typeset i { font-style: italic; }
+/* @style inline-emphasis-nested */
 .typeset em em, .typeset em i { font-style: normal; }   /* nested emphasis flips */
 .typeset strong em, .typeset em strong { font-weight: 600; font-style: italic; }
 
@@ -298,6 +315,7 @@
   font-variant-numeric: oldstyle-nums;
 }
 
+/* @style inline-abbr */
 .typeset abbr[title] {
   font-variant-caps: all-small-caps;
   letter-spacing: 0.05em;
@@ -305,11 +323,16 @@
   border-bottom: 0.5pt dotted var(--ts-ink-faint);
 }
 
+/* @style inline-deleted */
 .typeset s, .typeset del { text-decoration: line-through; color: var(--ts-ink-muted); }
+/* @style inline-inserted */
 .typeset ins { text-decoration: underline; text-underline-offset: 0.15em; }
+/* @style inline-highlight */
 .typeset mark { background: var(--ts-wash); box-shadow: 0 0 0 2pt var(--ts-wash); }
 
 /* Real super/subscripts, not shifted full-size digits. */
+/* @style inline-superscript */
+/* @style inline-subscript */
 .typeset sup, .typeset sub {
   font-size: 0.72em;
   line-height: 0;
@@ -319,6 +342,7 @@
 .typeset sup { top: -0.45em; }
 .typeset sub { bottom: -0.22em; }
 
+/* @style inline-kbd */
 .typeset kbd {
   font: 0.85em/1 var(--ts-sans);
   padding: 0.15em 0.35em;
@@ -329,6 +353,7 @@
 /*! @e */
 
 /*! @s code-inline :: Inline code */
+/* @style code-inline */
 .typeset code {
   font-family: var(--ts-mono);
   font-size: 0.86em;          /* mono runs large; pull it back optically */
@@ -341,6 +366,7 @@
 /*! @e */
 
 /*! @s links :: Links in print */
+/* @style links-link */
 .typeset a {
   color: inherit;
   text-decoration: underline;
@@ -351,6 +377,7 @@
 
 /* Paper has no hover. Spell out external URLs where they carry information. */
 @media print {
+  /* @style links-print-url */
   .typeset a[href^="http"]::after {
     content: " (" attr(href) ")";
     font: 0.82em var(--ts-mono);
@@ -375,6 +402,7 @@
 /*! @e */
 
 /*! @s quotes :: Block quotations */
+/* @style quotes-blockquote */
 .typeset blockquote {
   margin: calc(var(--ts-space) * 1.25) 0;
   padding-left: calc(var(--ts-space) * 1.5);
@@ -451,6 +479,7 @@
 .typeset li > ol { margin: calc(var(--ts-space) * 0.25) 0 0; }
 .typeset li:last-child { margin-bottom: 0; }
 
+/* @style lists-unordered */
 .typeset ul { list-style: none; }
 .typeset ul > li::before {
   content: "·";
@@ -461,8 +490,10 @@
   color: var(--ts-ink-muted);
   font-weight: 700;
 }
+/* @style lists-unordered-nested */
 .typeset ul ul > li::before { content: "–"; font-weight: 400; }
 
+/* @style lists-ordered */
 .typeset ol {
   list-style: none;
   counter-reset: ts-ol;
@@ -476,6 +507,7 @@
   color: var(--ts-ink-muted);
   font-variant-numeric: lining-nums tabular-nums;
 }
+/* @style lists-ordered-nested */
 .typeset ol ol > li::before { content: counter(ts-ol, lower-alpha) "."; }
 
 /* A tight list for enumerations that are not prose. */
@@ -483,6 +515,7 @@
 
 /* Definition lists: the right shape for terms, glossaries, and letter fields. */
 .typeset dl { margin: 0 0 var(--ts-space); }
+/* @style lists-definition-term */
 .typeset dt {
   text-align: left;
   font-weight: 600;
@@ -492,10 +525,12 @@
   break-after: avoid;
 }
 .typeset dt:first-child { margin-top: 0; }
+/* @style lists-definition-description */
 .typeset dd { margin: 0 0 0 calc(var(--ts-space) * 1.5); }
 /*! @e */
 
 /*! @s tables :: Tables */
+/* @style tables-table */
 .typeset table {
   width: 100%;
   border-collapse: collapse;
@@ -508,6 +543,7 @@
 
 /* Rules, not grids. Vertical rules are almost never needed — the columns
    already read as columns. */
+/* @style tables-cell */
 .typeset th,
 .typeset td {
   padding: 0.45em 0.7em 0.45em 0;
@@ -518,6 +554,7 @@
 .typeset th:last-child,
 .typeset td:last-child { padding-right: 0; }
 
+/* @style tables-header-cell */
 .typeset thead th {
   font-weight: 600;
   font-size: var(--ts-xs);
@@ -527,6 +564,7 @@
   border-bottom: 1pt solid var(--ts-rule-strong);
 }
 .typeset tbody tr:last-child td { border-bottom: 1pt solid var(--ts-rule-strong); }
+/* @style tables-footer-cell */
 .typeset tfoot td { font-weight: 600; border-bottom: 0; }
 
 /* Numbers align on their right edge. Units go in the header, not every cell. */
@@ -536,8 +574,10 @@
 /* Repeat the header on every page a long table spans. */
 .typeset thead { display: table-header-group; }
 .typeset tfoot { display: table-footer-group; }
+/* @style tables-row */
 .typeset tr { break-inside: avoid; }
 
+/* @style tables-caption */
 .typeset caption {
   caption-side: top;
   text-align: left;
@@ -566,6 +606,7 @@
 /*! @e */
 
 /*! @s codeblock :: Code blocks */
+/* @style codeblock */
 .typeset pre {
   font-family: var(--ts-mono);
   font-size: 8.5pt;
@@ -594,6 +635,7 @@
 /*! @e */
 
 /*! @s figures :: Figures & captions */
+/* @style figures-figure */
 .typeset figure {
   margin: calc(var(--ts-space) * 1.5) 0;
   break-inside: avoid;
@@ -604,6 +646,7 @@
   max-width: 100%;
   height: auto;
 }
+/* @style figures-caption */
 .typeset figcaption {
   text-align: left;
   font-family: var(--ts-sans);
@@ -638,6 +681,7 @@
    are unavailable this degrades to an endnotes block, which is why the notes
    live in the document rather than in a generated-content property. */
 @supports (float: footnote) {
+  /* @style letter-footnote — a letter's footnote is the document footnote mechanism: marker, float-footnote placement, and the endnotes fallback below. */
   .typeset .ts-notes-footnote {
     float: footnote;
     footnote-display: block;
@@ -1068,6 +1112,7 @@
    a figure and its unit, an initial and a surname. */
 .ts-utilities-tie { white-space: nowrap; }
 
+/* @style utilities-print-only */
 @media print {
   .ts-screen-only { display: none !important; }
 }
@@ -1076,6 +1121,7 @@
 }
 
 /* Force backgrounds and rules to survive the print dialog's ink-saving. */
+/* @style utilities-color-adjust */
 @media print {
   .typeset,
   .typeset * {
