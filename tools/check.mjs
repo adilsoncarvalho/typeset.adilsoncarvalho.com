@@ -299,10 +299,10 @@ for (const sec of spec.sections) {
    Not every element can carry a class. 73 of them are styled through a bare
    semantic selector (h1, strong, sub), and a few describe a rule rather than
    a selector at all: justification-exclusions says what is never justified,
-   numbering-h2 is counter-generated content with no element to mark. Rule 8
-   says a class is a name and a handle, not a requirement — so the gate checks
-   that the canonical name is *present where a reader editing that rule will
-   see it*, not that a class exists.
+   numbering-h2 is counter-generated content with no element to mark. A class
+   is a name and a handle, not a requirement — so the gate checks that the
+   canonical name is *present where a reader editing that rule will see it*,
+   not that a class exists.
 
    Both directions are checked: an element with neither class nor marker
    fails, and a class or marker naming no element fails. */
@@ -318,11 +318,16 @@ const INTERNAL_CLASSES = new Set([
 const specIds = new Set(
   spec.sections.flatMap((s) => s.elements.map((e) => e.id)));
 
-const cssClasses = new Set(
-  [...css.matchAll(/\.(ts-[a-z0-9-]+)/g)].map((m) => m[1]));
-
+/* Markers live inside comments, so they are read before comments are
+   stripped for the class extraction below — stripping first would silently
+   empty this set. */
 const styleMarkers = new Set(
-  [...css.matchAll(/\/\*\s*@style\s+([a-z0-9-]+)\s*\*\//g)].map((m) => m[1]));
+  [...css.matchAll(/\/\*\s*@style\s+([a-z0-9-]+)/g)].map((m) => m[1]));
+
+const cssNoComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
+
+const cssClasses = new Set(
+  [...cssNoComments.matchAll(/\.(ts-[a-z0-9-]+)/g)].map((m) => m[1]));
 
 const typSymbols = new Set(
   [...typ.matchAll(/^#let\s+([a-z0-9-]+)\s*[=(]/gm)].map((m) => m[1]));
@@ -346,10 +351,10 @@ for (const id of styleMarkers) {
 /* Typst covers a subset by design — many styles are show rules on native
    elements rather than exported functions. Only the styles a document has to
    call by name need a symbol; those are the ones carrying a CSS class that is
-   not a plain element alias. A missing one is a warning, not a failure, until
-   Group 2 pins the list down. */
+   not a plain element alias. A missing one is a warning, not a failure — the
+   list of styles that must expose a callable Typst symbol is not final. */
 for (const id of specIds) {
-  if (!typSymbols.has(id) && !typ.includes(`// @s ${id}`))
+  if (!typSymbols.has(id) && !new RegExp(`//\\s*@s\\s+${id}\\s*\\n`).test(typ))
     warn.push(`typeset.typ: no symbol or marker region named "${id}"`);
 }
 
