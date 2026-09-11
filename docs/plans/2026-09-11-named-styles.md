@@ -334,13 +334,51 @@ console.log(bad.length ? bad : "every id is <section-id> or <section-id>-<leaf>"
 
 Expected: `every id is <section-id> or <section-id>-<leaf>`.
 
-- [ ] **Step 3: Check nothing outside spec.json still says `figures-numeric`**
+- [ ] **Step 3: Land the section rename everywhere it is keyed, in this commit**
+
+A section id is a join key across six files. Renaming it in `spec.json` alone leaves the tree **unbuildable**, not merely inconsistent: `src/panels.mjs:122` throws `no section, template or foundation group "figures-numeric" in spec.json`, `tools/check.mjs:119` calls `buildAll()`, so `node tools/check.mjs` dies with a stack trace instead of reporting failures — and every task from here to Task 9 needs to run it. Verified by simulation before this plan was amended.
+
+So the section rename is atomic. Find every key:
 
 ```bash
-git grep -n 'figures-numeric' || echo "clean"
+git grep -n 'figures-numeric'
 ```
 
-Expected: hits in `src/sections.json`, `typeset.css`, `implementations/typeset.typ` and `src/demos/`. Note them — Tasks 5, 6 and 8 fix them. Do not fix them here.
+Fix all of them now:
+
+1. `src/sections.json` — the section's `"id"` and its `"panel": {"spec": …}`.
+2. `src/demos/figures-numeric.html` → rename the file:
+   ```bash
+   git mv src/demos/figures-numeric.html src/demos/numerals.html
+   ```
+3. `src/panels.mjs` — the `TYPST_ELSEWHERE` map keys on section ids:
+   ```js
+   const TYPST_ELSEWHERE = {
+     paragraphs: 'foundation',
+     justification: 'foundation',
+     numbering: 'headings',
+     'code-inline': 'codeblock',
+     links: 'inline',
+     numerals: 'foundation',
+   };
+   ```
+4. `typeset.css` — the marker comment. `renderPanel` looks the section up by this id and throws if it is absent:
+   ```
+   /*! @s figures-numeric :: Figures */   →   /*! @s numerals :: Numerals */
+   ```
+
+`implementations/typeset.typ` has no `@s figures-numeric` marker — confirm with `grep -n '@s ' implementations/typeset.typ` rather than assuming.
+
+- [ ] **Step 3b: Confirm the tree still builds**
+
+```bash
+node tools/build-site.mjs && echo "BUILD OK"
+git grep -n 'figures-numeric' || echo "no key left"
+```
+
+Expected: `BUILD OK` and `no key left`. A stack trace here means a key was missed — find it before going further, because every later task needs a runnable checker.
+
+The checker itself will still be red (the naming gate from Task 2, plus stale generated pages). That is expected. What must not happen is a crash.
 
 - [ ] **Step 4: Regenerate SPEC.md**
 
@@ -354,11 +392,16 @@ Expected: `SPEC.md` changes, and only in id-bearing lines.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add spec.json SPEC.md
+git add spec.json SPEC.md src/sections.json src/panels.mjs src/demos typeset.css
 git commit -m "feat(spec)!: normalise element ids to <section>-<leaf>
 
 Every style now has one canonical name. figures-numeric becomes numerals:
 it describes numerals, not figures, and collided with the figures section.
+
+A section id is a join key across spec.json, src/sections.json, the demo
+filename, src/panels.mjs and the typeset.css marker, so it moves in one
+commit — renaming it in spec.json alone makes tools/build-site.mjs throw,
+which takes the checker down with it.
 
 BREAKING CHANGE: 81 element ids change. See tools/rename-map.json."
 ```
@@ -921,30 +964,17 @@ git grep -nE 'ts-(sc|ps|frac|num|bare|lede|note|noteref|leader|label|titleblock|
 node tools/codemod-names.mjs specimen.css examples/preview-bar.js src/sections.json
 ```
 
-- [ ] **Step 3: Fix `src/sections.json` by hand where it names a section id**
+- [ ] **Step 3: Confirm the section rename is still complete**
 
-The `figures-numeric` section entry has `"id": "figures-numeric"` and `"panel": {"spec": "figures-numeric"}`. Both become `numerals`. Rename the demo file to match:
+Task 3 landed the `figures-numeric` → `numerals` rename across `spec.json`, `src/sections.json`, `src/demos/`, `src/panels.mjs` and `typeset.css`, because splitting it left the tree unbuildable. Nothing should remain:
 
 ```bash
-git mv src/demos/figures-numeric.html src/demos/numerals.html
+git grep -n 'figures-numeric' || echo "no key left"
 ```
 
-- [ ] **Step 4: Update the `TYPST_ELSEWHERE` map in `src/panels.mjs`**
+Expected: `no key left`. A hit here is a key Task 3 missed.
 
-It keys on section ids, two of which have moved:
-
-```js
-const TYPST_ELSEWHERE = {
-  paragraphs: 'foundation',
-  justification: 'foundation',
-  numbering: 'headings',
-  'code-inline': 'codeblock',
-  links: 'inline',
-  numerals: 'foundation',      // was 'figures-numeric'
-};
-```
-
-- [ ] **Step 5: Update the README file table**
+- [ ] **Step 4: Update the README file table**
 
 `README.md` describes the site's marker contract and the `src/demos/*.html` convention. Check the two lines naming `figures-numeric` and any prose naming an old class. Grep for the claim's subject, not just the line you spot:
 
@@ -952,11 +982,11 @@ const TYPST_ELSEWHERE = {
 grep -n 'figures-numeric\|ts-' README.md
 ```
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add specimen.css examples/preview-bar.js src/sections.json src/panels.mjs src/demos README.md
-git commit -m "refactor: migrate the page furniture and tooling to the new names"
+git add specimen.css examples/preview-bar.js README.md
+git commit -m "refactor: migrate the page furniture to the new names"
 ```
 
 ---
