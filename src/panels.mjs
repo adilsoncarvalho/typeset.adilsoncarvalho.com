@@ -1,5 +1,9 @@
-/* Renders the Spec / HTML / Typst panel for one section, at build time.
-   Ported from the browser code it replaces: same output, no fetch, no runtime. */
+/* Renders the Spec / HTML-or-CSS / Typst panel for one section, at build
+   time. Ported from the browser code it replaces: same output, no fetch,
+   no runtime. The second pane is HTML — the markup that produces the
+   example — for every section except tokens, foundation and page, which
+   state values rather than demonstrate a document and get the CSS that
+   sets those values instead; src/sections.json declares which. */
 
 import { byLang, esc } from './highlight.mjs';
 
@@ -162,7 +166,16 @@ function htmlPane(fragments, cssKeys, cssLines) {
   return `<div class="codewrap">${head}${body}${copy}</div>`;
 }
 
-export function renderPanel({ spec, cssLines, typMap, specIds, cssKeys, id, fragments }) {
+/* Renders the CSS source for a section that states values rather than
+   demonstrating a document — tokens, foundation and page — where there is
+   no markup for a reader to copy and the values themselves are the thing
+   on show. */
+function cssPane(cssKeys, cssMap) {
+  const source = cssKeys.map((k) => cssMap.get(k)).join('\n\n');
+  return codePane(source, 'css');
+}
+
+export function renderPanel({ spec, cssLines, cssMap, typMap, specIds, cssKeys, id, fragments, pane }) {
   const missing = cssKeys.filter((k) => !cssLines.has(k));
   if (missing.length) throw new Error(`typeset.css has no section marker for ${missing.join(', ')}`);
 
@@ -177,6 +190,9 @@ export function renderPanel({ spec, cssLines, typMap, specIds, cssKeys, id, frag
       : codePane('', 'typst', NO_TYPST);
   }
 
+  const secondPane = pane === 'css' ? cssPane(cssKeys, cssMap) : htmlPane(fragments, cssKeys, cssLines);
+  const secondLabel = pane === 'css' ? 'CSS' : 'HTML';
+
   /* Tabs are radio inputs so the panel works with no JavaScript at all. The
      pane shown is selected by sibling position, which is why the three panes
      must be the only <div> children here — see .tabs in specimen.css. */
@@ -185,13 +201,13 @@ export function renderPanel({ spec, cssLines, typMap, specIds, cssKeys, id, frag
   <div class="tabs">
     <input type="radio" name="${n}" id="${n}-spec" checked>
     <label for="${n}-spec">Spec</label>
-    <input type="radio" name="${n}" id="${n}-html">
-    <label for="${n}-html">HTML</label>
+    <input type="radio" name="${n}" id="${n}-second">
+    <label for="${n}-second">${secondLabel}</label>
     <input type="radio" name="${n}" id="${n}-typst">
     <label for="${n}-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec">${renderSpec(spec, specIds)}</div></div>
-    <div class="tabs__pane">${htmlPane(fragments, cssKeys, cssLines)}</div>
+    <div class="tabs__pane">${secondPane}</div>
     <div class="tabs__pane">${typstPane}</div>
   </div>
 </div>`;

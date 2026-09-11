@@ -133,12 +133,14 @@ for (const f of readdirSync('src/demos')) {
    characters inside an element's own text content: both would parse that
    the same wrong way and agree with each other. */
 
-function findMatchingDivClose(source, from) {
+function findMatchingClose(source, from, tag = 'div') {
+  const openNeedle = `<${tag}`;
+  const closeNeedle = `</${tag}>`;
   let depth = 1;
   let i = from;
   while (i < source.length) {
-    const open = source.indexOf('<div', i);
-    const close = source.indexOf('</div>', i);
+    const open = source.indexOf(openNeedle, i);
+    const close = source.indexOf(closeNeedle, i);
     if (close === -1) return -1;
     if (open !== -1 && open < close) {
       depth += 1;
@@ -146,16 +148,81 @@ function findMatchingDivClose(source, from) {
     } else {
       depth -= 1;
       if (depth === 0) return close;
-      i = close + '</div>'.length;
+      i = close + closeNeedle.length;
     }
   }
   return -1;
 }
 
+function findMatchingDivClose(source, from) {
+  return findMatchingClose(source, from, 'div');
+}
+
+/* Splits a tag's own class attribute into its space-separated tokens, the
+   same way extract.mjs's classesOf() does — but written again here rather
+   than imported, so a mistake in either one's parsing surfaces as a
+   mismatch instead of being invisible to both. */
+function classTokens(openTag) {
+  const m = openTag.match(/class="([^"]*)"/);
+  return m ? m[1].split(/\s+/).filter(Boolean) : [];
+}
+
+function carriesModifier(openTag) {
+  return classTokens(openTag).some((c) => c !== 'paper' && c !== 'typeset');
+}
+
+const TAG_OPEN_RE = /<([a-z][a-z0-9]*)\b([^>]*)>/g;
+
+/* Walks forward from `from` (bounded by `to`) for the first descendant tag
+   whose class list carries the literal token "typeset" — the same target
+   extract.mjs's own resolveTarget() descends to for two-column and
+   notes.fullrow, found here independently. */
+function findTypesetTag(source, from, to) {
+  TAG_OPEN_RE.lastIndex = from;
+  let m;
+  while ((m = TAG_OPEN_RE.exec(source)) !== null && m.index < to) {
+    if (classTokens(m[0]).includes('typeset')) {
+      return { tag: m[1], openTag: m[0], contentStart: TAG_OPEN_RE.lastIndex };
+    }
+  }
+  return null;
+}
+
+/* Makes the same "which element, and does it carry a modifier" decision
+   extract.mjs's resolveTarget() makes, independently, and reduces it to the
+   span the round trip below needs: "inner", the wrapper's untouched inner
+   markup, or "container", the whole target element — open tag through
+   close tag — that extractDemos() returns with "paper" dropped wherever
+   the element carries a class beyond "paper" and "typeset". */
+function resolveSpan(source, wrapperOpenTag, contentStart, closeIndex) {
+  let el = classTokens(wrapperOpenTag).includes('typeset')
+    ? { tag: 'div', openTag: wrapperOpenTag, contentStart, closeIndex }
+    : null;
+
+  if (!el) {
+    const found = findTypesetTag(source, contentStart, closeIndex);
+    const innerClose = found && findMatchingClose(source, found.contentStart, found.tag);
+    el = (found && innerClose !== -1)
+      ? { tag: found.tag, openTag: found.openTag, contentStart: found.contentStart, closeIndex: innerClose }
+      : { tag: 'div', openTag: wrapperOpenTag, contentStart, closeIndex };
+  }
+
+  if (!carriesModifier(el.openTag)) {
+    return { kind: 'inner', contentStart: el.contentStart, closeIndex: el.closeIndex };
+  }
+  return {
+    kind: 'container',
+    tag: el.tag,
+    hadPaper: classTokens(el.openTag).includes('paper'),
+    openStart: el.contentStart - el.openTag.length,
+    closeIndex: el.closeIndex,
+  };
+}
+
 /* Finds the same label → note → wrapper triples extract.mjs finds, but
-   returns the raw span of each wrapper's inner content instead of processed
-   output, so extractDemos()'s html can be spliced back into an otherwise
-   untouched copy of the file. */
+   returns the raw span each fragment must round-trip against instead of
+   processed output, so extractDemos()'s html can be spliced back into an
+   otherwise untouched copy of the file. */
 function locateWrapperContents(source) {
   const spans = [];
   let i = 0;
@@ -171,12 +238,13 @@ function locateWrapperContents(source) {
 
     const wrapperMatch = source.slice(cursor).match(/^\s*<div\b[^>]*>/);
     if (!wrapperMatch) { i = labelClose; continue; }
+    const wrapperOpenTag = wrapperMatch[0].replace(/^\s*/, '');
     const contentStart = cursor + wrapperMatch[0].length;
 
     const closeIndex = findMatchingDivClose(source, contentStart);
     if (closeIndex === -1) { i = labelClose; continue; }
 
-    spans.push({ contentStart, closeIndex });
+    spans.push(resolveSpan(source, wrapperOpenTag, contentStart, closeIndex));
     i = closeIndex + '</div>'.length;
   }
   return spans;
@@ -231,6 +299,23 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
     continue;
   }
 
+  /* A pane exists to show what a wrapper's own class demonstrates, so two
+     labelled examples in the same file must not extract byte-identical
+     markup — that would mean the wrapper carries nothing that tells them
+     apart, and the pane would show the same fragment under two different
+     labels (see the "justification" demo before this file's own gate). */
+  const seenHtml = new Map();
+  for (const demo of demos) {
+    const label = demo.label ?? '(unlabelled)';
+    const dupeOf = seenHtml.get(demo.html);
+    if (dupeOf !== undefined) {
+      fail.push(`${demoPath}: "${dupeOf}" and "${label}" extract byte-identical markup — `
+        + 'the pane cannot demonstrate a difference that is not there');
+    } else {
+      seenHtml.set(demo.html, label);
+    }
+  }
+
   /* The round-trip below and dedent()/reindent() share preLineMask(): if the
      mask ever wrongly marked a <pre> line as ordinary, dedent would strip
      it, reindent would pad it back by the same amount, and the round-trip
@@ -263,13 +348,35 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
   let rebuilt = '';
   let cursor = 0;
   for (let k = 0; k < spans.length; k += 1) {
-    const { contentStart, closeIndex } = spans[k];
-    const originalContent = original.slice(contentStart, closeIndex);
-    const indent = commonIndent(originalContent);
-    const trailing = originalContent.slice(originalContent.lastIndexOf('\n') + 1);
-    rebuilt += original.slice(cursor, contentStart)
-      + `\n${reindent(demos[k].html, indent)}\n${trailing}`;
-    cursor = closeIndex;
+    const span = spans[k];
+    if (span.kind === 'inner') {
+      const { contentStart, closeIndex } = span;
+      const originalContent = original.slice(contentStart, closeIndex);
+      const indent = commonIndent(originalContent);
+      const trailing = originalContent.slice(originalContent.lastIndexOf('\n') + 1);
+      rebuilt += original.slice(cursor, contentStart)
+        + `\n${reindent(demos[k].html, indent)}\n${trailing}`;
+      cursor = closeIndex;
+    } else {
+      /* A "container" fragment is the whole target element, with "paper"
+         dropped from its class attribute where it carried that class at
+         all — two-column and notes.fullrow descend to an <article> that
+         never did. Reversing the drop means padding every line back out
+         to the element's true source indentation — found the same way
+         extract.mjs finds it, as the run of spaces and tabs immediately
+         before the tag — and putting "paper" back as the first class
+         token wherever it was there to begin with. */
+      const { tag, hadPaper, openStart, closeIndex } = span;
+      const closeTagEnd = closeIndex + `</${tag}>`.length;
+      let ws = openStart;
+      while (ws > 0 && (original[ws - 1] === ' ' || original[ws - 1] === '\t')) ws -= 1;
+      const indent = commonIndent(original.slice(ws, closeTagEnd));
+      const withPaper = hadPaper
+        ? demos[k].html.replace(/class="([^"]*)"/, (_, cls) => `class="paper ${cls}"`)
+        : demos[k].html;
+      rebuilt += original.slice(cursor, ws) + reindent(withPaper, indent);
+      cursor = closeTagEnd;
+    }
   }
   rebuilt += original.slice(cursor);
 

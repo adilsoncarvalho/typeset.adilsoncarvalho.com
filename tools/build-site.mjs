@@ -46,6 +46,13 @@ function markers(source, re, group) {
 const typMap = markers(read('implementations/typeset.typ'),
   /\/\/\s*@s\s+([a-z0-9-]+)\s*\n([\s\S]*?)\/\/\s*@e/g, 2);
 
+/* Full CSS source per "@s" region, for the sections whose panel.pane in
+   sections.json is "css" rather than "html" — they state values rather
+   than demonstrate a document, so there is no markup for a reader to copy
+   and the values themselves are the thing on show. */
+const cssMap = markers(read('typeset.css'),
+  /\/\*!\s*@s\s+([a-z0-9-]+)\s*::[^\n]*\*\/\n([\s\S]*?)\/\*!\s*@e\s*\*\//g, 2);
+
 /* The 1-based source line each "@s" marker starts at, for linking a section's
    HTML pane back to its region in files/typeset-css.html — which anchors
    every line with id="L<n>" (see lineNumbered() below). Read from the file
@@ -120,8 +127,9 @@ function section(s, index) {
      copies, where whitespace is part of what gets copied, and prefixing
      every line would corrupt it. */
   const panel = renderPanel({
-    spec, cssLines, typMap, id: s.id,
+    spec, cssLines, cssMap, typMap, id: s.id,
     specIds: s.panel.spec,
+    pane: s.panel.pane,
     cssKeys: (s.panel.css || s.panel.spec).split(',').map((k) => k.trim()),
     fragments: extractDemos(demoSource),
   });
