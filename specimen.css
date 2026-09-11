@@ -210,6 +210,11 @@ a { color: inherit; }
   margin-bottom: 0.5rem;
 }
 
+/* A section that stacks several examples needs air between them. The first
+   label opens the column and takes no such gap, so the selector carries the
+   rule and no example has to mark itself. */
+.pair__label:not(:first-child) { margin-top: 1.5rem; }
+
 /* The paper. Always light — a print sample that adapts to dark mode is a lie. */
 .paper {
   background: #fffefb;
