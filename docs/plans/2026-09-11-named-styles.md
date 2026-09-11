@@ -863,9 +863,18 @@ The header comment names the old symbols:
 It must name the new ones, and it must be true — import exactly what the examples import:
 
 ```typst
-//   #import "typeset.typ": typeset, letter-page, quotes-epigraph, quotes-pullquote,
-//                          callouts-callout, breaks-asterisks
+//   #import "typeset.typ": (
+//     typeset, letter-page, quotes-epigraph, quotes-pullquote,
+//     callouts-callout, breaks-asterisks,
+//   )
 ```
+
+**The parentheses are load-bearing.** A bare `#import "...": a, b,` list does not
+continue onto a second line. Without them the import succeeds silently, drops
+every name after the first line, and fails much later at the call site as
+`unknown variable` with a "did you mean subtraction" hint. Compile the snippet
+in a scratch file before trusting it — reading it is not enough, because the
+broken form parses.
 
 - [ ] **Step 4b: Confirm no call site was missed**
 
