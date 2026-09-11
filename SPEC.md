@@ -830,7 +830,7 @@ Default: `single-column`
 
 #### Numerals
 
-`figures-numeric`
+`numerals`
 
 - Three kinds, three jobs. Getting this wrong is the most visible amateur tell in a set document, and it is one setting.
 - Old-style figures have ascenders and descenders and sit inside the x-height. Lining figures are uniform cap height. Tabular figures share one advance width, which is the only reason a column of numbers can align.

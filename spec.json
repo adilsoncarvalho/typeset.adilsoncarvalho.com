@@ -194,7 +194,7 @@
       ],
       "elements": [
         {
-          "id": "h1",
+          "id": "headings-h1",
           "name": "Heading 1 — document title",
           "properties": {
             "font": "sans",
@@ -213,7 +213,7 @@
           }
         },
         {
-          "id": "h2",
+          "id": "headings-h2",
           "name": "Heading 2 — section",
           "properties": {
             "font": "sans",
@@ -233,7 +233,7 @@
           }
         },
         {
-          "id": "h3",
+          "id": "headings-h3",
           "name": "Heading 3 — subsection",
           "properties": {
             "font": "sans",
@@ -249,7 +249,7 @@
           }
         },
         {
-          "id": "h4",
+          "id": "headings-h4",
           "name": "Heading 4",
           "properties": {
             "font": "sans",
@@ -265,7 +265,7 @@
           }
         },
         {
-          "id": "h5",
+          "id": "headings-h5",
           "name": "Heading 5",
           "properties": {
             "font": "serif",
@@ -283,7 +283,7 @@
           ]
         },
         {
-          "id": "h6",
+          "id": "headings-h6",
           "name": "Heading 6",
           "properties": {
             "font": "serif",
@@ -297,7 +297,7 @@
           }
         },
         {
-          "id": "heading-run-in",
+          "id": "headings-run-in",
           "name": "Run-in heading",
           "properties": {
             "display": "inline with the first line of its paragraph",
@@ -323,7 +323,7 @@
       ],
       "elements": [
         {
-          "id": "number-h2",
+          "id": "numbering-h2",
           "name": "Level-2 number",
           "properties": {
             "format": "1",
@@ -334,7 +334,7 @@
           }
         },
         {
-          "id": "number-h3",
+          "id": "numbering-h3",
           "name": "Level-3 number",
           "properties": {
             "format": "1.1",
@@ -355,7 +355,7 @@
       ],
       "elements": [
         {
-          "id": "paragraph",
+          "id": "paragraphs-spaced",
           "name": "Paragraph — spaced (default)",
           "properties": {
             "font": "serif",
@@ -373,7 +373,7 @@
           }
         },
         {
-          "id": "paragraph-indented",
+          "id": "paragraphs-indented",
           "name": "Paragraph — indented",
           "opt_in": "typeset--indented",
           "properties": {
@@ -404,7 +404,7 @@
       ],
       "elements": [
         {
-          "id": "ragged-prose",
+          "id": "justification-ragged",
           "name": "Ragged right (default)",
           "opt_in": "typeset--ragged — names the default; no class needed to get it",
           "properties": {
@@ -426,7 +426,7 @@
           ]
         },
         {
-          "id": "justified-prose",
+          "id": "justification-justified",
           "name": "Justified",
           "properties": {
             "align": "justify",
@@ -447,7 +447,7 @@
           }
         },
         {
-          "id": "justified-exclusions",
+          "id": "justification-exclusions",
           "name": "Never justified",
           "properties": {
             "align": "left",
@@ -532,7 +532,7 @@
       ],
       "elements": [
         {
-          "id": "strong",
+          "id": "inline-strong",
           "name": "Bold",
           "properties": {
             "weight": 600
@@ -542,7 +542,7 @@
           ]
         },
         {
-          "id": "emphasis",
+          "id": "inline-emphasis",
           "name": "Italic",
           "properties": {
             "style": "italic"
@@ -552,14 +552,14 @@
           ]
         },
         {
-          "id": "emphasis-nested",
+          "id": "inline-emphasis-nested",
           "name": "Nested italic",
           "properties": {
             "style": "normal"
           }
         },
         {
-          "id": "small-caps",
+          "id": "inline-small-caps",
           "name": "Small caps",
           "properties": {
             "variant": "all small caps",
@@ -571,7 +571,7 @@
           ]
         },
         {
-          "id": "abbr",
+          "id": "inline-abbr",
           "name": "Abbreviation",
           "properties": {
             "variant": "all small caps",
@@ -581,7 +581,7 @@
           }
         },
         {
-          "id": "superscript",
+          "id": "inline-superscript",
           "name": "Superscript",
           "properties": {
             "size": "0.72em",
@@ -591,7 +591,7 @@
           }
         },
         {
-          "id": "subscript",
+          "id": "inline-subscript",
           "name": "Subscript",
           "properties": {
             "size": "0.72em",
@@ -601,7 +601,7 @@
           }
         },
         {
-          "id": "deleted",
+          "id": "inline-deleted",
           "name": "Deletion",
           "properties": {
             "decoration": "line-through",
@@ -609,7 +609,7 @@
           }
         },
         {
-          "id": "inserted",
+          "id": "inline-inserted",
           "name": "Insertion",
           "properties": {
             "decoration": "underline",
@@ -617,7 +617,7 @@
           }
         },
         {
-          "id": "highlight",
+          "id": "inline-highlight",
           "name": "Highlight",
           "properties": {
             "background": "wash",
@@ -625,7 +625,7 @@
           }
         },
         {
-          "id": "kbd",
+          "id": "inline-kbd",
           "name": "Key",
           "properties": {
             "font": "sans",
@@ -671,7 +671,7 @@
       ],
       "elements": [
         {
-          "id": "link",
+          "id": "links-link",
           "name": "Link",
           "properties": {
             "color": "inherit",
@@ -682,7 +682,7 @@
           }
         },
         {
-          "id": "link-print-url",
+          "id": "links-print-url",
           "name": "Printed URL",
           "properties": {
             "content": "the href in parentheses, after the link text",
@@ -701,7 +701,7 @@
       ]
     },
     {
-      "id": "figures-numeric",
+      "id": "numerals",
       "title": "Numerals",
       "group": "Prose",
       "principles": [
@@ -750,7 +750,7 @@
       ],
       "elements": [
         {
-          "id": "blockquote",
+          "id": "quotes-blockquote",
           "name": "Block quote",
           "properties": {
             "font": "serif",
@@ -766,7 +766,7 @@
           }
         },
         {
-          "id": "attribution",
+          "id": "quotes-attribution",
           "name": "Attribution",
           "properties": {
             "display": "block",
@@ -779,7 +779,7 @@
           }
         },
         {
-          "id": "epigraph",
+          "id": "quotes-epigraph",
           "name": "Epigraph",
           "properties": {
             "font": "serif",
@@ -797,7 +797,7 @@
           ]
         },
         {
-          "id": "pullquote",
+          "id": "quotes-pullquote",
           "name": "Pull quote",
           "properties": {
             "font": "sans",
@@ -815,7 +815,7 @@
           }
         },
         {
-          "id": "verse",
+          "id": "quotes-verse",
           "name": "Verse",
           "properties": {
             "font": "serif",
@@ -844,7 +844,7 @@
       ],
       "elements": [
         {
-          "id": "list-unordered",
+          "id": "lists-unordered",
           "name": "Unordered list",
           "properties": {
             "marker": "·",
@@ -857,7 +857,7 @@
           }
         },
         {
-          "id": "list-unordered-nested",
+          "id": "lists-unordered-nested",
           "name": "Unordered list, nested",
           "properties": {
             "marker": "–",
@@ -866,7 +866,7 @@
           }
         },
         {
-          "id": "list-ordered",
+          "id": "lists-ordered",
           "name": "Ordered list",
           "properties": {
             "marker": "1.",
@@ -881,14 +881,14 @@
           ]
         },
         {
-          "id": "list-ordered-nested",
+          "id": "lists-ordered-nested",
           "name": "Ordered list, nested",
           "properties": {
             "marker": "a."
           }
         },
         {
-          "id": "list-tight",
+          "id": "lists-tight",
           "name": "Tight list",
           "opt_in": "ts-list-tight",
           "properties": {
@@ -899,7 +899,7 @@
           ]
         },
         {
-          "id": "definition-term",
+          "id": "lists-definition-term",
           "name": "Definition term",
           "properties": {
             "font": "sans",
@@ -912,7 +912,7 @@
           }
         },
         {
-          "id": "definition-description",
+          "id": "lists-definition-description",
           "name": "Definition description",
           "properties": {
             "font": "serif",
@@ -936,7 +936,7 @@
       ],
       "elements": [
         {
-          "id": "table",
+          "id": "tables-table",
           "name": "Table",
           "properties": {
             "font": "sans",
@@ -950,7 +950,7 @@
           }
         },
         {
-          "id": "table-header-cell",
+          "id": "tables-header-cell",
           "name": "Header cell",
           "properties": {
             "font": "sans",
@@ -966,7 +966,7 @@
           }
         },
         {
-          "id": "table-cell",
+          "id": "tables-cell",
           "name": "Body cell",
           "properties": {
             "align": "left",
@@ -977,7 +977,7 @@
           }
         },
         {
-          "id": "table-cell-numeric",
+          "id": "tables-cell-numeric",
           "name": "Numeric cell",
           "properties": {
             "align": "right",
@@ -985,7 +985,7 @@
           }
         },
         {
-          "id": "table-footer-cell",
+          "id": "tables-footer-cell",
           "name": "Footer cell",
           "properties": {
             "weight": 600,
@@ -993,7 +993,7 @@
           }
         },
         {
-          "id": "table-caption",
+          "id": "tables-caption",
           "name": "Caption",
           "properties": {
             "position": "above the table",
@@ -1007,14 +1007,14 @@
           }
         },
         {
-          "id": "table-row",
+          "id": "tables-row",
           "name": "Row",
           "properties": {
             "break_inside": "avoid"
           }
         },
         {
-          "id": "table-zebra",
+          "id": "tables-zebra",
           "name": "Zebra striping",
           "opt_in": "ts-table-zebra",
           "properties": {
@@ -1065,7 +1065,7 @@
       ],
       "elements": [
         {
-          "id": "figure",
+          "id": "figures-figure",
           "name": "Figure",
           "properties": {
             "space_before": "16.5pt",
@@ -1075,7 +1075,7 @@
           }
         },
         {
-          "id": "figure-caption",
+          "id": "figures-caption",
           "name": "Figure caption",
           "properties": {
             "position": "below the figure",
@@ -1102,7 +1102,7 @@
       ],
       "elements": [
         {
-          "id": "callout",
+          "id": "callouts-callout",
           "name": "Callout",
           "properties": {
             "font": "serif",
@@ -1117,7 +1117,7 @@
           }
         },
         {
-          "id": "callout-title",
+          "id": "callouts-title",
           "name": "Callout title",
           "properties": {
             "font": "sans",
@@ -1130,7 +1130,7 @@
           }
         },
         {
-          "id": "callout-warning",
+          "id": "callouts-warning",
           "name": "Callout — warning",
           "properties": {
             "border_left": "2.5pt accent",
@@ -1149,7 +1149,7 @@
       ],
       "elements": [
         {
-          "id": "break-asterisks",
+          "id": "breaks-asterisks",
           "name": "Break — three asterisks",
           "properties": {
             "content": "* * *",
@@ -1166,7 +1166,7 @@
           ]
         },
         {
-          "id": "break-asterism",
+          "id": "breaks-asterism",
           "name": "Break — asterism",
           "properties": {
             "content": "⁂",
@@ -1179,7 +1179,7 @@
           ]
         },
         {
-          "id": "break-fleuron",
+          "id": "breaks-fleuron",
           "name": "Break — fleuron",
           "properties": {
             "content": "❦",
@@ -1192,7 +1192,7 @@
           ]
         },
         {
-          "id": "break-rule",
+          "id": "breaks-rule",
           "name": "Break — rule",
           "properties": {
             "border_top": "0.5pt rule",
@@ -1216,7 +1216,7 @@
       ],
       "elements": [
         {
-          "id": "note-marker",
+          "id": "notes-marker",
           "name": "Reference mark",
           "properties": {
             "content": "the note number",
@@ -1231,7 +1231,7 @@
           }
         },
         {
-          "id": "footnote",
+          "id": "notes-footnote",
           "name": "Footnote",
           "properties": {
             "position": "foot of the page carrying the mark",
@@ -1243,7 +1243,7 @@
           "fallback": "an endnotes block at the end of the document"
         },
         {
-          "id": "endnotes",
+          "id": "notes-endnotes",
           "name": "Endnotes block",
           "properties": {
             "font": "serif",
@@ -1262,7 +1262,7 @@
           ]
         },
         {
-          "id": "sidenote",
+          "id": "notes-sidenote",
           "name": "Sidenote",
           "opt_in": "typeset--sidenotes",
           "properties": {
@@ -1353,7 +1353,7 @@
       ],
       "elements": [
         {
-          "id": "title-block",
+          "id": "frontmatter-title-block",
           "name": "Title block",
           "properties": {
             "space_after": "33pt",
@@ -1362,7 +1362,7 @@
           }
         },
         {
-          "id": "subtitle",
+          "id": "frontmatter-subtitle",
           "name": "Subtitle",
           "properties": {
             "font": "sans",
@@ -1376,7 +1376,7 @@
           }
         },
         {
-          "id": "byline",
+          "id": "frontmatter-byline",
           "name": "Byline",
           "properties": {
             "font": "serif",
@@ -1388,7 +1388,7 @@
           }
         },
         {
-          "id": "dateline",
+          "id": "frontmatter-dateline",
           "name": "Dateline",
           "properties": {
             "font": "sans",
@@ -1399,7 +1399,7 @@
           }
         },
         {
-          "id": "abstract",
+          "id": "frontmatter-abstract",
           "name": "Abstract",
           "properties": {
             "font": "serif",
@@ -1413,7 +1413,7 @@
           }
         },
         {
-          "id": "colophon",
+          "id": "frontmatter-colophon",
           "name": "Colophon",
           "properties": {
             "font": "serif",
@@ -1458,7 +1458,7 @@
           ]
         },
         {
-          "id": "letterhead",
+          "id": "letter-sender",
           "name": "Sender block",
           "properties": {
             "font": "serif",
@@ -1476,7 +1476,7 @@
           ]
         },
         {
-          "id": "address-block",
+          "id": "letter-address-block",
           "name": "Address block",
           "properties": {
             "font": "serif",
@@ -1499,7 +1499,7 @@
           }
         },
         {
-          "id": "date-note",
+          "id": "letter-date-note",
           "name": "Line under the date",
           "properties": {
             "font": "serif",
@@ -1515,7 +1515,7 @@
           ]
         },
         {
-          "id": "salutation",
+          "id": "letter-salutation",
           "name": "Salutation",
           "properties": {
             "align": "left",
@@ -1523,7 +1523,7 @@
           }
         },
         {
-          "id": "closing",
+          "id": "letter-closing",
           "name": "Closing",
           "properties": {
             "align": "left",
@@ -1531,7 +1531,7 @@
           }
         },
         {
-          "id": "signature",
+          "id": "letter-signature",
           "name": "Signature block",
           "properties": {
             "font": "serif",
@@ -1547,7 +1547,7 @@
           ]
         },
         {
-          "id": "enclosures",
+          "id": "letter-enclosures",
           "name": "Enclosures",
           "properties": {
             "font": "serif",
@@ -1561,7 +1561,7 @@
           ]
         },
         {
-          "id": "postscript",
+          "id": "letter-postscript",
           "name": "Postscript",
           "properties": {
             "font": "serif",
@@ -1598,7 +1598,7 @@
       ],
       "elements": [
         {
-          "id": "util-break-before",
+          "id": "utilities-break-before",
           "name": "Break before",
           "properties": {
             "effect": "start this element on a new page"
@@ -1608,14 +1608,14 @@
           ]
         },
         {
-          "id": "util-break-after",
+          "id": "utilities-break-after",
           "name": "Break after",
           "properties": {
             "effect": "start the next element on a new page"
           }
         },
         {
-          "id": "util-keep-together",
+          "id": "utilities-keep-together",
           "name": "Keep together",
           "properties": {
             "effect": "never split this element across pages"
@@ -1625,14 +1625,14 @@
           ]
         },
         {
-          "id": "util-no-hyphens",
+          "id": "utilities-no-hyphens",
           "name": "No hyphenation",
           "properties": {
             "hyphenation": "manual"
           }
         },
         {
-          "id": "util-tie",
+          "id": "utilities-tie",
           "name": "Tie",
           "properties": {
             "effect": "no line break inside"
@@ -1642,7 +1642,7 @@
           ]
         },
         {
-          "id": "util-print-only",
+          "id": "utilities-print-only",
           "name": "Print only / screen only",
           "properties": {
             "effect": "present in one medium, absent in the other"
@@ -1652,7 +1652,7 @@
           ]
         },
         {
-          "id": "util-color-adjust",
+          "id": "utilities-color-adjust",
           "name": "Exact colour",
           "properties": {
             "effect": "backgrounds and rules survive the output device's ink-saving"

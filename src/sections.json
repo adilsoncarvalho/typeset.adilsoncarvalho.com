@@ -135,7 +135,7 @@
     }
   },
   {
-    "id": "figures-numeric",
+    "id": "numerals",
     "group": "Prose",
     "title": "Numerals",
     "prose": [
@@ -143,7 +143,7 @@
       "<p>Getting this wrong is the most visible amateur tell in a set document — and in every engine it is one setting.</p>"
     ],
     "panel": {
-      "spec": "figures-numeric"
+      "spec": "numerals"
     }
   },
   {

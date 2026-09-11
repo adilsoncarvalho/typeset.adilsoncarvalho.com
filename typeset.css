@@ -363,7 +363,7 @@
 }
 /*! @e */
 
-/*! @s figures-numeric :: Figures */
+/*! @s numerals :: Numerals */
 /* Old-style figures sit in the x-height and belong in running prose.
    Lining figures are uniform-height and belong in headings and tables.
    Tabular figures share one advance width so columns align. */
