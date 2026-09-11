@@ -1100,7 +1100,6 @@ Default: `single-column`
 | size | `9.5pt` |
 | color | `ink` |
 | space after | `0.5em` |
-| label | small caps, weight 600, tracking 0.06em |
 | max width | `none` |
 
 ##### Row
@@ -1178,7 +1177,6 @@ Default: `single-column`
 | space before | `0.5em` |
 | border top | `0.5pt rule` |
 | padding top | `0.4em` |
-| label | small caps, weight 600, colour ink, tracking 0.06em |
 
 ##### Figure caption label
 
@@ -1188,8 +1186,6 @@ Default: `single-column`
 | color | `ink` |
 | caps | `all small caps` |
 | tracking | `0.06em` |
-
-> Carries the cross-reference target: a mention in the text points at this, so it must be the thing a reader scans for.
 
 #### Callouts
 
@@ -1373,8 +1369,6 @@ Where unsupported: an endnotes block at the end of the document
 | align | `left` |
 | space after | `0.35em` |
 | decoration | `none` |
-| leader | dotted 0.5pt rule, colour rule, filling the space between title and number |
-| leader baseline offset | `-0.15em` |
 | page number | `resolved after pagination` |
 | page number numerals | `lining tabular` |
 | page number color | `ink_muted` |
@@ -1391,10 +1385,8 @@ Where unsupported: leaders render, page numbers are omitted
 
 | Property | Value |
 | --- | --- |
-| content | `dotted 0.5pt rule` |
-| color | `rule` |
+| leader | dotted 0.5pt rule, colour rule, filling the space between title and number |
 | baseline offset | `-0.15em` |
-| fills | the space between the title and the page number |
 
 #### Bibliography
 
@@ -1477,7 +1469,6 @@ Where unsupported: leaders render, page numbers are omitted
 | align | `left` |
 | max width | `30em` |
 | space after | `22pt` |
-| label | ABSTRACT — sans, 700, 8pt, uppercase, tracking 0.1em, colour ink_faint, on its own line |
 
 ##### Colophon
 
@@ -1498,6 +1489,7 @@ Where unsupported: leaders render, page numbers are omitted
 
 | Property | Value |
 | --- | --- |
+| display | `block` |
 | font | `sans` |
 | size | `xs` |
 | weight | `700` |
@@ -1556,7 +1548,6 @@ Where unsupported: leaders render, page numbers are omitted
 | align | `left` |
 | line breaks | `as authored` |
 | space after | `16.5pt` |
-| label | sans, 8pt, uppercase, tracking 0.1em, colour ink_faint, on its own line |
 
 ##### Date line
 

@@ -1012,7 +1012,6 @@
             "size": "9.5pt",
             "color": "ink",
             "space_after": "0.5em",
-            "label": "small caps, weight 600, tracking 0.06em",
             "max_width": "none"
           }
         },
@@ -1105,8 +1104,7 @@
             "align": "left",
             "space_before": "0.5em",
             "border_top": "0.5pt rule",
-            "padding_top": "0.4em",
-            "label": "small caps, weight 600, colour ink, tracking 0.06em"
+            "padding_top": "0.4em"
           }
         },
         {
@@ -1117,10 +1115,7 @@
             "color": "ink",
             "caps": "all small caps",
             "tracking": "0.06em"
-          },
-          "notes": [
-            "Carries the cross-reference target: a mention in the text points at this, so it must be the thing a reader scans for."
-          ]
+          }
         }
       ]
     },
@@ -1334,8 +1329,6 @@
             "align": "left",
             "space_after": "0.35em",
             "decoration": "none",
-            "leader": "dotted 0.5pt rule, colour rule, filling the space between title and number",
-            "leader_baseline_offset": "-0.15em",
             "page_number": "resolved after pagination",
             "page_number_numerals": "lining tabular",
             "page_number_color": "ink_muted"
@@ -1353,10 +1346,8 @@
           "id": "toc-leader",
           "name": "Dot leader",
           "properties": {
-            "content": "dotted 0.5pt rule",
-            "color": "rule",
-            "baseline_offset": "-0.15em",
-            "fills": "the space between the title and the page number"
+            "leader": "dotted 0.5pt rule, colour rule, filling the space between title and number",
+            "baseline_offset": "-0.15em"
           }
         }
       ]
@@ -1450,8 +1441,7 @@
             "color": "ink_muted",
             "align": "left",
             "max_width": "30em",
-            "space_after": "22pt",
-            "label": "ABSTRACT — sans, 700, 8pt, uppercase, tracking 0.1em, colour ink_faint, on its own line"
+            "space_after": "22pt"
           }
         },
         {
@@ -1474,6 +1464,7 @@
           "id": "frontmatter-abstract-label",
           "name": "Abstract label",
           "properties": {
+            "display": "block",
             "font": "sans",
             "size": "xs",
             "weight": 700,
@@ -1539,8 +1530,7 @@
             "style": "normal",
             "align": "left",
             "line_breaks": "as authored",
-            "space_after": "16.5pt",
-            "label": "sans, 8pt, uppercase, tracking 0.1em, colour ink_faint, on its own line"
+            "space_after": "16.5pt"
           }
         },
         {
