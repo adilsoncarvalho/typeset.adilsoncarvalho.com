@@ -5,7 +5,7 @@
 
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { buildAll } from './build-site.mjs';
-import { extractDemos, preLineMask } from '../src/extract.mjs';
+import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
@@ -250,7 +250,8 @@ function locateWrapperContents(source) {
   return spans;
 }
 
-/* Matches extract.mjs's dedent(): a line inside a <pre> carries code content
+/* Matches extract.mjs's dedent(): a line inside a verbatim region — a <pre>,
+   or an element the stylesheet gives significant whitespace — carries content
    in its leading whitespace, not markup indentation, so it is excluded from
    the shared-amount computation the same way dedent() excludes it from the
    stripping. This is reused from extract.mjs rather than re-derived, because
@@ -259,23 +260,23 @@ function locateWrapperContents(source) {
    separately-maintained copy could only drift from the one it must invert. */
 function commonIndent(text) {
   const lines = text.split('\n');
-  const inPre = preLineMask(text);
+  const verbatim = verbatimLineMask(text);
   let common = Infinity;
   for (let i = 0; i < lines.length; i += 1) {
-    if (inPre[i] || lines[i].trim() === '') continue;
+    if (verbatim[i] || lines[i].trim() === '') continue;
     common = Math.min(common, lines[i].match(/^ */)[0].length);
   }
   return Number.isFinite(common) ? common : 0;
 }
 
-/* Reverses extract.mjs's dedent: pads every non-blank, non-<pre> line back
-   out by the amount it was originally indented, and leaves a <pre> line
-   exactly as extractDemos() returned it. */
+/* Reverses extract.mjs's dedent: pads every non-blank, non-verbatim line
+   back out by the amount it was originally indented, and leaves a verbatim
+   line exactly as extractDemos() returned it. */
 function reindent(fragment, amount) {
   const pad = ' '.repeat(amount);
   const lines = fragment.split('\n');
-  const inPre = preLineMask(fragment);
-  return lines.map((line, i) => (inPre[i] || line === '' ? line : pad + line)).join('\n');
+  const verbatim = verbatimLineMask(fragment);
+  return lines.map((line, i) => (verbatim[i] || line === '' ? line : pad + line)).join('\n');
 }
 
 for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
@@ -316,23 +317,34 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
     }
   }
 
-  /* The round-trip below and dedent()/reindent() share preLineMask(): if the
-     mask ever wrongly marked a <pre> line as ordinary, dedent would strip
-     it, reindent would pad it back by the same amount, and the round-trip
-     would agree with itself — a wrong mask can corrupt a code sample and
-     stay invisible, because neither side of that comparison ever consults
-     the source file. This check does: it takes each <pre> interior straight
-     out of the extracted fragment and requires it to occur verbatim in the
-     demo file on disk, with no mask and no inverse in between. */
-  const PRE_INTERIOR_RE = /<pre\b[^>]*>([\s\S]*?)<\/pre>/g;
+  /* The round-trip below and dedent()/reindent() share verbatimLineMask():
+     if the mask ever wrongly marked a verbatim line as ordinary, dedent
+     would strip it, reindent would pad it back by the same amount, and the
+     round-trip would agree with itself — a wrong mask can corrupt a code
+     sample or a stanza and stay invisible, because neither side of that
+     comparison ever consults the source file. This check does: it takes each
+     verbatim interior straight out of the extracted fragment and requires it
+     to occur verbatim in the demo file on disk, with no mask and no inverse
+     in between.
+
+     The two shapes are matched here by a plain tag-pair regex rather than by
+     extract.mjs's own region scanner, so a bug in that scanner surfaces as a
+     failure instead of being agreed with. The second arm keys on the class,
+     not on the tag, so it holds if the verse demo is ever set in a different
+     element; the interior is always the match's last group. */
+  const VERBATIM_INTERIOR_RES = [
+    /<pre\b[^>]*>([\s\S]*?)<\/pre>/gi,
+    /<([a-z][a-z0-9]*)\b[^>]*class="[^"]*\bts-quotes-verse\b[^"]*"[^>]*>([\s\S]*?)<\/\1>/gi,
+  ];
   for (const demo of demos) {
-    PRE_INTERIOR_RE.lastIndex = 0;
-    let preMatch;
-    while ((preMatch = PRE_INTERIOR_RE.exec(demo.html)) !== null) {
-      const interior = preMatch[1];
-      if (!original.includes(interior)) {
-        fail.push(`${demoPath}: a <pre> interior in the extracted fragment does not appear `
-          + 'verbatim in the source file — extraction altered a preformatted code sample');
+    for (const re of VERBATIM_INTERIOR_RES) {
+      re.lastIndex = 0;
+      let m;
+      while ((m = re.exec(demo.html)) !== null) {
+        if (!original.includes(m[m.length - 1])) {
+          fail.push(`${demoPath}: a verbatim interior in the extracted fragment does not `
+            + 'appear verbatim in the source file — extraction altered preformatted content');
+        }
       }
     }
   }

@@ -35,31 +35,56 @@ const OPEN_TAG_RE = /<([a-z][a-z0-9]*)\b([^>]*)>/g;
 const ORDINAL_RE = /^\d+\s*·\s*/;
 const GENERIC_LABEL = 'How it must look';
 
-const PRE_TAG_RE = /<pre\b[^>]*>|<\/pre>/gi;
+/* Classes the stylesheet gives significant whitespace to, so that a line
+   break inside the element is content rather than source layout. Only
+   .ts-quotes-verse qualifies: `white-space: pre-line` is what keeps the
+   poet's line breaks, and it is the sole rule in typeset.css that preserves
+   a break. A <pre> is the same thing declared by tag rather than by class.
+
+   The tag alone is not enough to find these. A verse blockquote's own tag
+   sits at the fragment's indent while its content sits at column zero, so
+   the shared indent collapses to zero and nothing is stripped — the tag
+   keeps its source indentation and a reader copies it. */
+const VERBATIM_CLASSES = ['ts-quotes-verse'];
+
+const ANY_OPEN_TAG_RE = /<([a-z][a-z0-9]*)\b([^>]*)>/gi;
+
+function opensVerbatimRegion(tagName, attrs) {
+  if (tagName.toLowerCase() === 'pre') return true;
+  const m = attrs.match(/class="([^"]*)"/);
+  if (!m) return false;
+  const classes = m[1].split(/\s+/);
+  return VERBATIM_CLASSES.some((c) => classes.includes(c));
+}
+
+/* The [start, end) interior of every verbatim region in `text`, outermost
+   first and nested ones skipped: a region inside another is already covered
+   by its parent's span. */
+function verbatimRegions(text) {
+  const regions = [];
+  ANY_OPEN_TAG_RE.lastIndex = 0;
+  let m;
+  while ((m = ANY_OPEN_TAG_RE.exec(text)) !== null) {
+    if (!opensVerbatimRegion(m[1], m[2])) continue;
+    const close = findMatchingClose(text, ANY_OPEN_TAG_RE.lastIndex, m[1]);
+    if (close === -1) continue;
+    regions.push([ANY_OPEN_TAG_RE.lastIndex, close]);
+    ANY_OPEN_TAG_RE.lastIndex = close;
+  }
+  return regions;
+}
 
 /* Returns one boolean per line of `text` split on "\n": true where that
-   line's own start sits inside an open <pre>…</pre> region. A line where
-   <pre> opens partway through is false — its leading whitespace is still
-   HTML indentation — and a line where </pre> closes partway through is
-   true — it was still preformatted content when it began. */
-export function preLineMask(text) {
-  const tags = [];
-  let m;
-  PRE_TAG_RE.lastIndex = 0;
-  while ((m = PRE_TAG_RE.exec(text)) !== null) {
-    tags.push({ index: m.index, open: !m[0].startsWith('</') });
-  }
-  const lines = text.split('\n');
+   line's own start sits inside a verbatim region. A line where the region
+   opens partway through is false — its leading whitespace is still HTML
+   indentation — and a line where the region closes partway through is
+   true: it was still verbatim content when it began. */
+export function verbatimLineMask(text) {
+  const regions = verbatimRegions(text);
   const mask = [];
-  let depth = 0;
-  let tagPos = 0;
   let offset = 0;
-  for (const line of lines) {
-    while (tagPos < tags.length && tags[tagPos].index < offset) {
-      depth += tags[tagPos].open ? 1 : -1;
-      tagPos += 1;
-    }
-    mask.push(depth > 0);
+  for (const line of text.split('\n')) {
+    mask.push(regions.some(([start, end]) => start < offset && offset <= end));
     offset += line.length + 1;
   }
   return mask;
@@ -67,23 +92,24 @@ export function preLineMask(text) {
 
 /* Removes each line's shared leading whitespace. A blank line contributes
    nothing to the shared amount and is left empty, never padded. A line
-   inside a <pre> is excluded from both the shared-amount computation and
-   the stripping itself: its leading whitespace is code content, not markup
-   indentation, so it is carried through byte-for-byte. Without that
-   exclusion, one under-indented code sample would pull the shared amount
-   for the whole fragment down — for every other line, not just its own. */
+   inside a verbatim region is excluded from both the shared-amount
+   computation and the stripping itself: its leading whitespace is content,
+   not markup indentation, so it is carried through byte-for-byte. Without
+   that exclusion, one under-indented code sample or verse line would pull
+   the shared amount for the whole fragment down — for every other line, not
+   just its own. */
 function dedent(text) {
   const lines = text.split('\n');
-  const inPre = preLineMask(text);
+  const verbatim = verbatimLineMask(text);
   let common = Infinity;
   for (let i = 0; i < lines.length; i += 1) {
-    if (inPre[i] || lines[i].trim() === '') continue;
+    if (verbatim[i] || lines[i].trim() === '') continue;
     common = Math.min(common, lines[i].match(/^ */)[0].length);
   }
   if (!Number.isFinite(common)) common = 0;
   return lines
     .map((line, i) => {
-      if (inPre[i]) return line;
+      if (verbatim[i]) return line;
       return line.trim() === '' ? '' : line.slice(common);
     })
     .join('\n');
