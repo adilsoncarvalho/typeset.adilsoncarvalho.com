@@ -236,7 +236,7 @@
     "group": "Apparatus",
     "title": "Footnotes &amp; sidenotes",
     "prose": [
-      "<p>The honest position: true bottom-of-page footnotes need an engine that can measure the page while laying it out. <b>Typst and LaTeX do this natively. WeasyPrint 53+ and Prince implement the CSS footnote model. No browser does.</b> So the note text lives in the document inside <code>.ts-note</code>, and <code>@supports (float: footnote)</code> promotes it to a real footnote where the engine can — degrading to a numbered notes block where it cannot, never to a lost note.</p>",
+      "<p>The honest position: true bottom-of-page footnotes need an engine that can measure the page while laying it out. <b>Typst and LaTeX do this natively. WeasyPrint 53+ and Prince implement the CSS footnote model. No browser does.</b> So the note text lives in the document inside <code>.ts-notes-footnote</code>, and <code>@supports (float: footnote)</code> promotes it to a real footnote where the engine can — degrading to a numbered notes block where it cannot, never to a lost note.</p>",
       "<p>There is <b>no heading over the notes</b>. The rule above the block is the only mark it needs; a label over two lines of small print is heavier than the thing it labels.</p>",
       "<p><b>Sidenotes are the better default where the page can afford the margin</b>: no page-break arithmetic, they work in every renderer, and the reader never leaves the sentence they are in. They need the full page width to make sense, so the second example below is a whole A4 sheet at 42% rather than a fragment.</p>"
     ],
