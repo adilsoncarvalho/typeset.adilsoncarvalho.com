@@ -269,6 +269,30 @@ function commonIndent(text) {
   return Number.isFinite(common) ? common : 0;
 }
 
+/* The interiors that must survive extraction byte-for-byte: every <pre>, and
+   every element the stylesheet gives significant whitespace. Found here with
+   this file's own tag scanner rather than extract.mjs's region finder, so a
+   bug in that finder surfaces as a failure instead of being agreed with.
+
+   The class is matched by splitting the attribute into whole tokens, the way
+   classTokens() above does and for the same reason src/extract.mjs documents:
+   "\bts-quotes-verse\b" also matches "ts-quotes-verse-x" and
+   "my-ts-quotes-verse", because a hyphen is not a word character. */
+function verbatimInteriors(fragment) {
+  const found = [];
+  const pre = /<pre\b[^>]*>([\s\S]*?)<\/pre>/gi;
+  let m;
+  while ((m = pre.exec(fragment)) !== null) found.push(m[1]);
+
+  const openTag = /<([a-z][a-z0-9]*)\b[^>]*>/gi;
+  while ((m = openTag.exec(fragment)) !== null) {
+    if (!classTokens(m[0]).includes('ts-quotes-verse')) continue;
+    const close = findMatchingClose(fragment, openTag.lastIndex, m[1]);
+    if (close !== -1) found.push(fragment.slice(openTag.lastIndex, close));
+  }
+  return found;
+}
+
 /* Reverses extract.mjs's dedent: pads every non-blank, non-verbatim line
    back out by the amount it was originally indented, and leaves a verbatim
    line exactly as extractDemos() returned it. */
@@ -292,7 +316,11 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
      agree on nothing being there, so the round-trip below stays silent.
      A literal count of "pair__label" paragraphs needs no tag-matching at
      all, so it is not subject to that shared blind spot: every demo file
-     here has exactly one example per label, so any shortfall is a bug. */
+     here has exactly one example per label, so any shortfall is a bug.
+
+     Everything below reads demo.source, the fragment exactly as the file
+     holds it, except the duplicate check — that one is about what the pane
+     shows, so it reads demo.html, from which the apparatus is gone. */
   const labelCount = (original.match(/<p class="pair__label"/g) ?? []).length;
   if (labelCount > 0 && demos.length !== labelCount) {
     fail.push(`${demoPath}: has ${labelCount} pair__label paragraph(s) but extractDemos() `
@@ -332,19 +360,11 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
      failure instead of being agreed with. The second arm keys on the class,
      not on the tag, so it holds if the verse demo is ever set in a different
      element; the interior is always the match's last group. */
-  const VERBATIM_INTERIOR_RES = [
-    /<pre\b[^>]*>([\s\S]*?)<\/pre>/gi,
-    /<([a-z][a-z0-9]*)\b[^>]*class="[^"]*\bts-quotes-verse\b[^"]*"[^>]*>([\s\S]*?)<\/\1>/gi,
-  ];
   for (const demo of demos) {
-    for (const re of VERBATIM_INTERIOR_RES) {
-      re.lastIndex = 0;
-      let m;
-      while ((m = re.exec(demo.html)) !== null) {
-        if (!original.includes(m[m.length - 1])) {
-          fail.push(`${demoPath}: a verbatim interior in the extracted fragment does not `
-            + 'appear verbatim in the source file — extraction altered preformatted content');
-        }
+    for (const interior of verbatimInteriors(demo.source)) {
+      if (!original.includes(interior)) {
+        fail.push(`${demoPath}: a verbatim interior in the extracted fragment does not `
+          + 'appear verbatim in the source file — extraction altered preformatted content');
       }
     }
   }
@@ -367,7 +387,7 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
       const indent = commonIndent(originalContent);
       const trailing = originalContent.slice(originalContent.lastIndexOf('\n') + 1);
       rebuilt += original.slice(cursor, contentStart)
-        + `\n${reindent(demos[k].html, indent)}\n${trailing}`;
+        + `\n${reindent(demos[k].source, indent)}\n${trailing}`;
       cursor = closeIndex;
     } else {
       /* A "container" fragment is the whole target element, with "paper"
@@ -384,8 +404,8 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
       while (ws > 0 && (original[ws - 1] === ' ' || original[ws - 1] === '\t')) ws -= 1;
       const indent = commonIndent(original.slice(ws, closeTagEnd));
       const withPaper = hadPaper
-        ? demos[k].html.replace(/class="([^"]*)"/, (_, cls) => `class="paper ${cls}"`)
-        : demos[k].html;
+        ? demos[k].source.replace(/class="([^"]*)"/, (_, cls) => `class="paper ${cls}"`)
+        : demos[k].source;
       rebuilt += original.slice(cursor, ws) + reindent(withPaper, indent);
       cursor = closeTagEnd;
     }
@@ -395,6 +415,44 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
   if (rebuilt !== original) {
     fail.push(`${demoPath}: extractDemos() round-trip does not reproduce the file — `
       + 'the extractor lost or altered content');
+  }
+}
+
+/* ---- 3e. A published pane must only name classes typeset.css defines ----- */
+
+/* The HTML pane carries a Copy button, so its markup is a promise: paste this
+   into a document that links typeset.css, and it renders as shown. A class
+   that lives only in specimen.css breaks that promise silently — the pane
+   still looks right on this page, because this page has specimen.css.
+
+   Section 5 below checks the other direction, that every ts-* class in
+   typeset.css has a spec element behind it. Neither implies this one: a class
+   the stylesheet never defines is invisible to both.
+
+   Only sections whose second pane is HTML are checked. tokens, foundation and
+   page publish CSS instead, so their fragments are extracted and round-tripped
+   but never shown, and page's wrapper legitimately carries specimen chrome. */
+
+const cssClassNames = new Set(
+  [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.(-?[A-Za-z_][\w-]*)/g)]
+    .map((m) => m[1]));
+
+for (const section of manifest.filter((s) => s.panel.pane === 'html')) {
+  const files = [`src/demos/${section.id}.html`];
+  if (section.fullrow) files.push(`src/demos/${section.id}.fullrow.html`);
+  for (const file of files.filter((f) => existsSync(f))) {
+    for (const demo of extractDemos(readFileSync(file, 'utf8'))) {
+      const seen = new Set();
+      for (const attr of demo.html.matchAll(/class="([^"]*)"/g)) {
+        for (const token of attr[1].split(/\s+/).filter(Boolean)) {
+          if (cssClassNames.has(token) || seen.has(token)) continue;
+          seen.add(token);
+          fail.push(`${file}: the pane for "${demo.label ?? section.id}" publishes `
+            + `class "${token}", which typeset.css does not define — a reader who `
+            + 'copies it gets markup that cannot render as shown');
+        }
+      }
+    }
   }
 }
 

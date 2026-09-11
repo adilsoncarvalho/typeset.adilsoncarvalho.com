@@ -597,19 +597,22 @@ table.spec-table code {
 }
 .demo-note b { color: var(--ui-fg); }
 
-/* A line of commentary set inside the paper, on the sample rather than beside
-   it. Smaller and in muted ink, so it never reads as part of the document. */
+/* A paragraph of the document that the specimen sets smaller and muted, so it
+   reads as a caption to the sample above it. The paragraph is document
+   content — src/extract.mjs takes this class off it and keeps the element. */
 .demo-aside { font-size: var(--ts-sm); color: var(--ts-ink-muted); }
 
-/* The same, ruled off and set in sans, where what the aside describes is what
-   a printer will do with the sample above it rather than what is on screen. */
-.demo-aside--ruled {
+/* A note about the sample rather than a part of it: what a printer will do
+   with the links above, which a screen cannot show. Nothing here is document
+   content, so src/extract.mjs takes the whole element out of the fragment. */
+.demo-print-note {
   font-family: var(--ts-sans);
   font-size: 9pt;
+  color: var(--ts-ink-muted);
   border-top: 0.5pt solid var(--ts-rule);
   padding-top: 0.5em;
 }
-.demo-aside__url { font-family: var(--ts-mono); font-size: var(--ts-xs); }
+.demo-print-note__url { font-family: var(--ts-mono); font-size: var(--ts-xs); }
 
 /* A sample set past the measure the spec allows, so the return sweep can be
    felt failing. The guide down its left edge marks it as an annotation: the

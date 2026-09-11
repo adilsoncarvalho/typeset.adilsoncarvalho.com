@@ -226,12 +226,74 @@ function resolveTarget(source, wrapperOpenTag, contentStart, wrapperClose) {
   return { tag: 'div', openTag: wrapperOpenTag, contentStart, closeIndex: wrapperClose };
 }
 
-/* Takes a demo file's text and returns one { label, html } per example.
-   label is the pair__label text with any leading "N · " ordinal stripped,
-   or null where the label is the generic "How it must look". html is the
-   fragment resolveTarget() finds — the target element with "paper" dropped
-   where it carries a modifier, otherwise just its inner markup — dedented
-   to its common indent and trimmed. */
+/* Apparatus the specimen page adds inside a demo's document markup. The label
+   above an example and the note beside it are already dropped before the
+   wrapper is read; this is the same thing one level in, for apparatus that has
+   to sit inside the document to render in the right place.
+
+   It attaches in two shapes, so it comes off in two.
+
+   An element that exists only for the specimen comes out whole. The print
+   note in the links demo says what a printer will do with the sample above
+   it — commentary, true of no document. The folio in the contents demo is a
+   hand-written page number standing in for the one `.ts-toc a::after`
+   generates with target-counter; spec.json declares no folio element, and
+   publishing the span would make a real document set the page number twice.
+
+   A class the specimen adds to an element the document does need comes off on
+   its own, and the element stays. `ts-toc--demo` only suppresses that
+   generated number so a browser shows one figure rather than two. `demo-aside`
+   only sets a document paragraph smaller — and in the numerals demo that
+   paragraph carries the sole `.ts-numerals-fractions` in the repo, so taking
+   the element would take the demonstration with it. */
+const APPARATUS_ELEMENTS = new Set(['demo-note', 'demo-print-note', 'ts-folio']);
+const APPARATUS_CLASSES = new Set(['demo-aside', 'ts-toc--demo']);
+
+/* Removes both shapes from a fragment. Elements go first, so a class list
+   that names one of each resolves as the element it is rather than the class
+   it also wears. A line left holding nothing but its own indent goes too:
+   dedent() writes an intentionally blank line as the empty string, so a line
+   of pure whitespace can only be what a removal left behind. */
+export function stripApparatus(fragment) {
+  const openTag = /<([a-z][a-z0-9]*)\b([^>]*)>/gi;
+  let out = fragment;
+  for (;;) {
+    openTag.lastIndex = 0;
+    let m;
+    let cut = null;
+    while ((m = openTag.exec(out)) !== null) {
+      if (!classesOf(m[0]).some((c) => APPARATUS_ELEMENTS.has(c))) continue;
+      const close = findMatchingClose(out, openTag.lastIndex, m[1]);
+      if (close === -1) break;
+      cut = [m.index, close + `</${m[1]}>`.length];
+      break;
+    }
+    if (!cut) break;
+    out = out.slice(0, cut[0]) + out.slice(cut[1]);
+  }
+
+  out = out.replace(/(\s*)class="([^"]*)"/g, (whole, space, cls) => {
+    const kept = cls.split(/\s+/).filter(Boolean).filter((c) => !APPARATUS_CLASSES.has(c));
+    return kept.length ? `${space}class="${kept.join(' ')}"` : '';
+  });
+
+  return out.split('\n').filter((line) => !/^[ \t]+$/.test(line)).join('\n')
+    .replace(/^\n+/, '').replace(/\n+$/, '');
+}
+
+/* Takes a demo file's text and returns one { label, html, source } per
+   example. label is the pair__label text with any leading "N · " ordinal
+   stripped, or null where the label is the generic "How it must look".
+
+   source is the fragment resolveTarget() finds — the target element with
+   "paper" dropped where it carries a modifier, otherwise just its inner
+   markup — dedented to its common indent and trimmed. It is exactly what the
+   demo file holds, which is what makes the extractor's round trip checkable.
+
+   html is source with the specimen's own apparatus taken out, and is what the
+   panel publishes. The two differ because a fragment has two jobs that pull
+   apart: proving the extractor lost nothing, and giving a reader markup they
+   can paste into a document that has typeset.css and nothing else. */
 export function extractDemos(source) {
   const demos = [];
   LABEL_RE.lastIndex = 0;
@@ -265,7 +327,7 @@ export function extractDemos(source) {
     const labelText = labelMatch[1].trim().replace(ORDINAL_RE, '');
     const label = labelText === GENERIC_LABEL ? null : labelText;
 
-    demos.push({ label, html });
+    demos.push({ label, html: stripApparatus(html), source: html });
 
     LABEL_RE.lastIndex = wrapperClose + '</div>'.length;
   }
