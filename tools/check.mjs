@@ -3,7 +3,10 @@
    implementation is broken, not the spec.
    Run: node tools/check.mjs */
 
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, writeFileSync, rmSync, mkdtempSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { buildAll } from './build-site.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 
@@ -110,9 +113,83 @@ for (const s of manifest) {
   }
 }
 const declared = new Set(manifest.map((s) => s.id));
-for (const f of readdirSync('src/demos')) {
+for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
   const id = f.replace(/\.(fullrow\.)?html$/, '');
   if (!declared.has(id)) warn.push(`src/demos/${f} is not referenced by src/sections.json`);
+}
+
+/* ---- 3g. Every manifest section must have a Typst snippet, and vice versa */
+
+/* src/demos/<id>.typ is the fragment a reader would drop into a document
+   that imports typeset.typ — the third tab's counterpart to the HTML/CSS
+   pane checked above. Keyed on section ids, not filenames: notes.fullrow.html
+   is a second HTML demo for the "notes" section, not a second section, and
+   src/demos now holds both file types side by side. */
+
+for (const s of manifest) {
+  const snippet = `src/demos/${s.id}.typ`;
+  if (!existsSync(snippet)) fail.push(`${snippet}: no Typst snippet for section "${s.id}"`);
+}
+for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.typ'))) {
+  const id = f.replace(/\.typ$/, '');
+  if (!declared.has(id)) warn.push(`src/demos/${f} is not referenced by src/sections.json`);
+}
+
+/* ---- 3h. Every Typst snippet must compile under the harness -------------- */
+
+/* A snippet is a fragment — no import, no #show — the same decision the HTML
+   demos make about publishing markup rather than a full document. A reader
+   who pastes one needs typeset.typ imported and its show rule applied first,
+   so that is exactly what this wraps the fragment in before asking typst to
+   render it: the shape a real document built on this library takes.
+
+   typst denies a relative import that reaches outside the compiled file's own
+   directory unless the project root is named explicitly, so the wrapper is
+   written beside the real snippets in src/demos — where the relative import
+   below already resolves to implementations/typeset.typ — and removed again
+   once that one file is compiled. The rendered PDF goes to a system temp
+   directory and never touches the repository. */
+
+function typstAvailable() {
+  try {
+    execFileSync('typst', ['--version'], { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const typstSnippets = readdirSync('src/demos').filter((f) => f.endsWith('.typ'));
+
+if (typstSnippets.length > 0 && !typstAvailable()) {
+  console.error('typst is not on PATH — cannot verify that the Typst snippets compile.');
+  console.error('Install typst (https://typst.app) and re-run node tools/check.mjs.');
+  process.exit(1);
+}
+
+if (typstSnippets.length > 0) {
+  const pdfDir = mkdtempSync(join(tmpdir(), 'typeset-check-'));
+  for (const file of typstSnippets) {
+    const snippetPath = `src/demos/${file}`;
+    const fragment = readFileSync(snippetPath, 'utf8');
+    const wrapped = '#import "../../implementations/typeset.typ": *\n#show: typeset\n' + fragment;
+    const wrapperPath = `src/demos/.check-${file}`;
+    const pdfPath = join(pdfDir, file.replace(/\.typ$/, '.pdf'));
+    writeFileSync(wrapperPath, wrapped);
+    try {
+      execFileSync(
+        'typst',
+        ['compile', '--root', '.', '--font-path', 'fonts', wrapperPath, pdfPath],
+        { stdio: ['ignore', 'pipe', 'pipe'] },
+      );
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message)).trim();
+      fail.push(`${snippetPath} does not compile:\n${detail}`);
+    } finally {
+      rmSync(wrapperPath, { force: true });
+    }
+  }
+  rmSync(pdfDir, { recursive: true, force: true });
 }
 
 /* ---- 3c. A demo's document fragment must round-trip losslessly ----------- */
