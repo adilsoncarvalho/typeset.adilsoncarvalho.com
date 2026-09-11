@@ -10,6 +10,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { renderPanel } from '../src/panels.mjs';
 import { byLang, esc } from '../src/highlight.mjs';
+import { extractDemos } from '../src/extract.mjs';
 
 /* The whole file is highlighted in one pass — a multi-line CSS comment needs
    state that carries between lines — and only then split for numbering. */
@@ -42,10 +43,24 @@ function markers(source, re, group) {
   return found;
 }
 
-const cssMap = markers(read('typeset.css'),
-  /\/\*!\s*@s\s+([a-z0-9-]+)\s*::\s*(.+?)\s*\*\/([\s\S]*?)\/\*!\s*@e\s*\*\//g, 3);
 const typMap = markers(read('implementations/typeset.typ'),
   /\/\/\s*@s\s+([a-z0-9-]+)\s*\n([\s\S]*?)\/\/\s*@e/g, 2);
+
+/* The 1-based source line each "@s" marker starts at, for linking a section's
+   HTML pane back to its region in files/typeset-css.html — which anchors
+   every line with id="L<n>" (see lineNumbered() below). Read from the file
+   itself rather than a hand-maintained table, so a line added above any
+   marker cannot leave a stale link behind. */
+function markerLines(source, re) {
+  const found = new Map();
+  let m;
+  while ((m = re.exec(source)) !== null) {
+    found.set(m[1], source.slice(0, m.index).split('\n').length);
+  }
+  return found;
+}
+
+const cssLines = markerLines(read('typeset.css'), /\/\*!\s*@s\s+([a-z0-9-]+)\s*::/g);
 
 /* ---- Page shell ---------------------------------------------------------- */
 
@@ -93,16 +108,18 @@ function section(s, index) {
   const num = String(index + 1).padStart(2, '0');
   const prose = s.prose.map((p) => `    ${p}`).join('\n');
   const note = s.note ? `  ${s.note}\n` : '';
-  const demo = read(`src/demos/${s.id}.html`).trimEnd()
+  const demoSource = read(`src/demos/${s.id}.html`);
+  const demo = demoSource.trimEnd()
     .split('\n').map((l) => (l ? `      ${l}` : l)).join('\n');
   const fullrow = s.fullrow
     ? '\n' + read(`src/demos/${s.id}.fullrow.html`).trimEnd()
         .split('\n').map((l) => (l ? `  ${l}` : l)).join('\n') + '\n'
     : '';
   const panel = renderPanel({
-    spec, cssMap, typMap, id: s.id,
+    spec, cssLines, typMap, id: s.id,
     specIds: s.panel.spec,
     cssKeys: (s.panel.css || s.panel.spec).split(',').map((k) => k.trim()),
+    fragments: extractDemos(demoSource),
   }).split('\n').map((l) => (l ? `      ${l}` : l)).join('\n');
 
   return `<section class="section" id="${s.id}">
@@ -196,7 +213,7 @@ ${v.extra ? `  <div class="extra">\n    ${v.extra}\n  </div>\n` : ''}  <p class=
     sections: sections.length,
     navLinks: nav().match(/<li>/g).length,
     viewers: VIEWERS.length,
-    cssMarkers: cssMap.size,
+    cssMarkers: cssLines.size,
     typstMarkers: typMap.size,
   } };
 }

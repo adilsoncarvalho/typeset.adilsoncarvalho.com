@@ -1,4 +1,4 @@
-/* Renders the Spec / CSS / Typst panel for one section, at build time.
+/* Renders the Spec / HTML / Typst panel for one section, at build time.
    Ported from the browser code it replaces: same output, no fetch, no runtime. */
 
 import { byLang, esc } from './highlight.mjs';
@@ -140,11 +140,31 @@ export function codePane(source, lang, note) {
   return `<div class="codewrap">${head}${body}${copy}</div>`;
 }
 
-export function renderPanel({ spec, cssMap, typMap, specIds, cssKeys, id }) {
-  const missing = cssKeys.filter((k) => !cssMap.has(k));
-  if (missing.length) throw new Error(`typeset.css has no section marker for ${missing.join(', ')}`);
+/* Links each of a section's CSS keys to the line its "@s" marker starts at
+   in files/typeset-css.html, which carries an id="L<n>" anchor on every
+   line — so a reader can find the full rule that styles the fragment. */
+function cssRegionNote(cssKeys, cssLines) {
+  const links = cssKeys.map((k) =>
+    `<a href="files/typeset-css.html#L${cssLines.get(k)}">${esc(k)}</a>`).join(', ');
+  return `Full rule${cssKeys.length > 1 ? 's' : ''} in typeset.css — ${links}`;
+}
 
-  const cssSource = cssKeys.map((k) => cssMap.get(k)).join('\n\n');
+/* Renders the markup that produces the example beside the panel: each
+   fragment extract.mjs pulled from the section's demo file, preceded by an
+   HTML comment naming it wherever the section shows more than one. */
+function htmlPane(fragments, cssKeys, cssLines) {
+  const source = fragments
+    .map((f) => (f.label ? `<!-- ${f.label} -->\n${f.html}` : f.html))
+    .join('\n\n');
+  const head = `<p class="code-note">${cssRegionNote(cssKeys, cssLines)}</p>`;
+  const body = source ? `<pre>${byLang('html', source)}</pre>` : '';
+  const copy = source ? `<button class="copy" type="button" data-copy>Copy</button>` : '';
+  return `<div class="codewrap">${head}${body}${copy}</div>`;
+}
+
+export function renderPanel({ spec, cssLines, typMap, specIds, cssKeys, id, fragments }) {
+  const missing = cssKeys.filter((k) => !cssLines.has(k));
+  if (missing.length) throw new Error(`typeset.css has no section marker for ${missing.join(', ')}`);
 
   let typstPane;
   if (typMap.has(id)) {
@@ -165,13 +185,13 @@ export function renderPanel({ spec, cssMap, typMap, specIds, cssKeys, id }) {
   <div class="tabs">
     <input type="radio" name="${n}" id="${n}-spec" checked>
     <label for="${n}-spec">Spec</label>
-    <input type="radio" name="${n}" id="${n}-css">
-    <label for="${n}-css">CSS</label>
+    <input type="radio" name="${n}" id="${n}-html">
+    <label for="${n}-html">HTML</label>
     <input type="radio" name="${n}" id="${n}-typst">
     <label for="${n}-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec">${renderSpec(spec, specIds)}</div></div>
-    <div class="tabs__pane">${codePane(cssSource, 'css')}</div>
+    <div class="tabs__pane">${htmlPane(fragments, cssKeys, cssLines)}</div>
     <div class="tabs__pane">${typstPane}</div>
   </div>
 </div>`;
