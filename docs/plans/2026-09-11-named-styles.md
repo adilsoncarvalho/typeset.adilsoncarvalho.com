@@ -50,12 +50,13 @@ Six items need a decision encoded, not just a substitution. Each has its own tas
 
 | File | Responsibility | Change |
 |---|---|---|
-| `spec.json` | Normative source; element ids are the canonical names | Modify — 81 ids, one section id, 7 new elements, version to `2.0.0` |
+| `spec.json` | Normative source; element ids are the canonical names | Modify — 81 ids, one section id, 6 new elements, version to `2.0.0` |
 | `tools/build-rename-map.mjs` | Derives the old→new table once, from the rules above | Create |
 | `tools/rename-map.json` | The frozen table. Read by the codemod and the checker's deprecation gate | Create (generated, committed) |
 | `tools/codemod-names.mjs` | Rewrites old class names and Typst symbols in a file | Create |
 | `tools/check.mjs` | Build gate | Modify — add the bidirectional naming gate |
-| `typeset.css` | CSS implementation | Modify — 57 classes renamed, 3 collapsed, 5 added |
+| `src/panels.mjs` | Build-time panel rendering | Modify — the `TYPST_ELSEWHERE` map keys on section ids |
+| `typeset.css` | CSS implementation | Modify — 57 classes renamed, 2 pairs collapsed, 6 added, ~73 `@style` markers |
 | `implementations/typeset.typ` | Typst implementation | Modify — symbols renamed, `break-scene` split |
 | `SPEC.md` | Generated prose | Regenerate |
 | 35 consumer files | Documents, furniture, tooling that name classes | Modify — via codemod, then verified by hand |
@@ -149,7 +150,10 @@ const EXTRA_CLASSES = {
   'ts-break--asterism': 'ts-breaks-asterism',
   'ts-break--fleuron': 'ts-breaks-fleuron',
   'ts-break--rule': 'ts-breaks-rule',
-  'ts-break': 'ts-breaks-asterisks',
+  /* ts-break is deliberately absent. It means the shared base in the
+     stylesheet and three asterisks in a document, so any single mapping
+     corrupts one of the two. Both are migrated by hand — Task 5 Step 4
+     and Task 7 Step 3. */
 };
 
 const elements = {};
@@ -209,13 +213,25 @@ The gate is the test for this whole branch. It goes in first, red, and everythin
 Append to `tools/check.mjs`, before the block that counts elements and prints the summary:
 
 ```js
-/* ---- N. Every named style has a class and a Typst symbol ----------------- */
+/* ---- N. Every named style is findable in the stylesheet by its name ------ */
 
-/* The contract: element id -> .ts-<id> in the CSS, and -> <id> in Typst. Both
-   directions are checked, so a class with no style behind it fails too. */
+/* The contract: a style is named either by a .ts-<id> class, or by a
+   /* @style <id> *\/ marker comment above the rule that implements it.
+
+   Not every element can carry a class. 73 of them are styled through a bare
+   semantic selector (h1, strong, sub), and a few describe a rule rather than
+   a selector at all: justification-exclusions says what is never justified,
+   numbering-h2 is counter-generated content with no element to mark. Rule 8
+   says a class is a name and a handle, not a requirement — so the gate checks
+   that the canonical name is *present where a reader editing that rule will
+   see it*, not that a class exists.
+
+   Both directions are checked: an element with neither class nor marker
+   fails, and a class or marker naming no element fails. */
 
 const INTERNAL_CLASSES = new Set([
   'ts-label',        // shared base under the four caption/label variants
+  'ts-break',        // shared base under the four section-break variants
   'ts-span',         // two-column template, not a document style
   'ts-print-only',   // paired with ts-screen-only under one spec element
   'ts-screen-only',
@@ -227,18 +243,26 @@ const specIds = new Set(
 const cssClasses = new Set(
   [...css.matchAll(/\.(ts-[a-z0-9-]+)/g)].map((m) => m[1]));
 
+const styleMarkers = new Set(
+  [...css.matchAll(/\/\*\s*@style\s+([a-z0-9-]+)\s*\*\//g)].map((m) => m[1]));
+
 const typSymbols = new Set(
   [...typ.matchAll(/^#let\s+([a-z0-9-]+)\s*[=(]/gm)].map((m) => m[1]));
 
 for (const id of specIds) {
-  if (!cssClasses.has(`ts-${id}`))
-    fail.push(`typeset.css: no .ts-${id} for spec element "${id}"`);
+  if (!cssClasses.has(`ts-${id}`) && !styleMarkers.has(id))
+    fail.push(`typeset.css: style "${id}" has neither a .ts-${id} class nor a @style marker`);
 }
 
 for (const cls of cssClasses) {
   if (INTERNAL_CLASSES.has(cls)) continue;
   if (!specIds.has(cls.replace(/^ts-/, '')))
     fail.push(`typeset.css: .${cls} has no spec element behind it`);
+}
+
+for (const id of styleMarkers) {
+  if (!specIds.has(id))
+    fail.push(`typeset.css: @style ${id} names no spec element`);
 }
 
 /* Typst covers a subset by design — many styles are show rules on native
@@ -258,7 +282,9 @@ for (const id of specIds) {
 node tools/check.mjs 2>&1 | tee /tmp/naming-gate-before.txt | tail -20
 ```
 
-Expected: FAIL, with roughly 81 `no .ts-<id> for spec element` lines and a similar number of `has no spec element behind it` lines. This list is the work.
+Expected: FAIL, with roughly 95 `has neither a .ts-<id> class nor a @style marker` lines (no element is named yet) and roughly 50 `has no spec element behind it` lines (every current class still uses a 1.x name). This list is the work.
+
+**Do not redeclare an existing binding.** `tools/check.mjs` already declares `const elements` near the summary. Run `grep -n '^const ' tools/check.mjs` and confirm none of `specIds`, `cssClasses`, `styleMarkers`, `typSymbols`, `INTERNAL_CLASSES` collides before adding the block.
 
 - [ ] **Step 3: Commit the red gate**
 
@@ -266,8 +292,8 @@ Expected: FAIL, with roughly 81 `no .ts-<id> for spec element` lines and a simil
 git add tools/check.mjs
 git commit -m "test(check): gate that every named style has a class and a symbol
 
-Red on purpose: 81 element ids do not yet match their classes. The rename
-commits that follow drive this green."
+Red on purpose: no style is named yet. The rename commits that follow
+drive this green."
 ```
 
 ---
@@ -339,9 +365,9 @@ BREAKING CHANGE: 81 element ids change. See tools/rename-map.json."
 
 ---
 
-### Task 4: Promote the seven unnamed styles to spec elements
+### Task 4: Promote the six unnamed styles to spec elements
 
-Five hooks in the stylesheet style something real but have no element in the spec, so the gate has nothing to match them against. Give each a name.
+Six hooks in the stylesheet style something real but have no element in the spec, so the gate has nothing to match them against. Give each a name.
 
 **Files:**
 - Modify: `spec.json` — add elements to `links`, `toc`, `tables`, `figures`, `frontmatter`, `letter`
@@ -540,9 +566,9 @@ Expected: a line count in the low hundreds. If it reports `unchanged`, the map o
 node tools/codemod-names.mjs typeset.css
 ```
 
-- [ ] **Step 4: Fix the two things the codemod cannot do**
+- [ ] **Step 4: Fix the three things the codemod cannot do**
 
-The codemod is a substitution; these two need judgement.
+The codemod is a blind substitution; these three need judgement.
 
 First, the `@s` marker id for the renamed section:
 
@@ -550,7 +576,23 @@ First, the `@s` marker id for the renamed section:
 /*! @s figures-numeric :: Figures */   →   /*! @s numerals :: Numerals */
 ```
 
-Second, the shared bases. `.ts-break` and `.ts-label` are now internal — they carry only what their variants share, and every variant class must be able to stand alone in markup. Check that each of `.ts-breaks-asterisks`, `.ts-breaks-asterism`, `.ts-breaks-fleuron`, `.ts-breaks-rule` still inherits from `.ts-break`, and add the four caption/label rules:
+Second, the breaks region. `ts-break` is deliberately absent from the rename map, so the codemod left the region alone — it means the shared base here and three asterisks in a document, and no single mapping is right for both. Migrate it by hand: keep `.ts-break` as the base carrying the shared block-level rules, and give each of the four variants its named class over it.
+
+```css
+/* The shared base: block geometry every section break needs. Not a style in
+   its own right — always written alongside one of the four below. */
+.typeset .ts-break { /* unchanged from 1.x */ }
+
+.typeset .ts-breaks-asterisks::before { content: "* * *"; letter-spacing: 0.4em; }
+.typeset .ts-breaks-asterism::before { content: "⁂"; letter-spacing: 0; font-size: 14pt; }
+.typeset .ts-breaks-fleuron::before { content: "❦"; letter-spacing: 0; font-size: 12pt; color: var(--ts-accent); }
+.typeset .ts-breaks-rule::before { content: none; }
+.typeset .ts-breaks-rule { border-top: 0.5pt solid var(--ts-rule); height: 0; }
+```
+
+Note the 1.x default: a bare `.ts-break` rendered three asterisks through its own `::before`. That default moves onto `.ts-breaks-asterisks`, so the base renders nothing on its own. Check `.typeset .ts-break + p` and `.typeset .ts-callout + p` — the sibling rules in the paragraphs region — still match; they key on the base, which survives.
+
+Third, the shared label base. `.ts-label` is now internal: it carries only what the four variants share, and each variant must be able to stand alone. Add the four rules:
 
 ```css
 /* The shared base: what all four labels have in common. Not a style in its
@@ -595,6 +637,54 @@ grep -c 'ts-nowrap\|ts-page-break-avoid\|ts-sc\b\|ts-frac\b' typeset.css
 
 Expected: `0`. Each collapsed onto the class it duplicated.
 
+- [ ] **Step 5b: Name the bare-selector styles with `@style` markers**
+
+73 of the styles are reached through a bare semantic selector and carry no class. Each needs its canonical name written above the rule that implements it, so a reader editing that rule sees which named style they are changing. This is the substance of the group, not bookkeeping.
+
+The marker goes immediately above the selector, on its own line:
+
+```css
+/* @style headings-h1 */
+.typeset h1 {
+  font-family: var(--ts-sans);
+  /* … */
+}
+
+/* @style inline-strong */
+.typeset strong { font-weight: 600; }
+
+/* @style inline-emphasis */
+.typeset em { font-style: italic; }
+```
+
+Where one rule implements two styles, mark both:
+
+```css
+/* @style inline-superscript */
+/* @style inline-subscript */
+.typeset sup,
+.typeset sub { font-size: 0.7em; line-height: 0; position: relative; }
+```
+
+A style that states a prohibition rather than a selector — `justification-exclusions`, which names what is never justified — marks the rule that enforces it:
+
+```css
+/* @style justification-exclusions
+   Every block that must stay flush declares its own text-align, rather than
+   relying on an exception list here: text-align inherits. */
+.typeset .ts-frontmatter-subtitle,
+.typeset .ts-frontmatter-byline,
+.typeset figcaption { text-align: left; }
+```
+
+Work through the gate's failure list rather than the stylesheet top to bottom:
+
+```bash
+node tools/check.mjs 2>&1 | grep 'has neither' | sed 's/.*style "\([a-z0-9-]*\)".*/\1/'
+```
+
+Each line is one style still unnamed. The list is the work queue; it shrinks as you go.
+
 - [ ] **Step 6: Add the two new bases to the checker's internal list**
 
 In `tools/check.mjs`, `INTERNAL_CLASSES` must now read:
@@ -612,10 +702,11 @@ const INTERNAL_CLASSES = new Set([
 - [ ] **Step 7: Run the gate**
 
 ```bash
+node tools/check.mjs 2>&1 | grep 'typeset.css:' | head -20
 node tools/check.mjs 2>&1 | grep -c 'typeset.css:' || echo 0
 ```
 
-Expected: `0`. Every CSS failure from Task 2 is now gone; Typst warnings and stale-page failures remain, and Tasks 6 and 9 clear those.
+Expected: `0`. Every CSS failure from Task 2 is now gone — every style has a class or a marker, and every class and marker names a real element. Typst warnings and stale-page failures remain; Tasks 6 and 9 clear those.
 
 - [ ] **Step 8: Commit**
 
@@ -743,15 +834,43 @@ node tools/codemod-names.mjs \
   implementations/iawriter/letter/example.md
 ```
 
-- [ ] **Step 3: Fix the two-class break markup by hand**
+- [ ] **Step 3: Migrate the break markup by hand**
 
-The codemod rewrites `class="ts-break ts-break--asterism"` to `class="ts-breaks-asterisks ts-breaks-asterism"` — two named styles on one element, which is wrong. Each break variant now stands alone over the internal base:
+`ts-break` is absent from the rename map (it means the base in the stylesheet and three asterisks in a document), so the codemod rewrote the three modifier classes and left the base untouched. Every break site now needs the base plus exactly one named variant.
 
 ```bash
-grep -rn 'ts-breaks-asterisks ts-breaks-' src/demos/ examples/
+grep -rn 'ts-break' src/demos/ examples/ proofs/ implementations/
 ```
 
-Rewrite each hit to `class="ts-break ts-breaks-<variant>"` — the internal base plus exactly one named variant.
+Rewrite each hit:
+
+| 1.x markup | 2.0 markup |
+|---|---|
+| `class="ts-break"` | `class="ts-break ts-breaks-asterisks"` |
+| `class="ts-break ts-breaks-asterism"` | unchanged — already correct |
+| `class="ts-break ts-breaks-fleuron"` | unchanged |
+| `class="ts-break ts-breaks-rule"` | unchanged |
+
+The first row is the one that matters: a bare `.ts-break` used to render three asterisks through the base's own `::before`, and that default now lives on `.ts-breaks-asterisks`. Miss it and the break renders as empty space — which is exactly the failure the breaks section exists to prevent, so it will not be obvious in a screenshot.
+
+- [ ] **Step 3b: Add the four label variant classes to the markup**
+
+Task 4 named the four label treatments and Task 5 styled them, but the documents still carry only the shared base. Each site needs the base plus its variant:
+
+```bash
+grep -rn 'ts-label' src/demos/ examples/ proofs/ implementations/
+```
+
+Rewrite each hit by the element it sits in:
+
+| Context | 2.0 markup |
+|---|---|
+| inside `<caption>` | `class="ts-label ts-tables-caption-label"` |
+| inside `<figcaption>` | `class="ts-label ts-figures-caption-label"` |
+| inside `.ts-frontmatter-abstract` | `class="ts-label ts-frontmatter-abstract-label"` |
+| inside `.ts-letter-address-block` | `class="ts-label ts-letter-address-label"` |
+
+The contextual selectors that used to do this work were deleted in Task 5 Step 4, so a site left on the bare base renders with the shared small-caps treatment and none of its own.
 
 - [ ] **Step 4: Confirm no old name survives in a document**
 
