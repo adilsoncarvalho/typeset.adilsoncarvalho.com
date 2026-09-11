@@ -18,12 +18,12 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
+# A pull request runs untrusted fork code, so it gets its own cancellable
+# queue rather than sharing "pages" with every push and every other PR.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -57,17 +57,17 @@ jobs:
       # Gate: the committed pages must match what the sources generate, SPEC.md
       # must be current, both implementations must still match spec.json, and
       # every Typst snippet under src/demos compiles under typeset.typ. A pull
-      # request stops here — every step below runs only on push, so a stale
-      # commit or a broken snippet fails before merge rather than shipping.
+      # request stops here — every step below skips on a pull request, so a
+      # stale commit or a broken snippet fails before merge rather than shipping.
       - name: Check
         run: node tools/check.mjs
 
       - name: Build the Typst bundle
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: node tools/build-bundle.mjs
 
       - name: Build the iA Writer template
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: node tools/build-iawriter.mjs
 
       # Assembled explicitly rather than uploading the repository root, so the
@@ -75,7 +75,7 @@ jobs:
       # tag, which publishes a release rather than a deployment, and on a pull
       # request, which only runs the check above.
       - name: Assemble the site
-        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/heads/')
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && startsWith(github.ref, 'refs/heads/')
         run: |
           mkdir -p _site
           rsync -a \
@@ -85,7 +85,7 @@ jobs:
             ./ _site/
 
       - uses: actions/upload-pages-artifact@v3
-        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/heads/')
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && startsWith(github.ref, 'refs/heads/')
         with:
           path: _site
 
@@ -94,9 +94,13 @@ jobs:
     # Branch pushes only. The github-pages environment restricts deployments to
     # the default branch, so running this on a tag fails with "not allowed to
     # deploy to github-pages due to environment protection rules" — and a pull
-    # request must never reach a deploy at all.
-    if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/heads/')
+    # request must never reach a deploy at all. Named allowlist rather than
+    # "not a pull request", so a future trigger defaults to no deploy rights.
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && startsWith(github.ref, 'refs/heads/')
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
