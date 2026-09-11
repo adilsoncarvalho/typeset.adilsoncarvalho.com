@@ -231,6 +231,27 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
     continue;
   }
 
+  /* The round-trip below and dedent()/reindent() share preLineMask(): if the
+     mask ever wrongly marked a <pre> line as ordinary, dedent would strip
+     it, reindent would pad it back by the same amount, and the round-trip
+     would agree with itself — a wrong mask can corrupt a code sample and
+     stay invisible, because neither side of that comparison ever consults
+     the source file. This check does: it takes each <pre> interior straight
+     out of the extracted fragment and requires it to occur verbatim in the
+     demo file on disk, with no mask and no inverse in between. */
+  const PRE_INTERIOR_RE = /<pre\b[^>]*>([\s\S]*?)<\/pre>/g;
+  for (const demo of demos) {
+    PRE_INTERIOR_RE.lastIndex = 0;
+    let preMatch;
+    while ((preMatch = PRE_INTERIOR_RE.exec(demo.html)) !== null) {
+      const interior = preMatch[1];
+      if (!original.includes(interior)) {
+        fail.push(`${demoPath}: a <pre> interior in the extracted fragment does not appear `
+          + 'verbatim in the source file — extraction altered a preformatted code sample');
+      }
+    }
+  }
+
   const spans = locateWrapperContents(original);
 
   if (demos.length !== spans.length) {
