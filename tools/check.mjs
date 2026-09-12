@@ -3582,11 +3582,16 @@ function collectQueryText(node, out) {
 
 if (typstAvailable()) {
   const bibliographyDemo = readFileSync('src/demos/bibliography.typ', 'utf8');
-  const entriesMatch = /^#references(?:\([^\n]*\))?\[\n([\s\S]*)\n\]\n?$/.exec(bibliographyDemo);
+  /* Leading "//" lines are skipped, not rejected: a demo file says in a
+     comment what its Typst half cannot show, which is the convention every
+     other demo in src/demos follows, and a gate that forbade the comment
+     would make this the one file that cannot carry one. */
+  const entriesMatch = /^(?:\/\/[^\n]*\n|[ \t]*\n)*#references(?:\([^\n]*\))?\[\n([\s\S]*)\n\]\n?$/
+    .exec(bibliographyDemo);
   if (!entriesMatch) {
     fail.push('tools/check.mjs: src/demos/bibliography.typ is not in the shape this gate expects '
-      + '(a single #references[ ... ] wrapping the entries) — update the gate if the demo was '
-      + 'deliberately restructured');
+      + '(any number of "//" comment lines, then a single #references[ ... ] wrapping the '
+      + 'entries) — update the gate if the demo was deliberately restructured');
   } else {
     const bibProbeDir = mkdtempSync(join(tmpdir(), 'typeset-bib-punct-check-'));
     try {

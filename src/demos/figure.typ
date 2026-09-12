@@ -1,5 +1,17 @@
 #let s = measure-standard / 400
 
+// A placeholder standing in for an image, the same crossed box the HTML file
+// draws in SVG — the pane it belongs to is about the figure block and its
+// caption, not about what is in the frame.
+#figure(
+  caption: [A figure and its caption never split across a page break.],
+  block(width: 300 * s, height: 120 * s, {
+    place(rect(width: 300 * s, height: 120 * s, stroke: 0.75pt + rule-strong))
+    place(line(start: (0pt, 0pt), end: (300 * s, 120 * s), stroke: 0.75pt + rule-color))
+    place(line(start: (300 * s, 0pt), end: (0pt, 120 * s), stroke: 0.75pt + rule-color))
+  }),
+)
+
 #figure(
   caption: [
     Reading comfort against line length. The plateau between 55 and 75
@@ -23,5 +35,19 @@
       box(width: 100 * s, align(center, text(font: sans, size: xs, fill: accent)[55–75])))
     place(dx: 40 * s, dy: 124 * s, text(font: mono, size: 7pt, fill: ink-faint)[30])
     place(dx: 358 * s, dy: 124 * s, text(font: mono, size: 7pt, fill: ink-faint)[120])
+  }),
+)
+
+// The third figure, for figure-caption-label. In the HTML file that pane is
+// the first one that writes a label into its caption by hand; here every
+// caption already carries one, because the show rule at "@s figure" renders
+// the supplement and the counter — "FIGURE 3" — in the label's small caps
+// ahead of every caption body, and a Typst figure cannot be set without it.
+#figure(
+  caption: [The label that a cross-reference in the text points back to.],
+  block(width: 300 * s, height: 120 * s, {
+    place(rect(width: 300 * s, height: 120 * s, stroke: 0.75pt + rule-strong))
+    place(line(start: (0pt, 0pt), end: (300 * s, 120 * s), stroke: 0.75pt + rule-color))
+    place(line(start: (300 * s, 0pt), end: (0pt, 120 * s), stroke: 0.75pt + rule-color))
   }),
 )

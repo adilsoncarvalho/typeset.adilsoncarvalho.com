@@ -1,6 +1,9 @@
 // Typst has no counterpart to the lede. The CSS implementation sets the opening
 // words of this paragraph in small caps with .ts-dropcap-lede; dropcap() takes
 // the whole paragraph as one body and offers no way to mark a run inside it.
+// So the HTML file's second pane — the same opening with its first three words
+// in small caps — has no paragraph of its own here: it would set identically
+// to the one below, which is the difference the pane exists to show.
 //
 // dropcap() reads body.text, so the body must be a single text element. Typst's
 // markup parser may split a paragraph into several, and the call is then refused

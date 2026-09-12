@@ -1,6 +1,17 @@
+// toc() generates the list from the document's own headings, which is why a
+// whole document follows it here and only the list appears in the HTML file:
+// there, the entries and their page numbers are written by hand, because a
+// browser resolves neither. The HTML file's other three panes are entries
+// lifted out of this same list — one at level 1, one at level 2, and the
+// shortest title beside the longest so the leader has something to fill.
 #heading(level: 3, outlined: false)[Contents]
 
 #toc()
+
+= Preface
+
+What follows was set twice, in two implementations, to find out which of its
+rules were about type and which were about one engine.
 
 = Composition
 
@@ -18,7 +29,7 @@ together.
 A clean right edge is bought with uneven word spacing, and the currency is the
 hyphenation dictionary. Take both or neither.
 
-== Opening a chapter
+== Opening a chapter: the drop cap and the small-caps lede
 
 A drop cap, small caps on the opening words, and nothing else. The signal is
 that something has begun, and one signal is enough.
