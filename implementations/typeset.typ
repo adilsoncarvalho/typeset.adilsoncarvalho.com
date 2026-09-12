@@ -46,9 +46,8 @@
 // Two columns: every step comes down. On A4 at the standard margin an 82mm
 // column carries 42 characters at 11pt — below the 45-character floor — so the
 // base drops to 9.5pt, which gives 49. The paragraph indent comes down with
-// them: a column has a quarter of the lines a page does to establish where a
-// paragraph starts, and 1.5em of a 49-character measure is a wider step than
-// the same 1.5em of a 66-character one.
+// them: an indent says "new paragraph" as a fraction of the line it sits on,
+// and 1.5em is 6.1% of an 82mm column against 4.5% of a 128mm measure.
 #let scale-two-column = (
   xs: 7pt, sm: 8.5pt, base: 9.5pt,
   h4: 9.5pt, h3: 11pt, h2: 13pt, h1: 20pt,

@@ -2136,9 +2136,9 @@ for (const [name, expected] of measureLiterals) {
    foundation.page.text_width states the expectation, and the duplex arm is
    its second half: "the paper width minus the left and right margins — twice
    the symmetric value, or inner plus outer for a duplex pair. The two are
-   equal for any one size." A5's text block (108mm) is NARROWER than
-   measure-standard and Letter's (175.9mm) is WIDER, so the two of them
-   together catch a value pinned to A4's 170mm in either direction.
+   equal for any one size." A5's text block (108mm) is NARROWER than A4's
+   170mm and Letter's (175.9mm) is WIDER, so the two of them together catch a
+   value pinned to A4 in either direction.
 
    The document is held to measure-standard throughout, which is also the
    point of the check: measure-full is what a passage uses to step outside
