@@ -1980,6 +1980,49 @@ for (const name of marginNames) {
   }
 }
 
+/* ---- 8. A .tabs input positioned absolute must be pinned inside .tabs ---- */
+
+/* An absolutely positioned element with no offset of its own falls back to
+   its static position, which — inside a flex container — comes from the
+   container's own alignment rather than from its nearest positioned
+   ancestor. .tabs's input is position: absolute so it can hide without
+   display: none breaking the :checked~ sibling selectors the panel relies
+   on; if .tabs itself is not a positioned ancestor, that radio's static
+   position resolves against .tabs's align-items: flex-end instead, landing
+   at the bottom of .tabs — which is also the bottom of the visible pane.
+   Focusing the radio (a label click does this natively, no JS involved)
+   then scrolls that point into view, jumping the page to the end of the
+   example. This gate asserts the fix — .tabs positioned, its input pinned
+   with explicit offsets — holds, rather than trusting it stays in place
+   the next time either rule is touched. */
+{
+  const specimenCss = readFileSync('specimen.css', 'utf8');
+  const cssBlock = (selector) => specimenCss
+    .match(new RegExp(`${selector.replace(/[.]/g, '\\.')}\\s*\\{([^}]*)\\}`))?.[1];
+
+  const tabsInputBlock = cssBlock('.tabs input');
+  if (!tabsInputBlock) {
+    fail.push('specimen.css: no .tabs input block found — the tab-focus-scroll gate cannot run');
+  } else if (/\bposition:\s*absolute\b/.test(tabsInputBlock)) {
+    const tabsBlock = cssBlock('.tabs');
+    if (!tabsBlock || !/\bposition:\s*relative\b/.test(tabsBlock)) {
+      fail.push('specimen.css: .tabs input is position: absolute but .tabs does not declare '
+        + 'position: relative — the radio takes its static position from .tabs\'s flex '
+        + 'alignment (align-items: flex-end) instead, at the bottom of the pane, so focusing '
+        + 'it (a label click) scrolls the page to the end of the example');
+    }
+
+    const hasTop = /\btop:\s*[^;]+;/.test(tabsInputBlock);
+    const hasLeft = /\bleft:\s*[^;]+;/.test(tabsInputBlock);
+    if (!hasTop || !hasLeft) {
+      fail.push(`specimen.css: .tabs input is position: absolute but does not declare both `
+        + `top and left (top: ${hasTop ? 'yes' : 'missing'}, left: ${hasLeft ? 'yes' : 'missing'}) `
+        + '— without explicit offsets it falls back to its flex-derived static position at '
+        + 'the bottom of .tabs');
+    }
+  }
+}
+
 /* ---- Report ------------------------------------------------------------- */
 
 const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);

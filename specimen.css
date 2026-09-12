@@ -360,6 +360,7 @@ a { color: inherit; }
 .panel { min-width: 0; }
 
 .tabs {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
@@ -367,9 +368,18 @@ a { color: inherit; }
 
 /* Tabs are radio inputs, and the pane shown is chosen by sibling position, so
    the panel works with no JavaScript at all. The panes must stay the only <div>
-   children of .tabs for the nth-of-type pairing below to hold. */
+   children of .tabs for the nth-of-type pairing below to hold.
+
+   An absolutely positioned element with no offset of its own falls back to
+   its static position — inside a flex container, that position comes from
+   the container's own alignment (.tabs's align-items: flex-end, at the
+   bottom of .tabs, where the panes also live). .tabs's own position:
+   relative plus this rule's top/left pin the radio to the tab strip
+   instead, so focusing it never scrolls the page to the bottom pane. */
 .tabs input {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 1px;
   height: 1px;
   opacity: 0;
