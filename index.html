@@ -858,12 +858,12 @@ Numbered <span class="c-val">2.1</span>, without anyone typing “<span class="c
   </div>
   <div class="pair">
     <div>
-      <p class="pair__label">Rendered — spaced</p>
+      <p class="pair__label">Spaced</p>
       <div class="paper typeset">
         <p>The first duty of a paragraph is to be findable. Spaced paragraphs announce themselves with white space, which is why they suit documents that get skimmed: memos, reports, letters.</p>
         <p>The cost is vertical space, and a certain restlessness over many pages. Every gap is a small invitation to stop reading.</p>
       </div>
-      <p class="pair__label">Rendered — indented</p>
+      <p class="pair__label">Indented</p>
       <div class="paper typeset typeset--indented">
         <h4>On continuous prose</h4>
         <p>The first paragraph after a heading needs no indent: the heading has already marked the start. So it sits flush.</p>
@@ -882,11 +882,11 @@ Numbered <span class="c-val">2.1</span>, without anyone typing “<span class="c
     <label for="tab-paragraphs-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>Two conventions, one switch. Spaced paragraphs suit documents that get skimmed. Indented paragraphs with no gap suit continuous prose and are the convention of nearly every printed book.</li><li>The first paragraph after any heading, block or break is flush left: the thing above it has already marked the start.</li></ul><h4 class="spec-el">Paragraph — spaced (default)</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>weight</th><td><code>400</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>line height</th><td><code>1.45</code></td></tr><tr><th>baseline advance</th><td><code>15.95pt</code></td></tr><tr><th>numerals</th><td><code>oldstyle proportional</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>space after</th><td><code>11pt</code></td></tr><tr><th>first line indent</th><td><code>0</code></td></tr><tr><th>orphans</th><td><code>2</code></td></tr><tr><th>widows</th><td><code>2</code></td></tr><tr><th>max width</th><td><code>33em</code></td></tr></tbody></table><h4 class="spec-el">Paragraph — indented <span class="spec-optin">opt-in · typeset--indented</span></h4><table class="spec-table"><tbody><tr><th>space after</th><td><code>0</code></td></tr><tr><th>first line indent</th><td><code>1.5em</code></td></tr><tr><th>first line indent after block</th><td><code>0</code></td></tr></tbody></table><p class="spec-note">Applies after a heading, blockquote, figure or section break, and to the first paragraph of the document.</p></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L189">paragraphs</a></p><pre>&lt;!-- Rendered — spaced --&gt;
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L189">paragraphs</a></p><pre>&lt;!-- Spaced --&gt;
 &lt;p&gt;The first duty of a paragraph is to be findable. Spaced paragraphs announce themselves with white space, which is why they suit documents that get skimmed: memos, reports, letters.&lt;/p&gt;
 &lt;p&gt;The cost is vertical space, and a certain restlessness over many pages. Every gap is a small invitation to stop reading.&lt;/p&gt;
 
-&lt;!-- Rendered — indented --&gt;
+&lt;!-- Indented --&gt;
 &lt;div class=&quot;typeset typeset--indented&quot;&gt;
   &lt;h4&gt;On continuous prose&lt;/h4&gt;
   &lt;p&gt;The first paragraph after a heading needs no indent: the heading has already marked the start. So it sits flush.&lt;/p&gt;
@@ -1116,9 +1116,10 @@ can be #highlight(<span class="c-prop">fill</span>: wash)[marked].</pre><button 
   </div>
   <div class="pair">
     <div>
-      <p class="pair__label">Rendered — print view</p>
+      <p class="pair__label">How it must look</p>
       <div class="paper typeset">
-        <p>The argument is set out in full <a href="https://example.org/on-the-measure">on the measure of a line</a>, and summarised <a href="#foundation">in section 02</a>. Corrections to <a href="mailto:hello@example.org">hello@example.org</a>.</p>
+        <h2 id="measure">The measure of a line</h2>
+        <p>The argument is set out in full <a href="https://example.org/on-the-measure">on the measure of a line</a>, and summarised <a href="#measure">in section 02</a>. Corrections to <a href="mailto:hello@example.org">hello@example.org</a>.</p>
         <p class="demo-print-note">Printed, the first link becomes: on the measure of a line <span class="demo-print-note__url">(https://example.org/on-the-measure)</span> — the other two are left alone.</p>
       </div>
     </div>
@@ -1133,8 +1134,8 @@ can be #highlight(<span class="c-prop">fill</span>: wash)[marked].</pre><button 
     <label for="tab-links-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>Paper has no hover and no click. A URL that carries information must be printed.</li></ul><h4 class="spec-el">Link</h4><table class="spec-table"><tbody><tr><th>color</th><td><code>inherit</code></td></tr><tr><th>decoration</th><td><code>underline</code></td></tr><tr><th>underline thickness</th><td><code>0.5pt</code></td></tr><tr><th>underline offset</th><td><code>0.14em</code></td></tr><tr><th>skip descenders</th><td>yes</td></tr></tbody></table><h4 class="spec-el">Printed URL</h4><table class="spec-table"><tbody><tr><th>content</th><td>the href in parentheses, after the link text</td></tr><tr><th>font</th><td><code>mono</code></td></tr><tr><th>size</th><td><code>0.82em</code></td></tr><tr><th>color</th><td><code>ink_muted</code></td></tr><tr><th>wrap</th><td><code>may break anywhere</code></td></tr><tr><th>applies to</th><td>external (http/https) links only</td></tr><tr><th>excluded</th><td><code>internal anchors</code>, <code>mailto:</code>, <code>links marked bare</code></td></tr></tbody></table><h4 class="spec-el">Link — URL suppressed</h4><table class="spec-table"><tbody><tr><th>print url</th><td>no</td></tr></tbody></table><p class="spec-note">Opt-out for a link whose URL would be noise in print: a shortened URL, a tracking URL, or one the surrounding sentence already gives.</p></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L370">links</a></p><pre>&lt;!-- Rendered — print view --&gt;
-&lt;p&gt;The argument is set out in full &lt;a href=&quot;https://example.org/on-the-measure&quot;&gt;on the measure of a line&lt;/a&gt;, and summarised &lt;a href=&quot;#foundation&quot;&gt;in section 02&lt;/a&gt;. Corrections to &lt;a href=&quot;mailto:hello@example.org&quot;&gt;hello@example.org&lt;/a&gt;.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L370">links</a></p><pre>&lt;h2 id=&quot;measure&quot;&gt;The measure of a line&lt;/h2&gt;
+&lt;p&gt;The argument is set out in full &lt;a href=&quot;https://example.org/on-the-measure&quot;&gt;on the measure of a line&lt;/a&gt;, and summarised &lt;a href=&quot;#measure&quot;&gt;in section 02&lt;/a&gt;. Corrections to &lt;a href=&quot;mailto:hello@example.org&quot;&gt;hello@example.org&lt;/a&gt;.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “inline” region of typeset.typ: <a href="files/typeset-typ.html#L260">inline</a></p><pre>== The measure of a line &lt;measure&gt;
 
 The argument is <span class="c-at">set</span> out in full
@@ -1600,14 +1601,14 @@ Which is all it takes.</pre><button class="copy" type="button" data-copy>Copy</b
       <div class="paper typeset">
         <figure>
           <svg viewBox="0 0 400 150" role="img" aria-label="Characters per line plotted against reading comfort, peaking between 55 and 75.">
-            <line x1="30" y1="120" x2="380" y2="120" stroke="#6f6a64" stroke-width="1"/>
-            <line x1="30" y1="120" x2="30" y2="15" stroke="#6f6a64" stroke-width="1"/>
-            <path d="M40 112 C 90 100, 120 40, 175 32 C 230 26, 260 34, 300 62 C 335 88, 355 106, 375 114" fill="none" stroke="#7a1f1f" stroke-width="1.6"/>
-            <rect x="150" y="20" width="90" height="100" fill="#7a1f1f" opacity="0.07"/>
-            <text x="195" y="138" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="9" fill="#5a5a5a">characters per line</text>
-            <text x="195" y="14" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="9" fill="#7a1f1f">55–75</text>
-            <text x="40" y="132" font-family="IBM Plex Mono, monospace" font-size="8" fill="#8a8a8a">30</text>
-            <text x="360" y="132" font-family="IBM Plex Mono, monospace" font-size="8" fill="#8a8a8a">120</text>
+            <line x1="30" y1="120" x2="380" y2="120" stroke="var(--ts-rule-strong)" stroke-width="1"/>
+            <line x1="30" y1="120" x2="30" y2="15" stroke="var(--ts-rule-strong)" stroke-width="1"/>
+            <path d="M40 112 C 90 100, 120 40, 175 32 C 230 26, 260 34, 300 62 C 335 88, 355 106, 375 114" fill="none" stroke="var(--ts-accent)" stroke-width="1.6"/>
+            <rect x="150" y="20" width="90" height="100" fill="var(--ts-accent)" opacity="0.07"/>
+            <text x="195" y="138" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="9" fill="var(--ts-ink-muted)">characters per line</text>
+            <text x="195" y="14" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="9" fill="var(--ts-accent)">55–75</text>
+            <text x="40" y="132" font-family="IBM Plex Mono, monospace" font-size="8" fill="var(--ts-ink-faint)">30</text>
+            <text x="360" y="132" font-family="IBM Plex Mono, monospace" font-size="8" fill="var(--ts-ink-faint)">120</text>
           </svg>
           <figcaption><span class="ts-label ts-figures-caption-label">Figure 1</span> — Reading comfort against line length. The plateau between 55 and 75 characters is why the measure, not the font size, is the first decision.</figcaption>
         </figure>
@@ -1626,14 +1627,14 @@ Which is all it takes.</pre><button class="copy" type="button" data-copy>Copy</b
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>A caption is not a title: it goes below the figure.</li><li>A figure and its caption stay on one page. This is the one place a no-break rule is unambiguously right.</li><li>The caption carries a small-caps label so a cross-reference in the text has something to point at.</li></ul><h4 class="spec-el">Figure</h4><table class="spec-table"><tbody><tr><th>space before</th><td><code>16.5pt</code></td></tr><tr><th>space after</th><td><code>16.5pt</code></td></tr><tr><th>break inside</th><td><code>avoid</code></td></tr><tr><th>image max width</th><td><code>full measure</code></td></tr></tbody></table><h4 class="spec-el">Figure caption</h4><table class="spec-table"><tbody><tr><th>position</th><td><code>below the figure</code></td></tr><tr><th>font</th><td><code>sans</code></td></tr><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>line height</th><td><code>1.4</code></td></tr><tr><th>color</th><td><code>ink_muted</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>0.5em</code></td></tr><tr><th>border top</th><td><code>0.5pt rule</code></td></tr><tr><th>padding top</th><td><code>0.4em</code></td></tr></tbody></table><h4 class="spec-el">Figure caption label</h4><table class="spec-table"><tbody><tr><th>weight</th><td><code>600</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>caps</th><td><code>all small caps</code></td></tr><tr><th>tracking</th><td><code>0.06em</code></td></tr></tbody></table></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L639">figures</a></p><pre>&lt;figure&gt;
   &lt;svg viewBox=&quot;0 0 400 150&quot; role=&quot;img&quot; aria-label=&quot;Characters per line plotted against reading comfort, peaking between 55 and 75.&quot;&gt;
-    &lt;line x1=&quot;30&quot; y1=&quot;120&quot; x2=&quot;380&quot; y2=&quot;120&quot; stroke=&quot;#6f6a64&quot; stroke-width=&quot;1&quot;/&gt;
-    &lt;line x1=&quot;30&quot; y1=&quot;120&quot; x2=&quot;30&quot; y2=&quot;15&quot; stroke=&quot;#6f6a64&quot; stroke-width=&quot;1&quot;/&gt;
-    &lt;path d=&quot;M40 112 C 90 100, 120 40, 175 32 C 230 26, 260 34, 300 62 C 335 88, 355 106, 375 114&quot; fill=&quot;none&quot; stroke=&quot;#7a1f1f&quot; stroke-width=&quot;1.6&quot;/&gt;
-    &lt;rect x=&quot;150&quot; y=&quot;20&quot; width=&quot;90&quot; height=&quot;100&quot; fill=&quot;#7a1f1f&quot; opacity=&quot;0.07&quot;/&gt;
-    &lt;text x=&quot;195&quot; y=&quot;138&quot; text-anchor=&quot;middle&quot; font-family=&quot;Source Sans 3, sans-serif&quot; font-size=&quot;9&quot; fill=&quot;#5a5a5a&quot;&gt;characters per line&lt;/text&gt;
-    &lt;text x=&quot;195&quot; y=&quot;14&quot; text-anchor=&quot;middle&quot; font-family=&quot;Source Sans 3, sans-serif&quot; font-size=&quot;9&quot; fill=&quot;#7a1f1f&quot;&gt;55–75&lt;/text&gt;
-    &lt;text x=&quot;40&quot; y=&quot;132&quot; font-family=&quot;IBM Plex Mono, monospace&quot; font-size=&quot;8&quot; fill=&quot;#8a8a8a&quot;&gt;30&lt;/text&gt;
-    &lt;text x=&quot;360&quot; y=&quot;132&quot; font-family=&quot;IBM Plex Mono, monospace&quot; font-size=&quot;8&quot; fill=&quot;#8a8a8a&quot;&gt;120&lt;/text&gt;
+    &lt;line x1=&quot;30&quot; y1=&quot;120&quot; x2=&quot;380&quot; y2=&quot;120&quot; stroke=&quot;var(--ts-rule-strong)&quot; stroke-width=&quot;1&quot;/&gt;
+    &lt;line x1=&quot;30&quot; y1=&quot;120&quot; x2=&quot;30&quot; y2=&quot;15&quot; stroke=&quot;var(--ts-rule-strong)&quot; stroke-width=&quot;1&quot;/&gt;
+    &lt;path d=&quot;M40 112 C 90 100, 120 40, 175 32 C 230 26, 260 34, 300 62 C 335 88, 355 106, 375 114&quot; fill=&quot;none&quot; stroke=&quot;var(--ts-accent)&quot; stroke-width=&quot;1.6&quot;/&gt;
+    &lt;rect x=&quot;150&quot; y=&quot;20&quot; width=&quot;90&quot; height=&quot;100&quot; fill=&quot;var(--ts-accent)&quot; opacity=&quot;0.07&quot;/&gt;
+    &lt;text x=&quot;195&quot; y=&quot;138&quot; text-anchor=&quot;middle&quot; font-family=&quot;Source Sans 3, sans-serif&quot; font-size=&quot;9&quot; fill=&quot;var(--ts-ink-muted)&quot;&gt;characters per line&lt;/text&gt;
+    &lt;text x=&quot;195&quot; y=&quot;14&quot; text-anchor=&quot;middle&quot; font-family=&quot;Source Sans 3, sans-serif&quot; font-size=&quot;9&quot; fill=&quot;var(--ts-accent)&quot;&gt;55–75&lt;/text&gt;
+    &lt;text x=&quot;40&quot; y=&quot;132&quot; font-family=&quot;IBM Plex Mono, monospace&quot; font-size=&quot;8&quot; fill=&quot;var(--ts-ink-faint)&quot;&gt;30&lt;/text&gt;
+    &lt;text x=&quot;360&quot; y=&quot;132&quot; font-family=&quot;IBM Plex Mono, monospace&quot; font-size=&quot;8&quot; fill=&quot;var(--ts-ink-faint)&quot;&gt;120&lt;/text&gt;
   &lt;/svg&gt;
   &lt;figcaption&gt;&lt;span class=&quot;ts-label ts-figures-caption-label&quot;&gt;Figure 1&lt;/span&gt; — Reading comfort against line length. The plateau between 55 and 75 characters is why the measure, not the font size, is the first decision.&lt;/figcaption&gt;
 &lt;/figure&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
@@ -1914,14 +1915,14 @@ difference is not small.</pre><button class="copy" type="button" data-copy>Copy<
         <h3>Contents</h3>
         <nav class="ts-toc ts-toc--demo">
           <ol>
-            <li><a href="#page"><span>Composition</span><span class="ts-toc-leader"></span><span class="ts-folio">1</span></a></li>
-            <li class="ts-toc-entry-2"><a href="#foundation"><span>The measure of a line</span><span class="ts-toc-leader"></span><span class="ts-folio">3</span></a></li>
-            <li class="ts-toc-entry-2"><a href="#justification"><span>Justification and its costs</span><span class="ts-toc-leader"></span><span class="ts-folio">7</span></a></li>
-            <li class="ts-toc-entry-2"><a href="#dropcap"><span>Opening a chapter</span><span class="ts-toc-leader"></span><span class="ts-folio">11</span></a></li>
-            <li><a href="#tables"><span>Tabular matter</span><span class="ts-toc-leader"></span><span class="ts-folio">14</span></a></li>
-            <li class="ts-toc-entry-2"><a href="#figures"><span>Figures and their captions</span><span class="ts-toc-leader"></span><span class="ts-folio">19</span></a></li>
-            <li><a href="#notes"><span>Apparatus</span><span class="ts-toc-leader"></span><span class="ts-folio">23</span></a></li>
-            <li class="ts-toc-entry-2"><a href="#bibliography"><span>References</span><span class="ts-toc-leader"></span><span class="ts-folio">28</span></a></li>
+            <li><a href="#composition"><span>Composition</span><span class="ts-toc-leader"></span><span class="ts-folio">1</span></a></li>
+            <li class="ts-toc-entry-2"><a href="#the-measure-of-a-line"><span>The measure of a line</span><span class="ts-toc-leader"></span><span class="ts-folio">3</span></a></li>
+            <li class="ts-toc-entry-2"><a href="#justification-and-its-costs"><span>Justification and its costs</span><span class="ts-toc-leader"></span><span class="ts-folio">7</span></a></li>
+            <li class="ts-toc-entry-2"><a href="#opening-a-chapter"><span>Opening a chapter</span><span class="ts-toc-leader"></span><span class="ts-folio">11</span></a></li>
+            <li><a href="#tabular-matter"><span>Tabular matter</span><span class="ts-toc-leader"></span><span class="ts-folio">14</span></a></li>
+            <li class="ts-toc-entry-2"><a href="#figures-and-their-captions"><span>Figures and their captions</span><span class="ts-toc-leader"></span><span class="ts-folio">19</span></a></li>
+            <li><a href="#apparatus"><span>Apparatus</span><span class="ts-toc-leader"></span><span class="ts-folio">23</span></a></li>
+            <li class="ts-toc-entry-2"><a href="#references"><span>References</span><span class="ts-toc-leader"></span><span class="ts-folio">28</span></a></li>
           </ol>
         </nav>
       </div>
@@ -1940,14 +1941,14 @@ difference is not small.</pre><button class="copy" type="button" data-copy>Copy<
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L868">toc</a></p><pre>&lt;h3&gt;Contents&lt;/h3&gt;
 &lt;nav class=&quot;ts-toc&quot;&gt;
   &lt;ol&gt;
-    &lt;li&gt;&lt;a href=&quot;#page&quot;&gt;&lt;span&gt;Composition&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
-    &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#foundation&quot;&gt;&lt;span&gt;The measure of a line&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
-    &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#justification&quot;&gt;&lt;span&gt;Justification and its costs&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
-    &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#dropcap&quot;&gt;&lt;span&gt;Opening a chapter&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href=&quot;#tables&quot;&gt;&lt;span&gt;Tabular matter&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
-    &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#figures&quot;&gt;&lt;span&gt;Figures and their captions&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;a href=&quot;#notes&quot;&gt;&lt;span&gt;Apparatus&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
-    &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#bibliography&quot;&gt;&lt;span&gt;References&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;#composition&quot;&gt;&lt;span&gt;Composition&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#the-measure-of-a-line&quot;&gt;&lt;span&gt;The measure of a line&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#justification-and-its-costs&quot;&gt;&lt;span&gt;Justification and its costs&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#opening-a-chapter&quot;&gt;&lt;span&gt;Opening a chapter&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;#tabular-matter&quot;&gt;&lt;span&gt;Tabular matter&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#figures-and-their-captions&quot;&gt;&lt;span&gt;Figures and their captions&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;#apparatus&quot;&gt;&lt;span&gt;Apparatus&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#references&quot;&gt;&lt;span&gt;References&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
   &lt;/ol&gt;
 &lt;/nav&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L586">toc</a></p><pre>#heading(<span class="c-prop">level</span>: <span class="c-val">3</span>, <span class="c-prop">outlined</span>: <span class="c-at">false</span>)[Contents]
