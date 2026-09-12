@@ -216,10 +216,11 @@ function findMatchingDivClose(source, fromIndex) {
 /* Resolves the element the fragment must be built from: the wrapper itself
    where it carries "typeset" directly, or the first descendant that does,
    for the two demos where the wrapper is .mini page-scaling chrome instead.
-   A demo whose wrapper carries no "typeset" anywhere — page.html renders a
-   decorative page diagram, not the document — has no modifier to look for
-   either, so it falls back to the wrapper itself: the fragment stays its
-   plain inner markup, exactly as for any other unmodified wrapper. */
+   Where neither carries it the wrapper stands, and the fragment is its plain
+   inner markup exactly as for any other unmodified wrapper. That last case is
+   a fail-safe rather than a path any demo takes: it keeps a file with no
+   document element yielding its markup instead of nothing, which the
+   label-count gate would otherwise report as a silently dropped example. */
 function resolveTarget(source, wrapperOpenTag, contentStart, wrapperClose) {
   if (classesOf(wrapperOpenTag).includes('typeset')) {
     return { tag: 'div', openTag: wrapperOpenTag, contentStart, closeIndex: wrapperClose };

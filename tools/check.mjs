@@ -220,7 +220,7 @@ if (typstSnippets.length > 0) {
 
 /* Every class name typeset.css defines, comment text excluded. Read once here
    because two gates need it from opposite directions: the apparatus check in
-   3c holds what is stripped OUT of a pane against it, and 3j holds what is
+   3c holds what is stripped OUT of a pane against it, and 3e holds what is
    left IN. */
 const cssClassNames = new Set(
   [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.(-?[A-Za-z_][\w-]*)/g)]
@@ -464,7 +464,7 @@ function stripSpecimenApparatus(fragment) {
    reader links — must not define it. A name on either list that typeset.css
    does define is document styling, and stripping it hands the reader markup
    that renders differently from the example beside it. This is the inverse of
-   3j below, which holds what the pane publishes to the same stylesheet: that
+   3e below, which holds what the pane publishes to the same stylesheet: that
    one cannot see a removal, and this one cannot see an addition. */
 for (const name of [...APPARATUS_ELEMENTS, ...APPARATUS_CLASSES]) {
   if (cssClassNames.has(name)) {
@@ -472,6 +472,21 @@ for (const name of [...APPARATUS_ELEMENTS, ...APPARATUS_CLASSES]) {
       + 'apparatus, but typeset.css defines it — it is document styling, and a reader '
       + 'who copies the pane gets markup that renders differently from the example');
   }
+}
+
+/* Where two texts first stop agreeing, as a line and column with what each
+   side holds from there. A demo file runs to dozens of lines of dense markup,
+   so "the extractor lost or altered content" on its own leaves a reader
+   diffing by eye for a change that is usually one character. */
+function firstDifference(expected, actual) {
+  let i = 0;
+  while (i < expected.length && i < actual.length && expected[i] === actual[i]) i += 1;
+  const before = expected.slice(0, i);
+  const line = before.split('\n').length;
+  const column = i - (before.lastIndexOf('\n') + 1) + 1;
+  const show = (text) => JSON.stringify(text.slice(i, i + 40)) + (text.length > i + 40 ? '…' : '');
+  return `at line ${line}, column ${column}:\n      file       ${show(expected)}`
+    + `\n      round trip ${show(actual)}`;
 }
 
 for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
@@ -602,7 +617,7 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
 
   if (rebuilt !== original) {
     fail.push(`${demoPath}: extractDemos() round-trip does not reproduce the file — `
-      + 'the extractor lost or altered content');
+      + `the extractor lost or altered content ${firstDifference(original, rebuilt)}`);
   }
 }
 
@@ -640,50 +655,72 @@ for (const section of manifest.filter((s) => s.panel.pane === 'html')) {
   }
 }
 
-/* ---- 3f. The scale demo's labels must be the spec's own values ----------- */
+/* ---- 3f. The scale demos' labels must be the spec's own values ----------- */
 
-/* tokens.html names each size in text beside the sample it stands for —
-   <b>24pt</b> — so the demo file reads on its own, without opening either the
-   stylesheet or spec.json. That makes the label a second copy of a number
-   spec.json owns, and a second copy can go stale in silence: the sample is
-   set from --ts-h1 and would move with it, while the text beside it would sit
-   still, in the one section whose whole subject is that the page and the
-   stylesheet cannot disagree.
+/* Both tokens demos name each size in text beside the sample it stands for —
+   <b>24pt</b> in the HTML, [24pt] in the Typst — so each file reads on its own,
+   without opening a stylesheet or spec.json. That makes every label a second
+   copy of a number spec.json owns, and a second copy can go stale in silence:
+   the sample is set from the step and moves with it, while the text beside it
+   sits still, in the one section whose whole subject is that the page and the
+   implementations cannot disagree.
 
-   The label stays literal text — templating it would buy drift-safety by
-   making the demo unreadable on its own, which is the property worth keeping.
-   This check is what stops a stale label shipping instead.
+   The labels stay literal text — templating them would buy drift-safety by
+   making the demos unreadable on their own, which is the property worth
+   keeping. This check is what stops a stale label shipping instead.
 
-   Each row is bound to its step by the sample's own class: scale-h1 for h1,
-   and no class at all for base, which takes the body size .typeset already
-   sets. Both directions are checked, so a step that gains a row with the
-   wrong label and a step that loses its row both fail. */
+   Both directions are checked for each file, so a step that gains a row with
+   the wrong label and a step that loses its row both fail. */
 
-const SCALE_ROW_RE = /<div class="scale-row"><b>([^<]*)<\/b>\s*<span(?: class="([^"]*)")?>/g;
 const scaleSteps = spec.foundation.scale.steps;
-const scaleShown = new Set();
 
-for (const [, label, sampleClass] of
-     readFileSync('src/demos/tokens.html', 'utf8').matchAll(SCALE_ROW_RE)) {
-  const step = (sampleClass ?? 'scale-base').replace(/^scale-/, '');
-  const expected = scaleSteps[step];
-  if (expected === undefined) {
-    fail.push(`src/demos/tokens.html: the scale row labelled "${label}" is bound to `
-      + `"${step}", which spec.foundation.scale.steps does not define`);
-    continue;
-  }
-  scaleShown.add(step);
-  if (label.trim() !== expected) {
-    fail.push(`src/demos/tokens.html: the scale row for --ts-${step} is labelled `
-      + `"${label.trim()}" but spec.json sets that step to "${expected}" — the label `
-      + 'and the sample beside it no longer agree');
-  }
-}
+const SCALE_DEMOS = [
+  {
+    /* A row is bound to its step by the sample's own class: scale-h1 for h1,
+       and no class at all for base, which takes the body size .typeset already
+       sets. Binding on the class rather than on row order means reordering the
+       rows, which is a legitimate edit, cannot silently re-point every label. */
+    file: 'src/demos/tokens.html',
+    re: /<div class="scale-row"><b>([^<]*)<\/b>\s*<span(?: class="([^"]*)")?>/g,
+    step: (m) => (m[2] ?? 'scale-base').replace(/^scale-/, ''),
+    label: (m) => m[1],
+    names: (step) => `--ts-${step}`,
+  },
+  {
+    /* A row names its step directly, as a field of the scale the template
+       supplies. */
+    file: 'src/demos/tokens.typ',
+    re: /\(scale-single-column\.([a-z0-9]+),\s*\[([^\]]*)\]/g,
+    step: (m) => m[1],
+    label: (m) => m[2],
+    names: (step) => `scale-single-column.${step}`,
+  },
+];
 
-for (const step of Object.keys(scaleSteps)) {
-  if (!scaleShown.has(step)) {
-    fail.push(`src/demos/tokens.html: spec.foundation.scale.steps defines "${step}" `
-      + 'but the scale demo has no row for it');
+for (const demo of SCALE_DEMOS) {
+  const shown = new Set();
+  for (const m of readFileSync(demo.file, 'utf8').matchAll(demo.re)) {
+    const step = demo.step(m);
+    const label = demo.label(m).trim();
+    const expected = scaleSteps[step];
+    if (expected === undefined) {
+      fail.push(`${demo.file}: the scale row labelled "${label}" is bound to `
+        + `"${step}", which spec.foundation.scale.steps does not define`);
+      continue;
+    }
+    shown.add(step);
+    if (label !== expected) {
+      fail.push(`${demo.file}: the scale row for ${demo.names(step)} is labelled `
+        + `"${label}" but spec.json sets that step to "${expected}" — the label `
+        + 'and the sample beside it no longer agree');
+    }
+  }
+
+  for (const step of Object.keys(scaleSteps)) {
+    if (!shown.has(step)) {
+      fail.push(`${demo.file}: spec.foundation.scale.steps defines "${step}" `
+        + 'but the scale demo has no row for it');
+    }
   }
 }
 
@@ -737,7 +774,7 @@ for (const id of cssIds) {
 const noTypst = spec.sections.filter((s) => !typIds.has(s.id)).map((s) => s.id);
 if (noTypst.length) warn.push(`typeset.typ: no marked region for ${noTypst.join(', ')} (the page falls back to a pointer or a note)`);
 
-/* ---- 3e. The iA Writer template ----------------------------------------- */
+/* ---- 3i. The iA Writer template ----------------------------------------- */
 
 /* A template is a packaging of typeset.css, not a second implementation, so what
    is checked here is the page it declares and the modifier it opts into — the
