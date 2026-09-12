@@ -3812,6 +3812,81 @@ for (const [pattern, derived, what] of guideCounts) {
   }
 }
 
+/* ---- 17. Every named style has its own labelled example, or a defensible - */
+/*          exemption ------------------------------------------------------- */
+
+/* The owner's ask ("handhold the user") is mechanical here: for every element
+   spec.json declares, its section's demo file(s) must carry a labelled pair
+   whose label — src/extract.mjs's own ordinal-stripped pair__label text —
+   reads exactly the element's own `name`. That is the one place a reader
+   sees "this markup is what an X looks like", so a name that never surfaces
+   as a label is a style the spec documents and no example shows.
+
+   A demo's file path is derived from the spec section's own id, not read off
+   src/sections.json — code-inline has no row in that manifest at all, so a
+   manifest lookup would silently skip it rather than report it missing. Where
+   a section's manifest row does exist and declares a `fullrow` companion pane
+   (only "note" does today), that file's labels count too: it is a second pane
+   of the same section, not a second section of its own.
+
+   Some elements cannot carry a label of their own no matter how the demos are
+   written. EXEMPTIONS names those, each with the one-sentence reason a
+   reviewer needs to accept it on sight — an exemption with no reason is
+   itself a failure, which is what stops the list from silently absorbing
+   whatever is missing on a given day instead of naming it. */
+
+const EXEMPTIONS = new Map([
+  /* States what is never justified — a prohibition, not a style with an
+     appearance of its own to put beside a label. */
+  ['justification-exclusions', 'states a prohibition — what must never be '
+    + 'justified — not a style with an appearance of its own to show'],
+  /* Appears inside a quote-blockquote's own markup; it has no standalone
+     form the way an epigraph or a pull quote does. */
+  ['quote-attribution', 'a part of quote-blockquote, not a thing of its own — it '
+    + 'appears inside a block quote and has no standalone form'],
+  /* Forces a page break. There is a page boundary to point at in a paginated
+     render, and nothing at all in a screen demo. */
+  ['utility-break-before', 'changes pagination — there is a page boundary to show '
+    + 'in print and nothing at all to show on a screen'],
+  /* Hides content in one medium and shows it in the other, by design — the
+     effect is only observable by comparing print output against a screen. */
+  ['utility-print-only', 'hides on screen by design — the effect is only '
+    + 'observable in a printed or paginated rendering, not on a screen demo'],
+]);
+
+for (const [id, reason] of EXEMPTIONS) {
+  if (!specIds.has(id)) {
+    fail.push(`tools/check.mjs: EXEMPTIONS names "${id}", which spec.json does not declare as `
+      + 'an element id — a typo here would silently exempt the wrong element forever');
+  }
+  if (typeof reason !== 'string' || reason.trim() === '') {
+    fail.push(`tools/check.mjs: EXEMPTIONS' entry for "${id}" carries no reason — an exemption `
+      + 'with no reason is a failure, not a pass');
+  }
+}
+
+for (const sec of spec.sections) {
+  const row = manifest.find((s) => s.id === sec.id);
+  const files = [`src/demos/${sec.id}.html`];
+  if (row && row.fullrow) files.push(`src/demos/${sec.id}.fullrow.html`);
+
+  const labels = new Set();
+  for (const file of files) {
+    if (!existsSync(file)) continue;
+    for (const demo of extractDemos(readFileSync(file, 'utf8'))) {
+      if (demo.label) labels.add(demo.label);
+    }
+  }
+
+  for (const el of sec.elements) {
+    if (EXEMPTIONS.has(el.id)) continue;
+    if (!labels.has(el.name)) {
+      fail.push(`${files[0]}: no pair__label reads "${el.name}" — element "${el.id}" has no `
+        + 'labelled example');
+    }
+  }
+}
+
 /* ---- Report ------------------------------------------------------------- */
 
 const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);
