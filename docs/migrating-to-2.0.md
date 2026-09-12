@@ -238,7 +238,7 @@ as well.
 | `.ts-endnotes` | `.ts-note-endnotes` |
 | `.ts-epigraph` | `.ts-quote-epigraph` |
 | `.ts-footnote` | `.ts-note-footnote` |
-| `.ts-frac` | `.ts-numeral-fractions` |
+| `.ts-frac` | `.ts-numeral-fraction` |
 | `.ts-h1` | `.ts-heading-h1` |
 | `.ts-h2` | `.ts-heading-h2` |
 | `.ts-h3` | `.ts-heading-h3` |

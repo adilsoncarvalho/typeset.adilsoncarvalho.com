@@ -431,7 +431,7 @@
 .typeset .ts-numeral-prose     { font-variant-numeric: oldstyle-nums proportional-nums; }
 .typeset .ts-numeral-display   { font-variant-numeric: lining-nums proportional-nums; }
 .typeset .ts-numeral-tabular   { font-variant-numeric: lining-nums tabular-nums; }
-.typeset .ts-numeral-fractions { font-variant-numeric: diagonal-fractions; }
+.typeset .ts-numeral-fraction { font-variant-numeric: diagonal-fractions; }
 /*! @e */
 
 /*! @s quote :: Block quotations */

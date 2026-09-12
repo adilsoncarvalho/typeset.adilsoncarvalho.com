@@ -253,7 +253,7 @@ function resolveTarget(source, wrapperOpenTag, contentStart, wrapperClose) {
    its own, and the element stays. `ts-toc--demo` only suppresses that
    generated number so a browser shows one figure rather than two. `demo-aside`
    only sets a document paragraph smaller — and in the numerals demo that
-   paragraph carries the sole `.ts-numeral-fractions` in the repo, so taking
+   paragraph carries the sole `.ts-numeral-fraction` in the repo, so taking
    the element would take the demonstration with it. */
 export const APPARATUS_ELEMENTS = new Set(['demo-note', 'demo-print-note', 'ts-folio']);
 export const APPARATUS_CLASSES = new Set(['demo-aside', 'ts-toc--demo']);

@@ -766,7 +766,7 @@
           }
         },
         {
-          "id": "numeral-fractions",
+          "id": "numeral-fraction",
           "name": "Fractions",
           "properties": {
             "form": "diagonal"
