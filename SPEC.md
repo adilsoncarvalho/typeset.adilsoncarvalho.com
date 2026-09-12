@@ -652,6 +652,8 @@ Default: `single-column`
 | max consecutive hyphens | `2` |
 | applies to | `paragraph`, `list item`, `blockquote`, `definition description`, `callout` |
 
+Where unsupported: automatic hyphenation, but at the engine's own built-in limits — the four tuning values above are not configurable
+
 ##### Never justified
 
 | Property | Value |

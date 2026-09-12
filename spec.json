@@ -468,7 +468,8 @@
               "definition description",
               "callout"
             ]
-          }
+          },
+          "fallback": "automatic hyphenation, but at the engine's own built-in limits — the four tuning values above are not configurable"
         },
         {
           "id": "justification-exclusions",
