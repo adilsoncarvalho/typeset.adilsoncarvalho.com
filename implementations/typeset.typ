@@ -161,10 +161,11 @@
 
 // The fourth width, and the only one that is not a number: the full text
 // block. A length here could only ever be ONE paper's — A4 at the standard
-// margin leaves 170mm — and a paper is a document's to choose, so the same
-// constant oversets an A5 sheet by 48pt off the edge and falls 17pt short of
-// a Letter one, both in silence. So it is `auto`, resolved against the page
-// actually in force at the point it is used.
+// margin leaves 170mm — and the paper is a document's to choose, so the same
+// constant runs 62mm wider than an A5 sheet's text block, 42mm of that off
+// the sheet entirely, and stops 6mm short of a Letter one's, both in silence.
+// So it is `auto`, resolved against the page actually in force at the point
+// it is used.
 #let measure-full = auto
 
 // `width` here and typeset()'s `measure` are one axis under two names, on
