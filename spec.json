@@ -1,7 +1,7 @@
 {
   "name": "typeset",
   "version": "2.0.0",
-  "updated": "2026-09-12",
+  "updated": "2026-09-13",
   "owner": "Adilson Carvalho",
   "canonical_url": "https://typeset.adilsoncarvalho.com",
   "intent": "A normative typographic specification for printed documents — essays, letters, reports. This file is the source of truth. CSS, Typst, LaTeX or any other implementation conforms to it; where an implementation and this file disagree, this file is right.",
@@ -863,7 +863,8 @@
           },
           "notes": [
             "Runover lines indent further than the verse line they continue, so a wrapped line cannot be mistaken for a new one."
-          ]
+          ],
+          "fallback": "in Typst: the left indent and the authored line breaks, but no runover indent — a wrapped line reads the same as one the poet wrote"
         }
       ]
     },

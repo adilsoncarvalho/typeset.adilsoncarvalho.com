@@ -355,3 +355,11 @@ so all five are gone from here.
   should decide whether that dependency is worth paying for before 2.0.0 ships;
   until it is, expect the CSS arm of any future conformance gate to have the
   same shape of blind spot the spanning gate did.
+- **`quote-verse`'s runover indent does not render in Typst.** `set
+  par(hanging-indent:)` is defeated by any surrounding container —
+  `block()`, `block(inset:)` and `pad()` all suppress it, whether the `set
+  par` sits inside or outside the container — so Typst has no route to the
+  property by this mechanism at all. `spec.json` now carries a `fallback` on
+  `quote-verse` recording what Typst actually produces. A faithful
+  implementation would mean laying the verse's lines out individually,
+  rather than relying on `hanging-indent`, and nobody has scoped that work.

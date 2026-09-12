@@ -1,6 +1,6 @@
 # typeset — typographic specification
 
-Version 2.0.0 · updated 2026-09-12 · Adilson Carvalho
+Version 2.0.0 · updated 2026-09-13 · Adilson Carvalho
 Canonical: https://typeset.adilsoncarvalho.com
 
 A normative typographic specification for printed documents — essays, letters, reports. This file is the source of truth. CSS, Typst, LaTeX or any other implementation conforms to it; where an implementation and this file disagree, this file is right.
@@ -961,6 +961,8 @@ Where unsupported: automatic hyphenation, but at the engine's own built-in limit
 | indent left | `22pt` |
 | runover indent | `1.5em` |
 | border | `none` |
+
+Where unsupported: in Typst: the left indent and the authored line breaks, but no runover indent — a wrapped line reads the same as one the poet wrote
 
 > Runover lines indent further than the verse line they continue, so a wrapped line cannot be mistaken for a new one.
 
