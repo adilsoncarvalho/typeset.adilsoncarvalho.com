@@ -34,10 +34,11 @@ export function typstBoilerplate(source = readFileSync('implementations/typeset.
 }
 
 /* True where a snippet's first line of code opens the document itself, rather
-   than continuing one the boilerplate has already opened. Two entry points do
-   that: typeset(), and a template such as two-column() that sets a page of its
-   own before composing a body. What they have in common is the page, which is
-   the whole reason the substitution below exists.
+   than continuing one the boilerplate has already opened. Three entry points
+   do that: typeset(), a template such as two-column() that sets a page of its
+   own before composing a body, and letter-page(), which does the same for a
+   letter. What they have in common is the page, which is the whole reason the
+   substitution below exists.
 
    Matches only a whole call — the name followed by ".with(", by whitespace
    before the rest of the line, or by nothing else on the line — so a
@@ -53,7 +54,7 @@ export function typstBoilerplate(source = readFileSync('implementations/typeset.
 export function setsItsOwnPage(fragment) {
   const firstCode = fragment.split('\n')
     .find((line) => line.trim() !== '' && !line.trimStart().startsWith('//'));
-  return /^#show:\s*(typeset|two-column)(\.|\s|$)/.test((firstCode ?? '').trimStart());
+  return /^#show:\s*(typeset|two-column|letter-page)(\.|\s|$)/.test((firstCode ?? '').trimStart());
 }
 
 /* A snippet appended to the boilerplate, exactly as the masthead prints it,

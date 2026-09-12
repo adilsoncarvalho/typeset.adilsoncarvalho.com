@@ -3880,6 +3880,25 @@ const EXEMPTIONS = new Map([
      effect is only observable by comparing print output against a screen. */
   ['utility-print-only', 'hides on screen by design — the effect is only '
     + 'observable in a printed or paginated rendering, not on a screen demo'],
+  /* A letter's own page: margins, and no running head or folio. Set only
+     through a CSS @page rule and a Typst page() call, neither of which has
+     any effect on the on-screen ".paper" div a pane renders into — the same
+     "nothing to show on a screen" reasoning as utility-break-before, one
+     level up at the whole-page rather than the break. src/demos/letter.typ
+     still opens with #show: letter-page, which is where this is honestly
+     shown: a real page, not a div. */
+  ['letter-page', 'sets @page margins and suppresses the running head and '
+    + 'folio — a print/paginated effect with no page boundary to show inside '
+    + 'a screen-rendered ".paper" div, the same reasoning as utility-break-before'],
+  /* Appears inside letter-address-block's own markup, the same relationship
+     quote-attribution has to quote-blockquote above. */
+  ['letter-address-label', 'a caption belonging to letter-address-block, not a '
+    + 'style of its own — the same relationship quote-attribution has to '
+    + 'quote-blockquote'],
+  /* Appears inside frontmatter-abstract's own markup — same shape again. */
+  ['frontmatter-abstract-label', 'a caption belonging to frontmatter-abstract, '
+    + 'not a style of its own — the same relationship quote-attribution has to '
+    + 'quote-blockquote'],
 ]);
 
 for (const [id, reason] of EXEMPTIONS) {
