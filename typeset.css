@@ -593,12 +593,16 @@
 .typeset td:last-child { padding-right: 0; }
 
 /* @style table-header-cell */
+/* The header row carries two of the three rules the section's principle asks
+   for: the one above it, which opens the table, and the one below it, which
+   separates the labels from the data. The third closes the body, below. */
 .typeset thead th {
   font-weight: 600;
   font-size: var(--ts-xs);
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--ts-ink-muted);
+  border-top: 1pt solid var(--ts-rule-strong);
   border-bottom: 1pt solid var(--ts-rule-strong);
 }
 .typeset tbody tr:last-child td { border-bottom: 1pt solid var(--ts-rule-strong); }

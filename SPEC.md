@@ -1077,6 +1077,7 @@ Where unsupported: in Typst: the left indent and the authored line breaks, but n
 | tracking | `0.07em` |
 | color | `ink_muted` |
 | align | `left` |
+| border top | `1pt rule_strong` |
 | border bottom | `1pt rule_strong` |
 | padding | `0.45em 0.7em 0.45em 0` |
 | repeats across pages | yes |

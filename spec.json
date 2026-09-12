@@ -996,6 +996,7 @@
             "tracking": "0.07em",
             "color": "ink_muted",
             "align": "left",
+            "border_top": "1pt rule_strong",
             "border_bottom": "1pt rule_strong",
             "padding": "0.45em 0.7em 0.45em 0",
             "repeats_across_pages": true
