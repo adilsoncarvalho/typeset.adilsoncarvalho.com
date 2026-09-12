@@ -18,12 +18,15 @@ const FOUNDATION_PANELS = {
 /* Sections whose Typst values are set globally rather than per element: the
    snippet itself still shows the section, but the deep link into the full
    source points at the region that carries the setting instead of at the
-   section's own name, which typeset.typ never marks. */
-const TYPST_ELSEWHERE = {
+   section's own name, which typeset.typ never marks. Keyed by the section's
+   own id in spec.json — tools/check.mjs gates both halves of every entry, so
+   a key that names no section, or a value typeset.typ marks no region for,
+   fails the build rather than silently rendering no pointer at all. */
+export const TYPST_ELSEWHERE = {
   numbering: 'heading',
   'code-inline': 'codeblock',
-  links: 'inline',
-  numerals: 'foundation',
+  link: 'inline',
+  numeral: 'foundation',
 };
 
 const NO_TYPST_REGION = 'No dedicated region in typeset.typ — this section reads off Typst’s '

@@ -12,6 +12,7 @@ import { buildSpecMd } from './build-spec.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
 import { typstBoilerplate, typstDocument, setsItsOwnPage } from '../src/boilerplate.mjs';
+import { TYPST_ELSEWHERE } from '../src/panels.mjs';
 import { rewrite } from './codemod-names.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
@@ -1665,6 +1666,27 @@ for (const sym of typSymbols) {
   if (INTERNAL_SYMBOLS.has(sym) || specIds.has(sym) || IMPLEMENTS.has(sym)) continue;
   if (ENGINE_ELEMENTS.has(sym)) continue;
   fail.push(`typeset.typ: #let ${sym} names no spec element and is not listed as internal`);
+}
+
+/* src/panels.mjs's TYPST_ELSEWHERE points a reader from a section with no
+   region of its own to the region that actually carries its Typst styling.
+   Both halves of every entry are gated, the same shape as IMPLEMENTS above:
+   a key naming no real section, or a value typeset.typ marks no region for,
+   would make typstRegionNote() fall through to "no dedicated region" with no
+   warning anywhere that the pointer went missing — which is exactly the
+   defect the singular-rename codemod left behind twice (link/numeral keyed
+   as links/numerals) before this gate existed to catch it. */
+const typstElsewhereSectionIds = new Set(spec.sections.map((s) => s.id));
+for (const [key, value] of Object.entries(TYPST_ELSEWHERE)) {
+  if (!typstElsewhereSectionIds.has(key)) {
+    fail.push(`src/panels.mjs: TYPST_ELSEWHERE names "${key}", which spec.json does not declare `
+      + 'as a section id — a reader of that section would be told nothing about where its Typst '
+      + 'styling lives');
+  }
+  if (!typIds.has(value)) {
+    fail.push(`src/panels.mjs: TYPST_ELSEWHERE maps "${key}" to "${value}", which typeset.typ `
+      + 'marks no region for — the pointer would lead nowhere');
+  }
 }
 
 /* Typst covers a subset by design — many styles are show rules on native
