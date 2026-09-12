@@ -1340,6 +1340,11 @@ const IMPLEMENTS = new Map([
   /* ts-table implements element tables-table under its 1.x spelling, which
      the migration note discloses. */
   ['ts-table', 'tables-table'],
+  /* The block-level overrides for the document's own `justified` default —
+     named for the choice they make, not for the spec's own
+     justification-justified/justification-ragged element ids. */
+  ['justified', 'justification-justified'],
+  ['ragged-right', 'justification-ragged'],
 ]);
 
 for (const [sym, id] of IMPLEMENTS) {
@@ -2288,6 +2293,347 @@ try {
   }
 } finally {
   rmSync(paraProbeDir, { recursive: true, force: true });
+}
+
+/* ---- 12. justified() / ragged-right() — stated alignment, compose, last
+            line, and hyphenation tied to `lang` ------------------------- */
+
+/* spec.json's justification section pairs two principles that only bite
+   together: "alignment inherits, and so does last-line alignment" and "a
+   block that sets its own alignment must also set its own last-line
+   alignment, or the document's justification flushes its last line ... to
+   the left". Typst has no separate "last line" parameter to set — a
+   paragraph's last line is resolved against the same ambient alignment as
+   every other line, so the only way for `justified`/`ragged-right` to state
+   their OWN alignment (and, by construction, their own last-line alignment)
+   is to set that ambient alignment themselves, not merely `justify`. A
+   function relying on Typst's own left default is indistinguishable from one
+   that states it, right up until something nests it inside another
+   alignment — so this gate does that nesting, rather than trusting the
+   source. */
+
+const justificationSpec = spec.sections.find((s) => s.id === 'justification');
+const raggedProps = justificationSpec.elements.find((e) => e.id === 'justification-ragged').properties;
+const justifiedProps = justificationSpec.elements.find((e) => e.id === 'justification-justified').properties;
+
+/* ---- 12a. Literal shape: each function's own source states what it must -- */
+
+const raggedSigMatch = /#let ragged-right\(([^)]*)\) = \{\n([\s\S]*?)\n\}/.exec(typ);
+const justifiedSigMatch = /#let justified\(([^)]*)\) = \{\n([\s\S]*?)\n\}/.exec(typ);
+
+if (!raggedSigMatch) {
+  fail.push('typeset.typ: ragged-right was not found in the shape this gate expects — update the '
+    + 'gate if the function was deliberately restructured');
+} else {
+  const [, sig, body] = raggedSigMatch;
+  if (!/^indented: false, lang: "en", body$/.test(sig.trim())) {
+    fail.push(`typeset.typ: ragged-right's parameters are (${sig.trim()}) — expected exactly `
+      + '(indented: false, lang: "en", body), so hyphenation is never exposed as a parameter '
+      + 'independent of `lang`');
+  }
+  if (!/set align\(left\)/.test(body)) {
+    fail.push('typeset.typ: ragged-right does not `set align(left)` — Typst resolves a paragraph\'s '
+      + 'last line against the ambient alignment, so without this the block is only ragged, and its '
+      + 'last line only flush left, where it happens to already be nested in a left-aligned context');
+  }
+  if (!/justify:\s*false/.test(body)) {
+    fail.push(`typeset.typ: ragged-right does not set justify: false, contradicting `
+      + `justification-ragged.align ("${raggedProps.align}")`);
+  }
+  if (!/set text\(hyphenate:\s*false\)/.test(body)) {
+    fail.push(`typeset.typ: ragged-right does not unconditionally set hyphenate: false, contradicting `
+      + `justification-ragged.hyphenation ("${raggedProps.hyphenation}") — hyphenation exists to serve `
+      + 'justification, so ragged text must never hyphenate, `lang` or not');
+  }
+}
+
+if (!justifiedSigMatch) {
+  fail.push('typeset.typ: justified was not found in the shape this gate expects — update the gate '
+    + 'if the function was deliberately restructured');
+} else {
+  const [, sig, body] = justifiedSigMatch;
+  if (!/^indented: false, lang: "en", body$/.test(sig.trim())) {
+    fail.push(`typeset.typ: justified's parameters are (${sig.trim()}) — expected exactly `
+      + '(indented: false, lang: "en", body), so hyphenation is never exposed as a parameter '
+      + 'independent of `lang`');
+  }
+  if (!/set align\(left\)/.test(body)) {
+    fail.push('typeset.typ: justified does not `set align(left)` — Typst resolves a paragraph\'s '
+      + 'last line against the ambient alignment, so without this the block is only flush left, on '
+      + 'its last line or its only line, where it happens to already be nested in a left-aligned '
+      + `context, contradicting justification-justified.align_last_line ("${justifiedProps.align_last_line}")`);
+  }
+  if (!/justify:\s*true/.test(body)) {
+    fail.push(`typeset.typ: justified does not set justify: true, contradicting `
+      + `justification-justified.align ("${justifiedProps.align}")`);
+  }
+  if (!/set text\(hyphenate:\s*lang\s*!=\s*none\)/.test(body)) {
+    fail.push('typeset.typ: justified does not tie hyphenate to `lang != none` — spec.json states '
+      + 'hyphenation is per-language and requires the document language to be declared, so `justified` '
+      + `must derive hyphenation from \`lang\` alone (justification-justified.hyphenation: `
+      + `"${justifiedProps.hyphenation}")`);
+  }
+}
+
+/* The four hyphenation-tuning numbers justification-justified declares have
+   no Typst parameter behind them at all — `text()` takes only
+   `hyphenate: bool`, confirmed by compiling `#set text(hyphenation_min_word_chars: 6)`
+   and reading back "unexpected argument" from the compiler itself, not
+   assumed from documentation. There is no code to gate here, only prose — so
+   this gate holds typeset.typ's own account of the gap to spec.json's
+   numbers, the same way a fallback note is gated elsewhere in this file,
+   rather than letting the two drift apart silently. */
+const HYPHENATION_TUNING_KEYS = [
+  'hyphenation_min_word_chars', 'hyphenation_min_chars_before_break',
+  'hyphenation_min_chars_after_break', 'max_consecutive_hyphens',
+];
+for (const key of HYPHENATION_TUNING_KEYS) {
+  const value = justifiedProps[key];
+  if (!new RegExp(`${key} \\(${value}\\)`).test(typ)) {
+    fail.push(`typeset.typ: no comment near justified()/ragged-right() documents `
+      + `justification-justified.${key} as ${value} — spec.json and the file's own account of what `
+      + 'Typst cannot enforce have drifted apart');
+  }
+}
+
+/* ---- 12b. Rendered proof: ambient alignment must not survive nesting ----- */
+
+/* Reuses gate 6's stack-based matrix walk (svgShapesByFill), but for the
+   paragraph text itself rather than a marker rect: every <g class="typst-text">
+   run, with its absolute origin and its glyphs' absolute x. Grouped by line
+   (rounded y) because a hyphenated line renders as two runs — the word and
+   its hyphen — sharing one y. */
+function svgTextRuns(svgText) {
+  const tagRe = /<([a-zA-Z][\w:-]*)((?:\s+[\w:-]+="[^"]*")*)\s*(\/?)>|<\/([a-zA-Z][\w:-]*)>/g;
+  const attrRe = /([\w:-]+)="([^"]*)"/g;
+  const parseMatrix = (t) => {
+    const m = /matrix\(([^)]+)\)/.exec(t);
+    return m ? m[1].trim().split(/[\s,]+/).map(Number) : null;
+  };
+  const multiply = (m1, m2) => {
+    const [a1, b1, c1, d1, e1, f1] = m1;
+    const [a2, b2, c2, d2, e2, f2] = m2;
+    return [
+      a1 * a2 + c1 * b2, b1 * a2 + d1 * b2,
+      a1 * c2 + c1 * d2, b1 * c2 + d1 * d2,
+      a1 * e2 + c1 * f2 + e1, b1 * e2 + d1 * f2 + f1,
+    ];
+  };
+  const apply = (m, x, y) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
+
+  const stack = [[1, 0, 0, 1, 0, 0]];
+  const runs = [];
+  let openRun = null;
+  let match;
+  while ((match = tagRe.exec(svgText))) {
+    const [, openTag, attrsText, selfClose, closeTag] = match;
+    if (closeTag) {
+      if (closeTag === 'g') {
+        if (openRun && stack.length - 1 === openRun.depth) {
+          runs.push(openRun);
+          openRun = null;
+        }
+        stack.pop();
+      }
+      continue;
+    }
+    const attrs = {};
+    if (attrsText) {
+      attrRe.lastIndex = 0;
+      let am;
+      while ((am = attrRe.exec(attrsText))) attrs[am[1]] = am[2];
+    }
+    let matrix = stack[stack.length - 1];
+    if (attrs.transform) {
+      const mm = parseMatrix(attrs.transform);
+      if (mm) matrix = multiply(matrix, mm);
+    }
+    if (openTag === 'g') {
+      if (!selfClose) {
+        stack.push(matrix);
+        if (openRun === null && attrs.class === 'typst-text') {
+          openRun = { depth: stack.length - 1, matrix, glyphs: [] };
+        }
+      }
+    } else if (openTag === 'use' && openRun !== null) {
+      const x = Number(attrs.x ?? '0');
+      openRun.glyphs.push(apply(openRun.matrix, x, 0)[0]);
+    }
+  }
+  const byLine = new Map();
+  for (const r of runs) {
+    const y = Math.round(r.matrix[5] * 100) / 100;
+    const line = byLine.get(y) ?? { y, count: 0, lastX: -Infinity, firstX: Infinity };
+    line.count += r.glyphs.length;
+    if (r.glyphs.length) {
+      line.lastX = Math.max(line.lastX, r.glyphs[r.glyphs.length - 1]);
+      line.firstX = Math.min(line.firstX, r.matrix[4]);
+    }
+    byLine.set(y, line);
+  }
+  return [...byLine.values()].sort((a, b) => a.y - b.y);
+}
+
+function compileSvgProbe(dir, name, source) {
+  const path = join(dir, `${name}.typ`);
+  const svgPath = join(dir, `${name}.svg`);
+  writeFileSync(path, source);
+  execFileSync(
+    'typst',
+    ['compile', '--font-path', resolve('fonts'), path, svgPath],
+    { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+  );
+  return readFileSync(svgPath, 'utf8');
+}
+
+const alignProbeDir = mkdtempSync(join(tmpdir(), 'typeset-justification-check-'));
+try {
+  copyFileSync('implementations/typeset.typ', join(alignProbeDir, 'typeset.typ'));
+
+  /* A one-liner is its own last line — exactly the case the spec's own
+     example names ("its only line, for a one-liner"). Nested inside an
+     ambient #align(center), a function that never states its own alignment
+     would centre this line; one that states align(left) will not, no matter
+     what surrounds it. */
+  const ambientSource = (fn) => `#import "typeset.typ": *\n`
+    + `#set page(width: 200pt, height: auto, margin: 0pt)\n#set text(size: 10pt)\n`
+    + `#align(center, ${fn}[Short line.])\n`;
+
+  for (const fn of ['ragged-right', 'justified']) {
+    try {
+      const svg = compileSvgProbe(alignProbeDir, `ambient-${fn}`, ambientSource(fn));
+      const lines = svgTextRuns(svg);
+      if (lines.length !== 1) {
+        fail.push(`tools/check.mjs: the ambient-alignment probe for ${fn} rendered `
+          + `${lines.length} lines, expected exactly 1 — update the probe`);
+      } else if (Math.abs(lines[0].firstX) > 0.5) {
+        fail.push(`typeset.typ: ${fn}[...] nested inside #align(center, ..) starts at `
+          + `x=${lines[0].firstX.toFixed(2)}pt instead of flush left (x=0) — its alignment (and, for `
+          + 'a one-liner, its last-line alignment) is following the ambient #align rather than its '
+          + 'own explicit `set align(left)`');
+      }
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+      fail.push(`typeset.typ: the ambient-alignment probe for ${fn} failed to compile:\n${detail}`);
+    }
+  }
+
+  /* ---- 12c. Rendered proof: compose with typeset(justified: ..), and the
+              last line is never stretched ----------------------------- */
+
+  /* One sentence, one width (`measure: 200pt` on the real typeset(), not a
+     bare #set page — so this exercises the actual document-wide parameter
+     Step 3 names), long enough to wrap into exactly two lines with a
+     deliberately raggy natural break: `lang: none` on every call here so
+     hyphenation never moves the break point, keeping this probe reasoning
+     about alignment alone. Reused, unmodified, by the hyphenation probe
+     below via its own `lang: "en"` variant. */
+  const COMPOSE_TEXT = 'Alpha bravo charlie delta echo incomprehensibility zulu.';
+  const composeDoc = (setup, call) => `#import "typeset.typ": *\n`
+    + `#show: typeset.with(measure: 200pt${setup})\n#${call}[${COMPOSE_TEXT}]\n`;
+
+  const raggedInJustifiedSvg = compileSvgProbe(
+    alignProbeDir, 'compose-ragged-in-justified',
+    composeDoc(', justified: true', 'ragged-right(lang: none)'),
+  );
+  const justifiedInRaggedSvg = compileSvgProbe(
+    alignProbeDir, 'compose-justified-in-ragged',
+    composeDoc('', 'justified(lang: none)'),
+  );
+
+  const raggedLines = svgTextRuns(raggedInJustifiedSvg);
+  const justifiedLines = svgTextRuns(justifiedInRaggedSvg);
+
+  if (raggedLines.length !== 2 || justifiedLines.length !== 2) {
+    fail.push(`tools/check.mjs: the compose probe wrapped "${COMPOSE_TEXT}" to `
+      + `${raggedLines.length} (ragged-right) and ${justifiedLines.length} (justified) lines at `
+      + 'measure: 200pt, expected exactly 2 from each — update the probe text or width');
+  } else {
+    const [raggedFirst, raggedLast] = raggedLines;
+    const [justifiedFirst, justifiedLast] = justifiedLines;
+
+    /* Direction 1: #ragged-right inside `typeset(justified: true)` must
+       still be ragged — its first line must fall well short of the measure
+       that a justified sibling reaches, not merely "somewhat less". */
+    /* Direction 2: #justified inside the (ragged) document default must
+       reach the measure its ragged-right sibling does not. Checked as one
+       comparison: the gap between the two first lines' right edges must be
+       large, in the direction justified > ragged, so a mutation that makes
+       either function ignore its own setting and follow the document
+       default instead collapses this gap rather than merely shrinking it. */
+    const gap = justifiedFirst.lastX - raggedFirst.lastX;
+    if (gap < 20) {
+      fail.push(`typeset.typ: justified()'s first line ends ${justifiedFirst.lastX.toFixed(2)}pt from `
+        + `the left and ragged-right()'s ends ${raggedFirst.lastX.toFixed(2)}pt, a gap of only `
+        + `${gap.toFixed(2)}pt — expected justified() to reach measurably further right, proving it `
+        + 'stretches its non-last line to the measure regardless of the document default, and that '
+        + 'ragged-right() does not, regardless of typeset(justified: true)');
+    }
+
+    /* The last line is never stretched — spec.json states this explicitly,
+       naming the exact failure mode (a paginating engine fragments the text
+       so the true last line stops looking like one and gets justified
+       anyway). Both probes wrap the same words to the same two lines, so
+       their LAST lines must end at the same x: if justify reached the last
+       line here, justifiedLast would move right of raggedLast. */
+    const lastLineDrift = Math.abs(justifiedLast.lastX - raggedLast.lastX);
+    if (lastLineDrift > 1) {
+      fail.push(`typeset.typ: justified()'s last line ends ${justifiedLast.lastX.toFixed(2)}pt from `
+        + `the left, ragged-right()'s ends ${raggedLast.lastX.toFixed(2)}pt (both wrapping `
+        + `"${COMPOSE_TEXT}" at measure: 200pt) — the last line of a justified paragraph must never `
+        + 'be stretched, so the two should end at the same place');
+    }
+  }
+
+  /* ---- 12d. Rendered proof: hyphenation is tied to `lang`, not a knob ---- */
+
+  /* Same sentence and width, `justified(lang: "en")` this time: a real
+     English hyphenation dictionary is now available, so "incomprehensibility"
+     can break and leave less of itself on the wrapped (last) line than the
+     `lang: none` variant above does. ragged-right(lang: "en") must NOT
+     hyphenate even though a language is declared — hyphenation exists only
+     to serve justification. */
+  const justifiedEnSvg = compileSvgProbe(
+    alignProbeDir, 'hyphenation-justified-en',
+    composeDoc('', 'justified(lang: "en")'),
+  );
+  const raggedEnSvg = compileSvgProbe(
+    alignProbeDir, 'hyphenation-ragged-en',
+    composeDoc('', 'ragged-right(lang: "en")'),
+  );
+  const justifiedEnLines = svgTextRuns(justifiedEnSvg);
+  const raggedEnLines = svgTextRuns(raggedEnSvg);
+
+  if (justifiedEnLines.length !== 2 || raggedEnLines.length !== 2) {
+    fail.push('tools/check.mjs: the hyphenation probe did not wrap to 2 lines for both '
+      + `justified(lang: "en") (${justifiedEnLines.length}) and ragged-right(lang: "en") `
+      + `(${raggedEnLines.length}) — update the probe text or width`);
+  } else {
+    const justifiedNoneLast = justifiedLines[1];
+    const hyphenatedDrop = justifiedNoneLast.count - justifiedEnLines[1].count;
+    if (hyphenatedDrop < 5) {
+      fail.push(`typeset.typ: justified(lang: "en")'s last line carries ${justifiedEnLines[1].count} `
+        + `glyphs against justified(lang: none)'s ${justifiedNoneLast.count} at the same measure — `
+        + 'expected "incomprehensibility" to hyphenate and leave markedly fewer glyphs on the wrapped '
+        + 'line when a language is declared, proving hyphenation is actually reading `lang`');
+    }
+    const raggedEnDrop = Math.abs(raggedEnLines[1].count - raggedLines[1].count);
+    if (raggedEnDrop > 2) {
+      fail.push(`typeset.typ: ragged-right(lang: "en")'s last line carries ${raggedEnLines[1].count} `
+        + `glyphs against ragged-right(lang: none)'s ${raggedLines[1].count} — expected them to match, `
+        + 'since ragged text must never hyphenate regardless of `lang`');
+    }
+  }
+} finally {
+  rmSync(alignProbeDir, { recursive: true, force: true });
+}
+
+/* ---- 12e. The demo must cover the case, not configure around it --------- */
+
+const justificationDemo = readFileSync('src/demos/justification.typ', 'utf8');
+if (/#set par|#set text/.test(justificationDemo)) {
+  fail.push('src/demos/justification.typ: uses #set par or #set text directly — the point of '
+    + 'justified()/ragged-right() is that an author never has to');
 }
 
 /* ---- Report ------------------------------------------------------------- */

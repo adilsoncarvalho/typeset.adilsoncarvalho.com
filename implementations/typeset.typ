@@ -397,6 +397,60 @@
 }
 // @e
 
+// ── Alignment ───────────────────────────────────────────────────────────────
+
+// Ragged right is `typeset()`'s own document-wide default (its `justified`
+// option). These two exist for the one paragraph, list item, blockquote or
+// callout that needs the OTHER convention, so an author reaches for a name
+// instead of `#set par(justify: ..)` and `#set text(hyphenate: ..)` by hand —
+// the same reason block-spaced/block-indented exist for paragraph spacing.
+//
+// Justification and hyphenation are a single decision, never two: hyphenate
+// is never a parameter here, only `lang`, because hyphenation is per-language
+// and requires the document language to be declared. `justified(lang: none)`
+// is how a document states that no dictionary is declared for this block —
+// honestly, not as a footgun to avoid, since that combination (justified,
+// unhyphenated) is exactly what opens rivers of white space down the page.
+// `ragged-right` takes the same `lang` parameter for the language-sensitive
+// typesetting `hyphenate` is not (quotation marks, spacing rules) — but never
+// hyphenates, `lang` or not: a hyphen exists to serve justification, and
+// breaks a word for no gain without it.
+//
+// `set align(left)` is not restating the ambient default. Alignment inherits,
+// and Typst resolves a justified paragraph's last line against that same
+// inherited alignment — so a block nested inside a centred or right-aligned
+// context that only set `justify` would flush its last line, or its only
+// line for a one-liner, to whatever alignment surrounds it, correct only
+// where that happens to already be left. Stating `align(left)` here is what
+// makes both functions' own alignment, and their own last-line alignment,
+// hold regardless of where they are nested — never true "by inheritance"
+// alone.
+//
+// Typst's `text()` exposes only `hyphenate: bool`, with no per-language
+// tuning surface — no parameter takes justification-justified's own
+// hyphenation_min_word_chars (6), hyphenation_min_chars_before_break (3),
+// hyphenation_min_chars_after_break (3) or max_consecutive_hyphens (2).
+// typeset.css enforces those same four numbers with `hyphenate-limit-chars`
+// and `hyphenate-limit-lines`; there is no Typst engine feature this file can
+// set in their place.
+// @s justification
+#let ragged-right(indented: false, lang: "en", body) = {
+  set align(left)
+  set par(.._paragraphs-rule(indented), justify: false)
+  if lang != none { set text(lang: lang) }
+  set text(hyphenate: false)
+  body
+}
+
+#let justified(indented: false, lang: "en", body) = {
+  set align(left)
+  set par(.._paragraphs-rule(indented), justify: true)
+  if lang != none { set text(lang: lang) }
+  set text(hyphenate: lang != none)
+  body
+}
+// @e
+
 // ── Blocks the spec names but no engine provides ────────────────────────────
 
 #let quotes-epigraph(attribution: none, body) = context {

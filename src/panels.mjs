@@ -21,7 +21,6 @@ const FOUNDATION_PANELS = {
    section's own name, which typeset.typ never marks. */
 const TYPST_ELSEWHERE = {
   paragraphs: 'foundation',
-  justification: 'foundation',
   numbering: 'headings',
   'code-inline': 'codeblock',
   links: 'inline',
