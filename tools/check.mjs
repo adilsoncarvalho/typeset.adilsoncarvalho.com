@@ -279,6 +279,92 @@ if (!typstAvailable()) {
   rmSync(outDir, { recursive: true, force: true });
 }
 
+/* ---- 3l. #quote(type:) rejects an unknown type; its default path stays a - */
+/*         genuine native `quote` element ------------------------------------ */
+
+/* Four behaviours behind one call is only safe if a typo in `type:` is loud.
+   This compiles a probe calling #quote(type: "pullqoute") — a plausible typo
+   of "pullquote" — and requires the compile to FAIL, with the panic message
+   naming the valid values. A probe that compiled clean here would mean the
+   typo silently fell through to an ordinary quote, the worst outcome this
+   call surface can produce.
+
+   A second probe checks the opposite failure mode: that shadowing Typst's
+   builtin `quote` to add `type:` did not also break the *default* path.
+   `typst query` reads the document's own element tree before layout, so it
+   can confirm the default call still produces exactly one genuine native
+   `quote` element — not some other shape this file's own block() produces —
+   with block: true, the same invariant implementations/typeset.typ's own
+   `_native-quote` comment names. */
+
+if (typstAvailable()) {
+  const quoteProbeDir = mkdtempSync(join(tmpdir(), 'typeset-quote-check-'));
+  copyFileSync('implementations/typeset.typ', join(quoteProbeDir, 'typeset.typ'));
+  const fontPath = resolve('fonts');
+
+  const badTypePath = join(quoteProbeDir, 'bad-type.typ');
+  writeFileSync(badTypePath, typstDocument(
+    '#quote(type: "pullqoute")[A typo, not a real type.]'));
+  try {
+    execFileSync(
+      'typst',
+      ['compile', '--font-path', fontPath, badTypePath, join(quoteProbeDir, 'bad-type.pdf')],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    );
+    fail.push('typeset.typ: #quote(type: "pullqoute") compiled instead of panicking — an '
+      + 'unknown type silently fell through to the ordinary quote, the worst outcome this '
+      + 'call surface can produce');
+  } catch (err) {
+    /* Typst's CLI prints a panic's string payload Rust-Debug-escaped, so the
+       literal bytes on stderr are \"epigraph\" (backslash included), not
+       "epigraph" — match the bare word rather than the quoting around it. */
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message));
+    for (const want of ['epigraph', 'pullquote', 'verse']) {
+      if (!detail.includes(want)) {
+        fail.push(`typeset.typ: #quote(type:)'s unknown-type panic does not name "${want}" as a `
+          + `valid value:\n${detail.trim()}`);
+      }
+    }
+  }
+
+  const defaultPath = join(quoteProbeDir, 'default.typ');
+  writeFileSync(defaultPath, typstDocument(
+    '#quote(attribution: [A. Author])[The default path.]'));
+  try {
+    const out = execFileSync(
+      'typst',
+      ['query', '--font-path', fontPath, defaultPath, 'quote', '--field', 'block', '--one'],
+      { stdio: ['pipe', 'pipe', 'pipe'], timeout: 30_000 },
+    );
+    if (JSON.parse(out.toString()) !== true) {
+      fail.push('typeset.typ: #quote(...) with no type produced a native quote element with '
+        + 'block: false — the show rule this file styles it with only targets block quotes');
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message));
+    fail.push('typeset.typ: #quote(...) with no type no longer produces exactly one native '
+      + `quote element — check that _native-quote still aliases the real builtin:\n${detail.trim()}`);
+  }
+
+  rmSync(quoteProbeDir, { recursive: true, force: true });
+}
+
+/* type: "verse"'s own branch comment names a load-bearing invariant: a
+   runover line must indent further than the verse line it continues, or a
+   wrapped line could be mistaken for one the poet wrote. Compiling would not
+   catch a dropped hanging-indent — the branch stays valid Typst either way —
+   so this holds the literal value against spec.json's own quote-verse
+   runover_indent, the same way the foundation token checks above hold
+   typeset.css's variables against spec.json. */
+const quoteVerseRunover = spec.sections
+  .find((s) => s.id === 'quote').elements
+  .find((e) => e.id === 'quote-verse').properties.runover_indent;
+if (!typ.includes(`hanging-indent: ${quoteVerseRunover}`)) {
+  fail.push('typeset.typ: type: "verse" does not set hanging-indent to spec.json\'s '
+    + `quote-verse runover_indent (${quoteVerseRunover}) — the runover-line invariant its `
+    + 'own branch comment names is unverified');
+}
+
 /* Every class name typeset.css defines, comment text excluded. Read once here
    because two gates need it from opposite directions: the apparatus check in
    3c holds what is stripped OUT of a pane against it, and 3e holds what is
