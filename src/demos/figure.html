@@ -1,4 +1,18 @@
-<p class="pair__label">How it must look</p>
+<p class="pair__label" data-element="figure">1 · Figure</p>
+<p class="demo-note">A figure and its caption stay on one page — the one place a no-break rule is unambiguously right.</p>
+<div class="paper typeset">
+  <figure>
+    <svg viewBox="0 0 300 120" role="img" aria-label="A placeholder figure, framed and crossed like an image proof.">
+      <rect x="1" y="1" width="298" height="118" fill="none" stroke="var(--ts-rule-strong)" stroke-width="1"/>
+      <line x1="1" y1="1" x2="299" y2="119" stroke="var(--ts-rule)" stroke-width="1"/>
+      <line x1="299" y1="1" x2="1" y2="119" stroke="var(--ts-rule)" stroke-width="1"/>
+    </svg>
+    <figcaption>A figure and its caption never split across a page break.</figcaption>
+  </figure>
+</div>
+
+<p class="pair__label" data-element="figure-caption">2 · Figure caption</p>
+<p class="demo-note">Below the figure, sans at 9.5pt, muted, set off by a hair rule — a caption reads as apparatus, not as more body text.</p>
 <div class="paper typeset">
   <figure>
     <svg viewBox="0 0 400 150" role="img" aria-label="Characters per line plotted against reading comfort, peaking between 55 and 75.">
@@ -11,6 +25,19 @@
       <text x="40" y="132" font-family="IBM Plex Mono, monospace" font-size="8" fill="var(--ts-ink-faint)">30</text>
       <text x="360" y="132" font-family="IBM Plex Mono, monospace" font-size="8" fill="var(--ts-ink-faint)">120</text>
     </svg>
-    <figcaption><span class="ts-label ts-figure-caption-label">Figure 1</span> — Reading comfort against line length. The plateau between 55 and 75 characters is why the measure, not the font size, is the first decision.</figcaption>
+    <figcaption>Reading comfort against line length. The plateau between 55 and 75 characters is why the measure, not the font size, is the first decision.</figcaption>
+  </figure>
+</div>
+
+<p class="pair__label" data-element="figure-caption-label">3 · Figure caption label</p>
+<p class="demo-note">Set apart from the caption prose that follows it: small caps, tracked wider, one weight heavier — so a cross-reference in the text has something to point at.</p>
+<div class="paper typeset">
+  <figure>
+    <svg viewBox="0 0 300 120" role="img" aria-label="A second placeholder figure.">
+      <rect x="1" y="1" width="298" height="118" fill="none" stroke="var(--ts-rule-strong)" stroke-width="1"/>
+      <line x1="1" y1="1" x2="299" y2="119" stroke="var(--ts-rule)" stroke-width="1"/>
+      <line x1="299" y1="1" x2="1" y2="119" stroke="var(--ts-rule)" stroke-width="1"/>
+    </svg>
+    <figcaption><span class="ts-label ts-figure-caption-label">Figure 1</span> — The label that a cross-reference in the text points back to.</figcaption>
   </figure>
 </div>
