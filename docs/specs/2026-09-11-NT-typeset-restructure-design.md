@@ -322,6 +322,20 @@ so all five are gone from here.
 
 **Unowned — decide before 2.0.0 ships:**
 
+- **`#pagebreak()` cannot be called in a `typeset()` document at the default
+  measure.** The measure is applied as a `block()`, and a page break cannot be
+  taken inside a container — so `utility-break-before` and `utility-break-after`
+  have no reachable Typst counterpart at all, which the basics-coverage group
+  found while trying to demonstrate them and recorded in `src/demos/utility.typ`
+  with its differential-compile evidence. This is the same root cause as the
+  `block(width: measure, doc)` item below, and a fix for one is the fix for both.
+
+- **Typst sets a table caption below the table**, where `spec.json` says above,
+  in the wrong colour, with a rule the spec does not declare. Found by the
+  basics-coverage group while writing `table-caption`'s pane. `figure`'s caption
+  is correct; the fix is a kind-aware caption rule rather than a patch to the
+  one that exists.
+
 - **`dropcap()` reads `body.text`**, which holds only when the body is a bare
   string. Any markup and the cap is taken from the wrong character, silently.
 - **`typeset()` holds its body to the measure with a `block()`** — since the
