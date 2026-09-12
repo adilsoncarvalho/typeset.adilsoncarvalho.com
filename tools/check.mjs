@@ -3815,21 +3815,27 @@ for (const [pattern, derived, what] of guideCounts) {
 /* ---- 17. Every named style has its own labelled example, or a defensible - */
 /*          exemption ------------------------------------------------------- */
 
-/* The owner's ask ("handhold the user") is mechanical here: for every element
-   spec.json declares, its section's demo file(s) must carry a labelled pair
-   whose label — src/extract.mjs's own ordinal-stripped pair__label text —
-   reads exactly the element's own `name`. That is the one place a reader
-   sees "this markup is what an X looks like", so a name that never surfaces
-   as a label is a style the spec documents and no example shows.
+/* The owner's ask ("handhold the user") is a binding, not a text match: for
+   every element spec.json declares, exactly one pane across src/demos must
+   carry a pair__label whose `data-element` attribute names that element's
+   id. The label's own text stays a human word chosen for the reader —
+   "Spaced", not the spec's own "Paragraph — spaced (default)" — because
+   forcing that text to equal a normative `name` field either reads clumsily
+   ("1 · Paragraph — spaced (default)", restating the heading the reader is
+   already under) or drags 103 `name` fields into being written to suit a
+   demo file. The id is the machine key; the label is what a person reads.
+   Same split, same reason, as tools/check.mjs's own IMPLEMENTS map below,
+   which binds a Typst symbol to a spec element id rather than trusting that
+   the symbol's own name matches.
 
-   A demo's file path is derived from the spec section's own id, not read off
-   src/sections.json — code-inline has no row in that manifest at all, so a
-   manifest lookup would silently skip it rather than report it missing. Where
-   a section's manifest row does exist and declares a `fullrow` companion pane
-   (only "note" does today), that file's labels count too: it is a second pane
-   of the same section, not a second section of its own.
+   Every demo file under src/demos is scanned, not just the one named after
+   a section's own id — so a `data-element` typed into the wrong file (a
+   copy-paste from a neighbouring section) still surfaces, as a binding
+   pointing at an id that section's element list does not own. A missing
+   demo file — code-inline has none — simply contributes no bindings, and
+   its element reports as unbound rather than crashing the run.
 
-   Some elements cannot carry a label of their own no matter how the demos are
+   Some elements cannot carry a pane of their own no matter how the demos are
    written. EXEMPTIONS names those, each with the one-sentence reason a
    reviewer needs to accept it on sight — an exemption with no reason is
    itself a failure, which is what stops the list from silently absorbing
@@ -3865,24 +3871,39 @@ for (const [id, reason] of EXEMPTIONS) {
   }
 }
 
-for (const sec of spec.sections) {
-  const row = manifest.find((s) => s.id === sec.id);
-  const files = [`src/demos/${sec.id}.html`];
-  if (row && row.fullrow) files.push(`src/demos/${sec.id}.fullrow.html`);
+/* One row per data-element binding found anywhere under src/demos, keyed by
+   the spec element id it names — however many panes claim it, and whatever
+   file they live in. */
+const elementBindings = new Map();
+for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
+  const path = `src/demos/${file}`;
+  for (const demo of extractDemos(readFileSync(path, 'utf8'))) {
+    if (!demo.elementId) continue;
+    const bindings = elementBindings.get(demo.elementId) ?? [];
+    bindings.push({ file: path, label: demo.label });
+    elementBindings.set(demo.elementId, bindings);
+  }
+}
 
-  const labels = new Set();
-  for (const file of files) {
-    if (!existsSync(file)) continue;
-    for (const demo of extractDemos(readFileSync(file, 'utf8'))) {
-      if (demo.label) labels.add(demo.label);
+for (const [id, bindings] of elementBindings) {
+  if (!specIds.has(id)) {
+    for (const { file, label } of bindings) {
+      fail.push(`${file}: data-element="${id}" on "${label ?? '(unlabelled)'}" names no element `
+        + 'spec.json declares');
     }
   }
+}
 
+for (const sec of spec.sections) {
   for (const el of sec.elements) {
     if (EXEMPTIONS.has(el.id)) continue;
-    if (!labels.has(el.name)) {
-      fail.push(`${files[0]}: no pair__label reads "${el.name}" — element "${el.id}" has no `
-        + 'labelled example');
+    const bindings = elementBindings.get(el.id) ?? [];
+    if (bindings.length === 0) {
+      fail.push(`src/demos/${sec.id}.html: no pane is bound to "${el.id}" (${el.name}) via `
+        + 'data-element — element has no labelled example');
+    } else if (bindings.length > 1) {
+      const where = bindings.map((b) => `${b.file} ("${b.label ?? '(unlabelled)'}")`).join(', ');
+      fail.push(`"${el.id}" is bound to ${bindings.length} panes, not exactly one: ${where}`);
     }
   }
 }
