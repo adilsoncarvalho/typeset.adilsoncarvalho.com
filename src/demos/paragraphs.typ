@@ -1,3 +1,4 @@
+// Spaced is the document default, so it needs no wrapper here.
 The first duty of a paragraph is to be findable. Spaced paragraphs announce
 themselves with white space, which is why they suit documents that get skimmed:
 memos, reports, letters.
@@ -5,9 +6,7 @@ memos, reports, letters.
 The cost is vertical space, and a certain restlessness over many pages. Every
 gap is a small invitation to stop reading.
 
-#block[
-  #set par(spacing: leading-for(1.45), first-line-indent: (amount: 1.5em, all: false))
-
+#paragraphs-indented[
   ==== On continuous prose
 
   The first paragraph after a heading needs no indent: the heading has already

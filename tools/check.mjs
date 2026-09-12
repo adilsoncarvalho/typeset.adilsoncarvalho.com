@@ -1311,6 +1311,9 @@ const INTERNAL_SYMBOLS = new Set([
   'measure-standard', 'measure-narrow', 'measure-wide', 'measure-full', 'measured',
   /* helpers the styles are built from */
   'leading-for', 'smcp', 'oldstyle', 'lining', 'tabular', '_break-mark',
+  /* the spacing/indent pair behind typeset()'s own `indented` option AND
+     paragraphs-spaced/paragraphs-indented below — not a style itself */
+  '_paragraphs-rule',
   /* document and template entry points */
   'typeset', 'two-column', 'span',
   /* two-column's own spanning.always state, read by frontmatter-title-block,
@@ -2107,6 +2110,154 @@ if (!measureEmMatch) {
       + `measure (${spec.foundation.rhythm.measure}) at the ${spec.foundation.scale.steps.base} base is `
       + `${expectedMm}mm — measure is canonical, measure_mm must follow it`);
   }
+}
+
+/* ---- 11. paragraphs-spaced / paragraphs-indented must match the spec, and
+            the indent must actually be suppressed only where the spec says -- */
+
+/* The literal values first. _paragraphs-rule backs both typeset()'s own
+   `indented` option and the two standalone functions, so a hand-copied number
+   drifting in any one of the three call sites shows up here as a mismatch
+   against spec.json's own paragraphs-spaced/paragraphs-indented elements. */
+
+const paragraphsSpec = spec.sections.find((s) => s.id === 'paragraphs');
+const specEl = (id) => paragraphsSpec.elements.find((e) => e.id === id).properties;
+const spacedProps = specEl('paragraphs-spaced');
+const indentedProps = specEl('paragraphs-indented');
+
+const rule = /#let _paragraphs-rule\(indented, leading: [\d.]+\) = if indented \{([^}]*)\} else \{([^}]*)\}/.exec(typ);
+if (!rule) {
+  fail.push('typeset.typ: _paragraphs-rule was not found in the shape this gate expects — '
+    + 'update the gate if the function was deliberately restructured');
+} else {
+  const [, indentedBranch, spacedBranch] = rule;
+
+  const spacedIndent = /first-line-indent:\s*([^\n,)}]+)/.exec(spacedBranch)?.[1]?.trim();
+  if (spacedIndent !== '0pt') {
+    fail.push(`typeset.typ: paragraphs-spaced's first-line-indent is ${spacedIndent}, but `
+      + `spec.json's first_line_indent is "${spacedProps.first_line_indent}" (0) — every line flush`);
+  }
+  const spacedSpacing = /spacing:\s*([^\n,)}]+)/.exec(spacedBranch)?.[1]?.trim();
+  if (spacedSpacing !== 'sp') {
+    fail.push(`typeset.typ: paragraphs-spaced's spacing is "${spacedSpacing}", expected the module's `
+      + `own \`sp\` (${spacedProps.space_after}, spec.json's paragraphs-spaced.space_after)`);
+  }
+
+  const indentedAmount = /first-line-indent:\s*\(amount:\s*([^,]+),\s*all:\s*(true|false)\)/.exec(indentedBranch);
+  if (!indentedAmount) {
+    fail.push('typeset.typ: paragraphs-indented does not set first-line-indent as an '
+      + '(amount: .., all: ..) dictionary — without `all`, Typst cannot know to withhold the '
+      + 'indent after a heading, blockquote, figure or break, or from the document\'s first paragraph');
+  } else {
+    if (indentedAmount[1].trim() !== indentedProps.first_line_indent) {
+      fail.push(`typeset.typ: paragraphs-indented's first-line-indent amount is `
+        + `${indentedAmount[1].trim()}, but spec.json's first_line_indent is "${indentedProps.first_line_indent}"`);
+    }
+    if (indentedAmount[2] !== 'false') {
+      fail.push('typeset.typ: paragraphs-indented sets first-line-indent all: true — this applies '
+        + "the indent even after a heading, blockquote, figure or break, and to the document's "
+        + 'first paragraph, contradicting the note on spec.json\'s paragraphs-indented element: '
+        + `"${paragraphsSpec.elements.find((e) => e.id === 'paragraphs-indented').notes[0]}"`);
+    }
+  }
+  const indentedSpacing = /spacing:\s*([^\n,)}]+)/.exec(indentedBranch)?.[1]?.trim();
+  if (!/^leading-for\(/.test(indentedSpacing ?? '')) {
+    fail.push(`typeset.typ: paragraphs-indented's spacing is "${indentedSpacing}", expected `
+      + `leading-for(..) — spec.json's paragraphs-indented.space_after is "${indentedProps.space_after}" `
+      + '(no gap beyond the ordinary line leading)');
+  }
+}
+
+/* The behaviour second. A gate that only reads the source text back would
+   pass an implementation that sets the right dictionary and STILL gets the
+   result wrong — the most likely way, per this task's own brief: wrapping
+   `body` in a layout block() rather than a plain code-block scope. A
+   block() is itself a non-paragraph element, so Typst's `all: false` would
+   then withhold the indent from the wrapper's own first paragraph even when
+   nothing inside the wrapper precedes it — silently flushing prose that is
+   not actually after a heading, a blockquote, a figure or a break. So this
+   renders a probe through the real typeset.typ and reads back where the
+   glyphs actually land, the same way gate 6 holds two-column spanning to the
+   rendered page rather than to the source that describes it. */
+
+const PARA_MARGIN_PT = 20;
+const paraBasePt = parseFloat(spec.foundation.scale.steps.base);
+const indentEm = parseFloat(indentedProps.first_line_indent);
+const paraIndentPt = indentEm * paraBasePt;
+const paraMarker = (fill) => `#box(rect(width: 4pt, height: 4pt, fill: rgb("${fill}")))`;
+
+const AFTER_HEADING_FILL = '#d20001';
+const MID_FLOW_FILL = '#d20002';
+const WRAPPER_FIRST_FILL = '#d20003';
+const SPACED_FIRST_FILL = '#d20004';
+const SPACED_SECOND_FILL = '#d20005';
+
+const paraProbeSource = `#import "typeset.typ": *\n\n`
+  + `#set page(width: 300pt, height: auto, margin: ${PARA_MARGIN_PT}pt)\n`
+  + `#set text(font: serif, size: ${paraBasePt}pt)\n\n`
+  + `= Heading\n`
+  + `#paragraphs-indented[\n`
+  + `  ${paraMarker(AFTER_HEADING_FILL)}Flush: this paragraph follows the heading directly.\n\n`
+  + `  ${paraMarker(MID_FLOW_FILL)}Indented: this paragraph follows an ordinary paragraph.\n`
+  + `]\n\n`
+  + `Ordinary prose that precedes the next wrapper, so ITS first paragraph is not the `
+  + `document's first paragraph and does not follow a heading, a blockquote, a figure or a break.\n\n`
+  + `#paragraphs-indented[\n`
+  + `  ${paraMarker(WRAPPER_FIRST_FILL)}Indented: the wrapper's own first paragraph, which a `
+  + `block() wrapper would wrongly flush.\n`
+  + `]\n\n`
+  + `#paragraphs-spaced[\n`
+  + `  ${paraMarker(SPACED_FIRST_FILL)}Flush: paragraphs-spaced never indents.\n\n`
+  + `  ${paraMarker(SPACED_SECOND_FILL)}Flush: still no indent, even mid-flow.\n`
+  + `]\n`;
+
+const paraProbeDir = mkdtempSync(join(tmpdir(), 'typeset-paragraphs-check-'));
+try {
+  copyFileSync('implementations/typeset.typ', join(paraProbeDir, 'typeset.typ'));
+  const paraProbePath = join(paraProbeDir, 'paragraphs-probe.typ');
+  const paraProbeSvgPath = join(paraProbeDir, 'paragraphs-probe.svg');
+  writeFileSync(paraProbePath, paraProbeSource);
+
+  try {
+    execFileSync(
+      'typst',
+      ['compile', '--font-path', resolve('fonts'), paraProbePath, paraProbeSvgPath],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    );
+    const svg = readFileSync(paraProbeSvgPath, 'utf8');
+
+    const xOf = (fill, label) => {
+      const shapes = svgShapesByFill(svg, fill);
+      if (shapes.length === 0) {
+        fail.push(`tools/check.mjs: the paragraphs probe found no marker for "${label}" — `
+          + 'update the probe in this gate');
+        return null;
+      }
+      return shapes[0].abs[0];
+    };
+
+    const checks = [
+      [AFTER_HEADING_FILL, 'after a heading', PARA_MARGIN_PT],
+      [MID_FLOW_FILL, 'mid-flow inside paragraphs-indented', PARA_MARGIN_PT + paraIndentPt],
+      [WRAPPER_FIRST_FILL, "paragraphs-indented's own first paragraph, not after a heading", PARA_MARGIN_PT + paraIndentPt],
+      [SPACED_FIRST_FILL, "paragraphs-spaced's first paragraph", PARA_MARGIN_PT],
+      [SPACED_SECOND_FILL, "paragraphs-spaced's second paragraph", PARA_MARGIN_PT],
+    ];
+    for (const [fill, label, expectedX] of checks) {
+      const x = xOf(fill, label);
+      if (x === null) continue;
+      if (Math.abs(x - expectedX) > 0.5) {
+        fail.push(`typeset.typ: the paragraph marked "${label}" rendered at x=${x.toFixed(2)}pt, `
+          + `expected ${expectedX.toFixed(2)}pt (page margin ${PARA_MARGIN_PT}pt`
+          + `${expectedX !== PARA_MARGIN_PT ? ` + ${paraIndentPt}pt indent` : ', flush'})`);
+      }
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+    fail.push(`typeset.typ: the paragraphs probe failed to compile:\n${detail}`);
+  }
+} finally {
+  rmSync(paraProbeDir, { recursive: true, force: true });
 }
 
 /* ---- Report ------------------------------------------------------------- */

@@ -67,6 +67,21 @@
 // so leading = (line_height - 1) em. 1.45 → 0.45em → 15.95pt at 11pt.
 #let leading-for(line-height) = (line-height - 1) * 1em
 
+// Paragraph separation is one decision expressed as two par properties, never
+// both at once: a gap (spaced) or an indent (indented). `typeset()`'s own
+// `indented` option and the two standalone functions below (paragraphs-spaced,
+// paragraphs-indented) both read this, so the whole-document switch and the
+// per-block override can never drift apart into two different 1.5em's.
+// `leading` defaults to the single-column scale's own 1.45 for the two
+// standalone functions, which have no `scale` to read; typeset() passes its
+// own scale's leading, so a document on the two-column scale still gets
+// indented spacing equal to ITS leading, not the single-column one's.
+#let _paragraphs-rule(indented, leading: 1.45) = if indented {
+  (spacing: leading-for(leading), first-line-indent: (amount: 1.5em, all: false))
+} else {
+  (spacing: sp, first-line-indent: 0pt)
+}
+
 #let oldstyle = (number-type: "old-style", number-width: "proportional")
 #let lining = (number-type: "lining", number-width: "proportional")
 #let tabular = (number-type: "lining", number-width: "tabular")
@@ -197,9 +212,8 @@
 
   set par(
     leading: leading-for(scale.leading),
-    spacing: if indented { leading-for(scale.leading) } else { sp },
+    .._paragraphs-rule(indented, leading: scale.leading),
     justify: justified,
-    first-line-indent: if indented { (amount: 1.5em, all: false) } else { 0pt },
 // @e
     linebreaks: "optimized",
   )
@@ -346,6 +360,36 @@
     })
   }
 }
+
+// ── Paragraphs ──────────────────────────────────────────────────────────────
+
+// `typeset()`'s own `indented` option applies one of these two to the whole
+// document. These exist for the one block that needs the OTHER convention —
+// the same reason `justified`/`ragged-right` exist for alignment. Spaced is
+// the document default and so needs no wrapper of its own for that reason,
+// but it still gets one: the way back, for one block, in a document set to
+// indented.
+//
+// `first-line-indent`'s `all: false` is what makes indented prose behave:
+// Typst withholds the indent from a paragraph that opens the document, and
+// from one right after a heading, a blockquote, a figure or a break, because
+// each of those is itself a block and a block resets the same state a
+// document start does. A `block()` wrapper here would do that AGAIN to the
+// first paragraph *inside* this function — flushing a paragraph that is not
+// actually after a heading, a bug this file's own conformance gate compiles
+// a probe to catch. So `body` below is scoped by a plain code block, which
+// carries no layout identity of its own, never by `block()`.
+// @s paragraphs
+#let paragraphs-spaced(body) = {
+  set par(.._paragraphs-rule(false))
+  body
+}
+
+#let paragraphs-indented(body) = {
+  set par(.._paragraphs-rule(true))
+  body
+}
+// @e
 
 // ── Blocks the spec names but no engine provides ────────────────────────────
 
