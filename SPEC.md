@@ -317,10 +317,10 @@ Default: `single-column`
 
 | Property | Value |
 | --- | --- |
-| always | `frontmatter-title-block`, `frontmatter-subtitle`, `frontmatter-byline`, `frontmatter-dateline`, `frontmatter-abstract`, `headings-h1`, `frontmatter-colophon` |
+| always | `frontmatter-title-block`, `frontmatter-subtitle`, `frontmatter-byline`, `frontmatter-dateline`, `frontmatter-abstract`, `headings-h1`, `bibliography-heading`, `frontmatter-colophon` |
 | optional | `figure`, `table`, `code block`, `pull quote` |
 | never | `paragraph`, `list`, `blockquote`, `callout`, `heading 2 and below`, `endnotes` |
-| note | A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` stay prose because they describe author choice and default flow, which nothing enforces. A bibliography heading is not on `always`: no bibliography heading element exists anywhere in this spec, and the bibliography section's own element list carries none either. |
+| note | A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` stay prose because they describe author choice and default flow, which nothing enforces. `bibliography-heading` is on `always` as its own element, distinct from `headings-h2`: `never`'s "heading 2 and below" names the six generic heading levels (headings-h2 through headings-h6), not a differently-identified element that happens to share their scale — so a bibliography heading may span both columns while an ordinary section heading may not. |
 
 #### forbidden
 
@@ -1411,6 +1411,26 @@ Where unsupported: leaders render, page numbers are omitted
 `bibliography`
 
 - Hanging indent, always. The surname is what is being scanned, so it must be the leftmost thing on the entry.
+- The heading is its own element, not an instance of headings-h2, even though it shares h2's scale and weight: the distinct id is what lets it span both columns in the two-column template while an ordinary section heading — headings-h2 through headings-h6 — cannot.
+
+##### Heading
+
+| Property | Value |
+| --- | --- |
+| font | `sans` |
+| weight | `600` |
+| size | `18pt` |
+| line height | `1.2` |
+| baseline advance | `21.6pt` |
+| tracking | `-0.01em` |
+| color | `ink` |
+| align | `left` |
+| space before | `22pt` |
+| space after | `5.5pt` |
+| break after | `avoid` |
+| break inside | `avoid` |
+| wrap | `balanced` |
+| sets running head | yes |
 
 ##### Entry
 
