@@ -20,7 +20,7 @@ const FOUNDATION_PANELS = {
    source points at the region that carries the setting instead of at the
    section's own name, which typeset.typ never marks. */
 const TYPST_ELSEWHERE = {
-  numbering: 'headings',
+  numbering: 'heading',
   'code-inline': 'codeblock',
   links: 'inline',
   numerals: 'foundation',

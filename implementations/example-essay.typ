@@ -37,9 +37,9 @@ The width of the range is the interesting part.
   writing. No argument or consideration can absolve typography from this duty.
 ]
 
-#quotes-pullquote[No argument can absolve typography from this duty.]
+#quote-pullquote[No argument can absolve typography from this duty.]
 
-#breaks-asterism()
+#break-asterism()
 
 == What the measure costs
 
@@ -58,7 +58,7 @@ is not empty, and you can put something in it.
   ),
 )
 
-#callouts-callout(title: [Note])[
+#callout(title: [Note])[
   Point sizes assume the document is printed at 100%. Fit-to-page scaling
   silently invalidates every measurement here.
 ]
@@ -69,7 +69,7 @@ is not empty, and you can put something in it.
 / Measure: The length of a line of type, counted in characters.
 / Leading: The vertical distance between baselines.
 
-#quotes-verse[
+#quote-verse[
   Whose woods these are I think I know. \
   His house is in the village though;
 ]

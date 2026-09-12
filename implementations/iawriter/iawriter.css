@@ -171,14 +171,14 @@
 }
 
 /* --- 4. Footnotes ---------------------------------------------------------
-   A hand-written typeset document marks a note with `.ts-notes-marker` and carries
-   the text in `.ts-notes-endnotes`. MultiMarkdown emits its own shape instead:
+   A hand-written typeset document marks a note with `.ts-note-marker` and carries
+   the text in `.ts-note-endnotes`. MultiMarkdown emits its own shape instead:
 
      …text<sup><a class="footnote" href="#fn1" id="fnr1">1</a></sup>…
      <div class="footnotes"><hr /><ol><li id="fn1">…</li></ol></div>
 
    The number is real text rather than a counter, so the reference is styled
-   rather than generated. Everything else matches `.ts-notes-marker` exactly —
+   rather than generated. Everything else matches `.ts-note-marker` exactly —
    `.typeset sup` has already taken the superscript and the zero line-height, so
    what is left is the colour, the lining figures and the missing underline. */
 
@@ -188,7 +188,7 @@
   color: var(--ts-accent);
 }
 
-/* The notes block, styled as `.ts-notes-endnotes`. There is deliberately no heading:
+/* The notes block, styled as `.ts-note-endnotes`. There is deliberately no heading:
    the rule above it is the only mark it needs. MultiMarkdown supplies that rule
    as an <hr>, which typeset.css would otherwise set as a `* * *` section break,
    so it is removed and the border replaces it. */
@@ -248,7 +248,7 @@
 /* Column alignment is the one thing a Markdown table can state, and it arrives
    as an inline style on every cell. A right-aligned column is a column of
    numbers, and a column of numbers only aligns on tabular figures — so the
-   inline style is read as the signal it is. This is what `.ts-tables-cell-numeric` does in a
+   inline style is read as the signal it is. This is what `.ts-table-cell-numeric` does in a
    hand-written document; the attribute match is the only hook Markdown offers. */
 .typeset th[style*="right"],
 .typeset td[style*="right"] {

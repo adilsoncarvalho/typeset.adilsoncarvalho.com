@@ -57,7 +57,7 @@ body.typeset > * {
 }
 
 /* The display quote. `>` is the only quoting construct Markdown has, so in a
-   letter it carries the job `.ts-quotes-pullquote` does in a hand-written document
+   letter it carries the job `.ts-quote-pullquote` does in a hand-written document
    rather than `blockquote`'s: no rule, no indent, centred, and lifted off the
    body in Cormorant Garamond Light Italic at 1.3x the base.
 
