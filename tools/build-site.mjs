@@ -170,31 +170,64 @@ const counts = (() => {
    drift from the fonts fonts/ actually carries or the import shape
    typeset.typ actually declares. */
 
-/* One representative, non-italic face per spec-required family. Checked
-   against fonts/manifest.json below, so a renamed or removed font file
-   fails the build instead of shipping a dead src: in a page nobody
-   proofreads by hand. */
-const BOILERPLATE_FACE = {
-  'EB Garamond': 'EBGaramond-Regular.otf',
-  'Source Sans 3': 'SourceSans3-400.ttf',
-  'IBM Plex Mono': 'IBMPlexMono-400.ttf',
+/* The weight a face's filename names, where it names it in words. A file whose
+   suffix is numeric carries the weight directly. */
+const WEIGHT_NAMES = {
+  '': 400, Thin: 100, ExtraLight: 200, Light: 300, Regular: 400,
+  Medium: 500, SemiBold: 600, Bold: 700, ExtraBold: 800, Black: 900,
 };
 
+/* The font-weight and font-style descriptors a face file must be bound with,
+   read from the part of its name after the family: "-SemiBoldItalic", "-400",
+   "-300", "-Italic". Returns null for a name this cannot read, which the
+   caller turns into a build failure — a face bound with the wrong descriptors,
+   or with none, is exactly the defect this block exists to prevent. */
+function faceDescriptors(file) {
+  const stem = file.replace(/\.(otf|ttf|woff2?)$/i, '');
+  const suffix = stem.slice(stem.indexOf('-') + 1);
+  const italic = suffix.endsWith('Italic');
+  const token = italic ? suffix.slice(0, -'Italic'.length) : suffix;
+  const weight = /^\d+$/.test(token) ? Number(token) : WEIGHT_NAMES[token];
+  if (weight === undefined) return null;
+  return { weight, style: italic ? 'italic' : 'normal' };
+}
+
+/* Every face the three spec families carry, each bound with the descriptors
+   its own filename declares. A @font-face rule with no font-weight and no
+   font-style tells the browser the file is the family's 400 upright, so it
+   answers a request for 600 or for italic by slanting and smearing that one
+   file — and typeset.css asks for sans 300/600/700 and for serif italic and
+   semibold. Faux bold and faux italic on the front page of a typographic
+   specification is the failure the specification exists to prevent, so the
+   list is derived from fonts/manifest.json rather than hand-kept: a face that
+   is added, renamed or removed moves this block with it. */
 function boilerplateHtml() {
   const manifest = JSON.parse(read('fonts/manifest.json'));
-  const faces = ['serif', 'sans', 'mono'].map((role) => {
-    const family = spec.foundation.fonts[role].family;
-    const file = BOILERPLATE_FACE[family];
-    const entry = manifest.families.find((f) => f.family === family);
-    if (!entry || !file || !entry.faces.some((fc) => fc.file === file)) {
-      throw new Error(`fonts/manifest.json has no "${file}" face for ${family} — `
-        + 'update BOILERPLATE_FACE in tools/build-site.mjs');
+  const blocks = ['serif', 'sans', 'mono'].map((role) => {
+    const { family } = spec.foundation.fonts[role];
+    const entry = manifest.families.find((f) => f.family === family && f.role === 'spec');
+    if (!entry) {
+      throw new Error(`fonts/manifest.json has no "spec" entry for ${family}, which `
+        + `spec.foundation.fonts.${role} names — regenerate the manifest`);
     }
-    return `  @font-face { font-family: "${family}"; src: url("${entry.dir}/${file}"); }`;
+    return entry.faces.map((face) => {
+      const d = faceDescriptors(face.file);
+      if (!d) {
+        throw new Error(`fonts/manifest.json: cannot read a weight and style out of `
+          + `"${face.file}" — teach faceDescriptors() in tools/build-site.mjs its shape, `
+          + 'or the masthead would bind it with no descriptors and the browser would '
+          + 'synthesise every other weight from it');
+      }
+      return { ...d, src: `${entry.dir}/${face.file}`, family };
+    })
+      .sort((a, b) => (a.style === b.style ? a.weight - b.weight : (a.style === 'normal' ? -1 : 1)))
+      .map((f) => `  @font-face { font-family: "${f.family}"; font-weight: ${f.weight};`
+        + ` font-style: ${f.style}; src: url("${f.src}"); }`)
+      .join('\n');
   });
   return esc(`<link rel="stylesheet" href="typeset.css">
 <style>
-${faces.join('\n')}
+${blocks.join('\n\n')}
 </style>
 
 <div class="typeset">

@@ -140,12 +140,24 @@
     <p class="boilerplate__label">Running a snippet</p>
     <div class="boilerplate__pair">
       <div>
-        <p>Every HTML pane below is a fragment. To run one on its own: link <a href="files/typeset-css.html"><code>typeset.css</code></a>, load the three families from <a href="fonts/"><code>fonts/</code></a>, and wrap the fragment in an element carrying <code>class="typeset"</code> — every rule in the stylesheet is scoped under that class, so nothing outside it is touched.</p>
+        <p>Every HTML pane below is a fragment. To run one on its own: link <a href="files/typeset-css.html"><code>typeset.css</code></a>, load the three families from <a href="fonts/"><code>fonts/</code></a>, and wrap the fragment in an element carrying <code>class="typeset"</code> — every rule in the stylesheet is scoped under that class, so nothing outside it is touched. Bind every face, not one per family: the stylesheet asks the sans for 300, 600 and 700 and the serif for its italic and its semibold, and a family declared once with no <code>font-weight</code> and no <code>font-style</code> leaves the browser to slant and smear that single file into all of them. <a href="examples/essay.html">The essay</a> is the same thing as a whole document.</p>
         <pre class="boilerplate__pre"><code data-boilerplate="html">&lt;link rel=&quot;stylesheet&quot; href=&quot;typeset.css&quot;&gt;
 &lt;style&gt;
-  @font-face { font-family: &quot;EB Garamond&quot;; src: url(&quot;fonts/EB-Garamond/EBGaramond-Regular.otf&quot;); }
-  @font-face { font-family: &quot;Source Sans 3&quot;; src: url(&quot;fonts/Source-Sans-3/SourceSans3-400.ttf&quot;); }
-  @font-face { font-family: &quot;IBM Plex Mono&quot;; src: url(&quot;fonts/IBM-Plex-Mono/IBMPlexMono-400.ttf&quot;); }
+  @font-face { font-family: &quot;EB Garamond&quot;; font-weight: 400; font-style: normal; src: url(&quot;fonts/EB-Garamond/EBGaramond-Regular.otf&quot;); }
+  @font-face { font-family: &quot;EB Garamond&quot;; font-weight: 600; font-style: normal; src: url(&quot;fonts/EB-Garamond/EBGaramond-SemiBold.otf&quot;); }
+  @font-face { font-family: &quot;EB Garamond&quot;; font-weight: 400; font-style: italic; src: url(&quot;fonts/EB-Garamond/EBGaramond-Italic.otf&quot;); }
+  @font-face { font-family: &quot;EB Garamond&quot;; font-weight: 600; font-style: italic; src: url(&quot;fonts/EB-Garamond/EBGaramond-SemiBoldItalic.otf&quot;); }
+
+  @font-face { font-family: &quot;Source Sans 3&quot;; font-weight: 300; font-style: normal; src: url(&quot;fonts/Source-Sans-3/SourceSans3-300.ttf&quot;); }
+  @font-face { font-family: &quot;Source Sans 3&quot;; font-weight: 400; font-style: normal; src: url(&quot;fonts/Source-Sans-3/SourceSans3-400.ttf&quot;); }
+  @font-face { font-family: &quot;Source Sans 3&quot;; font-weight: 600; font-style: normal; src: url(&quot;fonts/Source-Sans-3/SourceSans3-600.ttf&quot;); }
+  @font-face { font-family: &quot;Source Sans 3&quot;; font-weight: 700; font-style: normal; src: url(&quot;fonts/Source-Sans-3/SourceSans3-700.ttf&quot;); }
+  @font-face { font-family: &quot;Source Sans 3&quot;; font-weight: 400; font-style: italic; src: url(&quot;fonts/Source-Sans-3/SourceSans3-400Italic.ttf&quot;); }
+  @font-face { font-family: &quot;Source Sans 3&quot;; font-weight: 600; font-style: italic; src: url(&quot;fonts/Source-Sans-3/SourceSans3-600Italic.ttf&quot;); }
+
+  @font-face { font-family: &quot;IBM Plex Mono&quot;; font-weight: 400; font-style: normal; src: url(&quot;fonts/IBM-Plex-Mono/IBMPlexMono-400.ttf&quot;); }
+  @font-face { font-family: &quot;IBM Plex Mono&quot;; font-weight: 600; font-style: normal; src: url(&quot;fonts/IBM-Plex-Mono/IBMPlexMono-600.ttf&quot;); }
+  @font-face { font-family: &quot;IBM Plex Mono&quot;; font-weight: 400; font-style: italic; src: url(&quot;fonts/IBM-Plex-Mono/IBMPlexMono-400Italic.ttf&quot;); }
 &lt;/style&gt;
 
 &lt;div class=&quot;typeset&quot;&gt;
