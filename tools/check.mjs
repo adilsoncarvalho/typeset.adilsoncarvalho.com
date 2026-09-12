@@ -1156,6 +1156,10 @@ const INTERNAL_SYMBOLS = new Set([
   'ink', 'ink-muted', 'ink-faint', 'rule-color', 'rule-strong', 'wash', 'accent',
   'serif', 'sans', 'mono',
   'scale-single-column', 'scale-two-column', 'base-size', 'sm', 'xs', 'sp',
+  /* the page: six named margins and the paper table they apply to */
+  'margin-narrow', 'margin-standard', 'margin-wide',
+  'margin-duplex-narrow', 'margin-duplex-standard', 'margin-duplex-wide',
+  'paper-sizes-mm',
   /* helpers the styles are built from */
   'leading-for', 'smcp', 'oldstyle', 'lining', 'tabular', '_break-mark',
   /* document and template entry points */
