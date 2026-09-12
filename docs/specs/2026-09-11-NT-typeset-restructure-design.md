@@ -42,7 +42,7 @@ Five problems with the site as it stands, in the order they get fixed:
 |---|---|
 | Class naming scheme | Derived mechanically from the `spec.json` element id: `.ts-<element-id>`, with element ids normalised to `<section>-<style>`. The Typst symbol uses the same name. |
 | Migration for old class names | Hard cutover. Major version bump, full old→new table in the release notes, plus a codemod script that rewrites a document. |
-| Document-level modifiers | Out of scope. All 9 of them — `.typeset--justified`, `--indented`, `--numbered`, `--sidenotes`, `--two-column`, `--ragged`, `--narrow`, `--wide`, `--column-rule` — stay as they are. They are document options, not element styles. |
+| Document-level modifiers | Out of scope. All 9 of them — `.typeset--justified`, `--indented`, `--numbered`, `--sidenotes`, `--two-column`, `--ragged`, `--measure-narrow`, `--measure-wide`, `--column-rule` — stay as they are. They are document options, not element styles. |
 | Page layout naming | Two named layouts, `symmetric` and `mirrored`. `symmetric` is the default. |
 | Templates | Split by path inside this repository rather than extracted to a second one. The template builds consume the built bundle rather than raw source, which makes a later extraction a rename. |
 | Typst example snippets | Compile-verified in CI. `typst` joins the deploy workflow. |

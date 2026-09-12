@@ -53,8 +53,8 @@
   max-width: var(--ts-measure);
 }
 
-.typeset--wide { --ts-measure: 40em; }
-.typeset--narrow { --ts-measure: 27em; }
+.typeset--measure-wide { --ts-measure: 40em; }
+.typeset--measure-narrow { --ts-measure: 27em; }
 /*! @e */
 
 /*! @s page :: Page setup */
@@ -96,33 +96,33 @@
 /* The three symmetric sizes, the same value on every side. `standard` names
    the default set above; the class exists so a document can ask for it back
    explicitly, the same as narrow and wide. */
-.typeset--margins-narrow   { page: ts-margins-narrow; }
-.typeset--margins-standard { page: ts-margins-standard; }
-.typeset--margins-wide     { page: ts-margins-wide; }
+.typeset--margin-narrow   { page: ts-margin-narrow; }
+.typeset--margin-standard { page: ts-margin-standard; }
+.typeset--margin-wide     { page: ts-margin-wide; }
 
-@page ts-margins-narrow   { margin: 10mm; }
-@page ts-margins-standard { margin: 20mm; }
-@page ts-margins-wide     { margin: 30mm; }
+@page ts-margin-narrow   { margin: 10mm; }
+@page ts-margin-standard { margin: 20mm; }
+@page ts-margin-wide     { margin: 30mm; }
 
 /* Duplex: the explicit opt-in for a sheet that will be bound. Top and bottom
    stay at the symmetric value; left and right split into an inner (binding)
    edge and an outer edge, mirrored by page side so the gutter stays on the
    spine rather than swapping sides every other sheet. */
-.typeset--margins-duplex-narrow   { page: ts-margins-duplex-narrow; }
-.typeset--margins-duplex-standard { page: ts-margins-duplex-standard; }
-.typeset--margins-duplex-wide     { page: ts-margins-duplex-wide; }
+.typeset--margin-duplex-narrow   { page: ts-margin-duplex-narrow; }
+.typeset--margin-duplex-standard { page: ts-margin-duplex-standard; }
+.typeset--margin-duplex-wide     { page: ts-margin-duplex-wide; }
 
-@page ts-margins-duplex-narrow { margin-top: 10mm; margin-bottom: 10mm; }
-@page ts-margins-duplex-narrow:right { margin-left: 13mm; margin-right: 7mm; }
-@page ts-margins-duplex-narrow:left  { margin-left: 7mm;  margin-right: 13mm; }
+@page ts-margin-duplex-narrow { margin-top: 10mm; margin-bottom: 10mm; }
+@page ts-margin-duplex-narrow:right { margin-left: 13mm; margin-right: 7mm; }
+@page ts-margin-duplex-narrow:left  { margin-left: 7mm;  margin-right: 13mm; }
 
-@page ts-margins-duplex-standard { margin-top: 20mm; margin-bottom: 20mm; }
-@page ts-margins-duplex-standard:right { margin-left: 23mm; margin-right: 17mm; }
-@page ts-margins-duplex-standard:left  { margin-left: 17mm; margin-right: 23mm; }
+@page ts-margin-duplex-standard { margin-top: 20mm; margin-bottom: 20mm; }
+@page ts-margin-duplex-standard:right { margin-left: 23mm; margin-right: 17mm; }
+@page ts-margin-duplex-standard:left  { margin-left: 17mm; margin-right: 23mm; }
 
-@page ts-margins-duplex-wide { margin-top: 30mm; margin-bottom: 30mm; }
-@page ts-margins-duplex-wide:right { margin-left: 33mm; margin-right: 27mm; }
-@page ts-margins-duplex-wide:left  { margin-left: 27mm; margin-right: 33mm; }
+@page ts-margin-duplex-wide { margin-top: 30mm; margin-bottom: 30mm; }
+@page ts-margin-duplex-wide:right { margin-left: 33mm; margin-right: 27mm; }
+@page ts-margin-duplex-wide:left  { margin-left: 27mm; margin-right: 33mm; }
 /*! @e */
 
 /*! @s headings :: Headings */
