@@ -153,12 +153,9 @@
 &lt;/div&gt;</code></pre>
       </div>
       <div>
-        <p>Every Typst pane below assumes <code>typeset.typ</code> is imported and shown once, before any of the snippets:</p>
-        <pre class="boilerplate__pre"><code data-boilerplate="typst">#<span class="c-at">import</span> &quot;typeset.typ&quot;: (
-  typeset, letter-page, quotes-epigraph, quotes-pullquote,
-  callouts-callout, breaks-asterisks,
-)
-#<span class="c-at">show</span>: typeset.with(<span class="c-prop">justified</span>: <span class="c-at">true</span>, <span class="c-prop">indented</span>: <span class="c-at">true</span>)</code></pre>
+        <p>Every Typst pane below assumes <a href="files/typeset-typ.html"><code>typeset.typ</code></a> sits beside the document and has been imported and shown once, above the snippet. A snippet that opens with its own <code>#show: typeset.with(…)</code> replaces the second line rather than nesting under it — <code>typeset()</code> sets the page, and a page cannot be set inside a container.</p>
+        <pre class="boilerplate__pre"><code data-boilerplate="typst">#<span class="c-at">import</span> &quot;typeset.typ&quot;: *
+#<span class="c-at">show</span>: typeset</code></pre>
       </div>
     </div>
   </div>
@@ -234,7 +231,7 @@
   <span class="c-prop">--ts-wash</span>: <span class="c-val">#f4f1ec</span>;
   <span class="c-prop">--ts-accent</span>: <span class="c-val">#7a1f1f;      </span><span class="c-comment">/* oxblood: reads as dark grey in greyscale */</span>
 <span class="c-sel">}</span></pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L15">tokens</a></p><pre>#<span class="c-at">let</span> steps = (
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L23">tokens</a></p><pre>#<span class="c-at">let</span> steps = (
   (scale-single-column.h<span class="c-val">1</span>, [<span class="c-val">24pt</span>], [Heading one]),
   (scale-single-column.h<span class="c-val">2</span>, [<span class="c-val">18pt</span>], [Heading two]),
   (scale-single-column.h<span class="c-val">3</span>, [<span class="c-val">14pt</span>], [Heading three]),
@@ -324,7 +321,7 @@
 
 .typeset--wide { --ts-measure: 40em; }
 .typeset--narrow { --ts-measure: 27em; }</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L111">foundation</a></p><pre>#block(<span class="c-prop">width</span>: <span class="c-val">126mm</span>)[
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L119">foundation</a></p><pre>#block(<span class="c-prop">width</span>: <span class="c-val">126mm</span>)[
   Typography exists to honour content. A page <span class="c-at">set</span> to a comfortable measure asks
   nothing of the reader; they simply arrive at the end having forgotten there
   was a page at all. This paragraph is <span class="c-at">set</span> to the default <span class="c-val">126mm</span> measure.
@@ -412,7 +409,7 @@
 
 <span class="c-comment">/* The running head follows the current section. */</span>
 .typeset h2 { string-set: ts-running-head content(text); }</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L87">page</a></p><pre>= On the Measure of a Line
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L95">page</a></p><pre>= On the Measure of a Line
 
 == Composition
 
@@ -589,7 +586,7 @@ be trusted to centre anything.</pre><button class="copy" type="button" data-copy
   &lt;p&gt;An element spans both columns fully or neither. Spanning costs a break in both columns, so it is opt-in per instance and belongs at the top or the bottom of a page.&lt;/p&gt;
   &lt;div class=&quot;ts-frontmatter-colophon&quot;&gt;Set in EB Garamond, 9.5 on 13.3 points, two columns of 77mm with a 6mm gutter.&lt;/div&gt;
 &lt;/article&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L384">two-column</a></p><pre>#block[
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L392">two-column</a></p><pre>#block[
   #<span class="c-at">set</span> text(<span class="c-prop">size</span>: scale-two-column.base, <span class="c-prop">hyphenate</span>: <span class="c-at">true</span>)
   #<span class="c-at">set</span> par(
     <span class="c-prop">justify</span>: <span class="c-at">true</span>,
@@ -739,7 +736,7 @@ be trusted to centre anything.</pre><button class="copy" type="button" data-copy
 &lt;h6&gt;A closing remark&lt;/h6&gt;
 &lt;p&gt;Sixth level: italic at body size.&lt;/p&gt;
 &lt;h6 class=&quot;ts-headings-run-in&quot;&gt;Run-in&lt;/h6&gt;&lt;p&gt;a heading that shares the first line of its paragraph, which saves vertical space in a dense report.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L142">headings</a></p><pre>= The Elements
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L150">headings</a></p><pre>= The Elements
 
 Body text follows, <span class="c-at">set</span> flush.
 
@@ -813,7 +810,7 @@ Sixth <span class="c-prop">level</span>: italic at body size.</pre><button class
   &lt;h3&gt;Instrumentation&lt;/h3&gt;
   &lt;p&gt;Numbered 2.1, without anyone typing “2.1”.&lt;/p&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “headings” region of typeset.typ: <a href="files/typeset-typ.html#L142">headings</a></p><pre>#<span class="c-at">show</span>: typeset.with(<span class="c-prop">numbered</span>: <span class="c-at">true</span>)
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “headings” region of typeset.typ: <a href="files/typeset-typ.html#L150">headings</a></p><pre>#<span class="c-at">show</span>: typeset.with(<span class="c-prop">numbered</span>: <span class="c-at">true</span>)
 
 = Scope
 
@@ -884,7 +881,7 @@ Numbered <span class="c-val">2.1</span>, without anyone typing “<span class="c
   &lt;p&gt;Subsequent paragraphs indent by 1.5em, with no gap. The page becomes a continuous field of text, which is exactly what you want when the reader is meant to read every word rather than hunt for one.&lt;/p&gt;
   &lt;p&gt;This is the convention of nearly every printed book you own, and it is almost never seen on the web — which is the clearest sign that print and screen are different media.&lt;/p&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ: <a href="files/typeset-typ.html#L111">foundation</a></p><pre>The first duty of a paragraph is to be findable. Spaced paragraphs announce
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ: <a href="files/typeset-typ.html#L119">foundation</a></p><pre>The first duty of a paragraph is to be findable. Spaced paragraphs announce
 themselves with white space, which is why they suit documents that get <span class="c-prop">skimmed</span>:
 memos, reports, letters.
 
@@ -967,7 +964,7 @@ gap is a small invitation to stop reading.
 &lt;div class=&quot;typeset typeset--justified ts-utilities-no-hyphens&quot; lang=&quot;en&quot;&gt;
   &lt;p&gt;Typographical craftsmanship consists in the appropriate use of the incomparable resources of a well-designed typeface, and in the discipline required to leave those resources alone when the content does not need them. Justification is one such resource: expensive, occasionally beautiful, and demanding of the hyphenation dictionary that makes it possible.&lt;/p&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ: <a href="files/typeset-typ.html#L111">foundation</a></p><pre>#block[
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ: <a href="files/typeset-typ.html#L119">foundation</a></p><pre>#block[
   #<span class="c-at">set</span> par(<span class="c-prop">justify</span>: <span class="c-at">false</span>)
   #<span class="c-at">set</span> text(<span class="c-prop">hyphenate</span>: <span class="c-at">false</span>)
 
@@ -1033,7 +1030,7 @@ gap is a small invitation to stop reading.
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>For the opening of an essay or a chapter, and nowhere else.</li><li>The size and line height are tuned together to cover exactly three lines. Change the leading and the cap must be retuned.</li><li>The opening words go in small caps. Without them the jump from 33pt to 11pt is too abrupt and the eye skips the first line.</li></ul><h4 class="spec-el">Drop cap</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>weight</th><td><code>400</code></td></tr><tr><th>size</th><td><code>3.05em</code></td></tr><tr><th>size pt</th><td><code>33.55pt</code></td></tr><tr><th>line height</th><td><code>0.86</code></td></tr><tr><th>color</th><td><code>accent</code></td></tr><tr><th>float</th><td><code>left</code></td></tr><tr><th>lines covered</th><td><code>3</code></td></tr><tr><th>padding right</th><td><code>0.06em</code></td></tr><tr><th>padding top</th><td><code>0.02em</code></td></tr><tr><th>first line indent</th><td><code>0</code></td></tr></tbody></table><h4 class="spec-el">Opening words</h4><table class="spec-table"><tbody><tr><th>variant</th><td><code>all small caps</code></td></tr><tr><th>tracking</th><td><code>0.04em</code></td></tr><tr><th>extent</th><td>the first two to four words</td></tr></tbody></table></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L288">dropcap</a></p><pre>&lt;p class=&quot;ts-dropcap&quot;&gt;&lt;span class=&quot;ts-dropcap-lede&quot;&gt;There is nothing&lt;/span&gt; especially modern about wanting a document to look considered. The drop cap descends from the illuminated initial, which existed for a practical reason: in a manuscript with no title page and no table of contents, a large decorated letter was the only way to tell the reader that something had begun.&lt;/p&gt;
 &lt;p&gt;The practical reason is gone. The signal is not.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L357">dropcap</a></p><pre>#dropcap[There is nothing especially modern about wanting a document to look considered. The drop cap descends from the illuminated initial, which existed for a practical reason. In a manuscript with no title page and no table of contents, a large decorated letter was the only way to tell the reader that something had begun.]
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L365">dropcap</a></p><pre>#dropcap[There is nothing especially modern about wanting a document to look considered. The drop cap descends from the illuminated initial, which existed for a practical reason. In a manuscript with no title page and no table of contents, a large decorated letter was the only way to tell the reader that something had begun.]
 
 The practical reason is gone. The signal is not.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
@@ -1072,7 +1069,7 @@ The practical reason is gone. The signal is not.</pre><button class="copy" type=
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L304">inline</a></p><pre>&lt;p&gt;Ordinary text, with &lt;strong&gt;bold for the load-bearing clause&lt;/strong&gt; and &lt;em&gt;italic for a title or a term of art&lt;/em&gt;. Emphasis nested &lt;em&gt;inside &lt;em&gt;emphasis&lt;/em&gt;&lt;/em&gt; flips back to roman. &lt;strong&gt;Bold and &lt;em&gt;italic together&lt;/em&gt;&lt;/strong&gt; when both apply.&lt;/p&gt;
 &lt;p&gt;Named entities take small caps: the &lt;span class=&quot;ts-inline-small-caps&quot;&gt;Bauhaus&lt;/span&gt; closed in 1933, and &lt;abbr title=&quot;Portable Document Format&quot;&gt;PDF&lt;/abbr&gt; arrived sixty years later. Water is H&lt;sub&gt;2&lt;/sub&gt;O; the claim is contested.&lt;sup&gt;3&lt;/sup&gt;&lt;/p&gt;
 &lt;p&gt;Revisions read as &lt;del&gt;struck through&lt;/del&gt; &lt;ins&gt;and inserted&lt;/ins&gt;, a phrase can be &lt;mark&gt;marked&lt;/mark&gt;, and a key is &lt;kbd&gt;⌘P&lt;/kbd&gt;.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L252">inline</a></p><pre>Ordinary text, with *bold for the load-bearing clause* and _italic for a title or
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L260">inline</a></p><pre>Ordinary text, with *bold for the load-bearing clause* and _italic for a title or
 a term of art_. Emphasis nested _inside #emph[emphasis]_ flips back to roman. *Bold
 and _italic together_* when both apply.
 
@@ -1115,7 +1112,7 @@ can be #highlight(<span class="c-prop">fill</span>: wash)[marked].</pre><button 
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>Paper has no hover and no click. A URL that carries information must be printed.</li></ul><h4 class="spec-el">Link</h4><table class="spec-table"><tbody><tr><th>color</th><td><code>inherit</code></td></tr><tr><th>decoration</th><td><code>underline</code></td></tr><tr><th>underline thickness</th><td><code>0.5pt</code></td></tr><tr><th>underline offset</th><td><code>0.14em</code></td></tr><tr><th>skip descenders</th><td>yes</td></tr></tbody></table><h4 class="spec-el">Printed URL</h4><table class="spec-table"><tbody><tr><th>content</th><td>the href in parentheses, after the link text</td></tr><tr><th>font</th><td><code>mono</code></td></tr><tr><th>size</th><td><code>0.82em</code></td></tr><tr><th>color</th><td><code>ink_muted</code></td></tr><tr><th>wrap</th><td><code>may break anywhere</code></td></tr><tr><th>applies to</th><td>external (http/https) links only</td></tr><tr><th>excluded</th><td><code>internal anchors</code>, <code>mailto:</code>, <code>links marked bare</code></td></tr></tbody></table><h4 class="spec-el">Link — URL suppressed</h4><table class="spec-table"><tbody><tr><th>print url</th><td>no</td></tr></tbody></table><p class="spec-note">Opt-out for a link whose URL would be noise in print: a shortened URL, a tracking URL, or one the surrounding sentence already gives.</p></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L370">links</a></p><pre>&lt;!-- Rendered — print view --&gt;
 &lt;p&gt;The argument is set out in full &lt;a href=&quot;https://example.org/on-the-measure&quot;&gt;on the measure of a line&lt;/a&gt;, and summarised &lt;a href=&quot;#foundation&quot;&gt;in section 02&lt;/a&gt;. Corrections to &lt;a href=&quot;mailto:hello@example.org&quot;&gt;hello@example.org&lt;/a&gt;.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “inline” region of typeset.typ: <a href="files/typeset-typ.html#L252">inline</a></p><pre>== The measure of a line &lt;measure&gt;
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “inline” region of typeset.typ: <a href="files/typeset-typ.html#L260">inline</a></p><pre>== The measure of a line &lt;measure&gt;
 
 The argument is <span class="c-at">set</span> out in full
 #link(&quot;<span class="c-prop">https</span>://example.org/on-the-measure&quot;)[on the measure of a line], and
@@ -1173,7 +1170,7 @@ summarised #link(&lt;measure&gt;)[in section <span class="c-val">02</span>]. Cor
   &lt;/tbody&gt;
 &lt;/table&gt;
 &lt;p&gt;Fractions: &lt;span class=&quot;ts-numerals-fractions&quot;&gt;1/2&lt;/span&gt;, &lt;span class=&quot;ts-numerals-fractions&quot;&gt;3/4&lt;/span&gt;, &lt;span class=&quot;ts-numerals-fractions&quot;&gt;7/8&lt;/span&gt;&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ: <a href="files/typeset-typ.html#L111">foundation</a></p><pre>#text(..oldstyle)[Old-style, in prose — between <span class="c-val">1908</span> and <span class="c-val">1935</span> the foundry cut <span class="c-val">47</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ: <a href="files/typeset-typ.html#L119">foundation</a></p><pre>#text(..oldstyle)[Old-style, in prose — between <span class="c-val">1908</span> and <span class="c-val">1935</span> the foundry cut <span class="c-val">47</span>
 sizes, of which <span class="c-val">12</span> survive.]
 
 #text(..lining)[LINING, FOR DISPLAY — BETWEEN <span class="c-val">1908</span> AND <span class="c-val">1935</span>, <span class="c-val">47</span> SIZES]
@@ -1279,7 +1276,7 @@ sizes, of which <span class="c-val">12</span> survive.]
 His house is in the village though;
 He will not see me stopping here
 To watch his woods fill up with snow.&lt;cite&gt;Robert Frost&lt;/cite&gt;&lt;/blockquote&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L168">quotes</a></p><pre>Ruder puts the case for restraint more sharply than anyone <span class="c-prop">since</span>:
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L176">quotes</a></p><pre>Ruder puts the case for restraint more sharply than anyone <span class="c-prop">since</span>:
 
 #quote(<span class="c-prop">block</span>: <span class="c-at">true</span>, <span class="c-prop">attribution</span>: [Emil Ruder, _Typographie_, <span class="c-val">1967</span>])[
   Typography has one plain duty before it and that is to convey information in
@@ -1392,7 +1389,7 @@ typeface.
   &lt;dt&gt;Widow&lt;/dt&gt;
   &lt;dd&gt;A last line of a paragraph carried alone to the top of a page. An orphan is the mirror case at the foot.&lt;/dd&gt;
 &lt;/dl&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L189">lists</a></p><pre>- An unordered item, with a grey mid-dot for a marker.
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L197">lists</a></p><pre>- An unordered item, with a grey mid-dot for a marker.
 - A second item, long enough to wrap onto a second line so you can see that the
   runover aligns to the text, not to the marker.
 - A nested list <span class="c-prop">follows</span>:
@@ -1482,7 +1479,7 @@ typeface.
     &lt;tr&gt;&lt;td&gt;Median&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;10.5&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;1.43&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;125&lt;/td&gt;&lt;/tr&gt;
   &lt;/tfoot&gt;
 &lt;/table&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L205">tables</a></p><pre>#figure(
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L213">tables</a></p><pre>#figure(
   <span class="c-prop">caption</span>: [Setting widths for a single-column A<span class="c-val">4</span> page, by point size.],
   <span class="c-prop">kind</span>: table,
   <span class="c-prop">supplement</span>: [Table],
@@ -1544,7 +1541,7 @@ typeface.
 /* Repeat the header on every page the table spans. */
 .typeset thead { display: table-header-group; }&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Which is all it takes.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L235">codeblock</a></p><pre>The declaration is a single line — <span class="c-at">set</span> `font-variant-numeric` on the table and
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L243">codeblock</a></p><pre>The declaration is a single line — <span class="c-at">set</span> `font-variant-numeric` on the table and
 every cell inherits <span class="c-prop">it</span>:
 
 ```css
@@ -1612,7 +1609,7 @@ Which is all it takes.</pre><button class="copy" type="button" data-copy>Copy</b
   &lt;/svg&gt;
   &lt;figcaption&gt;&lt;span class=&quot;ts-label ts-figures-caption-label&quot;&gt;Figure 1&lt;/span&gt; — Reading comfort against line length. The plateau between 55 and 75 characters is why the measure, not the font size, is the first decision.&lt;/figcaption&gt;
 &lt;/figure&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L219">figures</a></p><pre>#<span class="c-at">let</span> s = <span class="c-val">126mm</span> / <span class="c-val">400</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L227">figures</a></p><pre>#<span class="c-at">let</span> s = <span class="c-val">126mm</span> / <span class="c-val">400</span>
 
 #figure(
   <span class="c-prop">caption</span>: [
@@ -1684,7 +1681,7 @@ Which is all it takes.</pre><button class="copy" type="button" data-copy>Copy</b
   &lt;p class=&quot;ts-callouts-title&quot;&gt;Before you send it&lt;/p&gt;
   &lt;p&gt;Check that fonts are embedded in the PDF. A document that falls back to Times on the recipient's machine has lost every decision above.&lt;/p&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L305">callouts</a></p><pre>#callouts-callout(<span class="c-prop">title</span>: [Note])[
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L313">callouts</a></p><pre>#callouts-callout(<span class="c-prop">title</span>: [Note])[
   Point sizes assume the document is printed at <span class="c-val">100%</span>. “Fit to page” scaling in a
   print dialog silently invalidates every measurement in this stylesheet.
 ]
@@ -1741,7 +1738,7 @@ Which is all it takes.</pre><button class="copy" type="button" data-copy>Copy</b
 &lt;p&gt;A fleuron, where the document can afford ornament.&lt;/p&gt;
 &lt;hr class=&quot;ts-breaks-rule&quot;&gt;
 &lt;p&gt;And a plain rule, where it cannot.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L335">breaks</a></p><pre>…and so the first argument closes, having established rather less than it <span class="c-at">set</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L343">breaks</a></p><pre>…and so the first argument closes, having established rather less than it <span class="c-at">set</span>
 out to.
 
 #breaks-asterisks()
@@ -1806,7 +1803,7 @@ And a plain rule, where it cannot.</pre><button class="copy" type="button" data-
     &lt;li id=&quot;n2&quot;&gt;Below about 40 characters, hyphenation stops being optional.&lt;/li&gt;
   &lt;/ol&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L586">notes</a></p><pre>Bringhurst puts the ideal measure between <span class="c-val">45</span> and <span class="c-val">75</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L594">notes</a></p><pre>Bringhurst puts the ideal measure between <span class="c-val">45</span> and <span class="c-val">75</span>
 characters,#footnote[Robert Bringhurst, _The Elements of Typographic Style_,
 <span class="c-val">4</span>th ed., §<span class="c-val">2.1</span>.<span class="c-val">2</span>.] a range narrow enough to be useful and wide enough to survive
 a change of typeface. The lower bound matters more in a two-column
@@ -1916,7 +1913,7 @@ layout.#footnote[Below about <span class="c-val">40</span> characters, hyphenati
     &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#bibliography&quot;&gt;&lt;span&gt;References&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
   &lt;/ol&gt;
 &lt;/nav&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L578">toc</a></p><pre>#heading(<span class="c-prop">level</span>: <span class="c-val">3</span>, <span class="c-prop">outlined</span>: <span class="c-at">false</span>)[Contents]
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L586">toc</a></p><pre>#heading(<span class="c-prop">level</span>: <span class="c-val">3</span>, <span class="c-prop">outlined</span>: <span class="c-at">false</span>)[Contents]
 
 #toc()
 
@@ -2083,7 +2080,7 @@ the leftmost thing on the entry.</pre><button class="copy" type="button" data-co
 &lt;div class=&quot;ts-frontmatter-colophon&quot;&gt;
   Set in EB Garamond, with Source Sans 3 for headings and IBM Plex Mono for code. Composed in HTML and rendered to PDF with Paged.js. A4, 11 on 16 points.
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L458">frontmatter</a></p><pre>#frontmatter-title-block(
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L466">frontmatter</a></p><pre>#frontmatter-title-block(
   <span class="c-prop">title</span>: [On the Measure of a Line],
   <span class="c-prop">subtitle</span>: [Why the width of a text column is the first decision, and the font is the last],
   <span class="c-prop">author</span>: [Adilson Carvalho],
@@ -2213,7 +2210,7 @@ The claim is not original, and it is not complicated…
     &lt;/ol&gt;
   &lt;/div&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L506">letter</a></p><pre>#letter-sender[
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L514">letter</a></p><pre>#letter-sender[
   Adilson Carvalho \
   <span class="c-val">10</span> Wentworth Avenue \
   Surry Hills NSW <span class="c-val">2010</span> \
@@ -2293,7 +2290,7 @@ is more than most annual reports manage.]</pre><button class="copy" type="button
   &lt;dt&gt;.ts-utilities-tie&lt;/dt&gt;&lt;dd&gt;Keep a figure with its unit: &lt;span class=&quot;ts-utilities-tie&quot;&gt;11 pt&lt;/span&gt;, &lt;span class=&quot;ts-utilities-tie&quot;&gt;§2.1&lt;/span&gt;, &lt;span class=&quot;ts-utilities-tie&quot;&gt;Fig. 1&lt;/span&gt;.&lt;/dd&gt;
   &lt;dt&gt;.ts-print-only / .ts-screen-only&lt;/dt&gt;&lt;dd&gt;For the URL list a printed page needs and a screen does not, and the navigation a screen needs and a page does not.&lt;/dd&gt;
 &lt;/dl&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L603">utilities</a></p><pre>/ `utilities-keep-together`: Never split this element across pages. For a short
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L611">utilities</a></p><pre>/ `utilities-keep-together`: Never split this element across pages. For a short
   table, a signature block, a callout.
 / `utilities-tie`: Keep a figure with its <span class="c-prop">unit</span>: #utilities-tie[<span class="c-val">11</span> pt],
   #utilities-tie[§<span class="c-val">2.1</span>], #utilities-tie[Fig. <span class="c-val">1</span>].

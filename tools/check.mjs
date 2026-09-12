@@ -3,12 +3,13 @@
    implementation is broken, not the spec.
    Run: node tools/check.mjs */
 
-import { readFileSync, existsSync, readdirSync, writeFileSync, rmSync, mkdtempSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, writeFileSync, rmSync, mkdtempSync, copyFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { buildAll } from './build-site.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
+import { typstBoilerplate, typstDocument } from '../src/boilerplate.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
@@ -160,32 +161,21 @@ for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.typ'))) {
    trace instead of this gate's own message. */
 if (missingDemo) reportFailuresAndExit();
 
-/* ---- 3h. Every Typst snippet must compile under the harness -------------- */
+/* ---- 3h. Every Typst snippet must compile under the PUBLISHED boilerplate  */
 
 /* A snippet is a fragment — no import — the same decision the HTML demos make
-   about publishing markup rather than a full document. A reader who pastes
-   one needs typeset.typ imported and its show rule applied first, so that is
-   exactly what this wraps the fragment in before asking typst to render it:
-   the shape a real document built on this library takes.
+   about publishing markup rather than a full document. What a reader adds
+   above it is the masthead's boilerplate block, and this compiles exactly
+   that: src/boilerplate.mjs composes the document here and renders the block
+   there, so a snippet cannot pass this gate under an import the page never
+   prints. A private harness would only prove that some environment works.
 
-   A snippet that configures typeset() itself opens with that call rather
-   than needing the wrapper to supply it. The wrapper must not add its own
-   #show: typeset on top: typeset() sets the page, and set page() cannot run
-   inside a container, which is what nesting a second call would make of the
-   outer one's content.
-
-   typst denies a relative import that reaches outside the compiled file's own
-   directory unless the project root is named explicitly, so the wrapper is
-   written beside the real snippets in src/demos — where the relative import
-   below already resolves to implementations/typeset.typ — and removed again
-   once that one file is compiled. The rendered PDF goes to a system temp
-   directory and never touches the repository. */
-
-/* Matches only "#show: typeset" as a whole call — followed by ".with(", by
-   whitespace before the rest of the line, or by nothing else on the line —
-   so a future #show: typesetter or #show: typeset-alt is not mistaken for
-   this one and silently denied the wrapper's own #show: typeset. */
-const opensWithTypesetShow = (fragment) => /^#show:\s*typeset(\.|\s|$)/.test(fragment.trimStart());
+   The compile happens in a system temp directory holding a copy of
+   typeset.typ, because that is a reader's own directory: the import the
+   masthead prints is the relative `typeset.typ`, and it has to resolve to a
+   sibling file for the published text to be literally what is compiled.
+   Nothing is written into the repository, so a run that is interrupted leaves
+   no scratch file behind in a tracked directory. */
 
 function typstAvailable() {
   try {
@@ -205,29 +195,26 @@ if (typstSnippets.length > 0 && !typstAvailable()) {
 }
 
 if (typstSnippets.length > 0) {
-  const pdfDir = mkdtempSync(join(tmpdir(), 'typeset-check-'));
+  const readerDir = mkdtempSync(join(tmpdir(), 'typeset-check-'));
+  copyFileSync('implementations/typeset.typ', join(readerDir, 'typeset.typ'));
+  const fontPath = resolve('fonts');
   for (const file of typstSnippets) {
     const snippetPath = `src/demos/${file}`;
-    const fragment = readFileSync(snippetPath, 'utf8');
-    const preamble = opensWithTypesetShow(fragment) ? '' : '#show: typeset\n';
-    const wrapped = `#import "../../implementations/typeset.typ": *\n${preamble}${fragment}`;
-    const wrapperPath = `src/demos/.check-${file}`;
-    const pdfPath = join(pdfDir, file.replace(/\.typ$/, '.pdf'));
-    writeFileSync(wrapperPath, wrapped);
+    const docPath = join(readerDir, `doc-${file}`);
+    writeFileSync(docPath, typstDocument(readFileSync(snippetPath, 'utf8')));
     try {
       execFileSync(
         'typst',
-        ['compile', '--root', '.', '--font-path', 'fonts', wrapperPath, pdfPath],
+        ['compile', '--font-path', fontPath, docPath, join(readerDir, `${file}.pdf`)],
         { stdio: ['ignore', 'pipe', 'pipe'] },
       );
     } catch (err) {
       const detail = (err.stderr ? err.stderr.toString() : String(err.message)).trim();
-      fail.push(`${snippetPath} does not compile:\n${detail}`);
-    } finally {
-      rmSync(wrapperPath, { force: true });
+      fail.push(`${snippetPath} does not compile under the boilerplate the masthead `
+        + `publishes:\n${detail}`);
     }
   }
-  rmSync(pdfDir, { recursive: true, force: true });
+  rmSync(readerDir, { recursive: true, force: true });
 }
 
 /* ---- 3c. A demo's document fragment must round-trip losslessly ----------- */

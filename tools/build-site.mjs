@@ -11,6 +11,7 @@ import { pathToFileURL } from 'node:url';
 import { renderPanel } from '../src/panels.mjs';
 import { byLang, esc } from '../src/highlight.mjs';
 import { extractDemos } from '../src/extract.mjs';
+import { typstBoilerplate } from '../src/boilerplate.mjs';
 
 /* The whole file is highlighted in one pass — a multi-line CSS comment needs
    state that carries between lines — and only then split for numbering. */
@@ -201,17 +202,11 @@ ${faces.join('\n')}
 </div>`);
 }
 
-/* The exact form typeset.typ's own top-of-file "Usage:" comment gives, read
-   from that comment rather than retyped here — so a renamed export cannot
-   leave this block importing a name that no longer exists. */
+/* The same text tools/check.mjs compiles every snippet under, from the same
+   function — so the block a reader is told to paste above a snippet and the
+   block the gate proves a snippet runs under cannot be two different things. */
 function boilerplateTypst() {
-  const source = read('implementations/typeset.typ');
-  const m = source.match(/\/\/ Usage:\n((?:\/\/.*\n)+)/);
-  if (!m) throw new Error('implementations/typeset.typ has no "// Usage:" comment '
-    + 'to read the masthead boilerplate from');
-  const lines = m[1].split('\n').filter(Boolean).map((l) => l.replace(/^\/\/ ?/, ''));
-  const indent = Math.min(...lines.map((l) => l.match(/^ */)[0].length));
-  return byLang('typst', lines.map((l) => l.slice(indent)).join('\n'));
+  return byLang('typst', typstBoilerplate());
 }
 
 const masthead = read('src/masthead.html').trimEnd()
