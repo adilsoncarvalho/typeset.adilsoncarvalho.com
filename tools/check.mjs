@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { buildAll } from './build-site.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
+import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
 import { typstBoilerplate, typstDocument } from '../src/boilerplate.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
@@ -217,6 +218,14 @@ if (typstSnippets.length > 0) {
   rmSync(readerDir, { recursive: true, force: true });
 }
 
+/* Every class name typeset.css defines, comment text excluded. Read once here
+   because two gates need it from opposite directions: the apparatus check in
+   3c holds what is stripped OUT of a pane against it, and 3j holds what is
+   left IN. */
+const cssClassNames = new Set(
+  [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.(-?[A-Za-z_][\w-]*)/g)]
+    .map((m) => m[1]));
+
 /* ---- 3c. A demo's document fragment must round-trip losslessly ----------- */
 
 /* src/extract.mjs pulls the document markup out of a demo file's page
@@ -405,6 +414,66 @@ function reindent(fragment, amount) {
   return lines.map((line, i) => (verbatim[i] || line === '' ? line : pad + line)).join('\n');
 }
 
+/* The apparatus the specimen page adds inside a demo's document markup, named
+   here rather than imported from extract.mjs. That duplication is the point:
+   the pane publishes demo.html, which is demo.source with these names taken
+   out, and a gate that read extract.mjs's own list would agree with whatever
+   that list happened to say. Adding a document class to it — ts-callouts-title,
+   say — would then strip real styling out of every published pane and this
+   file would still print "all checks passed".
+
+   Adding apparatus is therefore a two-file change, and the second file is the
+   gate. The check below it holds the same two lists to what apparatus means:
+   furniture this website adds, which typeset.css never defines. */
+const SPECIMEN_ELEMENTS = ['demo-note', 'demo-print-note', 'ts-folio'];
+const SPECIMEN_CLASSES = ['demo-aside', 'ts-toc--demo'];
+
+/* Rebuilds the published fragment from the extracted one: apparatus elements
+   come out whole, apparatus classes come off the elements that keep their
+   place, and a line left holding nothing but its own indent goes with them.
+   Element removal runs first, so a class list naming one of each resolves as
+   the element it is. Boundaries are found with this file's own indexOf
+   scanner, not extract.mjs's regex one. */
+function stripSpecimenApparatus(fragment) {
+  let out = fragment;
+  for (;;) {
+    const openTag = /<([a-z][a-z0-9]*)\b[^>]*>/gi;
+    let cut = null;
+    let m;
+    while ((m = openTag.exec(out)) !== null) {
+      if (!classTokens(m[0]).some((c) => SPECIMEN_ELEMENTS.includes(c))) continue;
+      const close = findMatchingClose(out, openTag.lastIndex, m[1]);
+      if (close === -1) break;
+      cut = [m.index, close + `</${m[1]}>`.length];
+      break;
+    }
+    if (!cut) break;
+    out = out.slice(0, cut[0]) + out.slice(cut[1]);
+  }
+
+  out = out.replace(/(\s*)class="([^"]*)"/g, (whole, space, cls) => {
+    const kept = cls.split(/\s+/).filter(Boolean).filter((c) => !SPECIMEN_CLASSES.includes(c));
+    return kept.length ? `${space}class="${kept.join(' ')}"` : '';
+  });
+
+  return out.split('\n').filter((line) => !/^[ \t]+$/.test(line)).join('\n')
+    .replace(/^\n+/, '').replace(/\n+$/, '');
+}
+
+/* Apparatus is this website's own furniture, so typeset.css — the stylesheet a
+   reader links — must not define it. A name on either list that typeset.css
+   does define is document styling, and stripping it hands the reader markup
+   that renders differently from the example beside it. This is the inverse of
+   3j below, which holds what the pane publishes to the same stylesheet: that
+   one cannot see a removal, and this one cannot see an addition. */
+for (const name of [...APPARATUS_ELEMENTS, ...APPARATUS_CLASSES]) {
+  if (cssClassNames.has(name)) {
+    fail.push(`src/extract.mjs: "${name}" is stripped from every published pane as `
+      + 'apparatus, but typeset.css defines it — it is document styling, and a reader '
+      + 'who copies the pane gets markup that renders differently from the example');
+  }
+}
+
 for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
   const demoPath = `src/demos/${file}`;
   const original = readFileSync(demoPath, 'utf8');
@@ -444,6 +513,23 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
         + 'the pane cannot demonstrate a difference that is not there');
     } else {
       seenHtml.set(demo.html, label);
+    }
+  }
+
+  /* The pane publishes demo.html, not demo.source, so the round trip below —
+     which reconstructs the file from demo.source — proves nothing about what a
+     reader actually copies. This closes that gap: it rebuilds the published
+     fragment from the extracted one using this file's own apparatus lists, and
+     requires the result to be what extractDemos() returned. Any difference
+     between the two artifacts must therefore be attributable to a name
+     SPECIMEN_ELEMENTS or SPECIMEN_CLASSES declares, and a name only
+     extract.mjs knows about fails here instead of silently thinning the pane. */
+  for (const demo of demos) {
+    const expected = stripSpecimenApparatus(demo.source);
+    if (demo.html !== expected) {
+      fail.push(`${demoPath}: the pane for "${demo.label ?? '(unlabelled)'}" is not the `
+        + 'extracted fragment with the declared apparatus removed — extract.mjs took out '
+        + 'something tools/check.mjs does not know is apparatus, or left something in');
     }
   }
 
@@ -534,10 +620,6 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
    Only sections whose second pane is HTML are checked. tokens, foundation and
    page publish CSS instead, so their fragments are extracted and round-tripped
    but never shown, and page's wrapper legitimately carries specimen chrome. */
-
-const cssClassNames = new Set(
-  [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.(-?[A-Za-z_][\w-]*)/g)]
-    .map((m) => m[1]));
 
 for (const section of manifest.filter((s) => s.panel.pane === 'html')) {
   const files = [`src/demos/${section.id}.html`];

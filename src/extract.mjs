@@ -254,8 +254,8 @@ function resolveTarget(source, wrapperOpenTag, contentStart, wrapperClose) {
    only sets a document paragraph smaller — and in the numerals demo that
    paragraph carries the sole `.ts-numerals-fractions` in the repo, so taking
    the element would take the demonstration with it. */
-const APPARATUS_ELEMENTS = new Set(['demo-note', 'demo-print-note', 'ts-folio']);
-const APPARATUS_CLASSES = new Set(['demo-aside', 'ts-toc--demo']);
+export const APPARATUS_ELEMENTS = new Set(['demo-note', 'demo-print-note', 'ts-folio']);
+export const APPARATUS_CLASSES = new Set(['demo-aside', 'ts-toc--demo']);
 
 /* Removes both shapes from a fragment. Elements go first, so a class list
    that names one of each resolves as the element it is rather than the class
