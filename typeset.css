@@ -924,6 +924,22 @@
 /*! @e */
 
 /*! @s bibliography :: Bibliography */
+/* Same scale and weight as headings-h2 — a bibliography heading reads as a
+   section heading — but its own element, distinct from headings-h2, which is
+   what lets it span both columns in the two-column template while an
+   ordinary section heading cannot (templates.two-column.spanning). */
+.typeset .ts-bibliography-heading {
+  font-family: var(--ts-sans);
+  font-weight: 600;
+  font-size: var(--ts-h2);
+  line-height: var(--ts-leading-tight);
+  letter-spacing: -0.01em;
+  color: var(--ts-ink);
+  margin: calc(var(--ts-space) * 2) 0 calc(var(--ts-space) * 0.5);
+  break-after: avoid;
+  break-inside: avoid;
+  text-wrap: balance;
+}
 /* Hanging indent: the author's surname is the thing being scanned, so it must
    be the leftmost thing on the entry. */
 .typeset .ts-bibliography-entry {
@@ -1045,8 +1061,8 @@
    and referenced as much as read.
 
    The base size drops to 9.5pt here, and that is arithmetic rather than taste:
-   an 82mm column carries 43 characters at 11pt, below the 45-character floor
-   this stylesheet sets for a line of prose. 9.5pt restores 50. An
+   an 82mm column carries 42 characters at 11pt, below the 45-character floor
+   this stylesheet sets for a line of prose. 9.5pt restores 49. An
    implementation that keeps 11pt in two columns breaks the measure rule, which
    is the rule everything else is downstream of. */
 .typeset--two-column {
@@ -1080,7 +1096,7 @@
   column-fill: balance;   /* the final page balances its columns */
 
   /* Justification with hyphenation is MANDATORY at this measure, not optional:
-     at 50 characters a ragged edge serrates the column and the word gaps read
+     at 49 characters a ragged edge serrates the column and the word gaps read
      as rivers. This is the one place the stylesheet removes a choice. */
   text-align: justify;
   text-align-last: left;
@@ -1098,6 +1114,7 @@
 .typeset--two-column > .ts-frontmatter-dateline,
 .typeset--two-column > .ts-frontmatter-abstract,
 .typeset--two-column > h1,
+.typeset--two-column > .ts-bibliography-heading,
 .typeset--two-column > .ts-frontmatter-colophon,
 .typeset--two-column > .ts-span {
   column-span: all;

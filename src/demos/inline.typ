@@ -6,5 +6,5 @@ Named entities take small caps: the #text(..smcp)[Bauhaus] closed in 1933, and
 #text(..smcp)[PDF] arrived sixty years later. Water is H#sub[2]O; the claim is
 contested.#super[3]
 
-Revisions read as #strike[struck through] #underline[and inserted], and a phrase
-can be #highlight(fill: wash)[marked].
+Revisions read as #strike[struck through] #underline[and inserted], a phrase
+can be #highlight(fill: wash)[marked], and a key is #key[⌘P].

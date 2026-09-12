@@ -15,3 +15,12 @@
 <div class="paper typeset typeset--justified ts-utilities-no-hyphens" lang="en">
   <p>Typographical craftsmanship consists in the appropriate use of the incomparable resources of a well-designed typeface, and in the discipline required to leave those resources alone when the content does not need them. Justification is one such resource: expensive, occasionally beautiful, and demanding of the hyphenation dictionary that makes it possible.</p>
 </div>
+
+<p class="pair__label">An exception inside an exception</p>
+<p class="demo-note">The override reaches through surrounding context in either direction, not only against the document's own default: a ragged block nested inside a justified one stays ragged, because a direct match always beats an inherited value.</p>
+<div class="paper typeset typeset--justified" lang="en">
+  <p>A justified block can carry its own exception, the same as the document can. This sentence is stretched to the measure like the ones above it.</p>
+  <div class="typeset--ragged">
+    <p>This paragraph is nested inside the justified block above and still reads ragged right — the override reaches through surrounding context in either direction, not only against the document's own default.</p>
+  </div>
+</div>

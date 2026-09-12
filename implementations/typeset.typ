@@ -40,17 +40,28 @@
 #let scale-single-column = (
   xs: 8pt, sm: 9.5pt, base: 11pt,
   h4: 12pt, h3: 14pt, h2: 18pt, h1: 24pt,
-  leading: 1.45, space: 11pt,
+  leading: 1.45, space: 11pt, indent: 1.5em,
 )
 
 // Two columns: every step comes down. On A4 at the standard margin an 82mm
-// column carries 43 characters at 11pt — below the 45-character floor — so the
-// base drops to 9.5pt, which gives 50.
+// column carries 42 characters at 11pt — below the 45-character floor — so the
+// base drops to 9.5pt, which gives 49. The paragraph indent comes down with
+// them: an indent says "new paragraph" as a fraction of the line it sits on,
+// and 1.5em is 6.1% of an 82mm column against 4.5% of a 128mm measure.
 #let scale-two-column = (
   xs: 7pt, sm: 8.5pt, base: 9.5pt,
   h4: 9.5pt, h3: 11pt, h2: 13pt, h1: 20pt,
-  leading: 1.4, space: 9.5pt,
+  leading: 1.4, space: 9.5pt, indent: 1.25em,
 )
+
+// The scale the document is set in, published by _typeset-styles below and
+// read by the standalone paragraph functions. A per-block override owes the
+// same scale as the prose around it — block-spaced() inside a two-column
+// document owes that scale's 9.5pt gap, not the single-column 11pt — and
+// nothing at the call site says which scale is in force. A state is how this
+// file already carries a document-level decision down to a function that
+// needs one (ts-two-column-body, below).
+#let ts-scale = state("ts-scale", scale-single-column)
 
 // Defaults, for the standalone helpers below.
 #let base-size = scale-single-column.base
@@ -66,6 +77,26 @@
 //   advance = top-edge - bottom-edge + leading = 1em + leading
 // so leading = (line_height - 1) em. 1.45 → 0.45em → 15.95pt at 11pt.
 #let leading-for(line-height) = (line-height - 1) * 1em
+
+// Paragraph separation is one decision expressed as two par properties, never
+// both at once: a gap (spaced) or an indent (indented). `typeset()`'s own
+// `indented` option and the two standalone functions below (block-spaced,
+// block-indented) both read this, so the whole-document switch and the
+// per-block override can never drift apart into two different indents.
+// spec.json's templates.two-column.element_overrides.paragraph is what makes
+// the indent a scale field rather than a literal: a template states its own,
+// and there has to be somewhere for it to live.
+//
+// Every number here belongs to the scale in force, never to the module: a
+// document on the two-column scale gets ITS 1.4 leading, ITS 9.5pt gap and
+// ITS 1.25em indent, and the standalone functions read the same scale out of
+// ts-scale. The defaults are the single-column scale's own, for a caller with
+// no scale in hand at all.
+#let _paragraphs-rule(indented, leading: 1.45, space: sp, indent: 1.5em) = if indented {
+  (spacing: leading-for(leading), first-line-indent: (amount: indent, all: false))
+} else {
+  (spacing: space, first-line-indent: 0pt)
+}
 
 #let oldstyle = (number-type: "old-style", number-width: "proportional")
 #let lining = (number-type: "lining", number-width: "proportional")
@@ -112,33 +143,75 @@
   "us-letter": (215.9mm, 279.4mm),
 )
 
+// The measure — one column's ideal line length. Three named widths, matching
+// typeset.css's own three measure classes: standard is the default, narrow
+// and wide are the modifiers a document opts into. All three are em, the
+// axis spec.json states them in and typeset.css already uses; an em measure
+// follows a scale change, where an mm one would not.
+#let measure-standard = 33em
+#let measure-narrow = 27em
+#let measure-wide = 40em
+
+// The page's own text block, published by _typeset-styles — which is where a
+// layout() at the top of the document measures it directly, so nothing here
+// has to do arithmetic over the several shapes a margin can take, and a
+// duplex margin's two different sides come out right on both parities.
+#let ts-text-width = state("ts-text-width", none)
+
+// The fourth width, and the only one that is not a number: the full text
+// block. A length here could only ever be ONE paper's — A4 at the standard
+// margin leaves 170mm — and the paper is a document's to choose, so the same
+// constant runs 62mm wider than an A5 sheet's text block, 42mm of that off
+// the sheet entirely, and stops 6mm short of a Letter one's, both in silence.
+// So it is `auto`, resolved against the page actually in force at the point
+// it is used.
+#let measure-full = auto
+
+// `width` here and typeset()'s `measure` are one axis under two names, on
+// purpose. typeset(measure:) is a policy and a MAXIMUM — _typeset-styles
+// clamps it to the page, so a document on a narrower sheet keeps its margins
+// — while `width` is exactly the width asked for and is never clamped. That
+// is what makes a deliberate overset expressible at all, which is what
+// src/demos/foundation.typ shows; naming it `measure` would promise a clamp
+// it does not perform.
+//
+// A document reaches for one of the four names instead of a literal width:
+// `#measured[...]` for the default column, `#measured(width:
+// measure-wide)[...]` for a modifier, `#measured(width: measure-full)[...]`
+// for the full text block — the PAGE's, not the enclosing block's, which is
+// what makes it the way a passage steps outside the document's own measure.
+// Where no template has published one (a bare document, or inside two
+// columns, where the column is the measure), the enclosing block is the only
+// text block there is and measure-full is that.
+#let measured(width: measure-standard, body) = if width != auto {
+  block(width: width, body)
+} else {
+  context {
+    let full = ts-text-width.get()
+    if full == none { layout(size => block(width: size.width, body)) }
+    else { block(width: full, body) }
+  }
+}
+
 // ── Document ────────────────────────────────────────────────────────────────
 
-#let typeset(
-  // The paper by its Typst name, and the margin by one of the six names above
-  // — or by any length, for a page box the spec does not name.
+// A document is a page and a set of styles, and the two do not reach equally
+// far. set page() takes effect only where a page can be set, never inside a
+// container; the styles apply wherever content is composed, columns() included.
+// They are separate functions because a template composes them in its own
+// order: typeset() sets the page and holds the body to a measure, while
+// two-column() has to set the page, draw the optional column rule on it, and
+// only then set the styles the columns are composed in.
+
+#let _typeset-page(
   paper: "a4",
   margin: margin-standard,
   scale: scale-single-column,
-  // Ragged right is the default. Justification buys a clean right edge at the
-  // cost of uneven word spacing; choose it for continuous prose at a full
-  // measure, and leave it off for a letter or a note addressed to a person.
-  justified: false,
-  indented: false,
-  numbered: false,
   running-head: true,
   folio: true,
-  // The measure, not the text width. A4 at the standard margin leaves 170mm
-  // between its margins; the spec sets the column at 126mm and keeps the
-  // remainder as slack, which is where marginalia live. It is a maximum, so a
-  // page with less than 126mm between its margins keeps its margins. Pass
-  // `none` where the column IS the measure, as in two columns.
-  measure: 126mm,
   doc,
 ) = {
-  let sm = scale.sm
   let xs = scale.xs
-  let sp = scale.space
 // @s page
   set page(
     paper: paper,
@@ -163,6 +236,32 @@
 // @e
   )
 
+  doc
+}
+
+// Everything a document is set in: the scale, the paragraph shape, every named
+// style, and the measure the flow is held to. Both templates call this for the
+// half that is not the page, so a second template can never drift into a second
+// set of these rules — they are applied exactly once, by whichever template
+// owns the body, which matters because they are not idempotent: two
+// applications of the heading rule wrap every heading in two blocks.
+
+#let _typeset-styles(
+  scale: scale-single-column,
+  justified: false,
+  indented: false,
+  numbered: false,
+  measure: measure-standard,
+  doc,
+) = {
+  let sm = scale.sm
+  let xs = scale.xs
+  let sp = scale.space
+
+  // The scale reaches the standalone paragraph functions, which take no
+  // arguments and so cannot be told which one is in force.
+  ts-scale.update(scale)
+
 // @s foundation
   set text(
     font: serif,
@@ -175,9 +274,8 @@
 
   set par(
     leading: leading-for(scale.leading),
-    spacing: if indented { leading-for(scale.leading) } else { sp },
+    .._paragraphs-rule(indented, leading: scale.leading, space: scale.space, indent: scale.indent),
     justify: justified,
-    first-line-indent: if indented { (amount: 1.5em, all: false) } else { 0pt },
 // @e
     linebreaks: "optimized",
   )
@@ -317,13 +415,186 @@
   // constrained. The block is breakable, so pagination is unaffected. The width
   // is taken against the page actually in force rather than against A4, and the
   // measure is resolved to absolute units first, because it is as often given
-  // in ems as in millimetres.
+  // in ems as in millimetres — except measure-full, which is `auto` and IS the
+  // page, so it is the width this layout() just measured.
   if measure == none { doc } else {
     layout(size => context {
-      block(width: calc.min(measure.to-absolute(), size.width), doc)
+      ts-text-width.update(size.width)
+      block(width: if measure == auto { size.width }
+        else { calc.min(measure.to-absolute(), size.width) }, doc)
     })
   }
 }
+
+#let typeset(
+  // The paper by its Typst name, and the margin by one of the six names above
+  // — or by any length, for a page box the spec does not name.
+  paper: "a4",
+  margin: margin-standard,
+  scale: scale-single-column,
+  // Ragged right is the default. Justification buys a clean right edge at the
+  // cost of uneven word spacing; choose it for continuous prose at a full
+  // measure, and leave it off for a letter or a note addressed to a person.
+  justified: false,
+  indented: false,
+  numbered: false,
+  running-head: true,
+  folio: true,
+  // The measure, not the text width. A4 at the standard margin leaves 170mm
+  // between its margins; measure-standard is smaller and keeps the remainder
+  // as slack, which is where marginalia live. It is a maximum, so a page with
+  // less than measure-standard between its margins keeps its margins. Pass
+  // `measure-full` where the text block IS the measure, whatever the paper,
+  // and `none` where the column is, as in two columns.
+  measure: measure-standard,
+  doc,
+) = _typeset-page(
+  paper: paper,
+  margin: margin,
+  scale: scale,
+  running-head: running-head,
+  folio: folio,
+  _typeset-styles(
+    scale: scale,
+    justified: justified,
+    indented: indented,
+    numbered: numbered,
+    measure: measure,
+    doc,
+  ),
+)
+
+// ── Inline: key ─────────────────────────────────────────────────────────────
+
+// A keycap's visual signature is its bottom edge, heavier than the other
+// three — 1.5pt against 0.5pt, both in rule-color. `stroke`'s dictionary
+// form is what lets one edge carry a different weight than its neighbours;
+// a single `<length> + <color>` stroke draws all four edges alike.
+//
+// The size wraps the box rather than the box's body. An em in `inset`
+// resolves against whatever size is in force where the box is declared, so a
+// size applied inside it leaves the padding measured against the surrounding
+// prose — 3.85pt at an 11pt base, where inline-kbd's 0.35em of a 0.85em
+// keycap is 3.27pt, an 18% overshoot. CSS has no such trap: `padding` on an
+// element resolves against that element's own computed font-size, which the
+// same rule set has already made 0.85em.
+#let key(body) = text(font: sans, size: 0.85em, box(
+  inset: (x: 0.35em, y: 0.15em),
+  radius: 2pt,
+  stroke: (rest: 0.5pt + rule-color, bottom: 1.5pt + rule-color),
+  body,
+))
+
+// ── Paragraphs ──────────────────────────────────────────────────────────────
+
+// `typeset()`'s own `indented` option applies one of these two to the whole
+// document. These exist for the one block that needs the OTHER convention —
+// the same reason `justified`/`ragged-right` exist for alignment. Spaced is
+// the document default and so needs no wrapper of its own for that reason,
+// but it still gets one: the way back, for one block, in a document set to
+// indented.
+//
+// Named for what they do to the reader's block, not for the spec's own
+// paragraphs-spaced/paragraphs-indented element ids: an author reaching for
+// one of these is asking "how does this block behave", never "which section
+// of the specification is this" — and a name tied to the element id would
+// also have to change the day that id does.
+//
+// `first-line-indent`'s `all: false` is what makes indented prose behave:
+// Typst withholds the indent from a paragraph that opens the document, and
+// from one right after a heading, a blockquote, a figure or a break, because
+// each of those is itself a block and a block resets the same state a
+// document start does. A `block()` wrapper here would do that AGAIN to the
+// first paragraph *inside* this function — flushing a paragraph that is not
+// actually after a heading, a bug this file's own conformance gate compiles
+// a probe to catch. So `body` below is scoped by `context`, which resolves
+// to its own body and carries no layout identity, never by `block()`. The
+// `context` is what lets these two read the document's scale out of
+// ts-scale: a gap or an indent is the active scale's, and neither function
+// takes an argument that could carry one.
+// @s paragraphs
+#let block-spaced(body) = context {
+  let scale = ts-scale.get()
+  set par(.._paragraphs-rule(false, leading: scale.leading, space: scale.space, indent: scale.indent))
+  body
+}
+
+#let block-indented(body) = context {
+  let scale = ts-scale.get()
+  set par(.._paragraphs-rule(true, leading: scale.leading, space: scale.space, indent: scale.indent))
+  body
+}
+// @e
+
+// ── Alignment ───────────────────────────────────────────────────────────────
+
+// Ragged right is `typeset()`'s own document-wide default (its `justified`
+// option). These two exist for the one paragraph, list item, blockquote or
+// callout that needs the OTHER convention, so an author reaches for a name
+// instead of `#set par(justify: ..)` and `#set text(hyphenate: ..)` by hand —
+// the same reason block-spaced/block-indented exist for paragraph spacing.
+//
+// The `block-` prefix on that pair, and its absence here, is not drift.
+// Unprefixed, block-indented would be `indented` — already a parameter of
+// both functions below, so `#indented[..]` and `#justified(indented: true)[..]`
+// would be one word meaning two things in adjacent lines of a document, and
+// block-spaced follows its pair. The parameter-twin of `justified` lives on
+// typeset() and two-column(), which a document writes once at the top and
+// never beside a per-block override.
+//
+// Justification and hyphenation are a single decision, never two: hyphenate
+// is never a parameter here, only `lang`, because hyphenation is per-language
+// and requires the document language to be declared. `justified(lang: none)`
+// is how a document states that no dictionary is declared for this block —
+// honestly, not as a footgun to avoid, since that combination (justified,
+// unhyphenated) is exactly what opens rivers of white space down the page.
+// `ragged-right` takes the same `lang` parameter for the language-sensitive
+// typesetting `hyphenate` is not (quotation marks, spacing rules) — but never
+// hyphenates, `lang` or not: a hyphen exists to serve justification, and
+// breaks a word for no gain without it.
+//
+// These set ALIGNMENT. `indented` defaults to `auto`, which is the document's
+// own paragraph convention, left exactly as it is: an author who writes
+// `#justified[..]` inside a document set `typeset(indented: true)` asked for
+// one thing, and getting a flushed first line and an inserted gap along with
+// it is a second thing they never mentioned. A stated `indented:` delegates
+// to block-indented/block-spaced rather than restating the rule, so the
+// paragraph axis has exactly one owner however it is reached.
+//
+// `set align(left)` is not restating the ambient default. Alignment inherits,
+// and Typst resolves a justified paragraph's last line against that same
+// inherited alignment — so a block nested inside a centred or right-aligned
+// context that only set `justify` would flush its last line, or its only
+// line for a one-liner, to whatever alignment surrounds it, correct only
+// where that happens to already be left. Stating `align(left)` here is what
+// makes both functions' own alignment, and their own last-line alignment,
+// hold regardless of where they are nested — never true "by inheritance"
+// alone.
+//
+// Typst's `text()` exposes only `hyphenate: bool`, with no per-language
+// tuning surface — no parameter takes justification-justified's own
+// hyphenation_min_word_chars (6), hyphenation_min_chars_before_break (3),
+// hyphenation_min_chars_after_break (3) or max_consecutive_hyphens (2).
+// typeset.css enforces those same four numbers with `hyphenate-limit-chars`
+// and `hyphenate-limit-lines`; there is no Typst engine feature this file can
+// set in their place.
+// @s justification
+#let ragged-right(indented: auto, lang: "en", body) = {
+  set align(left)
+  set par(justify: false)
+  if lang != none { set text(lang: lang) }
+  set text(hyphenate: false)
+  if indented == auto { body } else if indented { block-indented(body) } else { block-spaced(body) }
+}
+
+#let justified(indented: auto, lang: "en", body) = {
+  set align(left)
+  set par(justify: true)
+  if lang != none { set text(lang: lang) }
+  set text(hyphenate: lang != none)
+  if indented == auto { body } else if indented { block-indented(body) } else { block-spaced(body) }
+}
+// @e
 
 // ── Blocks the spec names but no engine provides ────────────────────────────
 
@@ -490,9 +761,9 @@
   let floor = 45
   let base = scale-two-column.base
 
-  // The foundation measure is 66 characters in 126mm at 11pt. Characters in a
+  // The foundation measure is 66 characters in 128mm at 11pt. Characters in a
   // column follow from it, by the column's width and by the base in use.
-  let chars-in = width => int(calc.round(66 / 126 * (width / 1mm) * (11pt / base)))
+  let chars-in = width => int(calc.round(66 / 128 * (width / 1mm) * (11pt / base)))
   let mm-of = value => {
     let n = calc.round(value / 1mm, digits: 2)
     if n == calc.round(n) { str(int(n)) } else { str(n) }
@@ -573,14 +844,10 @@
   assert(justified, message: "two-column requires justification: at " + str(chars)
     + " characters a ragged edge serrates the column")
 
-  show: typeset.with(
+  show: _typeset-page.with(
     paper: paper,
     margin: margin,
     scale: scale-two-column,
-    measure: none,        // the column is the measure
-    justified: true,
-    indented: true,      // a blank line costs 3% of a column
-    numbered: numbered,
     running-head: running-head,
     folio: folio,
   )
@@ -610,6 +877,14 @@
       )
     }
   })
+
+  show: _typeset-styles.with(
+    scale: scale-two-column,
+    measure: none,        // the column is the measure
+    justified: true,
+    indented: true,      // a blank line costs 3% of a column
+    numbered: numbered,
+  )
 
   if front != none {
     front
@@ -679,6 +954,49 @@
   )
   if ts-two-column-body.get() { span(content, at-bottom: true) } else { content }
 }
+
+// ── Bibliography ────────────────────────────────────────────────────────────
+
+// @s bibliography
+// `references()` owns the block: the entries' size, leading, spacing and
+// hanging indent, and the heading — a real level-2 heading, so it takes the
+// document's own running-head and numbering behaviour, and spans both
+// columns the way frontmatter-title-block and frontmatter-colophon do,
+// because bibliography-heading (unlike headings-h2 itself) is on
+// templates.two-column.spanning.always. `reference()` composes one entry —
+// author roman, title italic, the rest in order — so the punctuation between
+// them is this file's business, not the document's.
+#let references(title: [References], body) = context {
+  let heading-content = heading(level: 2, title)
+  if ts-two-column-body.get() { span(heading-content) } else { heading-content }
+  {
+    set text(size: sm)
+    set par(
+      justify: false,
+      leading: leading-for(1.4),
+      first-line-indent: 0pt,
+      hanging-indent: 1.8em,
+    )
+    body
+  }
+}
+
+// One entry, `break_inside: avoid` — a citation split across a page break
+// loses the one thing a hanging indent is for, the surname at a glance — and
+// `space_after: 0.55em` between entries, both bibliography-entry's own.
+#let reference(
+  author: none, title: none, edition: none,
+  publisher: none, year: none, note: none,
+) = block(breakable: false, below: 0.55em, {
+  if author != none [#author. ]
+  if title != none [#emph(title). ]
+  if edition != none [#edition. ]
+  if publisher != none [#publisher]
+  if publisher != none and year != none [, ]
+  if year != none [#year.]
+  if note != none [ #note]
+})
+// @e
 
 // ── Letter ──────────────────────────────────────────────────────────────────
 

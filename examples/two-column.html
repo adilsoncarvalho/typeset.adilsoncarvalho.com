@@ -25,14 +25,14 @@
 
   <div class="ts-frontmatter-abstract">
     <span class="ts-label ts-frontmatter-abstract-label">Abstract</span>
-    Dividing an A4 page into two equal columns leaves 82mm of measure. At the single-column base of 11pt that carries 43 characters — below the floor at which a line of prose stays readable. This note works through what a two-column template must therefore change, and what it must leave alone.
+    Dividing an A4 page into two equal columns leaves 82mm of measure. At the single-column base of 11pt that carries 42 characters — below the floor at which a line of prose stays readable. This note works through what a two-column template must therefore change, and what it must leave alone.
   </div>
 
   <h2>The arithmetic</h2>
 
   <p>A4 is 210mm wide. Take off the standard margin, 20mm on each side, and 170mm of text width remains. A 6mm gutter divides it into two columns of 82mm.</p>
 
-  <p>At 11pt, an 82mm column carries about 43 characters. This specification sets 45 as the floor for a line of prose, so 11pt is not available here. Dropping the base to 9.5pt restores 50 characters, and every other step in the scale comes down with it.</p>
+  <p>At 11pt, an 82mm column carries about 42 characters. This specification sets 45 as the floor for a line of prose, so neither 11pt nor 10.5pt (44) is available here. Dropping the base to 9.5pt restores 49 characters, and every other step in the scale comes down with it.</p>
 
   <h3>What follows from the size change</h3>
 
@@ -47,7 +47,7 @@
 
   <h2>Justification stops being optional</h2>
 
-  <p>At 50 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.</p>
+  <p>At 49 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.</p>
 
   <blockquote class="ts-quotes-pullquote">
     <p>This is the one place the spec removes a choice it otherwise offers.</p>
@@ -61,13 +61,13 @@
 
   <figure class="ts-span">
     <table>
-      <caption><span class="ts-label ts-tables-caption-label">Table 1</span> — Characters per line for an 82mm column, by base size. The floor is 45, and 10.5pt reaches it exactly — a floor is not a target.</caption>
+      <caption><span class="ts-label ts-tables-caption-label">Table 1</span> — Characters per line for an 82mm column, by base size. The floor is 45: 11pt and 10.5pt both fall short, 10pt clears it by two, and the template still drops one step further, to 9.5pt, for headroom rather than a bare pass.</caption>
       <thead>
         <tr><th>Base size</th><th class="ts-tables-cell-numeric">11pt</th><th class="ts-tables-cell-numeric">10.5pt</th><th class="ts-tables-cell-numeric">10pt</th><th class="ts-tables-cell-numeric">9.5pt</th><th class="ts-tables-cell-numeric">9pt</th></tr>
       </thead>
       <tbody>
-        <tr><td>Characters</td><td class="ts-tables-cell-numeric">43</td><td class="ts-tables-cell-numeric">45</td><td class="ts-tables-cell-numeric">47</td><td class="ts-tables-cell-numeric">50</td><td class="ts-tables-cell-numeric">52</td></tr>
-        <tr><td>Conformant</td><td class="ts-tables-cell-numeric">no</td><td class="ts-tables-cell-numeric">at floor</td><td class="ts-tables-cell-numeric">yes</td><td class="ts-tables-cell-numeric">yes</td><td class="ts-tables-cell-numeric">yes</td></tr>
+        <tr><td>Characters</td><td class="ts-tables-cell-numeric">42</td><td class="ts-tables-cell-numeric">44</td><td class="ts-tables-cell-numeric">47</td><td class="ts-tables-cell-numeric">49</td><td class="ts-tables-cell-numeric">52</td></tr>
+        <tr><td>Conformant</td><td class="ts-tables-cell-numeric">no</td><td class="ts-tables-cell-numeric">no</td><td class="ts-tables-cell-numeric">yes</td><td class="ts-tables-cell-numeric">yes</td><td class="ts-tables-cell-numeric">yes</td></tr>
       </tbody>
     </table>
   </figure>

@@ -300,17 +300,18 @@ No parallel branches.
 Found while implementing a group, deliberately not fixed there. Each names the
 group that owns it, so nothing here is homeless. The per-group ledgers under
 `.superpowers/` are scratch and get deleted when a group closes — this list is
-committed because these items must outlive them.
+committed because these items must outlive them. An item leaves the list when
+the group that owns it delivers, so what is written here is what is still
+outstanding.
 
-**Owned by the API group** (rides with the singular rename, before Group 5):
-
-- **A bibliography heading has no element.** `templates.two-column.spanning.always`
-  named one, but the `bibliography` section holds exactly `bibliography-entry`,
-  and the entry contradicted `spanning.never`'s "heading 2 and below". Group 4
-  dropped it from the list rather than invent an element inside a page-layouts
-  task. The `#references` block this group is building is the natural owner of a
-  heading, and both implementations should span it once it exists. Until then an
-  author marks it with `.ts-span` / `#span()`, which still works.
+That is the whole point of the section, and it was learned the hard way: four
+requests the owner made on 2026-09-11, in his review of the live site, lived
+only in a git-ignored per-group ledger, were not delivered by the group that
+followed, and were not recorded anywhere in the repo. A list that is trusted to
+be current and is not is worse than no list at all. The API group delivered all
+four — `#key()`, `#references()`/`#reference()`, the named measures, and the tab
+scroll — along with the `bibliography-heading` element they were listed beside,
+so all five are gone from here.
 
 **Owned by Group 3** (handholding — an example for every style):
 
@@ -323,8 +324,10 @@ committed because these items must outlive them.
 
 - **`dropcap()` reads `body.text`**, which holds only when the body is a bare
   string. Any markup and the cap is taken from the wrong character, silently.
-- **`typeset()` ends in `block(width: measure, doc)`**, and a container is a
-  place where `set page()` cannot take effect. That is what broke the letter
+- **`typeset()` holds its body to the measure with a `block()`** — since the
+  API group, inside `_typeset-styles` rather than in `typeset()` itself, which
+  is now a call into `_typeset-page` around it — and a container is a place
+  where `set page()` cannot take effect. That is what broke the letter
   page: `#show: letter-page` then `#show: typeset` put the page rules inside the
   block. The fix is a design question about how `typeset` should assert a
   measure, not a patch.

@@ -100,7 +100,7 @@
   <div class="feeds">
     <p class="feeds__label">For a machine</p>
     <ul>
-      <li><a href="spec.json"><code>spec.json</code></a> — the normative source. 22 sections, 102 elements, 2 templates, every length absolute.</li>
+      <li><a href="spec.json"><code>spec.json</code></a> — the normative source. 22 sections, 103 elements, 2 templates, every length absolute.</li>
       <li><a href="SPEC.md"><code>SPEC.md</code></a> — the same thing as prose, generated from <code>spec.json</code>. Paste this into a model's context.</li>
       <li><a href="llms.txt"><code>llms.txt</code></a> — what to read first, and in what order.</li>
     </ul>
@@ -112,7 +112,7 @@
     <span><b>Mono</b> IBM Plex Mono</span>
     <span><b>Base</b> 11pt / 1.45</span>
     <span><b>Page</b> A4, 20mm</span>
-    <span><b>Spec</b> 2.0.0 · 2026-09-11</span>
+    <span><b>Spec</b> 2.0.0 · 2026-09-12</span>
   </div>
   <div class="btngroups">
     <div class="btngroup">
@@ -165,7 +165,7 @@
 &lt;/div&gt;</code></pre>
       </div>
       <div>
-        <p>Every Typst pane below assumes <a href="files/typeset-typ.html"><code>typeset.typ</code></a> sits beside the document and has been imported and shown once, above the snippet. A snippet that opens with its own <code>#show: typeset.with(…)</code> replaces the second line rather than nesting under it — <code>typeset()</code> sets the page, and a page cannot be set inside a container.</p>
+        <p>Every Typst pane below assumes <a href="files/typeset-typ.html"><code>typeset.typ</code></a> sits beside the document and has been imported and shown once, above the snippet. A snippet that opens with its own <code>#show: typeset.with(…)</code>, or with a template that sets a page of its own such as <code>#show: two-column.with(…)</code>, replaces the second line rather than nesting under it — both set the page, and a page cannot be set inside a container.</p>
         <pre class="boilerplate__pre"><code data-boilerplate="typst">#<span class="c-at">import</span> &quot;typeset.typ&quot;: *
 #<span class="c-at">show</span>: typeset</code></pre>
       </div>
@@ -314,7 +314,7 @@
     <input type="radio" name="tab-foundation" id="tab-foundation-typst">
     <label for="tab-foundation-typst">Typst</label>
     <span class="tabs__rule"></span>
-    <div class="tabs__pane tabs__pane--spec"><div class="spec"><h3 class="spec-group">rhythm</h3><table class="spec-table"><tbody><tr><th>line height</th><td><code>1.45</code></td></tr><tr><th>line height tight</th><td><code>1.2</code></td></tr><tr><th>baseline advance</th><td><code>15.95pt</code></td></tr><tr><th>space</th><td><code>11pt</code></td></tr><tr><th>space note</th><td>One unit of vertical space is 11pt — one line of base leading, near enough. Every gap below is a multiple of it.</td></tr><tr><th>measure</th><td><code>33em</code></td></tr><tr><th>measure mm</th><td><code>126</code></td></tr><tr><th>measure chars</th><td><code>66</code></td></tr><tr><th>measure note</th><td>The single largest legibility lever. Past about 75 characters the return sweep fails and readers re-read lines without noticing; below 45 the eye fixates too often.</td></tr></tbody></table><h4 class="spec-el">measure variants</h4><table class="spec-table"><tbody><tr><th>narrow</th><td><code>27em</code></td></tr><tr><th>wide</th><td><code>40em</code></td></tr></tbody></table></div></div>
+    <div class="tabs__pane tabs__pane--spec"><div class="spec"><h3 class="spec-group">rhythm</h3><table class="spec-table"><tbody><tr><th>line height</th><td><code>1.45</code></td></tr><tr><th>line height tight</th><td><code>1.2</code></td></tr><tr><th>baseline advance</th><td><code>15.95pt</code></td></tr><tr><th>space</th><td><code>11pt</code></td></tr><tr><th>space note</th><td>One unit of vertical space is 11pt — one line of base leading, near enough. Every gap below is a multiple of it.</td></tr><tr><th>measure</th><td><code>33em</code></td></tr><tr><th>measure mm</th><td><code>128</code></td></tr><tr><th>measure chars</th><td><code>66</code></td></tr><tr><th>measure note</th><td>The single largest legibility lever. Past about 75 characters the return sweep fails and readers re-read lines without noticing; below 45 the eye fixates too often. `measure` is canonical — an em measure follows a type-scale change, where a millimetre one does not. `measure_mm` is derived from it, 33 × the 11pt base, and is kept only as a millimetre convenience for readers who think in paper dimensions; tools/check.mjs asserts the two agree.</td></tr></tbody></table><h4 class="spec-el">measure variants</h4><table class="spec-table"><tbody><tr><th>narrow</th><td><code>27em</code></td></tr><tr><th>wide</th><td><code>40em</code></td></tr></tbody></table></div></div>
     <div class="tabs__pane"><div class="codewrap"><pre><span class="c-sel">.typeset {</span>
   <span class="c-prop">font-family</span>: <span class="c-val">var(--ts-serif)</span>;
   <span class="c-prop">font-size</span>: <span class="c-val">var(--ts-base)</span>;
@@ -333,14 +333,14 @@
 
 .typeset--measure-wide { --ts-measure: 40em; }
 .typeset--measure-narrow { --ts-measure: 27em; }</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L166">foundation</a></p><pre>#block(<span class="c-prop">width</span>: <span class="c-val">126mm</span>)[
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L265">foundation</a></p><pre>#measured[
   Typography exists to honour content. A page <span class="c-at">set</span> to a comfortable measure asks
   nothing of the reader; they simply arrive at the end having forgotten there
-  was a page at all. This paragraph is <span class="c-at">set</span> to the default <span class="c-val">126mm</span> measure.
+  was a page at all. This paragraph is <span class="c-at">set</span> to the default measure.
 ]
 
-#block(<span class="c-prop">width</span>: <span class="c-val">170mm</span>)[
-  And this one is deliberately overset to the full <span class="c-val">170mm</span> between the margins, so
+#measured(<span class="c-prop">width</span>: measure-full)[
+  And this one is deliberately overset to the full width between the margins, so
   you can feel the return sweep failing. By the third line your eye has to hunt
   for the start of the next, and the hunt is what tires a reader out over twenty
   pages.
@@ -453,13 +453,13 @@
 <span class="c-at">@page</span> ts-margin-duplex-wide { margin-top: 30mm; margin-bottom: 30mm; }
 <span class="c-at">@page</span> ts-margin-duplex-wide:right { margin-left: 33mm; margin-right: 27mm; }
 <span class="c-at">@page</span> ts-margin-duplex-wide:left  { margin-left: 27mm; margin-right: 33mm; }</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L142">page</a></p><pre>= On the Measure of a Line
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L215">page</a></p><pre>= On the Measure of a Line
 
 == Composition
 
 A<span class="c-val">4</span> at the standard margin, <span class="c-val">20mm</span> on all four sides — the default a document
 gets unless it asks otherwise. Between them lies <span class="c-val">170mm</span> of text width, of
-which the measure claims <span class="c-val">126mm</span> and leaves the remainder as slack.
+which the measure claims <span class="c-val">128mm</span> and leaves the remainder as slack.
 
 That slack is not waste. It is where a marginal note goes, where a thumb rests,
 and where the eye finds somewhere to stop. A page whose text runs to both
@@ -526,8 +526,8 @@ anything.</pre><button class="copy" type="button" data-copy>Copy</button></div><
     <p class="section__num">04 — Templates</p>
     <h2>Two column, equal</h2>
     <p>For papers, journal articles, newsletters and technical notes — documents scanned and referenced as much as read. A template sets the page and the scale; it does not get its own typography, so everything else on this page still applies unchanged.</p>
-    <p><b>The base size drops to 9.5pt here, and that is arithmetic rather than taste.</b> A4 less the standard 20mm margin on each side leaves 170mm; a 6mm gutter divides it into two 82mm columns. At 11pt an 82mm column carries 43 characters — below the 45-character floor this spec sets for prose. 9.5pt restores 50, and every other step comes down with it.</p>
-    <p>Two consequences worth stating: <b>justification stops being optional</b>, because at 50 characters a ragged edge serrates the column visibly; and <b>sidenotes are forbidden</b>, because there is no margin left to put them in.</p>
+    <p><b>The base size drops to 9.5pt here, and that is arithmetic rather than taste.</b> A4 less the standard 20mm margin on each side leaves 170mm; a 6mm gutter divides it into two 82mm columns. At 11pt an 82mm column carries 42 characters — below the 45-character floor this spec sets for prose. 10.5pt still falls short, at 44. 9.5pt restores 49, and every other step comes down with it.</p>
+    <p>Two consequences worth stating: <b>justification stops being optional</b>, because at 49 characters a ragged edge serrates the column visibly; and <b>sidenotes are forbidden</b>, because there is no margin left to put them in.</p>
   </div>
   <div class="note"><b>Engine capability.</b> A column container cannot be fragmented by <a href="https://pagedjs.org">Paged.js</a> — it moves content between page boxes and cannot split a column flow, so it produces zero pages. The CSS two-column example therefore prints directly from the browser and simulates one sheet on screen. Typst paginates columns natively.</div>
   <div class="pair">
@@ -545,11 +545,11 @@ anything.</pre><button class="copy" type="button" data-copy>Copy</button></div><
               </div>
               <div class="ts-frontmatter-abstract">
                 <span class="ts-label ts-frontmatter-abstract-label">Abstract</span>
-                Dividing an A4 page into two equal columns leaves 82mm of measure. At the single-column base of 11pt that carries 43 characters — below the floor at which a line of prose stays readable.
+                Dividing an A4 page into two equal columns leaves 82mm of measure. At the single-column base of 11pt that carries 42 characters — below the floor at which a line of prose stays readable.
               </div>
               <h2>The arithmetic</h2>
               <p>A4 is 210mm wide. Take off the standard margin, 20mm on each side, and 170mm of text width remains. A 6mm gutter divides it into two columns of 82mm.</p>
-              <p>At 11pt, an 82mm column carries about 43 characters. This specification sets 45 as the floor for a line of prose, so 11pt is not available here. Dropping the base to 9.5pt restores 50 characters.</p>
+              <p>At 11pt, an 82mm column carries about 42 characters. This specification sets 45 as the floor for a line of prose, so neither 11pt nor 10.5pt (44) is available here. Dropping the base to 9.5pt restores 49 characters.</p>
               <h3>What follows</h3>
               <p>Leading tightens from 1.45 to 1.4. A shorter line needs less vertical separation for the return sweep to stay unambiguous, and the saving is real: at 13.3pt of advance a column holds 54 lines instead of 45.</p>
               <p>Headings come down hardest. A 24pt level-2 heading inside an 82mm column spends three lines saying two words, so the scale runs 20/13/11/9.5.</p>
@@ -558,7 +558,7 @@ anything.</pre><button class="copy" type="button" data-copy>Copy</button></div><
                 <p>The palette, the rule weights, the numeral conventions and the pagination rules are all identical.</p>
               </div>
               <h2>Justification</h2>
-              <p>At 50 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.</p>
+              <p>At 49 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.</p>
               <blockquote class="ts-quotes-pullquote"><p>The one place the spec removes a choice.</p></blockquote>
               <p>So the template turns justification on itself rather than offering it as an option.</p>
               <figure class="ts-span">
@@ -566,7 +566,7 @@ anything.</pre><button class="copy" type="button" data-copy>Copy</button></div><
                   <caption><span class="ts-label ts-tables-caption-label">Table 1</span> — Characters per line for an 82mm column.</caption>
                   <thead><tr><th>Base</th><th class="ts-tables-cell-numeric">11pt</th><th class="ts-tables-cell-numeric">10pt</th><th class="ts-tables-cell-numeric">9.5pt</th><th class="ts-tables-cell-numeric">9pt</th></tr></thead>
                   <tbody>
-                    <tr><td>Characters</td><td class="ts-tables-cell-numeric">43</td><td class="ts-tables-cell-numeric">47</td><td class="ts-tables-cell-numeric">50</td><td class="ts-tables-cell-numeric">52</td></tr>
+                    <tr><td>Characters</td><td class="ts-tables-cell-numeric">42</td><td class="ts-tables-cell-numeric">47</td><td class="ts-tables-cell-numeric">49</td><td class="ts-tables-cell-numeric">52</td></tr>
                     <tr><td>Conformant</td><td class="ts-tables-cell-numeric">no</td><td class="ts-tables-cell-numeric">yes</td><td class="ts-tables-cell-numeric">yes</td><td class="ts-tables-cell-numeric">yes</td></tr>
                   </tbody>
                 </table>
@@ -593,8 +593,8 @@ anything.</pre><button class="copy" type="button" data-copy>Copy</button></div><
     <input type="radio" name="tab-two-column" id="tab-two-column-typst">
     <label for="tab-two-column-typst">Typst</label>
     <span class="tabs__rule"></span>
-    <div class="tabs__pane tabs__pane--spec"><div class="spec"><p class="spec-optin-line">Opt-in · <code>typeset--two-column</code></p><p class="spec-note"><b>Use for</b> — Papers, journal articles, newsletters, technical notes — documents that are scanned and referenced as much as read, and where a figure is worth more than an uninterrupted argument.</p><h3 class="spec-group">derivation</h3><table class="spec-table"><tbody><tr><th>derived for</th><td>The paper named in foundation.page.size, at the margin named in foundation.page.margins.default. No copy of either is kept here: every number below is a function of those two and of the gutter.</td></tr><tr><th>column gap mm</th><td><code>6</code></td></tr><tr><th>column width mm</th><td><code>82</code></td></tr><tr><th>floor</th><td><code>45</code></td></tr><tr><th>margins supported</th><td><code>narrow</code>, <code>standard</code></td></tr><tr><th>conclusion</th><td>An 82mm column carries 43 characters at the 11pt base — below the 45-character floor this spec sets for a line of prose. The base size therefore DROPS to 9.5pt, which gives 50. 10.5pt reaches 45 exactly, and a floor is not a target: 9.5pt is the first step with room above it. This is arithmetic, not preference: an implementation that keeps 11pt in two columns violates the measure rule, which is the rule everything else in this spec is downstream of.</td></tr><tr><th>refusal</th><td>Two columns are refused, not set badly, on any paper and margin whose column falls below the floor. That is a computed rule rather than a list of papers: margins_supported names the margins that reach the floor on the paper in foundation.page.size, and tools/check.mjs recomputes it. The checker fails when this declaration disagrees with the arithmetic, when the default margin cannot reach the floor, or when no named margin on the paper can.</td></tr><tr><th>recompute when</th><td>The paper in foundation.page.size, the default margin, or the gutter. Characters per line = (foundation.rhythm.measure_chars / measure_mm) x column_mm x (11 / base_pt), rounded; column_mm = (paper width - twice the margin - the gutter) / 2. tools/check.mjs recomputes every number here from foundation.page, so a margin cannot move without these following it or the checker going red.</td></tr></tbody></table><h4 class="spec-el">characters per line</h4><table class="spec-table"><tbody><tr><th>11pt</th><td><code>43</code></td></tr><tr><th>10.5pt</th><td><code>45</code></td></tr><tr><th>10pt</th><td><code>47</code></td></tr><tr><th>9.5pt</th><td><code>50</code></td></tr><tr><th>9pt</th><td><code>52</code></td></tr></tbody></table><h3 class="spec-group">requirements</h3><ul class="spec-rules"><li>Justification with hyphenation is MANDATORY, not optional. At 50 characters a ragged right edge produces a visibly serrated column and word gaps wide enough to read as rivers. This is the one place the spec removes a choice it otherwise offers.</li><li>The last line of a paragraph is still flush left. Two columns make a stretched last line more visible, not less.</li><li>Balance the columns on the final page. A last page with one full column and one empty third reads as a printing error.</li><li>A spanning element must span BOTH columns fully or neither. An element that spans one and a half columns has no correct reading order.</li><li>Keep a spanning element at the top or the bottom of the page, never mid-column. Interrupting both columns in the middle forces the reader to find their place twice.</li></ul><h3 class="spec-group">page</h3><table class="spec-table"><tbody><tr><th>size</th><td><code>as foundation.page.size</code></td></tr><tr><th>margins</th><td>as foundation.page.margins, at the default size — symmetric unless the sheet is bound, duplex if it is. A duplex pair leaves the text width unchanged, so a two-column document does not reflow between them.</td></tr><tr><th>columns</th><td><code>2</code></td></tr><tr><th>column widths</th><td>equal — the two columns are the same width, always</td></tr><tr><th>column gap mm</th><td><code>6</code></td></tr><tr><th>column width mm</th><td><code>82</code></td></tr><tr><th>column rule</th><td>none by default; an optional 0.5pt hairline in `rule` where the columns need separating</td></tr><tr><th>column balance</th><td>the final page balances its columns to equal height</td></tr><tr><th>lines per column</th><td><code>54</code></td></tr><tr><th>running head</th><td>as foundation.page — spans the full text width, not a column</td></tr><tr><th>folio</th><td><code>as foundation.page</code></td></tr></tbody></table><h3 class="spec-group">scale</h3><table class="spec-table"><tbody><tr><th>ratio</th><td><code>1.2</code></td></tr><tr><th>base</th><td><code>9.5pt</code></td></tr><tr><th>note</th><td>Every step comes down. A 24pt heading inside an 82mm column takes three lines to say two words; 18pt takes two. The h1 keeps display size because it spans both columns.</td></tr></tbody></table><h4 class="spec-el">steps</h4><table class="spec-table"><tbody><tr><th>xs</th><td><code>7pt</code></td></tr><tr><th>sm</th><td><code>8.5pt</code></td></tr><tr><th>base</th><td><code>9.5pt</code></td></tr><tr><th>h4</th><td><code>9.5pt</code></td></tr><tr><th>h3</th><td><code>11pt</code></td></tr><tr><th>h2</th><td><code>13pt</code></td></tr><tr><th>h1</th><td><code>20pt</code></td></tr></tbody></table><h3 class="spec-group">rhythm</h3><table class="spec-table"><tbody><tr><th>line height</th><td><code>1.4</code></td></tr><tr><th>baseline advance</th><td><code>13.3pt</code></td></tr><tr><th>space</th><td><code>9.5pt</code></td></tr><tr><th>measure</th><td>the column — 82mm, not a character count</td></tr><tr><th>measure chars</th><td><code>50</code></td></tr><tr><th>note</th><td>Leading tightens with the measure: a shorter line needs less vertical separation to keep the return sweep unambiguous.</td></tr></tbody></table><h3 class="spec-group">spanning</h3><table class="spec-table"><tbody><tr><th>always</th><td><code>frontmatter-title-block</code>, <code>frontmatter-subtitle</code>, <code>frontmatter-byline</code>, <code>frontmatter-dateline</code>, <code>frontmatter-abstract</code>, <code>headings-h1</code>, <code>frontmatter-colophon</code></td></tr><tr><th>optional</th><td><code>figure</code>, <code>table</code>, <code>code block</code>, <code>pull quote</code></td></tr><tr><th>never</th><td><code>paragraph</code>, <code>list</code>, <code>blockquote</code>, <code>callout</code>, <code>heading 2 and below</code>, <code>endnotes</code></td></tr><tr><th>note</th><td>A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` stay prose because they describe author choice and default flow, which nothing enforces. A bibliography heading is not on `always`: no bibliography heading element exists anywhere in this spec, and the bibliography section's own element list carries none either.</td></tr></tbody></table><h3 class="spec-group">forbidden</h3><table class="spec-table"><tbody><tr><th>sidenote</th><td>There is no margin to put it in. Use a footnote or an endnote.</td></tr><tr><th>dropcap</th><td>A three-line cap at 3.05em is 29pt in an 82mm column — 10mm of the column given to one letter. Open with small caps instead.</td></tr><tr><th>measure variants</th><td>narrow and wide are meaningless: the column is the measure.</td></tr></tbody></table><h3 class="spec-group">element overrides</h3><h4 class="spec-el">h1</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>20pt</code></td></tr><tr><th>spans</th><td><code>both columns</code></td></tr><tr><th>space after</th><td><code>9.5pt</code></td></tr></tbody></table><h4 class="spec-el">h2</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>13pt</code></td></tr><tr><th>space before</th><td><code>19pt</code></td></tr><tr><th>space after</th><td><code>4.75pt</code></td></tr></tbody></table><h4 class="spec-el">h3</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>space before</th><td><code>19pt</code></td></tr><tr><th>space after</th><td><code>4.75pt</code></td></tr></tbody></table><h4 class="spec-el">h4</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>space before</th><td><code>19pt</code></td></tr><tr><th>space after</th><td><code>4.75pt</code></td></tr></tbody></table><h4 class="spec-el">paragraph</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>line height</th><td><code>1.4</code></td></tr><tr><th>space after</th><td><code>0</code></td></tr><tr><th>first line indent</th><td><code>1.25em</code></td></tr><tr><th>note</th><td>Indented paragraphs are the default here, not an option: a blank line costs 3% of a column.</td></tr></tbody></table><h4 class="spec-el">blockquote</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>9pt</code></td></tr><tr><th>indent left</th><td><code>9.5pt</code></td></tr></tbody></table><h4 class="spec-el">table</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>8pt</code></td></tr><tr><th>line height</th><td><code>1.3</code></td></tr></tbody></table><h4 class="spec-el">codeblock</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>7.5pt</code></td></tr><tr><th>line height</th><td><code>1.4</code></td></tr></tbody></table><h4 class="spec-el">figure caption</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>8pt</code></td></tr></tbody></table><h4 class="spec-el">footnote</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>8pt</code></td></tr><tr><th>note</th><td>Scoped to the page, not the column: one notes area spanning both columns at the page foot.</td></tr></tbody></table><h4 class="spec-el">endnotes</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>8.5pt</code></td></tr></tbody></table><h4 class="spec-el">pullquote</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>12pt</code></td></tr><tr><th>note</th><td>Column width by default. Spanning both columns turns it into a divider, which is a different and heavier thing.</td></tr></tbody></table><h4 class="spec-el">abstract</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>9pt</code></td></tr><tr><th>max width</th><td>the full text width, set apart above the columns</td></tr></tbody></table></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L1043">two-column</a></p><pre>&lt;article class=&quot;typeset typeset--two-column&quot;&gt;
+    <div class="tabs__pane tabs__pane--spec"><div class="spec"><p class="spec-optin-line">Opt-in · <code>typeset--two-column</code></p><p class="spec-note"><b>Use for</b> — Papers, journal articles, newsletters, technical notes — documents that are scanned and referenced as much as read, and where a figure is worth more than an uninterrupted argument.</p><h3 class="spec-group">derivation</h3><table class="spec-table"><tbody><tr><th>derived for</th><td>The paper named in foundation.page.size, at the margin named in foundation.page.margins.default. No copy of either is kept here: every number below is a function of those two and of the gutter.</td></tr><tr><th>column gap mm</th><td><code>6</code></td></tr><tr><th>column width mm</th><td><code>82</code></td></tr><tr><th>floor</th><td><code>45</code></td></tr><tr><th>margins supported</th><td><code>narrow</code>, <code>standard</code></td></tr><tr><th>conclusion</th><td>An 82mm column carries 42 characters at the 11pt base — below the 45-character floor this spec sets for a line of prose. 10.5pt still falls short, at 44. The base therefore DROPS to 10pt, the first step that clears the floor — but only just, at 47, two characters of headroom. The template drops one step further anyway, to 9.5pt and 49: a floor is not a target, and a bare pass is not the same as room to breathe. This is arithmetic, not preference: an implementation that keeps 11pt or 10.5pt in two columns violates the measure rule, which is the rule everything else in this spec is downstream of.</td></tr><tr><th>refusal</th><td>Two columns are refused, not set badly, on any paper and margin whose column falls below the floor. That is a computed rule rather than a list of papers: margins_supported names the margins that reach the floor on the paper in foundation.page.size, and tools/check.mjs recomputes it. The checker fails when this declaration disagrees with the arithmetic, when the default margin cannot reach the floor, or when no named margin on the paper can.</td></tr><tr><th>recompute when</th><td>The paper in foundation.page.size, the default margin, or the gutter. Characters per line = (foundation.rhythm.measure_chars / measure_mm) x column_mm x (11 / base_pt), rounded; column_mm = (paper width - twice the margin - the gutter) / 2. tools/check.mjs recomputes every number here from foundation.page, so a margin cannot move without these following it or the checker going red.</td></tr></tbody></table><h4 class="spec-el">characters per line</h4><table class="spec-table"><tbody><tr><th>11pt</th><td><code>42</code></td></tr><tr><th>10.5pt</th><td><code>44</code></td></tr><tr><th>10pt</th><td><code>47</code></td></tr><tr><th>9.5pt</th><td><code>49</code></td></tr><tr><th>9pt</th><td><code>52</code></td></tr></tbody></table><h3 class="spec-group">requirements</h3><ul class="spec-rules"><li>Justification with hyphenation is MANDATORY, not optional. At 49 characters a ragged right edge produces a visibly serrated column and word gaps wide enough to read as rivers. This is the one place the spec removes a choice it otherwise offers.</li><li>The last line of a paragraph is still flush left. Two columns make a stretched last line more visible, not less.</li><li>Balance the columns on the final page. A last page with one full column and one empty third reads as a printing error.</li><li>A spanning element must span BOTH columns fully or neither. An element that spans one and a half columns has no correct reading order.</li><li>Keep a spanning element at the top or the bottom of the page, never mid-column. Interrupting both columns in the middle forces the reader to find their place twice.</li></ul><h3 class="spec-group">page</h3><table class="spec-table"><tbody><tr><th>size</th><td><code>as foundation.page.size</code></td></tr><tr><th>margins</th><td>as foundation.page.margins, at the default size — symmetric unless the sheet is bound, duplex if it is. A duplex pair leaves the text width unchanged, so a two-column document does not reflow between them.</td></tr><tr><th>columns</th><td><code>2</code></td></tr><tr><th>column widths</th><td>equal — the two columns are the same width, always</td></tr><tr><th>column gap mm</th><td><code>6</code></td></tr><tr><th>column width mm</th><td><code>82</code></td></tr><tr><th>column rule</th><td>none by default; an optional 0.5pt hairline in `rule` where the columns need separating</td></tr><tr><th>column balance</th><td>the final page balances its columns to equal height</td></tr><tr><th>lines per column</th><td><code>54</code></td></tr><tr><th>running head</th><td>as foundation.page — spans the full text width, not a column</td></tr><tr><th>folio</th><td><code>as foundation.page</code></td></tr></tbody></table><h3 class="spec-group">scale</h3><table class="spec-table"><tbody><tr><th>ratio</th><td><code>1.2</code></td></tr><tr><th>base</th><td><code>9.5pt</code></td></tr><tr><th>note</th><td>Every step comes down. A 24pt heading inside an 82mm column takes three lines to say two words; 18pt takes two. The h1 keeps display size because it spans both columns.</td></tr></tbody></table><h4 class="spec-el">steps</h4><table class="spec-table"><tbody><tr><th>xs</th><td><code>7pt</code></td></tr><tr><th>sm</th><td><code>8.5pt</code></td></tr><tr><th>base</th><td><code>9.5pt</code></td></tr><tr><th>h4</th><td><code>9.5pt</code></td></tr><tr><th>h3</th><td><code>11pt</code></td></tr><tr><th>h2</th><td><code>13pt</code></td></tr><tr><th>h1</th><td><code>20pt</code></td></tr></tbody></table><h3 class="spec-group">rhythm</h3><table class="spec-table"><tbody><tr><th>line height</th><td><code>1.4</code></td></tr><tr><th>baseline advance</th><td><code>13.3pt</code></td></tr><tr><th>space</th><td><code>9.5pt</code></td></tr><tr><th>measure</th><td>the column — 82mm, not a character count</td></tr><tr><th>measure chars</th><td><code>49</code></td></tr><tr><th>note</th><td>Leading tightens with the measure: a shorter line needs less vertical separation to keep the return sweep unambiguous.</td></tr></tbody></table><h3 class="spec-group">spanning</h3><table class="spec-table"><tbody><tr><th>always</th><td><code>frontmatter-title-block</code>, <code>frontmatter-subtitle</code>, <code>frontmatter-byline</code>, <code>frontmatter-dateline</code>, <code>frontmatter-abstract</code>, <code>headings-h1</code>, <code>bibliography-heading</code>, <code>frontmatter-colophon</code></td></tr><tr><th>optional</th><td><code>figure</code>, <code>table</code>, <code>code block</code>, <code>pull quote</code></td></tr><tr><th>never</th><td><code>paragraph</code>, <code>list</code>, <code>blockquote</code>, <code>callout</code>, <code>heading 2 and below</code>, <code>endnotes</code></td></tr><tr><th>note</th><td>A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` stay prose because they describe author choice and default flow, which nothing enforces. `bibliography-heading` is on `always` as its own element, distinct from `headings-h2`: `never`'s &quot;heading 2 and below&quot; names the generic heading levels headings-h2 through headings-h6, not a differently-identified element that happens to share their scale — so a bibliography heading may span both columns while an ordinary section heading may not.</td></tr></tbody></table><h3 class="spec-group">forbidden</h3><table class="spec-table"><tbody><tr><th>sidenote</th><td>There is no margin to put it in. Use a footnote or an endnote.</td></tr><tr><th>dropcap</th><td>A three-line cap at 3.05em is 29pt in an 82mm column — 10mm of the column given to one letter. Open with small caps instead.</td></tr><tr><th>measure variants</th><td>narrow and wide are meaningless: the column is the measure.</td></tr></tbody></table><h3 class="spec-group">element overrides</h3><h4 class="spec-el">h1</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>20pt</code></td></tr><tr><th>spans</th><td><code>both columns</code></td></tr><tr><th>space after</th><td><code>9.5pt</code></td></tr></tbody></table><h4 class="spec-el">h2</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>13pt</code></td></tr><tr><th>space before</th><td><code>19pt</code></td></tr><tr><th>space after</th><td><code>4.75pt</code></td></tr></tbody></table><h4 class="spec-el">h3</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>space before</th><td><code>19pt</code></td></tr><tr><th>space after</th><td><code>4.75pt</code></td></tr></tbody></table><h4 class="spec-el">h4</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>space before</th><td><code>19pt</code></td></tr><tr><th>space after</th><td><code>4.75pt</code></td></tr></tbody></table><h4 class="spec-el">paragraph</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>line height</th><td><code>1.4</code></td></tr><tr><th>space after</th><td><code>0</code></td></tr><tr><th>first line indent</th><td><code>1.25em</code></td></tr><tr><th>note</th><td>Indented paragraphs are the default here, not an option: a blank line costs 3% of a column.</td></tr></tbody></table><h4 class="spec-el">blockquote</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>9pt</code></td></tr><tr><th>indent left</th><td><code>9.5pt</code></td></tr></tbody></table><h4 class="spec-el">table</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>8pt</code></td></tr><tr><th>line height</th><td><code>1.3</code></td></tr></tbody></table><h4 class="spec-el">codeblock</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>7.5pt</code></td></tr><tr><th>line height</th><td><code>1.4</code></td></tr></tbody></table><h4 class="spec-el">figure caption</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>8pt</code></td></tr></tbody></table><h4 class="spec-el">footnote</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>8pt</code></td></tr><tr><th>note</th><td>Scoped to the page, not the column: one notes area spanning both columns at the page foot.</td></tr></tbody></table><h4 class="spec-el">endnotes</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>8.5pt</code></td></tr></tbody></table><h4 class="spec-el">pullquote</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>12pt</code></td></tr><tr><th>note</th><td>Column width by default. Spanning both columns turns it into a divider, which is a different and heavier thing.</td></tr></tbody></table><h4 class="spec-el">abstract</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>9pt</code></td></tr><tr><th>max width</th><td>the full text width, set apart above the columns</td></tr></tbody></table></div></div>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L1059">two-column</a></p><pre>&lt;article class=&quot;typeset typeset--two-column&quot;&gt;
   &lt;div class=&quot;ts-frontmatter-title-block&quot;&gt;
     &lt;h1&gt;The Measure of a Column&lt;/h1&gt;
     &lt;p class=&quot;ts-frontmatter-subtitle&quot;&gt;What changes when a page is divided in two, and what must not&lt;/p&gt;
@@ -603,11 +603,11 @@ anything.</pre><button class="copy" type="button" data-copy>Copy</button></div><
   &lt;/div&gt;
   &lt;div class=&quot;ts-frontmatter-abstract&quot;&gt;
     &lt;span class=&quot;ts-label ts-frontmatter-abstract-label&quot;&gt;Abstract&lt;/span&gt;
-    Dividing an A4 page into two equal columns leaves 82mm of measure. At the single-column base of 11pt that carries 43 characters — below the floor at which a line of prose stays readable.
+    Dividing an A4 page into two equal columns leaves 82mm of measure. At the single-column base of 11pt that carries 42 characters — below the floor at which a line of prose stays readable.
   &lt;/div&gt;
   &lt;h2&gt;The arithmetic&lt;/h2&gt;
   &lt;p&gt;A4 is 210mm wide. Take off the standard margin, 20mm on each side, and 170mm of text width remains. A 6mm gutter divides it into two columns of 82mm.&lt;/p&gt;
-  &lt;p&gt;At 11pt, an 82mm column carries about 43 characters. This specification sets 45 as the floor for a line of prose, so 11pt is not available here. Dropping the base to 9.5pt restores 50 characters.&lt;/p&gt;
+  &lt;p&gt;At 11pt, an 82mm column carries about 42 characters. This specification sets 45 as the floor for a line of prose, so neither 11pt nor 10.5pt (44) is available here. Dropping the base to 9.5pt restores 49 characters.&lt;/p&gt;
   &lt;h3&gt;What follows&lt;/h3&gt;
   &lt;p&gt;Leading tightens from 1.45 to 1.4. A shorter line needs less vertical separation for the return sweep to stay unambiguous, and the saving is real: at 13.3pt of advance a column holds 54 lines instead of 45.&lt;/p&gt;
   &lt;p&gt;Headings come down hardest. A 24pt level-2 heading inside an 82mm column spends three lines saying two words, so the scale runs 20/13/11/9.5.&lt;/p&gt;
@@ -616,7 +616,7 @@ anything.</pre><button class="copy" type="button" data-copy>Copy</button></div><
     &lt;p&gt;The palette, the rule weights, the numeral conventions and the pagination rules are all identical.&lt;/p&gt;
   &lt;/div&gt;
   &lt;h2&gt;Justification&lt;/h2&gt;
-  &lt;p&gt;At 50 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.&lt;/p&gt;
+  &lt;p&gt;At 49 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.&lt;/p&gt;
   &lt;blockquote class=&quot;ts-quotes-pullquote&quot;&gt;&lt;p&gt;The one place the spec removes a choice.&lt;/p&gt;&lt;/blockquote&gt;
   &lt;p&gt;So the template turns justification on itself rather than offering it as an option.&lt;/p&gt;
   &lt;figure class=&quot;ts-span&quot;&gt;
@@ -624,7 +624,7 @@ anything.</pre><button class="copy" type="button" data-copy>Copy</button></div><
       &lt;caption&gt;&lt;span class=&quot;ts-label ts-tables-caption-label&quot;&gt;Table 1&lt;/span&gt; — Characters per line for an 82mm column.&lt;/caption&gt;
       &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Base&lt;/th&gt;&lt;th class=&quot;ts-tables-cell-numeric&quot;&gt;11pt&lt;/th&gt;&lt;th class=&quot;ts-tables-cell-numeric&quot;&gt;10pt&lt;/th&gt;&lt;th class=&quot;ts-tables-cell-numeric&quot;&gt;9.5pt&lt;/th&gt;&lt;th class=&quot;ts-tables-cell-numeric&quot;&gt;9pt&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
       &lt;tbody&gt;
-        &lt;tr&gt;&lt;td&gt;Characters&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;43&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;47&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;50&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;52&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;Characters&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;42&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;47&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;49&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;52&lt;/td&gt;&lt;/tr&gt;
         &lt;tr&gt;&lt;td&gt;Conformant&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;no&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;yes&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;yes&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;yes&lt;/td&gt;&lt;/tr&gt;
       &lt;/tbody&gt;
     &lt;/table&gt;
@@ -636,98 +636,90 @@ anything.</pre><button class="copy" type="button" data-copy>Copy</button></div><
   &lt;p&gt;An element spans both columns fully or neither. Spanning costs a break in both columns, so it is opt-in per instance and belongs at the top or the bottom of a page.&lt;/p&gt;
   &lt;div class=&quot;ts-frontmatter-colophon&quot;&gt;Set in EB Garamond, 9.5 on 13.3 points, two columns of 82mm with a 6mm gutter.&lt;/div&gt;
 &lt;/article&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L446">two-column</a></p><pre>#block[
-  #<span class="c-at">set</span> text(<span class="c-prop">size</span>: scale-two-column.base, <span class="c-prop">hyphenate</span>: <span class="c-at">true</span>)
-  #<span class="c-at">set</span> par(
-    <span class="c-prop">justify</span>: <span class="c-at">true</span>,
-    <span class="c-prop">leading</span>: leading-for(scale-two-column.leading),
-    <span class="c-prop">spacing</span>: leading-for(scale-two-column.leading),
-    <span class="c-prop">first-line-indent</span>: (<span class="c-prop">amount</span>: <span class="c-val">1.5em</span>, <span class="c-prop">all</span>: <span class="c-at">false</span>),
-  )
-
-  #frontmatter-title-block(
-    <span class="c-prop">title</span>: [The Measure of a Column],
-    <span class="c-prop">subtitle</span>: [What changes when a page is divided in two, and what must not],
-    <span class="c-prop">author</span>: [Adilson Carvalho],
-    <span class="c-prop">place-date</span>: [Sydney, <span class="c-val">28</span> August <span class="c-val">2026</span>],
-  )
-
-  #frontmatter-abstract(<span class="c-prop">width</span>: <span class="c-val">100%</span>)[
-    Dividing an A<span class="c-val">4</span> page into two equal columns leaves <span class="c-val">82mm</span> of measure. At the
-    single-column base of <span class="c-val">11pt</span> that carries <span class="c-val">43</span> characters — below the floor at
-    which a line of prose stays readable.
-  ]
-
-  #columns(<span class="c-val">2</span>, <span class="c-prop">gutter</span>: <span class="c-val">6mm</span>)[
-    == The arithmetic
-
-    A<span class="c-val">4</span> is <span class="c-val">210mm</span> wide. Take off the standard margin, <span class="c-val">20mm</span> on each side, and <span class="c-val">170mm</span>
-    of text width remains. A <span class="c-val">6mm</span> gutter divides it into two columns of <span class="c-val">82mm</span>.
-
-    At <span class="c-val">11pt</span>, an <span class="c-val">82mm</span> column carries about <span class="c-val">43</span> characters. This specification sets
-    <span class="c-val">45</span> as the floor for a line of prose, so <span class="c-val">11pt</span> is not available here. Dropping
-    the base to <span class="c-val">9.5pt</span> restores <span class="c-val">50</span> characters.
-
-    === What follows
-
-    Leading tightens from <span class="c-val">1.45</span> to <span class="c-val">1.4</span>. A shorter line needs less vertical
-    separation for the return sweep to stay unambiguous, and the saving is <span class="c-prop">real</span>:
-    at <span class="c-val">13.3pt</span> of advance a column holds <span class="c-val">54</span> lines instead of <span class="c-val">45</span>.
-
-    Headings come down hardest. A <span class="c-val">24pt</span> level-<span class="c-val">2</span> heading inside an <span class="c-val">82mm</span> column
-    spends three lines saying two words, so the scale runs <span class="c-val">20</span>/<span class="c-val">13</span>/<span class="c-val">11</span>/<span class="c-val">9.5</span>.
-
-    #callouts-callout(<span class="c-prop">title</span>: [What does not change])[
-      The palette, the rule weights, the numeral conventions and the pagination
-      rules are all identical.
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L717">two-column</a></p><pre>#<span class="c-at">show</span>: two-column.with(
+  <span class="c-prop">front</span>: [
+    #frontmatter-title-block(
+      <span class="c-prop">title</span>: [The Measure of a Column],
+      <span class="c-prop">subtitle</span>: [What changes when a page is divided in two, and what must not],
+      <span class="c-prop">author</span>: [Adilson Carvalho],
+      <span class="c-prop">place-date</span>: [Sydney, <span class="c-val">28</span> August <span class="c-val">2026</span>],
+    )
+    #frontmatter-abstract(<span class="c-prop">width</span>: <span class="c-val">100%</span>)[
+      Dividing an A<span class="c-val">4</span> page into two equal columns leaves <span class="c-val">82mm</span> of measure. At the
+      single-column base of <span class="c-val">11pt</span> that carries <span class="c-val">42</span> characters — below the floor at
+      which a line of prose stays readable.
     ]
+  ],
+)
 
-    == Justification
+== The arithmetic
 
-    At <span class="c-val">50</span> characters a ragged right edge serrates the column visibly, and the
-    word gaps in an unhyphenated justified column read as rivers. Both faults are
-    tolerable at <span class="c-val">66</span> characters and neither is tolerable here.
+A<span class="c-val">4</span> is <span class="c-val">210mm</span> wide. Take off the standard margin, <span class="c-val">20mm</span> on each side, and <span class="c-val">170mm</span> of
+text width remains. A <span class="c-val">6mm</span> gutter divides it into two columns of <span class="c-val">82mm</span>.
 
-    #quotes-pullquote[The one place the spec removes a choice.]
+At <span class="c-val">11pt</span>, an <span class="c-val">82mm</span> column carries about <span class="c-val">42</span> characters. This specification sets <span class="c-val">45</span>
+as the floor for a line of prose, so neither <span class="c-val">11pt</span> nor <span class="c-val">10.5pt</span> (<span class="c-val">44</span>) is available
+here. Dropping the base to <span class="c-val">9.5pt</span> restores <span class="c-val">49</span> characters. The template derives
+all of this from the paper and the margin, and refuses the page outright where
+the arithmetic does not reach the floor.
 
-    So the template turns justification on itself rather than offering it as an
-    option.
+=== What follows
 
-    #span(figure(
-      <span class="c-prop">caption</span>: [Characters per line for an <span class="c-val">82mm</span> column.],
-      <span class="c-prop">kind</span>: table,
-      <span class="c-prop">supplement</span>: [Table],
-      ts-table(
-        <span class="c-prop">columns</span>: (<span class="c-val">1</span>fr, <span class="c-at">auto</span>, <span class="c-at">auto</span>, <span class="c-at">auto</span>, <span class="c-at">auto</span>),
-        <span class="c-prop">rows</span>: <span class="c-val">2</span>,
-        <span class="c-prop">align</span>: (left + horizon,) + (right + horizon,) * <span class="c-val">4</span>,
-        table.header([Base], [<span class="c-val">11pt</span>], [<span class="c-val">10pt</span>], [<span class="c-val">9.5pt</span>], [<span class="c-val">9pt</span>]),
-        [Characters], [<span class="c-val">43</span>], [<span class="c-val">47</span>], [<span class="c-val">50</span>], [<span class="c-val">52</span>],
-        [Conformant], [no], [yes], [yes], [yes],
-      ),
-    ))
+Leading tightens from <span class="c-val">1.45</span> to <span class="c-val">1.4</span>. A shorter line needs less vertical
+separation for the return sweep to stay unambiguous, and the saving is <span class="c-prop">real</span>: at
+<span class="c-val">13.3pt</span> of advance a column holds <span class="c-val">54</span> lines instead of <span class="c-val">45</span>.
 
-    == What the template forbids
+Headings come down hardest. A <span class="c-val">24pt</span> level-<span class="c-val">2</span> heading inside an <span class="c-val">82mm</span> column spends
+three lines saying two words, so the scale runs <span class="c-val">20</span>/<span class="c-val">13</span>/<span class="c-val">11</span>/<span class="c-val">9.5</span>.
 
-    Sidenotes have nowhere to <span class="c-prop">go</span>: there is no margin left. They become footnotes
-    or endnotes, and an implementation should degrade them visibly rather than
-    positioning them off the page and losing them.
+#callouts-callout(<span class="c-prop">title</span>: [What does not change])[
+  The palette, the rule weights, the numeral conventions and the pagination
+  rules are all identical.
+]
 
-    A three-line drop cap at <span class="c-val">3.05em</span> is <span class="c-val">29pt</span> — <span class="c-val">10mm</span> of the column given to
-    one letter. The cap is neutralised and the opening words carry the signal in
-    small caps instead.
+== Justification
 
-    === Spanning
+At <span class="c-val">49</span> characters a ragged right edge serrates the column visibly, and the word
+gaps in an unhyphenated justified column read as rivers. Both faults are
+tolerable at <span class="c-val">66</span> characters and neither is tolerable here.
 
-    An element spans both columns fully or neither. Spanning costs a break in
-    both columns, so it is opt-in per instance and belongs at the top or the
-    bottom of a page.
-  ]
+#quotes-pullquote[The one place the spec removes a choice.]
 
-  #frontmatter-colophon[
-    Set in EB Garamond, <span class="c-val">9.5</span> on <span class="c-val">13.3</span> points, two columns of <span class="c-val">82mm</span> with a <span class="c-val">6mm</span>
-    gutter.
-  ]
+So the template asserts justification rather than offering it as an option.
+
+#span(figure(
+  <span class="c-prop">caption</span>: [Characters per line for an <span class="c-val">82mm</span> column.],
+  <span class="c-prop">kind</span>: table,
+  <span class="c-prop">supplement</span>: [Table],
+  ts-table(
+    <span class="c-prop">columns</span>: (<span class="c-val">1</span>fr, <span class="c-at">auto</span>, <span class="c-at">auto</span>, <span class="c-at">auto</span>, <span class="c-at">auto</span>),
+    <span class="c-prop">rows</span>: <span class="c-val">2</span>,
+    <span class="c-prop">align</span>: (left + horizon,) + (right + horizon,) * <span class="c-val">4</span>,
+    table.header([Base], [<span class="c-val">11pt</span>], [<span class="c-val">10pt</span>], [<span class="c-val">9.5pt</span>], [<span class="c-val">9pt</span>]),
+    [Characters], [<span class="c-val">42</span>], [<span class="c-val">47</span>], [<span class="c-val">49</span>], [<span class="c-val">52</span>],
+    [Conformant], [no], [yes], [yes], [yes],
+  ),
+))
+
+== What the template forbids
+
+Sidenotes have nowhere to <span class="c-prop">go</span>: there is no margin left. They become footnotes or
+endnotes, and an implementation should degrade them visibly rather than
+positioning them off the page and losing them.
+
+A three-line drop cap at <span class="c-val">3.05em</span> is <span class="c-val">29pt</span> — <span class="c-val">10mm</span> of the column given to one
+letter. The cap is neutralised and the opening words carry the signal in small
+caps instead.
+
+=== Spanning
+
+An element spans both columns fully or neither. Spanning costs a break in both
+columns, so it is opt-in per instance and belongs at the top or the bottom of a
+page.
+
+#frontmatter-colophon[
+  Set in EB Garamond, <span class="c-val">9.5</span> on <span class="c-val">13.3</span> points, two columns of <span class="c-val">82mm</span> with a <span class="c-val">6mm</span>
+  gutter.
 ]</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
 </div>
@@ -785,7 +777,7 @@ anything.</pre><button class="copy" type="button" data-copy>Copy</button></div><
 &lt;h6&gt;A closing remark&lt;/h6&gt;
 &lt;p&gt;Sixth level: italic at body size.&lt;/p&gt;
 &lt;h6 class=&quot;ts-headings-run-in&quot;&gt;Run-in&lt;/h6&gt;&lt;p&gt;a heading that shares the first line of its paragraph, which saves vertical space in a dense report.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L197">headings</a></p><pre>= The Elements
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L295">headings</a></p><pre>= The Elements
 
 Body text follows, <span class="c-at">set</span> flush.
 
@@ -859,7 +851,7 @@ Sixth <span class="c-prop">level</span>: italic at body size.</pre><button class
   &lt;h3&gt;Instrumentation&lt;/h3&gt;
   &lt;p&gt;Numbered 2.1, without anyone typing “2.1”.&lt;/p&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “headings” region of typeset.typ: <a href="files/typeset-typ.html#L197">headings</a></p><pre>#<span class="c-at">show</span>: typeset.with(<span class="c-prop">numbered</span>: <span class="c-at">true</span>)
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “headings” region of typeset.typ: <a href="files/typeset-typ.html#L295">headings</a></p><pre>#<span class="c-at">show</span>: typeset.with(<span class="c-prop">numbered</span>: <span class="c-at">true</span>)
 
 = Scope
 
@@ -930,16 +922,15 @@ Numbered <span class="c-val">2.1</span>, without anyone typing “<span class="c
   &lt;p&gt;Subsequent paragraphs indent by 1.5em, with no gap. The page becomes a continuous field of text, which is exactly what you want when the reader is meant to read every word rather than hunt for one.&lt;/p&gt;
   &lt;p&gt;This is the convention of nearly every printed book you own, and it is almost never seen on the web — which is the clearest sign that print and screen are different media.&lt;/p&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ: <a href="files/typeset-typ.html#L166">foundation</a></p><pre>The first duty of a paragraph is to be findable. Spaced paragraphs announce
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L515">paragraphs</a></p><pre><span class="c-comment">// Spaced is the document default, so it needs no wrapper here.</span>
+The first duty of a paragraph is to be findable. Spaced paragraphs announce
 themselves with white space, which is why they suit documents that get <span class="c-prop">skimmed</span>:
 memos, reports, letters.
 
 The cost is vertical space, and a certain restlessness over many pages. Every
 gap is a small invitation to stop reading.
 
-#block[
-  #<span class="c-at">set</span> par(<span class="c-prop">spacing</span>: leading-for(<span class="c-val">1.45</span>), <span class="c-prop">first-line-indent</span>: (<span class="c-prop">amount</span>: <span class="c-val">1.5em</span>, <span class="c-prop">all</span>: <span class="c-at">false</span>))
-
+#block-indented[
   ==== On continuous prose
 
   The first paragraph after a heading needs no <span class="c-prop">indent</span>: the heading has already
@@ -964,7 +955,7 @@ gap is a small invitation to stop reading.
     <p class="section__num">08 — Prose</p>
     <h2>Alignment: ragged or justified</h2>
     <p><b>Ragged right is the default</b>, and it is a choice rather than an absence. Justification buys a clean right edge and pays for it in uneven word spacing; a ragged setting keeps the spacing even and gives up the edge. Neither is more correct — but the cost lands differently depending on who the document is addressed to.</p>
-    <p><b>Ragged right for a letter</b>, a memorandum, a short note: anything addressed to a person rather than to a readership. <b>Justification for continuous prose at a full measure</b>: an essay, a report, a paper. It is mandatory in two columns, where a ragged edge at 50 characters serrates the column.</p>
+    <p><b>Ragged right for a letter</b>, a memorandum, a short note: anything addressed to a person rather than to a readership. <b>Justification for continuous prose at a full measure</b>: an essay, a report, a paper. It is mandatory in two columns, where a ragged edge at 49 characters serrates the column.</p>
     <p>Justification and hyphenation are a single decision. Justified text without hyphenation opens rivers of white space; hyphenation without justification breaks words for no gain. Take both or neither — and hyphenation needs the document language declared, since an English dictionary applied to Portuguese produces confident nonsense.</p>
     <p>Two traps, both learned the hard way on this stylesheet. <code>text-align</code> <b>inherits</b>, so setting it on the document container justifies the subtitle, the byline, the captions and the address blocks too — every block that must stay flush declares its own <code>text-align: left</code> rather than relying on an exception list here. And <code>text-align-last: left</code> has to be explicit: under a paginating engine the fragmented text no longer looks like the end of a paragraph, and every last line gets stretched.</p>
   </div>
@@ -987,6 +978,15 @@ gap is a small invitation to stop reading.
       <div class="paper typeset typeset--justified ts-utilities-no-hyphens" lang="en">
         <p>Typographical craftsmanship consists in the appropriate use of the incomparable resources of a well-designed typeface, and in the discipline required to leave those resources alone when the content does not need them. Justification is one such resource: expensive, occasionally beautiful, and demanding of the hyphenation dictionary that makes it possible.</p>
       </div>
+
+      <p class="pair__label">An exception inside an exception</p>
+      <p class="demo-note">The override reaches through surrounding context in either direction, not only against the document's own default: a ragged block nested inside a justified one stays ragged, because a direct match always beats an inherited value.</p>
+      <div class="paper typeset typeset--justified" lang="en">
+        <p>A justified block can carry its own exception, the same as the document can. This sentence is stretched to the measure like the ones above it.</p>
+        <div class="typeset--ragged">
+          <p>This paragraph is nested inside the justified block above and still reads ragged right — the override reaches through surrounding context in either direction, not only against the document's own default.</p>
+        </div>
+      </div>
     </div>
     <div>
 <div class="panel">
@@ -998,7 +998,7 @@ gap is a small invitation to stop reading.
     <input type="radio" name="tab-justification" id="tab-justification-typst">
     <label for="tab-justification-typst">Typst</label>
     <span class="tabs__rule"></span>
-    <div class="tabs__pane tabs__pane--spec"><div class="spec"><p class="spec-optin-line">Opt-in · <code>typeset--justified</code></p><ul class="spec-rules"><li>Ragged right is the DEFAULT, and it is a choice rather than an absence — a document states it. Justification buys a clean right edge at the cost of uneven word spacing; a ragged setting keeps the spacing even and gives up the edge. Neither is more correct, but the cost lands differently by document.</li><li>Choose ragged right for a letter, a memorandum, a short note — anything addressed to a person rather than to a readership. Justification reads as institutional, and its even edge is the visual signature of print that was set for strangers.</li><li>Choose justification for continuous prose at a full measure: an essay, a report, a paper. It is mandatory in two columns, where a ragged edge at 50 characters serrates the column.</li><li>These are a single decision. Justification without hyphenation opens rivers of white space; hyphenation without justification breaks words for no gain. Take both or neither.</li><li>Hyphenation is per-language and requires the document language to be declared. An English dictionary applied to Portuguese produces confident nonsense.</li><li>The last line of a paragraph is NEVER stretched. State this explicitly — a paginating engine fragments the text, so the visual last line stops looking like the end of a paragraph and gets justified. It does not reproduce in an unpaginated preview.</li><li>Justification applies to prose only. It MUST NOT reach a subtitle, byline, caption, address block, table cell, heading or listing. In an engine where alignment inherits, every such block declares its own alignment rather than relying on an exception list.</li><li>Alignment inherits, and so does last-line alignment. A block that sets its own alignment — a centred pull quote, a centred section break — must also set its own last-line alignment, or the document's justification flushes its last line (its only line, for a one-liner) to the left.</li></ul><h4 class="spec-el">Ragged right (default) <span class="spec-optin">opt-in · typeset--ragged — names the default; no class needed to get it</span></h4><table class="spec-table"><tbody><tr><th>align</th><td><code>left</code></td></tr><tr><th>align last line</th><td><code>left</code></td></tr><tr><th>hyphenation</th><td><code>manual — never automatic</code></td></tr><tr><th>line breaking</th><td>high effort: avoid a very short last line, and even out the right edge</td></tr><tr><th>applies to</th><td><code>paragraph</code>, <code>list item</code>, <code>blockquote</code>, <code>definition description</code>, <code>callout</code></td></tr></tbody></table><p class="spec-note">Hyphenation exists to serve justification. Without justification a hyphen breaks a word for no gain, so it stays off.</p><p class="spec-note">The rag itself is the thing to judge: an even rag reads as deliberate, a rag with one very short line and one very long one reads as an accident.</p><h4 class="spec-el">Justified</h4><table class="spec-table"><tbody><tr><th>align</th><td><code>justify</code></td></tr><tr><th>align last line</th><td><code>left</code></td></tr><tr><th>justify method</th><td><code>inter-word</code></td></tr><tr><th>hyphenation</th><td><code>automatic</code></td></tr><tr><th>hyphenation min word chars</th><td><code>6</code></td></tr><tr><th>hyphenation min chars before break</th><td><code>3</code></td></tr><tr><th>hyphenation min chars after break</th><td><code>3</code></td></tr><tr><th>max consecutive hyphens</th><td><code>2</code></td></tr><tr><th>applies to</th><td><code>paragraph</code>, <code>list item</code>, <code>blockquote</code>, <code>definition description</code>, <code>callout</code></td></tr></tbody></table><h4 class="spec-el">Never justified</h4><table class="spec-table"><tbody><tr><th>align</th><td><code>left</code></td></tr><tr><th>hyphenation</th><td><code>manual</code></td></tr><tr><th>applies to</th><td><code>all headings</code>, <code>subtitle</code>, <code>byline</code>, <code>dateline</code>, <code>abstract</code>, <code>attribution</code>, <code>epigraph</code>, <code>verse</code>, <code>caption</code>, <code>figure caption</code>, <code>address block</code>, <code>table cell</code>, <code>table header</code>, <code>code block</code>, <code>table of contents</code>, <code>bibliography</code>, <code>endnotes</code>, <code>sidenote</code>, <code>letterhead</code>, <code>salutation</code>, <code>closing</code>, <code>signature</code>, <code>enclosures</code>, <code>postscript</code>, <code>definition term</code></td></tr></tbody></table></div></div>
+    <div class="tabs__pane tabs__pane--spec"><div class="spec"><p class="spec-optin-line">Opt-in · <code>typeset--justified</code></p><ul class="spec-rules"><li>Ragged right is the DEFAULT, and it is a choice rather than an absence — a document states it. Justification buys a clean right edge at the cost of uneven word spacing; a ragged setting keeps the spacing even and gives up the edge. Neither is more correct, but the cost lands differently by document.</li><li>Choose ragged right for a letter, a memorandum, a short note — anything addressed to a person rather than to a readership. Justification reads as institutional, and its even edge is the visual signature of print that was set for strangers.</li><li>Choose justification for continuous prose at a full measure: an essay, a report, a paper. It is mandatory in two columns, where a ragged edge at 49 characters serrates the column.</li><li>These are a single decision. Justification without hyphenation opens rivers of white space; hyphenation without justification breaks words for no gain. Take both or neither.</li><li>Hyphenation is per-language and requires the document language to be declared. An English dictionary applied to Portuguese produces confident nonsense.</li><li>The last line of a paragraph is NEVER stretched. State this explicitly — a paginating engine fragments the text, so the visual last line stops looking like the end of a paragraph and gets justified. It does not reproduce in an unpaginated preview.</li><li>Justification applies to prose only. It MUST NOT reach a subtitle, byline, caption, address block, table cell, heading or listing. In an engine where alignment inherits, every such block declares its own alignment rather than relying on an exception list.</li><li>Alignment inherits, and so does last-line alignment. A block that sets its own alignment — a centred pull quote, a centred section break — must also set its own last-line alignment, or the document's justification flushes its last line (its only line, for a one-liner) to the left.</li></ul><h4 class="spec-el">Ragged right (default) <span class="spec-optin">opt-in · typeset--ragged — names the default; no class needed to get it</span></h4><table class="spec-table"><tbody><tr><th>align</th><td><code>left</code></td></tr><tr><th>align last line</th><td><code>left</code></td></tr><tr><th>hyphenation</th><td><code>manual — never automatic</code></td></tr><tr><th>line breaking</th><td>high effort: avoid a very short last line, and even out the right edge</td></tr><tr><th>applies to</th><td><code>paragraph</code>, <code>list item</code>, <code>blockquote</code>, <code>definition description</code>, <code>callout</code></td></tr></tbody></table><p class="spec-note">Hyphenation exists to serve justification. Without justification a hyphen breaks a word for no gain, so it stays off.</p><p class="spec-note">The rag itself is the thing to judge: an even rag reads as deliberate, a rag with one very short line and one very long one reads as an accident.</p><h4 class="spec-el">Justified</h4><table class="spec-table"><tbody><tr><th>align</th><td><code>justify</code></td></tr><tr><th>align last line</th><td><code>left</code></td></tr><tr><th>justify method</th><td><code>inter-word</code></td></tr><tr><th>hyphenation</th><td><code>automatic</code></td></tr><tr><th>hyphenation min word chars</th><td><code>6</code></td></tr><tr><th>hyphenation min chars before break</th><td><code>3</code></td></tr><tr><th>hyphenation min chars after break</th><td><code>3</code></td></tr><tr><th>max consecutive hyphens</th><td><code>2</code></td></tr><tr><th>applies to</th><td><code>paragraph</code>, <code>list item</code>, <code>blockquote</code>, <code>definition description</code>, <code>callout</code></td></tr></tbody></table><p class="spec-fallback"><b>Where unsupported</b> — automatic hyphenation, but at the engine's own built-in limits — the four tuning values above are not configurable</p><h4 class="spec-el">Never justified</h4><table class="spec-table"><tbody><tr><th>align</th><td><code>left</code></td></tr><tr><th>hyphenation</th><td><code>manual</code></td></tr><tr><th>applies to</th><td><code>all headings</code>, <code>subtitle</code>, <code>byline</code>, <code>dateline</code>, <code>abstract</code>, <code>attribution</code>, <code>epigraph</code>, <code>verse</code>, <code>caption</code>, <code>figure caption</code>, <code>address block</code>, <code>table cell</code>, <code>table header</code>, <code>code block</code>, <code>table of contents</code>, <code>bibliography</code>, <code>endnotes</code>, <code>sidenote</code>, <code>letterhead</code>, <code>salutation</code>, <code>closing</code>, <code>signature</code>, <code>enclosures</code>, <code>postscript</code>, <code>definition term</code></td></tr></tbody></table></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L269">justification</a></p><pre>&lt;!-- Ragged right — the default --&gt;
 &lt;div class=&quot;typeset typeset--ragged&quot; lang=&quot;en&quot;&gt;
   &lt;p&gt;Typographical craftsmanship consists in the appropriate use of the incomparable resources of a well-designed typeface, and in the discipline required to leave those resources alone when the content does not need them. Justification is one such resource: expensive, occasionally beautiful, and demanding of the hyphenation dictionary that makes it possible.&lt;/p&gt;
@@ -1012,11 +1012,16 @@ gap is a small invitation to stop reading.
 &lt;!-- Justified, no hyphenation — the mistake --&gt;
 &lt;div class=&quot;typeset typeset--justified ts-utilities-no-hyphens&quot; lang=&quot;en&quot;&gt;
   &lt;p&gt;Typographical craftsmanship consists in the appropriate use of the incomparable resources of a well-designed typeface, and in the discipline required to leave those resources alone when the content does not need them. Justification is one such resource: expensive, occasionally beautiful, and demanding of the hyphenation dictionary that makes it possible.&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;!-- An exception inside an exception --&gt;
+&lt;div class=&quot;typeset typeset--justified&quot; lang=&quot;en&quot;&gt;
+  &lt;p&gt;A justified block can carry its own exception, the same as the document can. This sentence is stretched to the measure like the ones above it.&lt;/p&gt;
+  &lt;div class=&quot;typeset--ragged&quot;&gt;
+    &lt;p&gt;This paragraph is nested inside the justified block above and still reads ragged right — the override reaches through surrounding context in either direction, not only against the document's own default.&lt;/p&gt;
+  &lt;/div&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ: <a href="files/typeset-typ.html#L166">foundation</a></p><pre>#block[
-  #<span class="c-at">set</span> par(<span class="c-prop">justify</span>: <span class="c-at">false</span>)
-  #<span class="c-at">set</span> text(<span class="c-prop">hyphenate</span>: <span class="c-at">false</span>)
-
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L581">justification</a></p><pre>#ragged-right[
   Typographical craftsmanship consists in the appropriate use of the
   incomparable resources of a well-designed typeface, and in the discipline
   required to leave those resources alone when the content does not need them.
@@ -1024,10 +1029,7 @@ gap is a small invitation to stop reading.
   demanding of the hyphenation dictionary that makes it possible.
 ]
 
-#block[
-  #<span class="c-at">set</span> par(<span class="c-prop">justify</span>: <span class="c-at">true</span>)
-  #<span class="c-at">set</span> text(<span class="c-prop">lang</span>: &quot;en&quot;, <span class="c-prop">hyphenate</span>: <span class="c-at">true</span>)
-
+#justified[
   Typographical craftsmanship consists in the appropriate use of the
   incomparable resources of a well-designed typeface, and in the discipline
   required to leave those resources alone when the content does not need them.
@@ -1035,15 +1037,29 @@ gap is a small invitation to stop reading.
   demanding of the hyphenation dictionary that makes it possible.
 ]
 
-#block[
-  #<span class="c-at">set</span> par(<span class="c-prop">justify</span>: <span class="c-at">true</span>)
-  #<span class="c-at">set</span> text(<span class="c-prop">hyphenate</span>: <span class="c-at">false</span>)
-
+#justified(<span class="c-prop">lang</span>: <span class="c-at">none</span>)[
   Typographical craftsmanship consists in the appropriate use of the
   incomparable resources of a well-designed typeface, and in the discipline
   required to leave those resources alone when the content does not need them.
   Justification is one such <span class="c-prop">resource</span>: expensive, occasionally beautiful, and
   demanding of the hyphenation dictionary that makes it possible.
+]
+
+<span class="c-comment">// `justified` also names a parameter of `typeset()` — the document-wide</span>
+<span class="c-comment">// default. The two are not the same knob: this whole demo sits in a document</span>
+<span class="c-comment">// left at that default (ragged), so every `#justified[...]` block above is</span>
+<span class="c-comment">// already the per-block override winning over it. The reverse direction —</span>
+<span class="c-comment">// `#ragged-right` winning inside a block that is itself justified — nests</span>
+<span class="c-comment">// the same way, with no document-wide setting involved at all:</span>
+#justified[
+  A justified block can carry its own exception, the same as the document
+  can. This sentence is stretched to the measure like the ones above it.
+
+  #ragged-right[
+    This paragraph is nested inside the justified block above and still reads
+    ragged right — the override reaches through surrounding <span class="c-at">context</span> in either
+    direction, not only against the document's own default.
+  ]
 ]</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
 </div>
@@ -1079,7 +1095,7 @@ gap is a small invitation to stop reading.
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>For the opening of an essay or a chapter, and nowhere else.</li><li>The size and line height are tuned together to cover exactly three lines. Change the leading and the cap must be retuned.</li><li>The opening words go in small caps. Without them the jump from 33pt to 11pt is too abrupt and the eye skips the first line.</li></ul><h4 class="spec-el">Drop cap</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>weight</th><td><code>400</code></td></tr><tr><th>size</th><td><code>3.05em</code></td></tr><tr><th>size pt</th><td><code>33.55pt</code></td></tr><tr><th>line height</th><td><code>0.86</code></td></tr><tr><th>color</th><td><code>accent</code></td></tr><tr><th>float</th><td><code>left</code></td></tr><tr><th>lines covered</th><td><code>3</code></td></tr><tr><th>padding right</th><td><code>0.06em</code></td></tr><tr><th>padding top</th><td><code>0.02em</code></td></tr><tr><th>first line indent</th><td><code>0</code></td></tr></tbody></table><h4 class="spec-el">Opening words</h4><table class="spec-table"><tbody><tr><th>variant</th><td><code>all small caps</code></td></tr><tr><th>tracking</th><td><code>0.04em</code></td></tr><tr><th>extent</th><td>the first two to four words</td></tr></tbody></table></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L319">dropcap</a></p><pre>&lt;p class=&quot;ts-dropcap&quot;&gt;&lt;span class=&quot;ts-dropcap-lede&quot;&gt;There is nothing&lt;/span&gt; especially modern about wanting a document to look considered. The drop cap descends from the illuminated initial, which existed for a practical reason: in a manuscript with no title page and no table of contents, a large decorated letter was the only way to tell the reader that something had begun.&lt;/p&gt;
 &lt;p&gt;The practical reason is gone. The signal is not.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L419">dropcap</a></p><pre><span class="c-comment">// Typst has no counterpart to the lede. The CSS implementation sets the opening</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L690">dropcap</a></p><pre><span class="c-comment">// Typst has no counterpart to the lede. The CSS implementation sets the opening</span>
 <span class="c-comment">// words of this paragraph in small caps with .ts-dropcap-lede; dropcap() takes</span>
 <span class="c-comment">// the whole paragraph as one body and offers no way to mark a run inside it.</span>
 <span class="c-comment">//</span>
@@ -1129,7 +1145,7 @@ The practical reason is gone. The signal is not.</pre><button class="copy" type=
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L335">inline</a></p><pre>&lt;p&gt;Ordinary text, with &lt;strong&gt;bold for the load-bearing clause&lt;/strong&gt; and &lt;em&gt;italic for a title or a term of art&lt;/em&gt;. Emphasis nested &lt;em&gt;inside &lt;em&gt;emphasis&lt;/em&gt;&lt;/em&gt; flips back to roman. &lt;strong&gt;Bold and &lt;em&gt;italic together&lt;/em&gt;&lt;/strong&gt; when both apply.&lt;/p&gt;
 &lt;p&gt;Named entities take small caps: the &lt;span class=&quot;ts-inline-small-caps&quot;&gt;Bauhaus&lt;/span&gt; closed in 1933, and &lt;abbr title=&quot;Portable Document Format&quot;&gt;PDF&lt;/abbr&gt; arrived sixty years later. Water is H&lt;sub&gt;2&lt;/sub&gt;O; the claim is contested.&lt;sup&gt;3&lt;/sup&gt;&lt;/p&gt;
 &lt;p&gt;Revisions read as &lt;del&gt;struck through&lt;/del&gt; &lt;ins&gt;and inserted&lt;/ins&gt;, a phrase can be &lt;mark&gt;marked&lt;/mark&gt;, and a key is &lt;kbd&gt;⌘P&lt;/kbd&gt;.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L307">inline</a></p><pre>Ordinary text, with *bold for the load-bearing clause* and _italic for a title or
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L405">inline</a></p><pre>Ordinary text, with *bold for the load-bearing clause* and _italic for a title or
 a term of art_. Emphasis nested _inside #emph[emphasis]_ flips back to roman. *Bold
 and _italic together_* when both apply.
 
@@ -1137,8 +1153,8 @@ Named entities take small <span class="c-prop">caps</span>: the #text(..smcp)[Ba
 #text(..smcp)[PDF] arrived sixty years later. Water is H#sub[<span class="c-val">2</span>]O; the claim is
 contested.#super[<span class="c-val">3</span>]
 
-Revisions read as #strike[struck through] #underline[and inserted], and a phrase
-can be #highlight(<span class="c-prop">fill</span>: wash)[marked].</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+Revisions read as #strike[struck through] #underline[and inserted], a phrase
+can be #highlight(<span class="c-prop">fill</span>: wash)[marked], and a key is #key[⌘P].</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
 </div>
     </div>
@@ -1173,7 +1189,7 @@ can be #highlight(<span class="c-prop">fill</span>: wash)[marked].</pre><button 
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>Paper has no hover and no click. A URL that carries information must be printed.</li></ul><h4 class="spec-el">Link</h4><table class="spec-table"><tbody><tr><th>color</th><td><code>inherit</code></td></tr><tr><th>decoration</th><td><code>underline</code></td></tr><tr><th>underline thickness</th><td><code>0.5pt</code></td></tr><tr><th>underline offset</th><td><code>0.14em</code></td></tr><tr><th>skip descenders</th><td>yes</td></tr></tbody></table><h4 class="spec-el">Printed URL</h4><table class="spec-table"><tbody><tr><th>content</th><td>the href in parentheses, after the link text</td></tr><tr><th>font</th><td><code>mono</code></td></tr><tr><th>size</th><td><code>0.82em</code></td></tr><tr><th>color</th><td><code>ink_muted</code></td></tr><tr><th>wrap</th><td><code>may break anywhere</code></td></tr><tr><th>applies to</th><td>external (http/https) links only</td></tr><tr><th>excluded</th><td><code>internal anchors</code>, <code>mailto:</code>, <code>links marked bare</code></td></tr></tbody></table><h4 class="spec-el">Link — URL suppressed</h4><table class="spec-table"><tbody><tr><th>print url</th><td>no</td></tr></tbody></table><p class="spec-note">Opt-out for a link whose URL would be noise in print: a shortened URL, a tracking URL, or one the surrounding sentence already gives.</p></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L401">links</a></p><pre>&lt;h2 id=&quot;measure&quot;&gt;The measure of a line&lt;/h2&gt;
 &lt;p&gt;The argument is set out in full &lt;a href=&quot;https://example.org/on-the-measure&quot;&gt;on the measure of a line&lt;/a&gt;, and summarised &lt;a href=&quot;#measure&quot;&gt;in section 02&lt;/a&gt;. Corrections to &lt;a href=&quot;mailto:hello@example.org&quot;&gt;hello@example.org&lt;/a&gt;.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “inline” region of typeset.typ: <a href="files/typeset-typ.html#L307">inline</a></p><pre>== The measure of a line &lt;measure&gt;
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “inline” region of typeset.typ: <a href="files/typeset-typ.html#L405">inline</a></p><pre>== The measure of a line &lt;measure&gt;
 
 The argument is <span class="c-at">set</span> out in full
 #link(&quot;<span class="c-prop">https</span>://example.org/on-the-measure&quot;)[on the measure of a line], and
@@ -1231,7 +1247,7 @@ summarised #link(&lt;measure&gt;)[in section <span class="c-val">02</span>]. Cor
   &lt;/tbody&gt;
 &lt;/table&gt;
 &lt;p&gt;Fractions: &lt;span class=&quot;ts-numerals-fractions&quot;&gt;1/2&lt;/span&gt;, &lt;span class=&quot;ts-numerals-fractions&quot;&gt;3/4&lt;/span&gt;, &lt;span class=&quot;ts-numerals-fractions&quot;&gt;7/8&lt;/span&gt;&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ: <a href="files/typeset-typ.html#L166">foundation</a></p><pre>#text(..oldstyle)[Old-style, in prose — between <span class="c-val">1908</span> and <span class="c-val">1935</span> the foundry cut <span class="c-val">47</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ: <a href="files/typeset-typ.html#L265">foundation</a></p><pre>#text(..oldstyle)[Old-style, in prose — between <span class="c-val">1908</span> and <span class="c-val">1935</span> the foundry cut <span class="c-val">47</span>
 sizes, of which <span class="c-val">12</span> survive.]
 
 #text(..lining)[Lining, for display — BETWEEN <span class="c-val">1908</span> AND <span class="c-val">1935</span>, <span class="c-val">47</span> SIZES]
@@ -1337,7 +1353,7 @@ To watch his woods fill up with snow.<cite>Robert Frost</cite></blockquote>
 His house is in the village though;
 He will not see me stopping here
 To watch his woods fill up with snow.&lt;cite&gt;Robert Frost&lt;/cite&gt;&lt;/blockquote&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L223">quotes</a></p><pre>Ruder puts the case for restraint more sharply than anyone <span class="c-prop">since</span>:
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L321">quotes</a></p><pre>Ruder puts the case for restraint more sharply than anyone <span class="c-prop">since</span>:
 
 #quote(<span class="c-prop">block</span>: <span class="c-at">true</span>, <span class="c-prop">attribution</span>: [Emil Ruder, _Typographie_, <span class="c-val">1967</span>])[
   Typography has one plain duty before it and that is to convey information in
@@ -1452,7 +1468,7 @@ typeface.
   &lt;dt&gt;Widow&lt;/dt&gt;
   &lt;dd&gt;A last line of a paragraph carried alone to the top of a page. An orphan is the mirror case at the foot.&lt;/dd&gt;
 &lt;/dl&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L244">lists</a></p><pre>- An unordered item, with a grey mid-dot for a marker.
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L342">lists</a></p><pre>- An unordered item, with a grey mid-dot for a marker.
 - A second item, long enough to wrap onto a second line so you can see that the
   runover aligns to the text, not to the marker.
 - A nested list <span class="c-prop">follows</span>:
@@ -1500,13 +1516,13 @@ typeface.
             </tr>
           </thead>
           <tbody>
-            <tr><td>EB Garamond</td><td class="ts-tables-cell-numeric">11.0</td><td class="ts-tables-cell-numeric">1.45</td><td class="ts-tables-cell-numeric">126</td></tr>
+            <tr><td>EB Garamond</td><td class="ts-tables-cell-numeric">11.0</td><td class="ts-tables-cell-numeric">1.45</td><td class="ts-tables-cell-numeric">128</td></tr>
             <tr><td>Source Serif</td><td class="ts-tables-cell-numeric">10.5</td><td class="ts-tables-cell-numeric">1.42</td><td class="ts-tables-cell-numeric">124</td></tr>
             <tr><td>Charis SIL</td><td class="ts-tables-cell-numeric">10.0</td><td class="ts-tables-cell-numeric">1.40</td><td class="ts-tables-cell-numeric">119</td></tr>
             <tr><td>IBM Plex Serif</td><td class="ts-tables-cell-numeric">10.5</td><td class="ts-tables-cell-numeric">1.45</td><td class="ts-tables-cell-numeric">131</td></tr>
           </tbody>
           <tfoot>
-            <tr><td>Median</td><td class="ts-tables-cell-numeric">10.5</td><td class="ts-tables-cell-numeric">1.43</td><td class="ts-tables-cell-numeric">125</td></tr>
+            <tr><td>Median</td><td class="ts-tables-cell-numeric">10.5</td><td class="ts-tables-cell-numeric">1.43</td><td class="ts-tables-cell-numeric">126</td></tr>
           </tfoot>
         </table>
       </div>
@@ -1533,16 +1549,16 @@ typeface.
     &lt;/tr&gt;
   &lt;/thead&gt;
   &lt;tbody&gt;
-    &lt;tr&gt;&lt;td&gt;EB Garamond&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;11.0&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;1.45&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;126&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;EB Garamond&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;11.0&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;1.45&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;128&lt;/td&gt;&lt;/tr&gt;
     &lt;tr&gt;&lt;td&gt;Source Serif&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;10.5&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;1.42&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;124&lt;/td&gt;&lt;/tr&gt;
     &lt;tr&gt;&lt;td&gt;Charis SIL&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;10.0&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;1.40&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;119&lt;/td&gt;&lt;/tr&gt;
     &lt;tr&gt;&lt;td&gt;IBM Plex Serif&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;10.5&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;1.45&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;131&lt;/td&gt;&lt;/tr&gt;
   &lt;/tbody&gt;
   &lt;tfoot&gt;
-    &lt;tr&gt;&lt;td&gt;Median&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;10.5&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;1.43&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;125&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Median&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;10.5&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;1.43&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;126&lt;/td&gt;&lt;/tr&gt;
   &lt;/tfoot&gt;
 &lt;/table&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L260">tables</a></p><pre>#figure(
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L358">tables</a></p><pre>#figure(
   <span class="c-prop">caption</span>: [Setting widths for a single-column A<span class="c-val">4</span> page, by point size.],
   <span class="c-prop">kind</span>: table,
   <span class="c-prop">supplement</span>: [Table],
@@ -1551,11 +1567,11 @@ typeface.
     <span class="c-prop">rows</span>: <span class="c-val">4</span>,
     <span class="c-prop">align</span>: (left + horizon, right + horizon, right + horizon, right + horizon),
     table.header([Typeface], [Size (pt)], [Leading], [Measure (mm)]),
-    [EB Garamond], [<span class="c-val">11.0</span>], [<span class="c-val">1.45</span>], [<span class="c-val">126</span>],
+    [EB Garamond], [<span class="c-val">11.0</span>], [<span class="c-val">1.45</span>], [<span class="c-val">128</span>],
     [Source Serif], [<span class="c-val">10.5</span>], [<span class="c-val">1.42</span>], [<span class="c-val">124</span>],
     [Charis SIL], [<span class="c-val">10.0</span>], [<span class="c-val">1.40</span>], [<span class="c-val">119</span>],
     [IBM Plex Serif], [<span class="c-val">10.5</span>], [<span class="c-val">1.45</span>], [<span class="c-val">131</span>],
-    [Median], [<span class="c-val">10.5</span>], [<span class="c-val">1.43</span>], [<span class="c-val">125</span>],
+    [Median], [<span class="c-val">10.5</span>], [<span class="c-val">1.43</span>], [<span class="c-val">126</span>],
   ),
 )</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
@@ -1604,7 +1620,7 @@ typeface.
 /* Repeat the header on every page the table spans. */
 .typeset thead { display: table-header-group; }&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Which is all it takes.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L290">codeblock</a></p><pre><span class="c-comment">// Typst colours a raw block by its language. typeset.css sets code in a single</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L388">codeblock</a></p><pre><span class="c-comment">// Typst colours a raw block by its language. typeset.css sets code in a single</span>
 <span class="c-comment">// ink, so the CSS implementation renders this same sample monochrome.</span>
 
 The declaration is a single line — <span class="c-at">set</span> `font-variant-numeric` on the table and
@@ -1675,7 +1691,7 @@ Which is all it takes.</pre><button class="copy" type="button" data-copy>Copy</b
   &lt;/svg&gt;
   &lt;figcaption&gt;&lt;span class=&quot;ts-label ts-figures-caption-label&quot;&gt;Figure 1&lt;/span&gt; — Reading comfort against line length. The plateau between 55 and 75 characters is why the measure, not the font size, is the first decision.&lt;/figcaption&gt;
 &lt;/figure&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L274">figures</a></p><pre>#<span class="c-at">let</span> s = <span class="c-val">126mm</span> / <span class="c-val">400</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L372">figures</a></p><pre>#<span class="c-at">let</span> s = measure-standard / <span class="c-val">400</span>
 
 #figure(
   <span class="c-prop">caption</span>: [
@@ -1747,7 +1763,7 @@ Which is all it takes.</pre><button class="copy" type="button" data-copy>Copy</b
   &lt;p class=&quot;ts-callouts-title&quot;&gt;Before you send it&lt;/p&gt;
   &lt;p&gt;Check that fonts are embedded in the PDF. A document that falls back to Times on the recipient's machine has lost every decision above.&lt;/p&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L367">callouts</a></p><pre>#callouts-callout(<span class="c-prop">title</span>: [Note])[
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L638">callouts</a></p><pre>#callouts-callout(<span class="c-prop">title</span>: [Note])[
   Point sizes assume the document is printed at <span class="c-val">100%</span>. “Fit to page” scaling in a
   print dialog silently invalidates every measurement in this stylesheet.
 ]
@@ -1804,7 +1820,7 @@ Which is all it takes.</pre><button class="copy" type="button" data-copy>Copy</b
 &lt;p&gt;A fleuron, where the document can afford ornament.&lt;/p&gt;
 &lt;hr class=&quot;ts-breaks-rule&quot;&gt;
 &lt;p&gt;And a plain rule, where it cannot.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L397">breaks</a></p><pre>…and so the first argument closes, having established rather less than it <span class="c-at">set</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L668">breaks</a></p><pre>…and so the first argument closes, having established rather less than it <span class="c-at">set</span>
 out to.
 
 #breaks-asterisks()
@@ -1869,7 +1885,7 @@ And a plain rule, where it cannot.</pre><button class="copy" type="button" data-
     &lt;li id=&quot;n2&quot;&gt;Below about 40 characters, hyphenation stops being optional.&lt;/li&gt;
   &lt;/ol&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L776">notes</a></p><pre><span class="c-comment">// Two examples here, one in the CSS implementation. Typst sets footnotes at the</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L1094">notes</a></p><pre><span class="c-comment">// Two examples here, one in the CSS implementation. Typst sets footnotes at the</span>
 <span class="c-comment">// foot of the page natively; no browser implements the CSS footnote model, so</span>
 <span class="c-comment">// the CSS example degrades to the numbered endnote block the spec names as the</span>
 <span class="c-comment">// fallback, and its sidenotes are shown as a separate full-page example.</span>
@@ -1988,7 +2004,7 @@ difference is not small.</pre><button class="copy" type="button" data-copy>Copy<
     &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#references&quot;&gt;&lt;span&gt;References&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
   &lt;/ol&gt;
 &lt;/nav&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L768">toc</a></p><pre>#heading(<span class="c-prop">level</span>: <span class="c-val">3</span>, <span class="c-prop">outlined</span>: <span class="c-at">false</span>)[Contents]
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L1086">toc</a></p><pre>#heading(<span class="c-prop">level</span>: <span class="c-val">3</span>, <span class="c-prop">outlined</span>: <span class="c-at">false</span>)[Contents]
 
 #toc()
 
@@ -2048,7 +2064,7 @@ the leftmost thing on the entry.</pre><button class="copy" type="button" data-co
     <div>
       <p class="pair__label">How it must look</p>
       <div class="paper typeset">
-        <h3>References</h3>
+        <h2 class="ts-bibliography-heading">References</h2>
         <ol class="ts-bibliography-entry">
           <li>Bringhurst, Robert. <cite>The Elements of Typographic Style</cite>. 4th ed. Hartley &amp; Marks, 2012.</li>
           <li>Hochuli, Jost. <cite>Detail in Typography</cite>. Hyphen Press, 2008.</li>
@@ -2067,36 +2083,44 @@ the leftmost thing on the entry.</pre><button class="copy" type="button" data-co
     <input type="radio" name="tab-bibliography" id="tab-bibliography-typst">
     <label for="tab-bibliography-typst">Typst</label>
     <span class="tabs__rule"></span>
-    <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>Hanging indent, always. The surname is what is being scanned, so it must be the leftmost thing on the entry.</li></ul><h4 class="spec-el">Entry</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>line height</th><td><code>1.4</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>hanging indent</th><td><code>1.8em</code></td></tr><tr><th>space after</th><td><code>0.55em</code></td></tr><tr><th>marker</th><td><code>none</code></td></tr><tr><th>break inside</th><td><code>avoid</code></td></tr><tr><th>title style</th><td><code>italic</code></td></tr></tbody></table></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L926">bibliography</a></p><pre>&lt;h3&gt;References&lt;/h3&gt;
+    <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>Hanging indent, always. The surname is what is being scanned, so it must be the leftmost thing on the entry.</li><li>The heading is its own element, not an instance of headings-h2, even though it shares h2's scale and weight: the distinct id is what lets it span both columns in the two-column template while an ordinary section heading — headings-h2 through headings-h6 — cannot.</li></ul><h4 class="spec-el">Heading</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>sans</code></td></tr><tr><th>weight</th><td><code>600</code></td></tr><tr><th>size</th><td><code>18pt</code></td></tr><tr><th>line height</th><td><code>1.2</code></td></tr><tr><th>baseline advance</th><td><code>21.6pt</code></td></tr><tr><th>tracking</th><td><code>-0.01em</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>22pt</code></td></tr><tr><th>space after</th><td><code>5.5pt</code></td></tr><tr><th>break after</th><td><code>avoid</code></td></tr><tr><th>break inside</th><td><code>avoid</code></td></tr><tr><th>wrap</th><td><code>balanced</code></td></tr><tr><th>sets running head</th><td>yes</td></tr></tbody></table><h4 class="spec-el">Entry</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>line height</th><td><code>1.4</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>hanging indent</th><td><code>1.8em</code></td></tr><tr><th>space after</th><td><code>0.55em</code></td></tr><tr><th>marker</th><td><code>none</code></td></tr><tr><th>break inside</th><td><code>avoid</code></td></tr><tr><th>title style</th><td><code>italic</code></td></tr></tbody></table></div></div>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L926">bibliography</a></p><pre>&lt;h2 class=&quot;ts-bibliography-heading&quot;&gt;References&lt;/h2&gt;
 &lt;ol class=&quot;ts-bibliography-entry&quot;&gt;
   &lt;li&gt;Bringhurst, Robert. &lt;cite&gt;The Elements of Typographic Style&lt;/cite&gt;. 4th ed. Hartley &amp;amp; Marks, 2012.&lt;/li&gt;
   &lt;li&gt;Hochuli, Jost. &lt;cite&gt;Detail in Typography&lt;/cite&gt;. Hyphen Press, 2008.&lt;/li&gt;
   &lt;li&gt;Ruder, Emil. &lt;cite&gt;Typographie: A Manual of Design&lt;/cite&gt;. Niggli, 1967. Still the clearest statement of the case for the grid, and long enough ago to be read without argument.&lt;/li&gt;
   &lt;li&gt;Tschichold, Jan. &lt;cite&gt;The Form of the Book&lt;/cite&gt;. Hartley &amp;amp; Marks, 1991.&lt;/li&gt;
 &lt;/ol&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">No dedicated region in typeset.typ — this section reads off Typst’s own constructs directly, or the engine provides the behaviour natively. See spec.json.</p><pre>=== References
-
-#block[
-  #<span class="c-at">set</span> text(<span class="c-prop">size</span>: sm)
-  #<span class="c-at">set</span> par(
-    <span class="c-prop">justify</span>: <span class="c-at">false</span>,
-    <span class="c-prop">leading</span>: leading-for(<span class="c-val">1.4</span>),
-    <span class="c-prop">spacing</span>: <span class="c-val">0.55em</span>,
-    <span class="c-prop">first-line-indent</span>: <span class="c-val">0pt</span>,
-    <span class="c-prop">hanging-indent</span>: <span class="c-val">1.8em</span>,
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L960">bibliography</a></p><pre>#references[
+  #reference(
+    <span class="c-prop">author</span>: [Bringhurst, Robert],
+    <span class="c-prop">title</span>: [The Elements of Typographic Style],
+    <span class="c-prop">edition</span>: [<span class="c-val">4</span>th ed],
+    <span class="c-prop">publisher</span>: [Hartley &amp; Marks],
+    <span class="c-prop">year</span>: [<span class="c-val">2012</span>],
   )
 
-  Bringhurst, Robert. _The Elements of Typographic Style_. <span class="c-val">4</span>th ed. Hartley &amp;
-  Marks, <span class="c-val">2012</span>.
+  #reference(
+    <span class="c-prop">author</span>: [Hochuli, Jost],
+    <span class="c-prop">title</span>: [Detail in Typography],
+    <span class="c-prop">publisher</span>: [Hyphen Press],
+    <span class="c-prop">year</span>: [<span class="c-val">2008</span>],
+  )
 
-  Hochuli, Jost. _Detail in Typography_. Hyphen Press, <span class="c-val">2008</span>.
+  #reference(
+    <span class="c-prop">author</span>: [Ruder, Emil],
+    <span class="c-prop">title</span>: [<span class="c-prop">Typographie</span>: A Manual of Design],
+    <span class="c-prop">publisher</span>: [Niggli],
+    <span class="c-prop">year</span>: [<span class="c-val">1967</span>],
+    <span class="c-prop">note</span>: [Still the clearest statement of the case for the grid, and long enough ago to be read without argument.],
+  )
 
-  Ruder, Emil. <span class="c-prop">_Typographie</span>: A Manual of Design_. Niggli, <span class="c-val">1967</span>. Still the
-  clearest statement of the case for the grid, and long enough ago to be read
-  without argument.
-
-  Tschichold, Jan. _The Form of the Book_. Hartley &amp; Marks, <span class="c-val">1991</span>.
+  #reference(
+    <span class="c-prop">author</span>: [Tschichold, Jan],
+    <span class="c-prop">title</span>: [The Form of the Book],
+    <span class="c-prop">publisher</span>: [Hartley &amp; Marks],
+    <span class="c-prop">year</span>: [<span class="c-val">1991</span>],
+  )
 ]</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
 </div>
@@ -2155,7 +2179,7 @@ the leftmost thing on the entry.</pre><button class="copy" type="button" data-co
 &lt;div class=&quot;ts-frontmatter-colophon&quot;&gt;
   Set in EB Garamond, with Source Sans 3 for headings and IBM Plex Mono for code. Composed in HTML and rendered to PDF with Paged.js. A4, 11 on 16 points.
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L634">frontmatter</a></p><pre>#frontmatter-title-block(
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L909">frontmatter</a></p><pre>#frontmatter-title-block(
   <span class="c-prop">title</span>: [On the Measure of a Line],
   <span class="c-prop">subtitle</span>: [Why the width of a text column is the first decision, and the font is the last],
   <span class="c-prop">author</span>: [Adilson Carvalho],
@@ -2245,7 +2269,7 @@ The claim is not original, and it is not complicated…
     <label for="tab-letter-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>A letter is set ragged right. It is addressed to a person, and justification reads as institutional.</li><li>The sender block is address data, not a masthead: one style throughout, at body size, in the reading face. Nothing bold, nothing in the sans. A personal letter does not announce itself.</li><li>Address blocks are line-broken data, not prose: tighter leading, never justified, line breaks as authored.</li><li>The signature is the typed name with room above it to sign. No ruled line — a rule is a form to be filled in.</li><li>A letter carries no running head and no folio.</li><li>Footnotes belong in a letter as much as in an essay. Where the engine cannot set them at the page foot, the rule plus the numbered note at the end of a one-page letter reads as a footnote area regardless.</li></ul><h4 class="spec-el">Letter page</h4><table class="spec-table"><tbody><tr><th>margin top mm</th><td><code>32</code></td></tr><tr><th>margin bottom mm</th><td><code>28</code></td></tr><tr><th>margin sides mm</th><td><code>25</code></td></tr><tr><th>running head</th><td><code>none</code></td></tr><tr><th>folio</th><td><code>none</code></td></tr></tbody></table><p class="spec-note">The deeper top margin puts the letterhead where an envelope window expects it.</p><h4 class="spec-el">Sender block</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>weight</th><td><code>400</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>line height</th><td><code>1.35</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>line breaks</th><td>as authored — name, street, suburb and postcode, country</td></tr><tr><th>space after</th><td><code>27.5pt</code></td></tr></tbody></table><p class="spec-note">Every line is the same style, including the name. Setting the name larger or bolder turns a letter into stationery.</p><p class="spec-note">Omit what you do not use. A personal letter needs no email address and no telephone number.</p><h4 class="spec-el">Address block</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>line height</th><td><code>1.35</code></td></tr><tr><th>style</th><td><code>normal</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>line breaks</th><td><code>as authored</code></td></tr><tr><th>space after</th><td><code>16.5pt</code></td></tr></tbody></table><h4 class="spec-el">Date line</h4><table class="spec-table"><tbody><tr><th>numerals</th><td><code>oldstyle</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space after</th><td><code>16.5pt</code></td></tr></tbody></table><h4 class="spec-el">Line under the date</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>style</th><td><code>italic</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td>0.1em — it belongs to the date, and takes no gap of its own</td></tr><tr><th>space after</th><td><code>16.5pt</code></td></tr></tbody></table><p class="spec-note">A dedication, a feast, a devotion — whatever the writer puts under the date. Italic, at body size, immediately beneath.</p><h4 class="spec-el">Salutation</h4><table class="spec-table"><tbody><tr><th>align</th><td><code>left</code></td></tr><tr><th>space after</th><td><code>11pt</code></td></tr></tbody></table><h4 class="spec-el">Closing</h4><table class="spec-table"><tbody><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>16.5pt</code></td></tr></tbody></table><h4 class="spec-el">Signature block</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>33pt — the room to sign</code></td></tr><tr><th>rule</th><td><code>none</code></td></tr><tr><th>break inside</th><td><code>avoid</code></td></tr><tr><th>signature image max height</th><td><code>16mm</code></td></tr></tbody></table><p class="spec-note">The typed name only. A ruled line above a name is a form; a letter is not a form.</p><h4 class="spec-el">Enclosures</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>22pt</code></td></tr><tr><th>label</th><td>same style as the text it introduces — no small caps, no weight change</td></tr></tbody></table><p class="spec-note">Same reasoning as the postscript: &quot;Enc.&quot; introduces a sentence, it does not head a section.</p><h4 class="spec-el">Postscript</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>11pt</code></td></tr><tr><th>label</th><td>same style as the text it introduces — no small caps, no weight change</td></tr></tbody></table><p class="spec-note">A postscript is a sentence that happens to begin with &quot;P.S.&quot;. The label is not a heading.</p><h4 class="spec-el">Footnote — in a letter</h4><table class="spec-table"><tbody><tr><th>marker</th><td>as the note marker in Apparatus — superscript, accent, no brackets</td></tr><tr><th>position</th><td>foot of the page where the engine can; otherwise after the signature block</td></tr><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>separator</th><td>0.5pt rule above the notes area</td></tr><tr><th>heading</th><td><code>none</code></td></tr></tbody></table><p class="spec-fallback"><b>Where unsupported</b> — a numbered note after the signature, under a rule — which on a one-page letter is the page foot anyway</p><h4 class="spec-el">Address label</h4><table class="spec-table"><tbody><tr><th>display</th><td><code>block</code></td></tr><tr><th>font</th><td><code>sans</code></td></tr><tr><th>size</th><td><code>xs</code></td></tr><tr><th>tracking</th><td><code>0.1em</code></td></tr><tr><th>caps</th><td><code>uppercase</code></td></tr><tr><th>color</th><td><code>ink_faint</code></td></tr></tbody></table></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L946">letter</a></p><pre>&lt;div class=&quot;typeset typeset--ragged&quot; lang=&quot;en&quot;&gt;
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L962">letter</a></p><pre>&lt;div class=&quot;typeset typeset--ragged&quot; lang=&quot;en&quot;&gt;
   &lt;div class=&quot;ts-letter-sender&quot;&gt;
     &lt;p&gt;Adilson Carvalho&lt;/p&gt;
     &lt;p&gt;10 Wentworth Avenue&lt;/p&gt;
@@ -2285,7 +2309,7 @@ The claim is not original, and it is not complicated…
     &lt;/ol&gt;
   &lt;/div&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L685">letter</a></p><pre>#letter-sender[
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L1003">letter</a></p><pre>#letter-sender[
   Adilson Carvalho \
   <span class="c-val">10</span> Wentworth Avenue \
   Surry Hills NSW <span class="c-val">2010</span> \
@@ -2359,13 +2383,13 @@ is more than most annual reports manage.]</pre><button class="copy" type="button
     <label for="tab-utilities-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>The small set of overrides reached for while proofing a real document. Every one of them is a manual decision about a specific page, not a style.</li></ul><h4 class="spec-el">Break before</h4><table class="spec-table"><tbody><tr><th>effect</th><td>start this element on a new page</td></tr></tbody></table><p class="spec-note">Chapter openings.</p><h4 class="spec-el">Break after</h4><table class="spec-table"><tbody><tr><th>effect</th><td>start the next element on a new page</td></tr></tbody></table><h4 class="spec-el">Keep together</h4><table class="spec-table"><tbody><tr><th>effect</th><td>never split this element across pages</td></tr></tbody></table><p class="spec-note">A short table, a signature block, a callout.</p><h4 class="spec-el">No hyphenation</h4><table class="spec-table"><tbody><tr><th>hyphenation</th><td><code>manual</code></td></tr></tbody></table><h4 class="spec-el">Tie</h4><table class="spec-table"><tbody><tr><th>effect</th><td><code>no line break inside</code></td></tr></tbody></table><p class="spec-note">A figure with its unit, an initial with a surname, a section mark with its number.</p><h4 class="spec-el">Print only / screen only</h4><table class="spec-table"><tbody><tr><th>effect</th><td>present in one medium, absent in the other</td></tr></tbody></table><p class="spec-note">The URL list a page needs and a screen does not; the navigation a screen needs and a page does not.</p><h4 class="spec-el">Exact colour</h4><table class="spec-table"><tbody><tr><th>effect</th><td>backgrounds and rules survive the output device's ink-saving</td></tr></tbody></table><p class="spec-note">Without it a print dialog can strip every rule in a table.</p></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L1153">utilities</a></p><pre>&lt;dl&gt;
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L1170">utilities</a></p><pre>&lt;dl&gt;
   &lt;dt&gt;.ts-utilities-break-before&lt;/dt&gt;&lt;dd&gt;Start this element on a new page. For chapter openings.&lt;/dd&gt;
   &lt;dt&gt;.ts-utilities-keep-together&lt;/dt&gt;&lt;dd&gt;Never split this element across pages. For a short table, a signature block, a callout.&lt;/dd&gt;
   &lt;dt&gt;.ts-utilities-tie&lt;/dt&gt;&lt;dd&gt;Keep a figure with its unit: &lt;span class=&quot;ts-utilities-tie&quot;&gt;11 pt&lt;/span&gt;, &lt;span class=&quot;ts-utilities-tie&quot;&gt;§2.1&lt;/span&gt;, &lt;span class=&quot;ts-utilities-tie&quot;&gt;Fig. 1&lt;/span&gt;.&lt;/dd&gt;
   &lt;dt&gt;.ts-print-only / .ts-screen-only&lt;/dt&gt;&lt;dd&gt;For the URL list a printed page needs and a screen does not, and the navigation a screen needs and a page does not.&lt;/dd&gt;
 &lt;/dl&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L793">utilities</a></p><pre>/ `utilities-keep-together`: Never split this element across pages. For a short
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L1111">utilities</a></p><pre>/ `utilities-keep-together`: Never split this element across pages. For a short
   table, a signature block, a callout.
 / `utilities-tie`: Keep a figure with its <span class="c-prop">unit</span>: #utilities-tie[<span class="c-val">11</span> pt],
   #utilities-tie[§<span class="c-val">2.1</span>], #utilities-tie[Fig. <span class="c-val">1</span>].

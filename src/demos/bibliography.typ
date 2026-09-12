@@ -1,23 +1,31 @@
-=== References
-
-#block[
-  #set text(size: sm)
-  #set par(
-    justify: false,
-    leading: leading-for(1.4),
-    spacing: 0.55em,
-    first-line-indent: 0pt,
-    hanging-indent: 1.8em,
+#references[
+  #reference(
+    author: [Bringhurst, Robert],
+    title: [The Elements of Typographic Style],
+    edition: [4th ed],
+    publisher: [Hartley & Marks],
+    year: [2012],
   )
 
-  Bringhurst, Robert. _The Elements of Typographic Style_. 4th ed. Hartley &
-  Marks, 2012.
+  #reference(
+    author: [Hochuli, Jost],
+    title: [Detail in Typography],
+    publisher: [Hyphen Press],
+    year: [2008],
+  )
 
-  Hochuli, Jost. _Detail in Typography_. Hyphen Press, 2008.
+  #reference(
+    author: [Ruder, Emil],
+    title: [Typographie: A Manual of Design],
+    publisher: [Niggli],
+    year: [1967],
+    note: [Still the clearest statement of the case for the grid, and long enough ago to be read without argument.],
+  )
 
-  Ruder, Emil. _Typographie: A Manual of Design_. Niggli, 1967. Still the
-  clearest statement of the case for the grid, and long enough ago to be read
-  without argument.
-
-  Tschichold, Jan. _The Form of the Book_. Hartley & Marks, 1991.
+  #reference(
+    author: [Tschichold, Jan],
+    title: [The Form of the Book],
+    publisher: [Hartley & Marks],
+    year: [1991],
+  )
 ]

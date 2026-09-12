@@ -10,7 +10,7 @@ import { join, resolve } from 'node:path';
 import { buildAll } from './build-site.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
-import { typstBoilerplate, typstDocument } from '../src/boilerplate.mjs';
+import { typstBoilerplate, typstDocument, setsItsOwnPage } from '../src/boilerplate.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
@@ -86,10 +86,13 @@ if (!typ.includes('top-edge: 1em') || !typ.includes('bottom-edge: 0pt')) {
 }
 
 /* The measure is the rule everything else is downstream of, so both
-   implementations must actually constrain it — not just declare the page. */
-const measureMm = spec.foundation.rhythm.measure_mm;
-if (!typ.includes(`${measureMm}mm`)) {
-  fail.push(`typeset.typ: the measure (${measureMm}mm) is never applied — the flow would fill the full text width`);
+   implementations must actually constrain it — not just declare the page.
+   Gate 9 checks that measure-standard's own value tracks spec.json; this
+   checks that typeset()'s default parameter actually applies that binding,
+   rather than a hand-copied literal a future edit could drift from it. */
+if (!typ.includes('measure: measure-standard,')) {
+  fail.push("typeset.typ: typeset()'s default measure is not measure-standard — "
+    + 'the flow would fill the full text width, or use an untracked literal');
 }
 if (!css.includes('max-width: var(--ts-measure)')) {
   fail.push('typeset.css: the measure is never applied to the text column');
@@ -180,7 +183,7 @@ if (missingDemo) reportFailuresAndExit();
 
 function typstAvailable() {
   try {
-    execFileSync('typst', ['--version'], { stdio: 'ignore' });
+    execFileSync('typst', ['--version'], { stdio: 'ignore', timeout: 30_000 });
     return true;
   } catch {
     return false;
@@ -207,7 +210,7 @@ if (typstSnippets.length > 0) {
       execFileSync(
         'typst',
         ['compile', '--font-path', fontPath, docPath, join(readerDir, `${file}.pdf`)],
-        { stdio: ['ignore', 'pipe', 'pipe'] },
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
       );
     } catch (err) {
       const detail = (err.stderr ? err.stderr.toString() : String(err.message)).trim();
@@ -759,7 +762,7 @@ if (two) {
   const marginName = page.margins.default;
 
   /* Characters per millimetre at the 11pt base, taken from the foundation
-     measure: 66 characters in 126mm. Every count in the template is this
+     measure: 66 characters in 128mm. Every count in the template is this
      scaled by the column width and by the ratio of 11pt to the base in use. */
   const perMm = rhythm.measure_chars / rhythm.measure_mm;
   const columnMm = (paperName, margin) => (papers[paperName][0] - 2 * symmetric[margin] - d.column_gap_mm) / 2;
@@ -1063,14 +1066,14 @@ const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]
   }
 
   /* .pagemap__margins was the only sibling checked here, because it was the
-     one the diagram gate was written for. Three others in the same
-     stylesheet carry the same margin-derived geometry: .pagemap__lines
-     (left/right, the same horizontal inset) and .pagemap__gauge
-     (top/bottom, the same vertical inset) were updated by hand and are
-     correct; .mini__sheet — the scaled full-page preview .pagemap does not
-     itself replace, used by src/demos/two-column.html and
-     src/demos/notes.fullrow.html — was not, and pads the 1.x page (25mm
-     22mm 25mm 28mm) while the prose beside it now reads 170mm text width. */
+     one the diagram gate was written for. Three others in the same stylesheet
+     carry the same margin-derived geometry and are held to it below:
+     .pagemap__lines (left/right, the same horizontal inset), .pagemap__gauge
+     (top/bottom, the same vertical inset), and .mini__sheet — the scaled
+     full-page preview .pagemap does not itself replace, used by
+     src/demos/two-column.html and src/demos/notes.fullrow.html. A margin
+     drawn in one of these and stated in the prose beside it is two statements
+     of one number, and only one of them is anybody's job to update. */
   const specimenCss = readFileSync('specimen.css', 'utf8');
   const blockOf = (selector) => specimenCss.match(new RegExp(`${selector.replace(/[.]/g, '\\.')}\\s*\\{([^}]*)\\}`))?.[1];
 
@@ -1291,9 +1294,12 @@ for (const path of documentFiles) {
   }
 }
 
-/* Observes the exported Typst surface. Every symbol is either a named style or
-   written down here, so a new export has to be a deliberate choice between the
-   two. */
+/* Observes the exported Typst surface. Every symbol is a named style, is
+   written down here as internal, or is mapped in IMPLEMENTS below as an
+   author-facing name for a spec element — so a new export has to be a
+   deliberate choice among the three. This set is only for a symbol with no
+   spec element behind it at all; one that implements an element under a
+   different name belongs in IMPLEMENTS instead, never here. */
 const INTERNAL_SYMBOLS = new Set([
   /* the palette, the scales and the spacing unit a template reads */
   'ink', 'ink-muted', 'ink-faint', 'rule-color', 'rule-strong', 'wash', 'accent',
@@ -1303,20 +1309,80 @@ const INTERNAL_SYMBOLS = new Set([
   'margin-narrow', 'margin-standard', 'margin-wide',
   'margin-duplex-narrow', 'margin-duplex-standard', 'margin-duplex-wide',
   'paper-sizes-mm',
+  /* the measure: three named widths, the derived full-text-block width, and
+     the function that applies one */
+  'measure-standard', 'measure-narrow', 'measure-wide', 'measure-full', 'measured',
   /* helpers the styles are built from */
   'leading-for', 'smcp', 'oldstyle', 'lining', 'tabular', '_break-mark',
+  /* the spacing/indent pair behind typeset()'s own `indented` option AND
+     block-spaced/block-indented below — not a style itself */
+  '_paragraphs-rule',
   /* document and template entry points */
   'typeset', 'two-column', 'span',
+  /* typeset()'s two halves — the page it sets once per document, and the
+     styles it sets over the body. Both templates call both: two-column() has
+     to set the page, draw its column rule on it, and only then set the styles,
+     which is an order a single combined call cannot express. */
+  '_typeset-page', '_typeset-styles',
   /* two-column's own spanning.always state, read by frontmatter-title-block,
      frontmatter-abstract and frontmatter-colophon — not a style itself */
   'ts-two-column-body',
-  /* ts-table implements element tables-table under its 1.x spelling, which the
-     migration note discloses; epigraph-right has no element behind it at all */
-  'ts-table', 'epigraph-right',
+  /* the scale the document is set in, published by _typeset-styles and read
+     by block-spaced/block-indented, which take no argument that could carry
+     one — not a style itself */
+  'ts-scale',
+  /* the page's own text block, published by _typeset-styles and read by
+     measured() to resolve measure-full — not a style itself */
+  'ts-text-width',
+  /* epigraph-right has no element behind it at all */
+  'epigraph-right',
 ]);
 
+/* Symbols named for what they do rather than for the spec element id they
+   implement — an author-facing name, not the spec's own taxonomy, and (for
+   block-spaced/block-indented) a name that does not have to change the day
+   paragraphs-* is renamed to paragraph-*. This is NOT the same list as
+   INTERNAL_SYMBOLS: every value here is a real implements-relationship, so a
+   symbol belongs in exactly one of the two lists, never both. Gated below:
+   every value must resolve to an id spec.json actually declares, or a typo
+   here would silence a real "no symbol" coverage warning forever. */
+const IMPLEMENTS = new Map([
+  ['block-spaced', 'paragraphs-spaced'],
+  ['block-indented', 'paragraphs-indented'],
+  /* ts-table implements element tables-table under its 1.x spelling, which
+     the migration note discloses. */
+  ['ts-table', 'tables-table'],
+  /* key is the author-facing name for inline-kbd — the owner asked for it
+     by that name, and an author reaching for a keycap does not know the
+     spec's own element id. */
+  ['key', 'inline-kbd'],
+  /* The block-level overrides for the document's own `justified` default —
+     named for the choice they make, not for the spec's own
+     justification-justified/justification-ragged element ids. */
+  ['justified', 'justification-justified'],
+  ['ragged-right', 'justification-ragged'],
+  /* reference composes one entry — the author-facing name for
+     bibliography-entry, an author reaching for it thinks "a reference", not
+     "the spec's bibliography-entry id". */
+  ['reference', 'bibliography-entry'],
+  /* references renders the literal bibliography-heading content (a real
+     level-2 heading) and also sets up the entries' shared typography — it is
+     not only the heading, but the heading is the one piece of it that is a
+     spec element in its own right and needs a name resolving to one, the
+     same shape as ts-table above. */
+  ['references', 'bibliography-heading'],
+]);
+
+for (const [sym, id] of IMPLEMENTS) {
+  if (!specIds.has(id)) {
+    fail.push(`tools/check.mjs: IMPLEMENTS maps "${sym}" to "${id}", which spec.json does not `
+      + 'declare as an element id — a typo here would silence a real "no symbol or marker '
+      + 'region" coverage warning forever');
+  }
+}
+
 for (const sym of typSymbols) {
-  if (INTERNAL_SYMBOLS.has(sym) || specIds.has(sym)) continue;
+  if (INTERNAL_SYMBOLS.has(sym) || specIds.has(sym) || IMPLEMENTS.has(sym)) continue;
   fail.push(`typeset.typ: #let ${sym} names no spec element and is not listed as internal`);
 }
 
@@ -1328,8 +1394,9 @@ for (const sym of typSymbols) {
    promoting this direction means settling every one of the notes it prints
    first. The reverse direction above is a failure, because an export with no
    name behind it is a decision someone can write down in one line. */
+const implementedIds = new Set(IMPLEMENTS.values());
 for (const id of specIds) {
-  if (!typSymbols.has(id) && !new RegExp(`//\\s*@s\\s+${id}\\s*\\n`).test(typ))
+  if (!typSymbols.has(id) && !implementedIds.has(id) && !new RegExp(`//\\s*@s\\s+${id}\\s*\\n`).test(typ))
     warn.push(`typeset.typ: no symbol or marker region named "${id}"`);
 }
 
@@ -1398,7 +1465,10 @@ const inBand = (y, edge) => Math.abs(y - edge) <= VERTICAL_TOLERANCE_PT;
    than silently shipping unchecked on the Typst side the day it is added —
    see the loop just before the render check. */
 const TYPST_EXEMPT_CARRIED_BY_TITLE_BLOCK = ['frontmatter-subtitle', 'frontmatter-byline', 'frontmatter-dateline'];
-const TYPST_RENDER_CHECKED = ['frontmatter-title-block', 'frontmatter-abstract', 'frontmatter-colophon', 'headings-h1'];
+const TYPST_RENDER_CHECKED = [
+  'frontmatter-title-block', 'frontmatter-abstract', 'frontmatter-colophon', 'headings-h1',
+  'bibliography-heading',
+];
 
 for (const id of spanningAlways) {
   if (!TYPST_RENDER_CHECKED.includes(id) && !TYPST_EXEMPT_CARRIED_BY_TITLE_BLOCK.includes(id)) {
@@ -1662,6 +1732,7 @@ const ABSTRACT_FILL = '#e10002';
 const TITLE_BLOCK_FILL = '#e10003';
 const COLOPHON_FILL = '#e10004';
 const COLOPHON_CONTROL_FILL = '#e100c0';
+const BIBLIOGRAPHY_HEADING_FILL = '#e10005';
 
 /* Every probe is its own document: one id, checked on its own page, so a
    stacked second float never has to be told apart from a broken one (see the
@@ -1701,6 +1772,13 @@ const typstProbes = [
     vertical: 'bottom',
     checkWidth: false,
     control: { fill: COLOPHON_CONTROL_FILL, expectedX: column2Pt },
+  },
+  {
+    id: 'bibliography-heading',
+    source: `${docPreamble}${LEADING_FILLER}\n\n#references(title: [#${markerRect(BIBLIOGRAPHY_HEADING_FILL)}])[]\n`,
+    fill: BIBLIOGRAPHY_HEADING_FILL,
+    vertical: 'top',
+    checkWidth: true,
   },
 ];
 
@@ -1775,7 +1853,7 @@ try {
 /* spec.json owns symmetric_mm, duplex_inner_mm, duplex_outer_mm and
    sizes_mm. Both implementations restate every one of these as literal
    numbers — typeset.typ as margin-* dictionaries plus paper-sizes-mm, the
-   66/126 character constant and the two-column floor; typeset.css as
+   66/128 character constant and the two-column floor; typeset.css as
    @page margin declarations — and nothing before this gate compared either
    copy to spec.json. Demonstrated: setting margin-narrow to 14mm in
    typeset.typ while spec.json stayed at 10mm left `node tools/check.mjs`
@@ -1892,11 +1970,11 @@ if (!paperDictMatch) {
   }
 }
 
-/* Typst: the foundation measure (66 characters in 126mm), inlined into
+/* Typst: the foundation measure (66 characters in 128mm), inlined into
    two-column()'s own chars-in formula, and the two-column floor. */
 const charsMatch = /calc\.round\((-?[\d.]+)\s*\/\s*(-?[\d.]+)\s*\*/.exec(typ);
 if (!charsMatch) {
-  fail.push('typeset.typ: the 66/126 characters-per-mm constant was not found in two-column()');
+  fail.push('typeset.typ: the 66/128 characters-per-mm constant was not found in two-column()');
 } else {
   if (Number(charsMatch[1]) !== spec.foundation.rhythm.measure_chars) {
     fail.push(`typeset.typ: two-column()'s characters constant is ${charsMatch[1]}, but `
@@ -1977,6 +2055,1272 @@ for (const name of marginNames) {
         + `${rightDecls.get('margin-right')} on the recto and ${leftDecls.get('margin-left')} on the `
         + `verso, but foundation.page.margins.duplex_outer_mm.${name} is ${duplexOuterMm[name]}mm`);
     }
+  }
+}
+
+/* ---- 8. A .tabs input positioned absolute must be pinned inside .tabs ---- */
+
+/* An absolutely positioned element with no offset of its own falls back to
+   its static position, which — inside a flex container — comes from the
+   container's own alignment rather than from its nearest positioned
+   ancestor. .tabs's input is position: absolute so it can hide without
+   display: none breaking the :checked~ sibling selectors the panel relies
+   on; if .tabs itself is not a positioned ancestor, that radio's static
+   position resolves against .tabs's align-items: flex-end instead, landing
+   at the bottom of .tabs — which is also the bottom of the visible pane.
+   Focusing the radio (a label click does this natively, no JS involved)
+   then scrolls that point into view, jumping the page to the end of the
+   example. This gate asserts the fix — .tabs positioned, its input pinned
+   with explicit offsets — holds, rather than trusting it stays in place
+   the next time either rule is touched. */
+{
+  const specimenCss = readFileSync('specimen.css', 'utf8');
+  const cssBlock = (selector) => specimenCss
+    .match(new RegExp(`${selector.replace(/[.]/g, '\\.')}\\s*\\{([^}]*)\\}`))?.[1];
+
+  const tabsInputBlock = cssBlock('.tabs input');
+  if (!tabsInputBlock) {
+    fail.push('specimen.css: no .tabs input block found — the tab-focus-scroll gate cannot run');
+  } else if (/\bposition:\s*absolute\b/.test(tabsInputBlock)) {
+    const tabsBlock = cssBlock('.tabs');
+    if (!tabsBlock || !/\bposition:\s*relative\b/.test(tabsBlock)) {
+      fail.push('specimen.css: .tabs input is position: absolute but .tabs does not declare '
+        + 'position: relative — the radio takes its static position from .tabs\'s flex '
+        + 'alignment (align-items: flex-end) instead, at the bottom of the pane, so focusing '
+        + 'it (a label click) scrolls the page to the end of the example');
+    }
+
+    const hasTop = /\btop:\s*[^;]+;/.test(tabsInputBlock);
+    const hasLeft = /\bleft:\s*[^;]+;/.test(tabsInputBlock);
+    if (!hasTop || !hasLeft) {
+      fail.push(`specimen.css: .tabs input is position: absolute but does not declare both `
+        + `top and left (top: ${hasTop ? 'yes' : 'missing'}, left: ${hasLeft ? 'yes' : 'missing'}) `
+        + '— without explicit offsets it falls back to its flex-derived static position at '
+        + 'the bottom of .tabs');
+    }
+  }
+}
+
+/* ---- 9. The exported measures must equal what spec.json derives --------- */
+
+/* foundation.rhythm states the measure and its two variants directly, in em
+   — measure-standard, measure-narrow and measure-wide restate those same
+   three literals, so a plain string match against spec.json's own text
+   holds them to it. measure-full is checked separately below, by rendering
+   rather than by reading. (typst is already required by gate 3h above, which
+   exits before this point if it is missing.) */
+
+const measureLiterals = [
+  ['measure-standard', spec.foundation.rhythm.measure],
+  ['measure-narrow', spec.foundation.rhythm.measure_variants.narrow],
+  ['measure-wide', spec.foundation.rhythm.measure_variants.wide],
+];
+for (const [name, expected] of measureLiterals) {
+  const m = new RegExp(`#let ${name}\\s*=\\s*([^\\n]+)`).exec(typ);
+  if (!m) {
+    fail.push(`typeset.typ: #let ${name} was not found`);
+  } else if (m[1].trim() !== expected) {
+    fail.push(`typeset.typ: ${name} is ${m[1].trim()}, but foundation.rhythm's own value is ${expected}`);
+  }
+}
+
+/* measure-full has no literal counterpart, and no number at all: a length
+   could only ever be ONE paper's, so it is `auto` and what it resolves to is
+   a property of the page in force. No read of the source can see that, and a
+   gate that pinned a single millimetre value is exactly what let an A4-only
+   constant stand while it overset every smaller sheet and fell short of every
+   larger one. So this compiles a real typeset() document on every paper
+   spec.json declares, on a duplex margin as well as a symmetric one, and
+   reads back the width the block actually got.
+
+   foundation.page.text_width states the expectation, and the duplex arm is
+   its second half: "the paper width minus the left and right margins — twice
+   the symmetric value, or inner plus outer for a duplex pair. The two are
+   equal for any one size." A5's text block (108mm) is NARROWER than A4's
+   170mm and Letter's (175.9mm) is WIDER, so the two of them together catch a
+   value pinned to A4 in either direction.
+
+   The document is held to measure-standard throughout, which is also the
+   point of the check: measure-full is what a passage uses to step outside
+   the document's own measure, so a clamp against the enclosing block rather
+   than against the page would fail here. */
+
+const measureProbeDir = mkdtempSync(join(tmpdir(), 'typeset-measure-check-'));
+try {
+  copyFileSync('implementations/typeset.typ', join(measureProbeDir, 'typeset.typ'));
+  const defaultMarginMm = symmetricMm[spec.foundation.page.margins.default];
+  for (const [typKey, specKey] of Object.entries(PAPER_NAME_TO_SPEC)) {
+    const expectedMm = sizesMm[specKey][0] - 2 * defaultMarginMm;
+    for (const marginName of ['margin-standard', 'margin-duplex-standard']) {
+      const probePath = join(measureProbeDir, `measure-full-${typKey}-${marginName}.typ`);
+      writeFileSync(probePath, '#import "typeset.typ": *\n'
+        + `#show: typeset.with(paper: "${typKey}", margin: ${marginName})\n\n`
+        + '#measured(width: measure-full)[#layout(s => [#metadata(s.width / 1mm) <full>])]\n');
+      try {
+        const out = execFileSync(
+          'typst',
+          ['query', probePath, '<full>', '--field', 'value', '--one', '--font-path', resolve('fonts')],
+          { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+        );
+        const actualMm = Number(JSON.parse(out.toString()));
+        if (!mmClose(actualMm, expectedMm)) {
+          fail.push(`typeset.typ: #measured(width: measure-full) on ${specKey} at the `
+            + `${marginName.replace('margin-', '')} margin resolves to ${actualMm.toFixed(2)}mm, but `
+            + `${specKey} is ${sizesMm[specKey][0]}mm wide and foundation.page.text_width is the paper `
+            + `less its two horizontal margins (${defaultMarginMm}mm each, or a duplex pair summing to `
+            + `the same), i.e. ${expectedMm}mm — a width that does not follow the page oversets the `
+            + 'sheet or falls short of it, in silence either way');
+        }
+      } catch (err) {
+        const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+        fail.push(`typeset.typ: measure-full could not be resolved on ${specKey} at the `
+          + `${marginName.replace('margin-', '')} margin:\n${detail}`);
+      }
+    }
+  }
+} finally {
+  rmSync(measureProbeDir, { recursive: true, force: true });
+}
+
+/* ---- 10. measure_mm must not drift from measure, the canonical value ----- */
+
+/* foundation.rhythm.measure ("33em") is canonical; measure_mm is a derived
+   millimetre convenience for readers who think in paper dimensions, not a
+   second source of truth. Recompute it from measure and the 11pt base, the
+   same conversion the note describes, and fail if the declared value has
+   drifted — the two disagreeing by rounding is exactly how this task started. */
+
+const measureEmMatch = /^([\d.]+)em$/.exec(spec.foundation.rhythm.measure);
+if (!measureEmMatch) {
+  fail.push(`spec.json: foundation.rhythm.measure is "${spec.foundation.rhythm.measure}", expected an em value`);
+} else {
+  const measureEm = Number(measureEmMatch[1]);
+  const basePt = parseFloat(spec.foundation.scale.steps.base);
+  const expectedMm = Math.round(measureEm * basePt * (25.4 / 72));
+  if (spec.foundation.rhythm.measure_mm !== expectedMm) {
+    fail.push(`spec.json: foundation.rhythm.measure_mm is ${spec.foundation.rhythm.measure_mm}, but `
+      + `measure (${spec.foundation.rhythm.measure}) at the ${spec.foundation.scale.steps.base} base is `
+      + `${expectedMm}mm — measure is canonical, measure_mm must follow it`);
+  }
+}
+
+/* ---- 11. block-spaced / block-indented must match the spec, and the indent
+            must actually be suppressed only where the spec says ----------- */
+
+/* The literal values first. _paragraphs-rule backs both typeset()'s own
+   `indented` option and the two standalone functions, so a hand-copied number
+   drifting in any one of the three call sites shows up here as a mismatch
+   against spec.json's own paragraphs-spaced/paragraphs-indented elements —
+   the elements block-spaced/block-indented implement, per IMPLEMENTS above. */
+
+const paragraphsSpec = spec.sections.find((s) => s.id === 'paragraphs');
+const specEl = (id) => paragraphsSpec.elements.find((e) => e.id === id).properties;
+const spacedProps = specEl('paragraphs-spaced');
+const indentedProps = specEl('paragraphs-indented');
+
+/* A scale dictionary's own value for one field, so the two scales can be held
+   to spec.json's base element and to the two-column template's override of it
+   respectively. */
+const scaleDictField = (name, field) => {
+  const dict = new RegExp(`#let ${name} = \\(([\\s\\S]*?)\\n\\)`).exec(typ);
+  if (!dict) return null;
+  const m = new RegExp(`\\b${field}:\\s*([\\d.]+(?:pt|em))`).exec(dict[1]);
+  return m ? m[1] : null;
+};
+
+const rule = /#let _paragraphs-rule\(indented, leading: ([\d.]+), space: (\w+), indent: ([\d.]+em)\) = if indented \{([^}]*)\} else \{([^}]*)\}/
+  .exec(typ);
+if (!rule) {
+  fail.push('typeset.typ: _paragraphs-rule was not found in the shape this gate expects — '
+    + 'update the gate if the function was deliberately restructured');
+} else {
+  const [, , spaceDefault, indentDefault, indentedBranch, spacedBranch] = rule;
+
+  const spacedIndent = /first-line-indent:\s*([^\n,)}]+)/.exec(spacedBranch)?.[1]?.trim();
+  if (spacedIndent !== '0pt') {
+    fail.push(`typeset.typ: block-spaced's first-line-indent is ${spacedIndent}, but `
+      + `spec.json's paragraphs-spaced.first_line_indent is "${spacedProps.first_line_indent}" (0) `
+      + '— every line flush');
+  }
+  /* The gap is the ACTIVE scale's, never the module's. _paragraphs-rule is
+     defined 130 lines above _typeset-styles's own `let sp = scale.space`, so
+     a bare `sp` in this branch closes over the module-level 11pt and a
+     document on any other scale silently gets the single-column gap. The
+     branch must therefore name the parameter, and the parameter's default
+     must be the single-column unit for a caller with no scale in hand. */
+  const spacedSpacing = /spacing:\s*([^\n,)}]+)/.exec(spacedBranch)?.[1]?.trim();
+  if (spacedSpacing !== 'space') {
+    fail.push(`typeset.typ: block-spaced's spacing is "${spacedSpacing}", expected the `
+      + '`space` parameter — a module-level constant here cannot follow the scale the '
+      + 'document is actually set in');
+  }
+  if (spaceDefault !== 'sp') {
+    fail.push(`typeset.typ: _paragraphs-rule's space parameter defaults to \`${spaceDefault}\`, `
+      + `expected the module's own \`sp\` (${spacedProps.space_after}, spec.json's `
+      + 'paragraphs-spaced.space_after) — the single-column unit, for a caller with no scale');
+  }
+  if (!/\.\._paragraphs-rule\(indented, leading: scale\.leading, space: scale\.space, indent: scale\.indent\)/.test(typ)) {
+    fail.push('typeset.typ: _typeset-styles does not pass scale.leading, scale.space and '
+      + 'scale.indent to _paragraphs-rule — a document on any scale but the single-column one then '
+      + "gets the module's own leading, gap or indent in place of its own");
+  }
+
+  /* And each scale's own indent against the spec statement that owns it. */
+  const indentOwners = [
+    ['scale-single-column', indentedProps.first_line_indent, 'paragraphs-indented.first_line_indent'],
+    ['scale-two-column', spec.templates['two-column'].element_overrides.paragraph.first_line_indent,
+      'templates.two-column.element_overrides.paragraph.first_line_indent'],
+  ];
+  for (const [scaleName, expected, where] of indentOwners) {
+    const got = scaleDictField(scaleName, 'indent');
+    if (got !== expected) {
+      fail.push(`typeset.typ: ${scaleName}.indent is ${got ?? 'missing'}, but spec.json's `
+        + `${where} is "${expected}" — typeset.css already honours it `
+        + '(.typeset--two-column { --ts-para-indent })');
+    }
+  }
+
+  const indentedAmount = /first-line-indent:\s*\(amount:\s*([^,]+),\s*all:\s*(true|false)\)/.exec(indentedBranch);
+  if (!indentedAmount) {
+    fail.push('typeset.typ: block-indented does not set first-line-indent as an '
+      + '(amount: .., all: ..) dictionary — without `all`, Typst cannot know to withhold the '
+      + 'indent after a heading, blockquote, figure or break, or from the document\'s first paragraph');
+  } else {
+    /* The indent is the scale's too, for the same reason the gap is: a
+       template states its own. spec.json declares 1.5em on
+       paragraphs-indented and 1.25em on
+       templates.two-column.element_overrides.paragraph, and while the amount
+       was a literal in this branch there was nowhere for the override to
+       live — the file's own comment presented that as the point. */
+    if (indentedAmount[1].trim() !== 'indent') {
+      fail.push(`typeset.typ: block-indented's first-line-indent amount is `
+        + `${indentedAmount[1].trim()}, expected the \`indent\` parameter — a literal here has `
+        + "nowhere for a template's own override to live");
+    }
+    if (indentDefault !== indentedProps.first_line_indent) {
+      fail.push(`typeset.typ: _paragraphs-rule's indent parameter defaults to ${indentDefault}, but `
+        + `spec.json's paragraphs-indented.first_line_indent is "${indentedProps.first_line_indent}"`);
+    }
+    if (indentedAmount[2] !== 'false') {
+      fail.push('typeset.typ: block-indented sets first-line-indent all: true — this applies '
+        + "the indent even after a heading, blockquote, figure or break, and to the document's "
+        + 'first paragraph, contradicting the note on spec.json\'s paragraphs-indented element: '
+        + `"${paragraphsSpec.elements.find((e) => e.id === 'paragraphs-indented').notes[0]}"`);
+    }
+  }
+  const indentedSpacing = /spacing:\s*([^\n,)}]+)/.exec(indentedBranch)?.[1]?.trim();
+  if (!/^leading-for\(/.test(indentedSpacing ?? '')) {
+    fail.push(`typeset.typ: block-indented's spacing is "${indentedSpacing}", expected `
+      + `leading-for(..) — spec.json's paragraphs-indented.space_after is "${indentedProps.space_after}" `
+      + '(no gap beyond the ordinary line leading)');
+  }
+}
+
+/* The behaviour second. A gate that only reads the source text back would
+   pass an implementation that sets the right dictionary and STILL gets the
+   result wrong — the most likely way, per this task's own brief: wrapping
+   `body` in a layout block() rather than a plain code-block scope. A
+   block() is itself a non-paragraph element, so Typst's `all: false` would
+   then withhold the indent from the wrapper's own first paragraph even when
+   nothing inside the wrapper precedes it — silently flushing prose that is
+   not actually after a heading, a blockquote, a figure or a break. So this
+   renders a probe through the real typeset.typ and reads back where the
+   glyphs actually land, the same way gate 6 holds two-column spanning to the
+   rendered page rather than to the source that describes it. */
+
+const PARA_MARGIN_PT = 20;
+const paraBasePt = parseFloat(spec.foundation.scale.steps.base);
+const indentEm = parseFloat(indentedProps.first_line_indent);
+const paraIndentPt = indentEm * paraBasePt;
+const paraMarker = (fill) => `#box(rect(width: 4pt, height: 4pt, fill: rgb("${fill}")))`;
+
+const AFTER_HEADING_FILL = '#d20001';
+const MID_FLOW_FILL = '#d20002';
+const WRAPPER_FIRST_FILL = '#d20003';
+const SPACED_FIRST_FILL = '#d20004';
+const SPACED_SECOND_FILL = '#d20005';
+
+const paraProbeSource = `#import "typeset.typ": *\n\n`
+  + `#set page(width: 300pt, height: auto, margin: ${PARA_MARGIN_PT}pt)\n`
+  + `#set text(font: serif, size: ${paraBasePt}pt)\n\n`
+  + `= Heading\n`
+  + `#block-indented[\n`
+  + `  ${paraMarker(AFTER_HEADING_FILL)}Flush: this paragraph follows the heading directly.\n\n`
+  + `  ${paraMarker(MID_FLOW_FILL)}Indented: this paragraph follows an ordinary paragraph.\n`
+  + `]\n\n`
+  + `Ordinary prose that precedes the next wrapper, so ITS first paragraph is not the `
+  + `document's first paragraph and does not follow a heading, a blockquote, a figure or a break.\n\n`
+  + `#block-indented[\n`
+  + `  ${paraMarker(WRAPPER_FIRST_FILL)}Indented: the wrapper's own first paragraph, which a `
+  + `block() wrapper would wrongly flush.\n`
+  + `]\n\n`
+  + `#block-spaced[\n`
+  + `  ${paraMarker(SPACED_FIRST_FILL)}Flush: block-spaced never indents.\n\n`
+  + `  ${paraMarker(SPACED_SECOND_FILL)}Flush: still no indent, even mid-flow.\n`
+  + `]\n`;
+
+const paraProbeDir = mkdtempSync(join(tmpdir(), 'typeset-paragraphs-check-'));
+try {
+  copyFileSync('implementations/typeset.typ', join(paraProbeDir, 'typeset.typ'));
+  const paraProbePath = join(paraProbeDir, 'paragraphs-probe.typ');
+  const paraProbeSvgPath = join(paraProbeDir, 'paragraphs-probe.svg');
+  writeFileSync(paraProbePath, paraProbeSource);
+
+  try {
+    execFileSync(
+      'typst',
+      ['compile', '--font-path', resolve('fonts'), paraProbePath, paraProbeSvgPath],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    );
+    const svg = readFileSync(paraProbeSvgPath, 'utf8');
+
+    const xOf = (fill, label) => {
+      const shapes = svgShapesByFill(svg, fill);
+      if (shapes.length === 0) {
+        fail.push(`tools/check.mjs: the paragraphs probe found no marker for "${label}" — `
+          + 'update the probe in this gate');
+        return null;
+      }
+      return shapes[0].abs[0];
+    };
+
+    const checks = [
+      [AFTER_HEADING_FILL, 'after a heading', PARA_MARGIN_PT],
+      [MID_FLOW_FILL, 'mid-flow inside block-indented', PARA_MARGIN_PT + paraIndentPt],
+      [WRAPPER_FIRST_FILL, "block-indented's own first paragraph, not after a heading", PARA_MARGIN_PT + paraIndentPt],
+      [SPACED_FIRST_FILL, "block-spaced's first paragraph", PARA_MARGIN_PT],
+      [SPACED_SECOND_FILL, "block-spaced's second paragraph", PARA_MARGIN_PT],
+    ];
+    for (const [fill, label, expectedX] of checks) {
+      const x = xOf(fill, label);
+      if (x === null) continue;
+      if (Math.abs(x - expectedX) > 0.5) {
+        fail.push(`typeset.typ: the paragraph marked "${label}" rendered at x=${x.toFixed(2)}pt, `
+          + `expected ${expectedX.toFixed(2)}pt (page margin ${PARA_MARGIN_PT}pt`
+          + `${expectedX !== PARA_MARGIN_PT ? ` + ${paraIndentPt}pt indent` : ', flush'})`);
+      }
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+    fail.push(`typeset.typ: the paragraphs probe failed to compile:\n${detail}`);
+  }
+} finally {
+  rmSync(paraProbeDir, { recursive: true, force: true });
+}
+
+/* The gap third, and on every scale the file declares. Both checks above are
+   aimed at the INDENT: each fixture they render is block-indented, or is
+   block-spaced at the single-column scale, where the module's own `sp` is
+   coincidentally the right answer. A spaced branch that closed over that
+   module constant passed both of them — and passed a byte-identity check over
+   all three example documents too, because the one template that changes
+   scale, two-column(), sets `indented: true` and never reaches the spaced
+   branch at all. A gate aimed one branch to the left is not a gate.
+
+   So the spaced branch is rendered on each scale, through the two doors that
+   reach it: typeset(scale: ..), which is a public parameter, and
+   block-spaced(), which takes no arguments and has to read the scale itself.
+   On each scale the paragraph advance must be that scale's own line box (its
+   base, because top-edge: 1em / bottom-edge: 0pt) plus that scale's own
+   space — never another scale's. */
+
+const GAP_SCALES = ['scale-single-column', 'scale-two-column'];
+const gapProbeDir = mkdtempSync(join(tmpdir(), 'typeset-para-gap-check-'));
+try {
+  copyFileSync('implementations/typeset.typ', join(gapProbeDir, 'typeset.typ'));
+
+  /* The single-column arm is also the spec's own number: paragraphs-spaced
+     declares an 11pt space_after at an 11pt base, so its expected advance is
+     spec.json's value, not merely typeset.typ's agreeing with itself. */
+  const specGap = parseFloat(spacedProps.space_after) + parseFloat(spacedProps.size);
+
+  for (const scaleName of GAP_SCALES) {
+    const base = parseFloat(scaleDictField(scaleName, 'base'));
+    const space = parseFloat(scaleDictField(scaleName, 'space'));
+    if (!Number.isFinite(base) || !Number.isFinite(space)) {
+      fail.push(`typeset.typ: ${scaleName} declares no base/space pair this gate can read — `
+        + 'update the gate if the scale dictionaries were deliberately restructured');
+      continue;
+    }
+    const expected = base + space;
+    if (scaleName === 'scale-single-column' && Math.abs(expected - specGap) > 0.01) {
+      fail.push(`typeset.typ: ${scaleName} gives a spaced advance of ${expected}pt, but `
+        + `spec.json's paragraphs-spaced is ${spacedProps.size} of text and a `
+        + `${spacedProps.space_after} space_after, i.e. ${specGap}pt`);
+    }
+
+    /* Two paragraphs set by typeset()'s own `indented: false` default, and two
+       more inside block-spaced(), which is the call that has no scale in hand. */
+    const source = `#import "typeset.typ": *\n`
+      + `#show: typeset.with(scale: ${scaleName}, running-head: false, folio: false)\n\n`
+      + `Alpha one.\n\nBeta two.\n\n#block-spaced[\n  Gamma three.\n\n  Delta four.\n]\n`;
+    try {
+      const lines = svgTextRuns(compileSvgProbe(gapProbeDir, `gap-${scaleName}`, source));
+      if (lines.length !== 4) {
+        fail.push(`tools/check.mjs: the paragraph-gap probe for ${scaleName} rendered `
+          + `${lines.length} lines, expected exactly 4 — update the probe`);
+        continue;
+      }
+      const arms = [
+        ['typeset(scale: ..)', lines[1].y - lines[0].y],
+        ['block-spaced() inside it', lines[3].y - lines[2].y],
+      ];
+      for (const [label, advance] of arms) {
+        if (Math.abs(advance - expected) > 0.01) {
+          fail.push(`typeset.typ: on ${scaleName}, a spaced paragraph under ${label} advances `
+            + `${advance.toFixed(2)}pt, expected ${expected.toFixed(2)}pt — that scale's own `
+            + `${base}pt line box plus its own ${space}pt space. A gap that follows the module's `
+            + `\`sp\` instead of the scale would advance ${(base + parseFloat(spacedProps.space_after)).toFixed(2)}pt`);
+        }
+      }
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+      fail.push(`typeset.typ: the paragraph-gap probe for ${scaleName} failed to compile:\n${detail}`);
+    }
+  }
+} finally {
+  rmSync(gapProbeDir, { recursive: true, force: true });
+}
+
+/* And the template's own indent, rendered through the template. The probe
+   above drives typeset() on a scale dictionary; this one drives two-column(),
+   which is where spec.json's element_overrides.paragraph applies and where
+   the divergence lived: the spec and typeset.css both said 1.25em while Typst
+   indented 1.5em, and the refactor that gave _paragraphs-rule both call sites
+   made the override structurally unreachable.
+
+   Line 0 opens the document, where `all: false` withholds the indent, so it
+   states the column's own left edge; line 1 is the first paragraph that
+   actually takes one. */
+
+const tcIndentEm = parseFloat(spec.templates['two-column'].element_overrides.paragraph.first_line_indent);
+const tcBasePt = parseFloat(spec.templates['two-column'].element_overrides.paragraph.size);
+const tcIndentProbeDir = mkdtempSync(join(tmpdir(), 'typeset-tc-indent-check-'));
+try {
+  copyFileSync('implementations/typeset.typ', join(tcIndentProbeDir, 'typeset.typ'));
+  const lines = svgTextRuns(compileSvgProbe(tcIndentProbeDir, 'tc-indent',
+    '#import "typeset.typ": *\n'
+    + '#show: two-column.with(running-head: false, folio: false)\n\n'
+    + 'Alpha one paragraph.\n\nBeta two paragraph.\n'));
+  if (lines.length < 2) {
+    fail.push(`tools/check.mjs: the two-column indent probe rendered ${lines.length} lines, `
+      + 'expected at least 2 — update the probe');
+  } else {
+    const got = lines[1].firstX - lines[0].firstX;
+    const expected = tcIndentEm * tcBasePt;
+    if (Math.abs(got - expected) > 0.05) {
+      fail.push(`typeset.typ: two-column() indents a paragraph ${got.toFixed(2)}pt from the column `
+        + `edge, but spec.json's templates.two-column.element_overrides.paragraph says `
+        + `${spec.templates['two-column'].element_overrides.paragraph.first_line_indent} at `
+        + `${spec.templates['two-column'].element_overrides.paragraph.size}, i.e. `
+        + `${expected.toFixed(2)}pt — the same value typeset.css sets as --ts-para-indent on `
+        + '.typeset--two-column');
+    }
+  }
+} catch (err) {
+  const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+  fail.push(`typeset.typ: the two-column indent probe failed to compile:\n${detail}`);
+} finally {
+  rmSync(tcIndentProbeDir, { recursive: true, force: true });
+}
+
+/* ---- 12. justified() / ragged-right() — stated alignment, compose, last
+            line, and hyphenation tied to `lang` ------------------------- */
+
+/* spec.json's justification section pairs two principles that only bite
+   together: "alignment inherits, and so does last-line alignment" and "a
+   block that sets its own alignment must also set its own last-line
+   alignment, or the document's justification flushes its last line ... to
+   the left". Typst has no separate "last line" parameter to set — a
+   paragraph's last line is resolved against the same ambient alignment as
+   every other line, so the only way for `justified`/`ragged-right` to state
+   their OWN alignment (and, by construction, their own last-line alignment)
+   is to set that ambient alignment themselves, not merely `justify`. A
+   function relying on Typst's own left default is indistinguishable from one
+   that states it, right up until something nests it inside another
+   alignment — so this gate does that nesting, rather than trusting the
+   source. */
+
+const justificationSpec = spec.sections.find((s) => s.id === 'justification');
+const raggedProps = justificationSpec.elements.find((e) => e.id === 'justification-ragged').properties;
+const justifiedProps = justificationSpec.elements.find((e) => e.id === 'justification-justified').properties;
+
+/* ---- 12a. Literal shape: each function's own source states what it must -- */
+
+const raggedSigMatch = /#let ragged-right\(([^)]*)\) = \{\n([\s\S]*?)\n\}/.exec(typ);
+const justifiedSigMatch = /#let justified\(([^)]*)\) = \{\n([\s\S]*?)\n\}/.exec(typ);
+
+if (!raggedSigMatch) {
+  fail.push('typeset.typ: ragged-right was not found in the shape this gate expects — update the '
+    + 'gate if the function was deliberately restructured');
+} else {
+  const [, sig, body] = raggedSigMatch;
+  if (!/^indented: auto, lang: "en", body$/.test(sig.trim())) {
+    fail.push(`typeset.typ: ragged-right's parameters are (${sig.trim()}) — expected exactly `
+      + '(indented: auto, lang: "en", body), so hyphenation is never exposed as a parameter '
+      + 'independent of `lang`, and an alignment override leaves the document\'s own paragraph '
+      + 'convention alone unless it is asked to change it');
+  }
+  if (!/set align\(left\)/.test(body)) {
+    fail.push('typeset.typ: ragged-right does not `set align(left)` — Typst resolves a paragraph\'s '
+      + 'last line against the ambient alignment, so without this the block is only ragged, and its '
+      + 'last line only flush left, where it happens to already be nested in a left-aligned context');
+  }
+  if (!/justify:\s*false/.test(body)) {
+    fail.push(`typeset.typ: ragged-right does not set justify: false, contradicting `
+      + `justification-ragged.align ("${raggedProps.align}")`);
+  }
+  if (!/set text\(hyphenate:\s*false\)/.test(body)) {
+    fail.push(`typeset.typ: ragged-right does not unconditionally set hyphenate: false, contradicting `
+      + `justification-ragged.hyphenation ("${raggedProps.hyphenation}") — hyphenation exists to serve `
+      + 'justification, so ragged text must never hyphenate, `lang` or not');
+  }
+}
+
+if (!justifiedSigMatch) {
+  fail.push('typeset.typ: justified was not found in the shape this gate expects — update the gate '
+    + 'if the function was deliberately restructured');
+} else {
+  const [, sig, body] = justifiedSigMatch;
+  if (!/^indented: auto, lang: "en", body$/.test(sig.trim())) {
+    fail.push(`typeset.typ: justified's parameters are (${sig.trim()}) — expected exactly `
+      + '(indented: auto, lang: "en", body), so hyphenation is never exposed as a parameter '
+      + 'independent of `lang`, and an alignment override leaves the document\'s own paragraph '
+      + 'convention alone unless it is asked to change it');
+  }
+  if (!/set align\(left\)/.test(body)) {
+    fail.push('typeset.typ: justified does not `set align(left)` — Typst resolves a paragraph\'s '
+      + 'last line against the ambient alignment, so without this the block is only flush left, on '
+      + 'its last line or its only line, where it happens to already be nested in a left-aligned '
+      + `context, contradicting justification-justified.align_last_line ("${justifiedProps.align_last_line}")`);
+  }
+  if (!/justify:\s*true/.test(body)) {
+    fail.push(`typeset.typ: justified does not set justify: true, contradicting `
+      + `justification-justified.align ("${justifiedProps.align}")`);
+  }
+  if (!/set text\(hyphenate:\s*lang\s*!=\s*none\)/.test(body)) {
+    fail.push('typeset.typ: justified does not tie hyphenate to `lang != none` — spec.json states '
+      + 'hyphenation is per-language and requires the document language to be declared, so `justified` '
+      + `must derive hyphenation from \`lang\` alone (justification-justified.hyphenation: `
+      + `"${justifiedProps.hyphenation}")`);
+  }
+}
+
+/* The four hyphenation-tuning numbers justification-justified declares have
+   no Typst parameter behind them at all — `text()` takes only
+   `hyphenate: bool`, confirmed by compiling `#set text(hyphenation_min_word_chars: 6)`
+   and reading back "unexpected argument" from the compiler itself, not
+   assumed from documentation. There is no code to gate here, only prose — so
+   this gate holds typeset.typ's own account of the gap to spec.json's
+   numbers, the same way a fallback note is gated elsewhere in this file,
+   rather than letting the two drift apart silently. */
+const HYPHENATION_TUNING_KEYS = [
+  'hyphenation_min_word_chars', 'hyphenation_min_chars_before_break',
+  'hyphenation_min_chars_after_break', 'max_consecutive_hyphens',
+];
+for (const key of HYPHENATION_TUNING_KEYS) {
+  const value = justifiedProps[key];
+  if (!new RegExp(`${key} \\(${value}\\)`).test(typ)) {
+    fail.push(`typeset.typ: no comment near justified()/ragged-right() documents `
+      + `justification-justified.${key} as ${value} — spec.json and the file's own account of what `
+      + 'Typst cannot enforce have drifted apart');
+  }
+}
+
+/* ---- 12b. Rendered proof: ambient alignment must not survive nesting ----- */
+
+/* Reuses gate 6's stack-based matrix walk (svgShapesByFill), but for the
+   paragraph text itself rather than a marker rect: every <g class="typst-text">
+   run, with its absolute origin and its glyphs' absolute x. Grouped by line
+   (rounded y) because a hyphenated line renders as two runs — the word and
+   its hyphen — sharing one y. */
+function svgTextRuns(svgText) {
+  const tagRe = /<([a-zA-Z][\w:-]*)((?:\s+[\w:-]+="[^"]*")*)\s*(\/?)>|<\/([a-zA-Z][\w:-]*)>/g;
+  const attrRe = /([\w:-]+)="([^"]*)"/g;
+  const parseMatrix = (t) => {
+    const m = /matrix\(([^)]+)\)/.exec(t);
+    return m ? m[1].trim().split(/[\s,]+/).map(Number) : null;
+  };
+  const multiply = (m1, m2) => {
+    const [a1, b1, c1, d1, e1, f1] = m1;
+    const [a2, b2, c2, d2, e2, f2] = m2;
+    return [
+      a1 * a2 + c1 * b2, b1 * a2 + d1 * b2,
+      a1 * c2 + c1 * d2, b1 * c2 + d1 * d2,
+      a1 * e2 + c1 * f2 + e1, b1 * e2 + d1 * f2 + f1,
+    ];
+  };
+  const apply = (m, x, y) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
+
+  const stack = [[1, 0, 0, 1, 0, 0]];
+  const runs = [];
+  let openRun = null;
+  let match;
+  while ((match = tagRe.exec(svgText))) {
+    const [, openTag, attrsText, selfClose, closeTag] = match;
+    if (closeTag) {
+      if (closeTag === 'g') {
+        if (openRun && stack.length - 1 === openRun.depth) {
+          runs.push(openRun);
+          openRun = null;
+        }
+        stack.pop();
+      }
+      continue;
+    }
+    const attrs = {};
+    if (attrsText) {
+      attrRe.lastIndex = 0;
+      let am;
+      while ((am = attrRe.exec(attrsText))) attrs[am[1]] = am[2];
+    }
+    let matrix = stack[stack.length - 1];
+    if (attrs.transform) {
+      const mm = parseMatrix(attrs.transform);
+      if (mm) matrix = multiply(matrix, mm);
+    }
+    if (openTag === 'g') {
+      if (!selfClose) {
+        stack.push(matrix);
+        if (openRun === null && attrs.class === 'typst-text') {
+          openRun = { depth: stack.length - 1, matrix, glyphs: [] };
+        }
+      }
+    } else if (openTag === 'use' && openRun !== null) {
+      const x = Number(attrs.x ?? '0');
+      openRun.glyphs.push(apply(openRun.matrix, x, 0)[0]);
+    }
+  }
+  const byLine = new Map();
+  for (const r of runs) {
+    const y = Math.round(r.matrix[5] * 100) / 100;
+    const line = byLine.get(y) ?? { y, count: 0, lastX: -Infinity, firstX: Infinity };
+    line.count += r.glyphs.length;
+    if (r.glyphs.length) {
+      line.lastX = Math.max(line.lastX, r.glyphs[r.glyphs.length - 1]);
+      line.firstX = Math.min(line.firstX, r.matrix[4]);
+    }
+    byLine.set(y, line);
+  }
+  return [...byLine.values()].sort((a, b) => a.y - b.y);
+}
+
+function compileSvgProbe(dir, name, source) {
+  const path = join(dir, `${name}.typ`);
+  const svgPath = join(dir, `${name}.svg`);
+  writeFileSync(path, source);
+  execFileSync(
+    'typst',
+    ['compile', '--font-path', resolve('fonts'), path, svgPath],
+    { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+  );
+  return readFileSync(svgPath, 'utf8');
+}
+
+const alignProbeDir = mkdtempSync(join(tmpdir(), 'typeset-justification-check-'));
+try {
+  copyFileSync('implementations/typeset.typ', join(alignProbeDir, 'typeset.typ'));
+
+  /* A one-liner is its own last line — exactly the case the spec's own
+     example names ("its only line, for a one-liner"). Nested inside an
+     ambient #align(center), a function that never states its own alignment
+     would centre this line; one that states align(left) will not, no matter
+     what surrounds it. */
+  const ambientSource = (fn) => `#import "typeset.typ": *\n`
+    + `#set page(width: 200pt, height: auto, margin: 0pt)\n#set text(size: 10pt)\n`
+    + `#align(center, ${fn}[Short line.])\n`;
+
+  for (const fn of ['ragged-right', 'justified']) {
+    try {
+      const svg = compileSvgProbe(alignProbeDir, `ambient-${fn}`, ambientSource(fn));
+      const lines = svgTextRuns(svg);
+      if (lines.length !== 1) {
+        fail.push(`tools/check.mjs: the ambient-alignment probe for ${fn} rendered `
+          + `${lines.length} lines, expected exactly 1 — update the probe`);
+      } else if (Math.abs(lines[0].firstX) > 0.5) {
+        fail.push(`typeset.typ: ${fn}[...] nested inside #align(center, ..) starts at `
+          + `x=${lines[0].firstX.toFixed(2)}pt instead of flush left (x=0) — its alignment (and, for `
+          + 'a one-liner, its last-line alignment) is following the ambient #align rather than its '
+          + 'own explicit `set align(left)`');
+      }
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+      fail.push(`typeset.typ: the ambient-alignment probe for ${fn} failed to compile:\n${detail}`);
+    }
+  }
+
+  /* ---- 12c. Rendered proof: compose with typeset(justified: ..), and the
+              last line is never stretched ----------------------------- */
+
+  /* One sentence, one width (`measure: 200pt` on the real typeset(), not a
+     bare #set page — so this exercises the actual document-wide parameter
+     Step 3 names), long enough to wrap into exactly two lines with a
+     deliberately raggy natural break: `lang: none` on every call here so
+     hyphenation never moves the break point, keeping this probe reasoning
+     about alignment alone. Reused, unmodified, by the hyphenation probe
+     below via its own `lang: "en"` variant. */
+  const COMPOSE_TEXT = 'Alpha bravo charlie delta echo incomprehensibility zulu.';
+  const composeDoc = (setup, call) => `#import "typeset.typ": *\n`
+    + `#show: typeset.with(measure: 200pt${setup})\n#${call}[${COMPOSE_TEXT}]\n`;
+
+  const raggedInJustifiedSvg = compileSvgProbe(
+    alignProbeDir, 'compose-ragged-in-justified',
+    composeDoc(', justified: true', 'ragged-right(lang: none)'),
+  );
+  const justifiedInRaggedSvg = compileSvgProbe(
+    alignProbeDir, 'compose-justified-in-ragged',
+    composeDoc('', 'justified(lang: none)'),
+  );
+
+  const raggedLines = svgTextRuns(raggedInJustifiedSvg);
+  const justifiedLines = svgTextRuns(justifiedInRaggedSvg);
+
+  if (raggedLines.length !== 2 || justifiedLines.length !== 2) {
+    fail.push(`tools/check.mjs: the compose probe wrapped "${COMPOSE_TEXT}" to `
+      + `${raggedLines.length} (ragged-right) and ${justifiedLines.length} (justified) lines at `
+      + 'measure: 200pt, expected exactly 2 from each — update the probe text or width');
+  } else {
+    const [raggedFirst, raggedLast] = raggedLines;
+    const [justifiedFirst, justifiedLast] = justifiedLines;
+
+    /* Direction 1: #ragged-right inside `typeset(justified: true)` must
+       still be ragged — its first line must fall well short of the measure
+       that a justified sibling reaches, not merely "somewhat less". */
+    /* Direction 2: #justified inside the (ragged) document default must
+       reach the measure its ragged-right sibling does not. Checked as one
+       comparison: the gap between the two first lines' right edges must be
+       large, in the direction justified > ragged, so a mutation that makes
+       either function ignore its own setting and follow the document
+       default instead collapses this gap rather than merely shrinking it. */
+    const gap = justifiedFirst.lastX - raggedFirst.lastX;
+    if (gap < 20) {
+      fail.push(`typeset.typ: justified()'s first line ends ${justifiedFirst.lastX.toFixed(2)}pt from `
+        + `the left and ragged-right()'s ends ${raggedFirst.lastX.toFixed(2)}pt, a gap of only `
+        + `${gap.toFixed(2)}pt — expected justified() to reach measurably further right, proving it `
+        + 'stretches its non-last line to the measure regardless of the document default, and that '
+        + 'ragged-right() does not, regardless of typeset(justified: true)');
+    }
+
+    /* The last line is never stretched — spec.json states this explicitly,
+       naming the exact failure mode (a paginating engine fragments the text
+       so the true last line stops looking like one and gets justified
+       anyway). Both probes wrap the same words to the same two lines, so
+       their LAST lines must end at the same x: if justify reached the last
+       line here, justifiedLast would move right of raggedLast. */
+    const lastLineDrift = Math.abs(justifiedLast.lastX - raggedLast.lastX);
+    if (lastLineDrift > 1) {
+      fail.push(`typeset.typ: justified()'s last line ends ${justifiedLast.lastX.toFixed(2)}pt from `
+        + `the left, ragged-right()'s ends ${raggedLast.lastX.toFixed(2)}pt (both wrapping `
+        + `"${COMPOSE_TEXT}" at measure: 200pt) — the last line of a justified paragraph must never `
+        + 'be stretched, so the two should end at the same place');
+    }
+  }
+
+  /* ---- 12d. Rendered proof: hyphenation is tied to `lang`, not a knob ---- */
+
+  /* Same sentence and width, `justified(lang: "en")` this time: a real
+     English hyphenation dictionary is now available, so "incomprehensibility"
+     can break and leave less of itself on the wrapped (last) line than the
+     `lang: none` variant above does. ragged-right(lang: "en") must NOT
+     hyphenate even though a language is declared — hyphenation exists only
+     to serve justification. */
+  const justifiedEnSvg = compileSvgProbe(
+    alignProbeDir, 'hyphenation-justified-en',
+    composeDoc('', 'justified(lang: "en")'),
+  );
+  const raggedEnSvg = compileSvgProbe(
+    alignProbeDir, 'hyphenation-ragged-en',
+    composeDoc('', 'ragged-right(lang: "en")'),
+  );
+  const justifiedEnLines = svgTextRuns(justifiedEnSvg);
+  const raggedEnLines = svgTextRuns(raggedEnSvg);
+
+  if (justifiedEnLines.length !== 2 || raggedEnLines.length !== 2) {
+    fail.push('tools/check.mjs: the hyphenation probe did not wrap to 2 lines for both '
+      + `justified(lang: "en") (${justifiedEnLines.length}) and ragged-right(lang: "en") `
+      + `(${raggedEnLines.length}) — update the probe text or width`);
+  } else {
+    const justifiedNoneLast = justifiedLines[1];
+    const hyphenatedDrop = justifiedNoneLast.count - justifiedEnLines[1].count;
+    if (hyphenatedDrop < 5) {
+      fail.push(`typeset.typ: justified(lang: "en")'s last line carries ${justifiedEnLines[1].count} `
+        + `glyphs against justified(lang: none)'s ${justifiedNoneLast.count} at the same measure — `
+        + 'expected "incomprehensibility" to hyphenate and leave markedly fewer glyphs on the wrapped '
+        + 'line when a language is declared, proving hyphenation is actually reading `lang`');
+    }
+    const raggedEnDrop = Math.abs(raggedEnLines[1].count - raggedLines[1].count);
+    if (raggedEnDrop > 2) {
+      fail.push(`typeset.typ: ragged-right(lang: "en")'s last line carries ${raggedEnLines[1].count} `
+        + `glyphs against ragged-right(lang: none)'s ${raggedLines[1].count} — expected them to match, `
+        + 'since ragged text must never hyphenate regardless of `lang`');
+    }
+  }
+
+  /* ---- 12e. Rendered proof: an alignment override is only that ---------- */
+
+  /* justified() and ragged-right() state ALIGNMENT. While they defaulted to
+     `indented: false` and splatted the paragraph rule unconditionally, one
+     `#justified[..]` inside a document set typeset(indented: true) silently
+     flushed that paragraph's first line and opened a gap around it — a second
+     decision the author never asked for, and the opposite of what a named
+     function is for. Nothing could see it per-task: neither function's own
+     demo document is indented, so both demos take the branch that happens to
+     agree with the document around them.
+
+     Three arms, because "always inherit" and "never inherit" are each wrong
+     and each passes one arm on its own. The wrapped paragraph is line 2: line
+     0 opens the document (Typst withholds the indent there under `all: false`)
+     and line 1 is the ordinary paragraph the wrapped one must match. */
+
+  const overrideDoc = (docIndented, call) => `#import "typeset.typ": *\n`
+    + `#show: typeset.with(indented: ${docIndented}, measure: none, running-head: false, folio: false)\n\n`
+    + `Alpha one paragraph.\n\nBeta two paragraph.\n\n#${call}[Gamma three paragraph.]\n`;
+
+  const overrideArms = [
+    ['justified', 'true', 'justified', true],
+    ['ragged-right', 'true', 'ragged-right', true],
+    ['justified', 'false', 'justified', true],
+    ['justified', 'true', 'justified(indented: false)', false],
+  ];
+  for (const [fn, docIndented, call, followsDocument] of overrideArms) {
+    try {
+      const lines = svgTextRuns(compileSvgProbe(
+        alignProbeDir, `override-${fn}-${docIndented}-${followsDocument}`,
+        overrideDoc(docIndented, call),
+      ));
+      if (lines.length !== 3) {
+        fail.push(`tools/check.mjs: the paragraph-override probe for ${call} in `
+          + `typeset(indented: ${docIndented}) rendered ${lines.length} lines, expected 3 — `
+          + 'update the probe');
+        continue;
+      }
+      const [, ordinary, wrapped] = lines;
+      const indentDrift = wrapped.firstX - ordinary.firstX;
+      const advanceDrift = (wrapped.y - ordinary.y) - (ordinary.y - lines[0].y);
+      if (followsDocument) {
+        if (Math.abs(indentDrift) > 0.5 || Math.abs(advanceDrift) > 0.5) {
+          fail.push(`typeset.typ: #${call}[..] inside typeset(indented: ${docIndented}) starts at `
+            + `x=${wrapped.firstX.toFixed(2)}pt where the ordinary paragraph beside it starts at `
+            + `x=${ordinary.firstX.toFixed(2)}pt, and advances `
+            + `${(wrapped.y - ordinary.y).toFixed(2)}pt where that paragraph advanced `
+            + `${(ordinary.y - lines[0].y).toFixed(2)}pt — an alignment override must leave the `
+            + "document's own paragraph convention exactly as it found it");
+        }
+      } else if (Math.abs(indentDrift) < 0.5 && Math.abs(advanceDrift) < 0.5) {
+        fail.push(`typeset.typ: #${call}[..] inside typeset(indented: ${docIndented}) rendered `
+          + 'identically to the paragraph beside it — a stated `indented:` must still override the '
+          + "document's convention, or the parameter is decorative");
+      }
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+      fail.push(`typeset.typ: the paragraph-override probe for ${call} failed to compile:\n${detail}`);
+    }
+  }
+} finally {
+  rmSync(alignProbeDir, { recursive: true, force: true });
+}
+
+/* ---- 12f. The demo must cover the case, not configure around it --------- */
+
+const justificationDemo = readFileSync('src/demos/justification.typ', 'utf8');
+if (/#set par|#set text/.test(justificationDemo)) {
+  fail.push('src/demos/justification.typ: uses #set par or #set text directly — the point of '
+    + 'justified()/ragged-right() is that an author never has to');
+}
+
+const bibliographyDemo = readFileSync('src/demos/bibliography.typ', 'utf8');
+if (/#set par|#set text/.test(bibliographyDemo)) {
+  fail.push('src/demos/bibliography.typ: uses #set par or #set text directly — the point of '
+    + 'references()/reference() is that an author never has to');
+}
+
+/* The two-column demo is held to the same standard on a wider front: the
+   template chooses the scale, the paragraph shape AND the gutter, so a demo
+   that reaches for #set or for #columns() has reimplemented the template
+   beside it and the two can drift.
+
+   The positive check is the load-bearing one, and it is deliberately the
+   publishing predicate rather than a regex of its own: setsItsOwnPage() is
+   what decides whether the masthead's bare "#show: typeset" is substituted
+   out, so asserting it here asserts the demo is a whole document in the one
+   sense that actually ships, not in a second definition kept beside it.
+   Without this check a demo that dropped the columns entirely would satisfy
+   both negatives and gate nothing.
+
+   Why a whole document and not a hand-composed body: two-column() derives the
+   column from the paper and the margin and refuses a measure below the
+   45-character floor, naming both numbers. A body composed by hand takes
+   neither, so it cannot run that check — and a demo is the thing readers
+   copy onto other papers. */
+const twoColumnDemo = readFileSync('src/demos/two-column.typ', 'utf8');
+if (!setsItsOwnPage(twoColumnDemo) || !/#show:\s*two-column\./.test(twoColumnDemo)) {
+  fail.push('src/demos/two-column.typ: does not open with #show: two-column.with(...) — the demo '
+    + 'has to run the real template, which derives the column from the paper and the margin and '
+    + 'refuses one below the floor; a body composed by hand takes neither and cannot');
+}
+if (/#set /.test(twoColumnDemo)) {
+  fail.push('src/demos/two-column.typ: uses #set directly — the point of two-column() is that an '
+    + 'author never configures the scale or the paragraph shape by hand');
+}
+if (/#columns\(/.test(twoColumnDemo)) {
+  fail.push('src/demos/two-column.typ: calls #columns() with a gutter of its own — 6mm is the '
+    + "template's own number, and two-column() is what applies it");
+}
+
+/* ---- 13. key() must match inline-kbd, bottom edge strictly heavier than
+            the other three ------------------------------------------------ */
+
+/* A keycap's whole visual signature is that one edge, per inline-kbd's
+   border vs border_bottom — a stroke that goes back to one flat weight on
+   all four sides renders as a plain bordered box, not a keycap, so this
+   gate asserts the inequality itself and not just that the two numbers are
+   present somewhere in the function. */
+
+const inlineSpec = spec.sections.find((s) => s.id === 'inline');
+const kbdProps = inlineSpec.elements.find((e) => e.id === 'inline-kbd').properties;
+
+const keyMatch = /#let key\(body\) = text\(font: sans, size: ([\d.]+em), box\(\n([\s\S]*?)\n\)\)/.exec(typ);
+if (!keyMatch) {
+  fail.push('typeset.typ: key() was not found in the shape this gate expects — update the gate if '
+    + 'the function was deliberately restructured');
+} else {
+  const [, keySize, body] = keyMatch;
+  const [specPadY, specPadX] = kbdProps.padding.split(' ');
+
+  const insetMatch = /inset:\s*\(x:\s*([^,]+),\s*y:\s*([^)]+)\)/.exec(body);
+  const gotInset = insetMatch && `${insetMatch[1].trim()}|${insetMatch[2].trim()}`;
+  if (gotInset !== `${specPadX}|${specPadY}`) {
+    fail.push(`typeset.typ: key()'s inset is ${insetMatch ? `(x: ${insetMatch[1].trim()}, y: ${insetMatch[2].trim()})` : 'missing'}, `
+      + `expected (x: ${specPadX}, y: ${specPadY}) from inline-kbd.padding ("${kbdProps.padding}")`);
+  }
+
+  if (!new RegExp(`radius:\\s*${kbdProps.radius}\\b`).test(body)) {
+    fail.push(`typeset.typ: key()'s radius does not match inline-kbd.radius ("${kbdProps.radius}")`);
+  }
+
+  if (keySize !== kbdProps.size) {
+    fail.push(`typeset.typ: key()'s text size is ${keySize}, expected inline-kbd.size `
+      + `("${kbdProps.size}")`);
+  }
+
+  const strokeMatch = /stroke:\s*\(rest:\s*([\d.]+)pt \+ rule-color, bottom:\s*([\d.]+)pt \+ rule-color\)/
+    .exec(body);
+  if (!strokeMatch) {
+    fail.push('typeset.typ: key()\'s stroke is not the dictionary form (rest: <N>pt + rule-color, '
+      + 'bottom: <N>pt + rule-color) that lets one edge carry a different weight than the other three');
+  } else {
+    const [, restWidth, bottomWidth] = strokeMatch;
+    const specBorder = /^([\d.]+)pt rule$/.exec(kbdProps.border)?.[1];
+    const specBorderBottom = /^([\d.]+)pt rule$/.exec(kbdProps.border_bottom)?.[1];
+    if (restWidth !== specBorder) {
+      fail.push(`typeset.typ: key()'s stroke is ${restWidth}pt on the other three sides, expected `
+        + `inline-kbd.border ("${kbdProps.border}")`);
+    }
+    if (bottomWidth !== specBorderBottom) {
+      fail.push(`typeset.typ: key()'s bottom stroke is ${bottomWidth}pt, expected inline-kbd.border_bottom `
+        + `("${kbdProps.border_bottom}")`);
+    }
+    if (Number(bottomWidth) <= Number(restWidth)) {
+      fail.push(`typeset.typ: key()'s bottom stroke (${bottomWidth}pt) is not heavier than its other `
+        + `three sides (${restWidth}pt) — a keycap reads by that asymmetry alone, so a flattened stroke `
+        + 'renders as a plain bordered box');
+    }
+  }
+
+  /* The literals above are the same three strings in both files, and agreeing
+     on them is not the same as agreeing on the result. CSS resolves an
+     element's `padding` em against that element's OWN computed font-size,
+     which the same rule set has already set to 0.85em; Typst resolves a box's
+     `inset` em against whatever size is in force where the box is declared.
+     So a `text(size: 0.85em, ..)` applied to the box's BODY leaves the
+     padding measured against the surrounding prose, and the two
+     implementations of one element differ by 18% while every literal matches.
+     No regex over the source can see that — so this measures the rendered
+     keycap against the rendered text inside it, in a real typeset() document,
+     and holds the difference to what CSS computes. */
+  const padEm = (value) => {
+    const m = /^([\d.]+)em$/.exec(value);
+    return m ? Number(m[1]) : null;
+  };
+  const sizeEm = padEm(kbdProps.size);
+  const padXEm = padEm(specPadX);
+  const padYEm = padEm(specPadY);
+  const kbdBasePt = parseFloat(spec.foundation.scale.steps.base);
+  if (sizeEm === null || padXEm === null || padYEm === null) {
+    fail.push(`spec.json: inline-kbd's size ("${kbdProps.size}") and padding ("${kbdProps.padding}") `
+      + 'are no longer all em values — update this gate to the axis they now use');
+  } else {
+    const keyProbeDir = mkdtempSync(join(tmpdir(), 'typeset-key-check-'));
+    try {
+      copyFileSync('implementations/typeset.typ', join(keyProbeDir, 'typeset.typ'));
+      const probePath = join(keyProbeDir, 'key.typ');
+      writeFileSync(probePath, '#import "typeset.typ": *\n#show: typeset\n\n'
+        + '#context {\n'
+        + '  let k = measure(key[Ctrl])\n'
+        + `  let t = measure(text(font: sans, size: ${kbdProps.size})[Ctrl])\n`
+        + '  [#metadata(((k.width - t.width) / 2 / 1pt, (k.height - t.height) / 2 / 1pt)) <key-inset>]\n'
+        + '}\n');
+      const out = execFileSync(
+        'typst',
+        ['query', probePath, '<key-inset>', '--field', 'value', '--one', '--font-path', resolve('fonts')],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+      const [gotX, gotY] = JSON.parse(out.toString()).map(Number);
+      const axes = [
+        ['horizontal', gotX, padXEm * sizeEm * kbdBasePt, specPadX],
+        ['vertical', gotY, padYEm * sizeEm * kbdBasePt, specPadY],
+      ];
+      for (const [axis, got, expected, literal] of axes) {
+        if (Math.abs(got - expected) > 0.05) {
+          fail.push(`typeset.typ: key()'s ${axis} padding renders ${got.toFixed(2)}pt, but `
+            + `.typeset kbd's ${literal} resolves against the keycap's own ${kbdProps.size} of the `
+            + `${spec.foundation.scale.steps.base} base, i.e. ${expected.toFixed(2)}pt. An em in `
+            + `\`inset\` follows the size in force where the box is declared, so the ${kbdProps.size} `
+            + 'has to wrap the box, not its body');
+        }
+      }
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+      fail.push(`typeset.typ: the keycap padding probe failed:\n${detail}`);
+    } finally {
+      rmSync(keyProbeDir, { recursive: true, force: true });
+    }
+  }
+}
+
+/* ---- 14. reference() must not double the punctuation between an author's
+            own facts and the template's own -------------------------------- */
+
+/* references()/reference() compose the punctuation between the facts an
+   author supplies — author roman, title italic, the rest in order, "the
+   punctuation between them the template's business and not the author's".
+   A parameter an author supplies with its own trailing mark (an
+   `edition: [4th ed.]`, a `publisher: [Hyphen Press.]`) therefore produces a
+   doubled one once composed: this class of bug shipped once, in the demo
+   itself, caught only by rendering it and reading the result, not by any
+   gate. This is that gate.
+
+   It has to read RENDERED text, not typeset.typ's source: the doubling is a
+   property of the composed content tree at the point two adjacent runs of
+   text meet, which no regex over a #let's own source could see — the
+   template's own period is written once, in one place, regardless of how
+   many times an author's value happens to collide with it.
+
+   `typst query` serializes a labelled region of the compiled document to
+   JSON; every leaf run of text is {"func": "text", "text": "..."} and every
+   literal space is {"func": "space"}, both in reading order, so walking that
+   tree and rejoining them reconstructs exactly what a reader sees — without
+   a PDF/SVG text-extraction dependency this file would otherwise need.
+
+   references() itself opens on `context` (it reads ts-two-column-body), and
+   a label on unresolved context content queries as the raw, unevaluated
+   context node rather than its rendered children — so this probes
+   reference()'s own composition directly: the demo's `#references[...]`
+   wrapper is stripped down to its entries, which are plain, immediately-
+   resolvable content (no context of their own), and re-wrapped in a label
+   this gate can query. */
+
+function collectQueryText(node, out) {
+  if (Array.isArray(node)) {
+    for (const child of node) collectQueryText(child, out);
+    return;
+  }
+  if (!node || typeof node !== 'object') return;
+  if (node.func === 'text' && typeof node.text === 'string') {
+    out.push(node.text);
+    return;
+  }
+  if (node.func === 'space') {
+    out.push(' ');
+    return;
+  }
+  for (const value of Object.values(node)) {
+    if (value && typeof value === 'object') collectQueryText(value, out);
+  }
+}
+
+if (typstAvailable()) {
+  const bibliographyDemo = readFileSync('src/demos/bibliography.typ', 'utf8');
+  const entriesMatch = /^#references(?:\([^\n]*\))?\[\n([\s\S]*)\n\]\n?$/.exec(bibliographyDemo);
+  if (!entriesMatch) {
+    fail.push('tools/check.mjs: src/demos/bibliography.typ is not in the shape this gate expects '
+      + '(a single #references[ ... ] wrapping the entries) — update the gate if the demo was '
+      + 'deliberately restructured');
+  } else {
+    const bibProbeDir = mkdtempSync(join(tmpdir(), 'typeset-bib-punct-check-'));
+    try {
+      copyFileSync('implementations/typeset.typ', join(bibProbeDir, 'typeset.typ'));
+      const probeDoc = typstDocument(`#[\n${entriesMatch[1]}\n] <bib-punctuation-check>`);
+      const probePath = join(bibProbeDir, 'bib-punctuation-check.typ');
+      writeFileSync(probePath, probeDoc);
+
+      let queryResult;
+      try {
+        const out = execFileSync(
+          'typst',
+          ['query', '--font-path', resolve('fonts'), probePath, '<bib-punctuation-check>'],
+          { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+        );
+        queryResult = JSON.parse(out.toString());
+      } catch (err) {
+        const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+        fail.push(`src/demos/bibliography.typ: could not query the compiled reference text:\n${detail}`);
+        queryResult = null;
+      }
+
+      if (queryResult) {
+        const textPieces = [];
+        collectQueryText(queryResult, textPieces);
+        const text = textPieces.join('');
+        const doubled = text.match(/([.,])\1|\.,|,\./g);
+        if (doubled) {
+          fail.push('src/demos/bibliography.typ: the rendered reference text contains doubled '
+            + `punctuation (${[...new Set(doubled)].join(', ')}) in "${text.trim()}" — `
+            + "reference() composes the punctuation between an author's facts, so a fact supplied "
+            + 'with its own trailing "." or "," produces a doubled mark; check every reference() '
+            + 'call\'s author, title, edition, publisher, year and note for one');
+        }
+      }
+    } finally {
+      rmSync(bibProbeDir, { recursive: true, force: true });
+    }
+  }
+}
+
+/* ---- 15. A demo may not hand-configure layout: no #set par(/#set text(,
+            and no millimetre literal reached from Typst code ------------- */
+
+/* A demo is what a reader copies. If it reaches for #set par(), #set text(),
+   or a hand-picked millimetre, the template has failed to cover that case —
+   Tasks 2-7 converted every demo that did; this gate is what stops the next
+   one reintroducing it. Ruling 2 on the plan this gate comes from forbids an
+   exemption list outright: a demo that genuinely needs to configure
+   something is evidence of a missing function in typeset.typ, not a line to
+   add here.
+
+   The #set arm is a plain substring search — #set is never legitimate inside
+   a demo, in prose or in code, so it needs no context-sensitivity.
+
+   The millimetre arm needs it. The plan this gate implements originally
+   called for rejecting a bare millimetre literal anywhere under
+   src/demos/*.typ. Measured against the demos as they stand today, that
+   rule fires on 20 lines (not the 19 the plan's own author measured earlier —
+   src/demos/letter.typ, with a footnote citing "168mm", was added after that
+   measurement) of which 19 are legitimate: these demos are prose *about*
+   margins and column arithmetic ("A4 is 210mm wide..."), and forbidding that
+   forbids the demos from explaining themselves. Exactly one hit is real:
+   src/demos/figures.typ used to hand-pick 128mm for a diagram's scale, tied
+   to the measure with nothing saying so.
+
+   So this checks a narrower, defensible claim: a millimetre literal is a
+   problem only where it sits in Typst *code* (a #let binding, a #set
+   argument, a bare function-call argument), not where it sits in Typst
+   *markup* (prose, including inside a content-block argument such as
+   #footnote[...] or a #frontmatter-abstract(...)[...] body) — the same
+   distinction the language itself draws between an unescaped "#" and the
+   "[...]" it can open. codeMillimetreLiterals() below walks the source
+   tracking that distinction as a stack of frames, because a call can nest
+   inside a markup content block that is itself an argument to an outer call
+   (src/demos/two-column.typ's "#show: two-column.with(front: [
+   #frontmatter-title-block(...) ... ])" is exactly this shape) — a single
+   in/out flag cannot represent that, but a stack of "what recursively
+   contains this position" frames can.
+
+   Stated limit: this is a lexical approximation of Typst's grammar, not a
+   parser for it. A frame opened by a bare "#" (before any "(", "{" or "["
+   has committed it to a bracket) is closed either at the next newline, or
+   immediately once its own bracketed call finishes and the very next
+   character does not chain into another one — the same tight binding
+   #frontmatter-abstract(width: 100%)[...] relies on to keep its trailing
+   content block part of the same call. A keyword clause whose unbracketed
+   code is separated from its own content block by a further keyword and
+   whitespace — a Typst `for`/`while` head such as "#for (x) in y [...]" —
+   can be misclassified for the stretch between the closing "(" and the
+   opening "[", because the one-character lookahead this function uses does
+   not span that gap. No demo in this repo puts a millimetre literal in that
+   stretch (src/demos/tokens.typ's own #for loop has none), so the limit is
+   recorded here rather than patched over with more lookahead a real case
+   has never exercised. */
+
+function codeMillimetreLiterals(source) {
+  const hits = [];
+  const stack = [{ type: 'markup', bracket: null }];
+  const n = source.length;
+  let i = 0;
+
+  /* Closes the bracket frame that owns position `i` in `source`, then — if
+     the frame beneath it is a still-unbracketed "bare" code frame — decides
+     whether that bare frame is also finished: it is, unless the character
+     immediately at `i` chains straight into another call ("(" or "["). */
+  const closeBracket = (i) => {
+    stack.pop();
+    const frame = stack[stack.length - 1];
+    if (frame && frame.type === 'code' && frame.bracket === null
+      && source[i] !== '(' && source[i] !== '[') {
+      stack.pop();
+    }
+  };
+
+  while (i < n) {
+    const ch = source[i];
+    const next = source[i + 1];
+
+    if (ch === '/' && next === '/') {
+      const nl = source.indexOf('\n', i);
+      i = nl === -1 ? n : nl;
+      continue;
+    }
+    if (ch === '/' && next === '*') {
+      const close = source.indexOf('*/', i + 2);
+      i = close === -1 ? n : close + 2;
+      continue;
+    }
+    if (ch === '\\') { i += 2; continue; }
+
+    const frame = stack[stack.length - 1];
+
+    if (frame.type === 'markup') {
+      if (ch === '#') { stack.push({ type: 'code', bracket: null }); i += 1; continue; }
+    } else {
+      if (ch === '(' || ch === '{') { stack.push({ type: 'code', bracket: ch }); i += 1; continue; }
+      if (ch === '[') { stack.push({ type: 'markup', bracket: '[' }); i += 1; continue; }
+      if (ch === ')' && frame.bracket === '(') { closeBracket(i + 1); i += 1; continue; }
+      if (ch === '}' && frame.bracket === '{') { closeBracket(i + 1); i += 1; continue; }
+      if (ch === '\n' && frame.bracket === null) { stack.pop(); i += 1; continue; }
+    }
+    if (ch === ']' && frame.type === 'markup' && frame.bracket === '[') {
+      closeBracket(i + 1); i += 1; continue;
+    }
+
+    const m = /^(\d+(?:\.\d+)?)mm(?!\w)/.exec(source.slice(i, i + 20));
+    if (m && !/[\w.]/.test(source[i - 1] ?? ' ')) {
+      if (frame.type === 'code') hits.push({ index: i, text: m[0] });
+      i += m[0].length;
+      continue;
+    }
+
+    i += 1;
+  }
+  return hits;
+}
+
+for (const file of typstSnippets) {
+  const path = `src/demos/${file}`;
+  const src = readFileSync(path, 'utf8');
+
+  src.split('\n').forEach((line, idx) => {
+    if (/#set\s+par\(|#set\s+text\(/.test(line)) {
+      fail.push(`${path}:${idx + 1}: hand-configures the layout directly (${line.trim()}) — a `
+        + 'demo is what a reader copies, and the point of the template functions is that an '
+        + 'author never writes #set par() or #set text()');
+    }
+  });
+
+  for (const hit of codeMillimetreLiterals(src)) {
+    const lineNo = src.slice(0, hit.index).split('\n').length;
+    fail.push(`${path}:${lineNo}: a millimetre literal (${hit.text}) is reached from Typst code, `
+      + 'not from prose — a demo that hand-picks a dimension is evidence of a missing function in '
+      + 'implementations/typeset.typ, not a line for an exemption list');
   }
 }
 
