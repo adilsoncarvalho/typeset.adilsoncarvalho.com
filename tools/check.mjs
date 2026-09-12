@@ -1343,6 +1343,83 @@ for (const id of spanningAlways) {
   }
 }
 
+/* The container itself: every check above asks whether an element spans,
+   which presupposes `.typeset--two-column` is a multicol box in the first
+   place. It is not asserted anywhere else in this file. Delete `columns: 2`
+   from it and every `column-span: all` below becomes a no-op — the whole
+   template renders as one column, silently, which is worse than any single
+   element failing to span. Found the same way as the per-id selectors: the
+   leaf rule whose own selector (not a descendant of it) is exactly
+   `.typeset--two-column`. Column count and gutter are both derived from
+   spec.json, not hardcoded, for the same reason as the rest of this gate. */
+const parseDeclarations = (decls) => {
+  const map = new Map();
+  for (const raw of decls.split(';')) {
+    const idx = raw.indexOf(':');
+    if (idx === -1) continue;
+    const prop = raw.slice(0, idx).trim();
+    if (!prop) continue;
+    map.set(prop, raw.slice(idx + 1).trim());
+  }
+  return map;
+};
+const normalizeSelector = (raw) => raw.replace(/\s+/g, ' ').trim();
+
+const containerRule = cssLeafRules.find((r) => r.selectors.split(',')
+  .some((s) => normalizeSelector(s) === '.typeset--two-column'));
+
+if (!containerRule) {
+  fail.push('typeset.css: no rule selects exactly .typeset--two-column — the multicol container '
+    + 'rule was not found');
+} else {
+  const containerDecls = parseDeclarations(containerRule.decls);
+  const expectedColumns = twoColumnTemplate.page.columns;
+  const columnsValue = containerDecls.get('columns');
+  if (columnsValue === undefined) {
+    fail.push('typeset.css: .typeset--two-column does not declare `columns`, so it is not a multicol '
+      + 'container and every column-span below it is a no-op');
+  } else if (Number(columnsValue) !== expectedColumns) {
+    fail.push(`typeset.css: .typeset--two-column declares columns: ${columnsValue}, but `
+      + `templates.two-column.page.columns is ${expectedColumns}`);
+  }
+
+  const columnGapValue = containerDecls.get('column-gap');
+  if (columnGapValue === undefined) {
+    fail.push('typeset.css: .typeset--two-column does not declare `column-gap`');
+  } else {
+    const varRef = /^var\((--[\w-]+)\)$/.exec(columnGapValue);
+    const resolved = varRef ? containerDecls.get(varRef[1]) : columnGapValue;
+    const resolvedMm = resolved && /^[\d.]+mm$/.test(resolved.trim()) ? parseFloat(resolved) : null;
+    if (resolvedMm === null) {
+      fail.push(`typeset.css: .typeset--two-column's column-gap (${columnGapValue}`
+        + `${varRef ? ` → ${resolved ?? 'undefined'}` : ''}) does not resolve to a plain mm value this `
+        + 'check can compare to templates.two-column.derivation.column_gap_mm');
+    } else if (Math.abs(resolvedMm - twoColumnDerivation.column_gap_mm) > 0.001) {
+      fail.push(`typeset.css: .typeset--two-column's column-gap resolves to ${resolved}, but `
+        + `templates.two-column.derivation.column_gap_mm is ${twoColumnDerivation.column_gap_mm}mm`);
+    }
+  }
+}
+
+/* The manual affordance: spanning.optional (figure, table, code block, pull
+   quote) names no element ids to loop over, but .ts-span is the one CSS
+   selector it depends on — checked through the same declaration-first path
+   as the seven always-list ids above, and never gated before this round.
+   The always list got the task's attention; the opt-in list had nothing
+   watching it on either implementation. */
+const spanSelector = '.typeset--two-column > .ts-span';
+const spanValues = columnSpanValuesBySelector.get(spanSelector) || [];
+if (spanValues.length === 0) {
+  fail.push('typeset.css: templates.two-column.spanning.optional depends on .ts-span, but no rule '
+    + `declares column-span on "${spanSelector}"`);
+} else if (spanValues.length > 1) {
+  fail.push(`typeset.css: "${spanSelector}" has column-span declared in ${spanValues.length} separate `
+    + `rules (${spanValues.join(', ')}) — exactly one, declaring "all", is expected`);
+} else if (spanValues[0] !== 'all') {
+  fail.push(`typeset.css: "${spanSelector}" declares column-span: ${spanValues[0]}, not "all" `
+    + '(templates.two-column.spanning.optional depends on it)');
+}
+
 /* Typst: render a probe, don't read the source next to it. Reuses gate 3h's
    harness — a mkdtemp reader directory, a copy of typeset.typ, `typst compile
    --font-path` — but as one small document per checked id rather than one

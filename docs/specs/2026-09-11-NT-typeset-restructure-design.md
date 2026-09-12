@@ -331,3 +331,24 @@ committed because these items must outlive them.
 - **`notes-sidenote` is fixed at 13em**, so a sidenote does not follow a clamped
   measure on A5. Group 4 found it and left it, because sizing a sidenote against
   the margin it lives in is its own piece of work.
+- **`tools/check.mjs`'s CSS conformance checks assert source text; its Typst
+  checks measure a render.** Three rounds of adversarial review against the
+  two-column spanning gate (Group 4) each found a construction that passed a
+  CSS-side assertion while breaking the feature it was meant to guarantee — a
+  missing combinator, a retargeted ancestor, an unchecked container — and each
+  fix closed that one hole. The Typst side held against the same style of
+  attack, including attempts the reviewers did not name in advance, because it
+  renders the document with `typst compile` and reads the actual output rather
+  than the source that is meant to produce it. This is structural, not an
+  oversight in any one gate: this toolchain has no headless browser, so a CSS
+  assertion can only ever read source text next to the behaviour, and a source
+  read can be walked around by any construction its author did not anticipate.
+  Closing it for CSS the way the Typst side is closed would mean adding a
+  headless-browser dependency to the check (for example Playwright or
+  Puppeteer, driving Paged.js the way the site itself does) and asserting
+  computed layout instead of declared rules. That is a real dependency and
+  maintenance decision, not a task-sized patch, so it is recorded here rather
+  than decided inside a page-layouts task. Whoever owns `tools/check.mjs`
+  should decide whether that dependency is worth paying for before 2.0.0 ships;
+  until it is, expect the CSS arm of any future conformance gate to have the
+  same shape of blind spot the spanning gate did.
