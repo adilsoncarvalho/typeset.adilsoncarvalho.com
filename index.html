@@ -737,20 +737,51 @@ page.
   </div>
   <div class="pair">
     <div>
-      <p class="pair__label">How it must look</p>
+      <p class="pair__label" data-element="heading-h1">1 · Heading 1 — document title</p>
+      <p class="demo-note">24pt sans at a light weight, tracked tighter than body text. It opens flush with the top of the page — no space above it, since nothing on the page comes before it.</p>
       <div class="paper typeset">
         <h1>The Elements</h1>
-        <p>Body text follows, set flush.</p>
+        <p>Body text follows immediately, at the ordinary rhythm — a heading is never the last thing on a page, and never alone.</p>
+      </div>
+
+      <p class="pair__label" data-element="heading-h2">2 · Heading 2 — section</p>
+      <p class="demo-note">A section heading also sets the page's own running head, so a reader mid-chapter can see which section they are in without turning back to find it.</p>
+      <div class="paper typeset">
         <h2>Composition</h2>
-        <p>A section opens here, and the running head of the page changes to match it.</p>
+        <p>A section opens here, and from this point the running head at the top of the page reads "Composition" until the next one changes it.</p>
+      </div>
+
+      <p class="pair__label" data-element="heading-h3">3 · Heading 3 — subsection</p>
+      <p class="demo-note">Smaller again, and still bold sans — clearly subordinate to the section above it, without needing a different colour or register to say so.</p>
+      <div class="paper typeset">
         <h3>The measure</h3>
-        <p>A subsection, still clearly subordinate.</p>
+        <p>A subsection narrows the topic without opening a new run in the running head.</p>
+      </div>
+
+      <p class="pair__label" data-element="heading-h4">4 · Heading 4</p>
+      <p class="demo-note">The last level where size alone still carries the hierarchy — one step above body text, and the last one worth spending a size change on.</p>
+      <div class="paper typeset">
         <h4>Choosing a ratio</h4>
-        <p>Fourth level, the last with a size change.</p>
+        <p>Fourth level: still sans, still bold, one size larger than the paragraph beneath it.</p>
+      </div>
+
+      <p class="pair__label" data-element="heading-h5">5 · Heading 5</p>
+      <p class="demo-note">No size change from body — the register carries the level instead. Serif, small caps, tracked wider, so the eye reads it as a heading without the page gaining another size step.</p>
+      <div class="paper typeset">
         <h5>On old-style figures</h5>
-        <p>Fifth level: small caps at body size.</p>
+        <p>Fifth level: serif small caps at exactly the body size around it.</p>
+      </div>
+
+      <p class="pair__label" data-element="heading-h6">6 · Heading 6</p>
+      <p class="demo-note">One register further down: serif italic, still at body size — the quietest heading the scale offers, for a level that barely needs announcing.</p>
+      <div class="paper typeset">
         <h6>A closing remark</h6>
-        <p>Sixth level: italic at body size.</p>
+        <p>Sixth level: serif italic, the same size as the text it introduces.</p>
+      </div>
+
+      <p class="pair__label" data-element="heading-run-in">7 · Run-in heading</p>
+      <p class="demo-note">The heading shares the first line of its own paragraph, marked off by a muted mid dot — for a dense report where a full heading line costs more vertical space than the point is worth.</p>
+      <div class="paper typeset">
         <h6 class="ts-heading-run-in">Run-in</h6><p>a heading that shares the first line of its paragraph, which saves vertical space in a dense report.</p>
       </div>
     </div>
@@ -765,42 +796,63 @@ page.
     <label for="tab-heading-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>Sans against the serif body, so hierarchy reads by contrast rather than by size alone.</li><li>Below level 4 the size stops changing and the register shifts instead — small caps, then italic. Six distinct levels inside a 24pt–11pt range.</li><li>Space above is four times the space below: a heading belongs to what follows it.</li><li>A heading MUST NOT be the last thing on a page. This is the most common defect in printed documents.</li></ul><h4 class="spec-el">Heading 1 — document title</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>sans</code></td></tr><tr><th>weight</th><td><code>300</code></td></tr><tr><th>size</th><td><code>24pt</code></td></tr><tr><th>line height</th><td><code>1.2</code></td></tr><tr><th>baseline advance</th><td><code>28.8pt</code></td></tr><tr><th>tracking</th><td><code>-0.015em</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>0</code></td></tr><tr><th>space after</th><td><code>5.5pt</code></td></tr><tr><th>break after</th><td><code>avoid</code></td></tr><tr><th>break inside</th><td><code>avoid</code></td></tr><tr><th>wrap</th><td><code>balanced</code></td></tr></tbody></table><h4 class="spec-el">Heading 2 — section</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>sans</code></td></tr><tr><th>weight</th><td><code>600</code></td></tr><tr><th>size</th><td><code>18pt</code></td></tr><tr><th>line height</th><td><code>1.2</code></td></tr><tr><th>baseline advance</th><td><code>21.6pt</code></td></tr><tr><th>tracking</th><td><code>-0.01em</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>22pt</code></td></tr><tr><th>space after</th><td><code>5.5pt</code></td></tr><tr><th>break after</th><td><code>avoid</code></td></tr><tr><th>break inside</th><td><code>avoid</code></td></tr><tr><th>wrap</th><td><code>balanced</code></td></tr><tr><th>sets running head</th><td>yes</td></tr></tbody></table><h4 class="spec-el">Heading 3 — subsection</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>sans</code></td></tr><tr><th>weight</th><td><code>600</code></td></tr><tr><th>size</th><td><code>14pt</code></td></tr><tr><th>line height</th><td><code>1.2</code></td></tr><tr><th>baseline advance</th><td><code>16.8pt</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>22pt</code></td></tr><tr><th>space after</th><td><code>5.5pt</code></td></tr><tr><th>break after</th><td><code>avoid</code></td></tr></tbody></table><h4 class="spec-el">Heading 4</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>sans</code></td></tr><tr><th>weight</th><td><code>600</code></td></tr><tr><th>size</th><td><code>12pt</code></td></tr><tr><th>line height</th><td><code>1.2</code></td></tr><tr><th>baseline advance</th><td><code>14.4pt</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>22pt</code></td></tr><tr><th>space after</th><td><code>5.5pt</code></td></tr><tr><th>break after</th><td><code>avoid</code></td></tr></tbody></table><h4 class="spec-el">Heading 5</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>weight</th><td><code>600</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>variant</th><td><code>all small caps</code></td></tr><tr><th>tracking</th><td><code>0.06em</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>space before</th><td><code>22pt</code></td></tr><tr><th>space after</th><td><code>5.5pt</code></td></tr><tr><th>break after</th><td><code>avoid</code></td></tr></tbody></table><p class="spec-note">No size change from body — the register carries the level.</p><h4 class="spec-el">Heading 6</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>weight</th><td><code>400</code></td></tr><tr><th>style</th><td><code>italic</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>space before</th><td><code>22pt</code></td></tr><tr><th>space after</th><td><code>5.5pt</code></td></tr><tr><th>break after</th><td><code>avoid</code></td></tr></tbody></table><h4 class="spec-el">Run-in heading</h4><table class="spec-table"><tbody><tr><th>display</th><td>inline with the first line of its paragraph</td></tr><tr><th>separator</th><td><code> · </code></td></tr><tr><th>separator color</th><td><code>ink_faint</code></td></tr><tr><th>space before</th><td><code>0</code></td></tr><tr><th>space after</th><td><code>0</code></td></tr></tbody></table><p class="spec-note">For dense reports where a full heading line is too much vertical cost.</p></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L128">heading</a></p><pre>&lt;h1&gt;The Elements&lt;/h1&gt;
-&lt;p&gt;Body text follows, set flush.&lt;/p&gt;
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L128">heading</a></p><pre>&lt;!-- Heading 1 — document title --&gt;
+&lt;h1&gt;The Elements&lt;/h1&gt;
+&lt;p&gt;Body text follows immediately, at the ordinary rhythm — a heading is never the last thing on a page, and never alone.&lt;/p&gt;
+
+&lt;!-- Heading 2 — section --&gt;
 &lt;h2&gt;Composition&lt;/h2&gt;
-&lt;p&gt;A section opens here, and the running head of the page changes to match it.&lt;/p&gt;
+&lt;p&gt;A section opens here, and from this point the running head at the top of the page reads &quot;Composition&quot; until the next one changes it.&lt;/p&gt;
+
+&lt;!-- Heading 3 — subsection --&gt;
 &lt;h3&gt;The measure&lt;/h3&gt;
-&lt;p&gt;A subsection, still clearly subordinate.&lt;/p&gt;
+&lt;p&gt;A subsection narrows the topic without opening a new run in the running head.&lt;/p&gt;
+
+&lt;!-- Heading 4 --&gt;
 &lt;h4&gt;Choosing a ratio&lt;/h4&gt;
-&lt;p&gt;Fourth level, the last with a size change.&lt;/p&gt;
+&lt;p&gt;Fourth level: still sans, still bold, one size larger than the paragraph beneath it.&lt;/p&gt;
+
+&lt;!-- Heading 5 --&gt;
 &lt;h5&gt;On old-style figures&lt;/h5&gt;
-&lt;p&gt;Fifth level: small caps at body size.&lt;/p&gt;
+&lt;p&gt;Fifth level: serif small caps at exactly the body size around it.&lt;/p&gt;
+
+&lt;!-- Heading 6 --&gt;
 &lt;h6&gt;A closing remark&lt;/h6&gt;
-&lt;p&gt;Sixth level: italic at body size.&lt;/p&gt;
+&lt;p&gt;Sixth level: serif italic, the same size as the text it introduces.&lt;/p&gt;
+
+&lt;!-- Run-in heading --&gt;
 &lt;h6 class=&quot;ts-heading-run-in&quot;&gt;Run-in&lt;/h6&gt;&lt;p&gt;a heading that shares the first line of its paragraph, which saves vertical space in a dense report.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L295">heading</a></p><pre>= The Elements
 
-Body text follows, <span class="c-at">set</span> flush.
+Body text follows immediately, at the ordinary rhythm — a heading is never
+the last thing on a page, and never alone.
 
 == Composition
 
-A section opens here, and the running head of the page changes to match it.
+A section opens here, and from this point the running head at the top of
+the page reads &quot;Composition&quot; until the next one changes it.
 
 === The measure
 
-A subsection, still clearly subordinate.
+A subsection narrows the topic without opening a new run in the running
+head.
 
 ==== Choosing a ratio
 
-Fourth level, the last with a size change.
+Fourth <span class="c-prop">level</span>: still sans, still bold, one size larger than the paragraph
+beneath it.
 
 ===== On old-style figures
 
-Fifth <span class="c-prop">level</span>: small caps at body size.
+Fifth <span class="c-prop">level</span>: serif small caps at exactly the body size around it.
 
 ====== A closing remark
 
-Sixth <span class="c-prop">level</span>: italic at body size.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+Sixth <span class="c-prop">level</span>: serif italic, the same size as the text it introduces.
+
+<span class="c-comment">// heading-run-in has no Typst counterpart here: `show heading: it =&gt;</span>
+<span class="c-comment">// block(...)` above always opens a new block for a heading, so nothing in</span>
+<span class="c-comment">// this file can share a heading with the first line of its own paragraph.</span></pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
 </div>
     </div>
@@ -1543,34 +1595,79 @@ typeface.
   </div>
   <div class="pair">
     <div>
-      <p class="pair__label">How it must look</p>
+      <p class="pair__label" data-element="list-unordered">1 · Unordered list</p>
+      <p class="demo-note">A grey mid-dot marker, weighted so it reads as a mark rather than competing with the words beside it. A runover line aligns to the text, never to the marker.</p>
       <div class="paper typeset">
         <ul>
-          <li>An unordered item, with a grey mid-dot for a marker.</li>
+          <li>An unordered item.</li>
           <li>A second item, long enough to wrap onto a second line so you can see that the runover aligns to the text, not to the marker.</li>
-          <li>A nested list follows:
+        </ul>
+      </div>
+
+      <p class="pair__label" data-element="list-unordered-nested">2 · Unordered list, nested</p>
+      <p class="demo-note">The nested marker switches to an en dash, lighter in weight than the level above it — two levels deep is the limit worth designing for.</p>
+      <div class="paper typeset">
+        <ul>
+          <li>A first-level item, followed by a nested list:
             <ul>
               <li>The nested marker is an en dash.</li>
               <li>Two levels is the limit worth designing for.</li>
             </ul>
           </li>
         </ul>
+      </div>
 
-        <ol>
-          <li>Ordered items use tabular lining figures, so 9 and 10 align.</li>
-          <li>Sub-items switch to lower alpha:
-            <ol><li>First sub-item.</li><li>Second sub-item.</li></ol>
-          </li>
-          <li>The tenth item would still align. It is the small things.</li>
+      <p class="pair__label" data-element="list-ordered">3 · Ordered list</p>
+      <p class="demo-note">Tabular lining figures, so a run past nine keeps every marker in the same column rather than drifting once a second digit appears.</p>
+      <div class="paper typeset">
+        <ol start="8">
+          <li>Eighth item.</li>
+          <li>Ninth item.</li>
+          <li>Tenth item — the marker still sits in the same column as the single digits above it.</li>
+          <li>Eleventh item.</li>
         </ol>
+      </div>
 
+      <p class="pair__label" data-element="list-ordered-nested">4 · Ordered list, nested</p>
+      <p class="demo-note">Sub-items restart the counter and switch to lower alpha — the same demotion the nested unordered marker makes.</p>
+      <div class="paper typeset">
+        <ol>
+          <li>A first-level item, followed by sub-items:
+            <ol>
+              <li>First sub-item.</li>
+              <li>Second sub-item.</li>
+            </ol>
+          </li>
+        </ol>
+      </div>
+
+      <p class="pair__label" data-element="list-tight">5 · Tight list</p>
+      <p class="demo-note">No space between items — for an enumeration of values, not a sequence of sentences a reader pauses between.</p>
+      <div class="paper typeset">
+        <ul class="ts-list-tight">
+          <li>11pt body</li>
+          <li>9.5pt table</li>
+          <li>8pt caption label</li>
+        </ul>
+      </div>
+
+      <p class="pair__label" data-element="list-definition-term">6 · Definition term</p>
+      <p class="demo-note">Sans, bold, and a size down from body — a term reads as a label the description answers, not as a sentence in its own right.</p>
+      <div class="paper typeset">
+        <dl>
+          <dt>Measure</dt>
+          <dd>The length of a line of type, counted in characters rather than in millimetres.</dd>
+        </dl>
+      </div>
+
+      <p class="pair__label" data-element="list-definition-description">7 · Definition description</p>
+      <p class="demo-note">Serif, at body size, indented under its term — the answer reads as prose, set apart from the label that introduces it.</p>
+      <div class="paper typeset">
         <dl>
           <dt>Measure</dt>
           <dd>The length of a line of type, counted in characters rather than in millimetres.</dd>
           <dt>Leading</dt>
           <dd>The vertical distance between baselines. Named for the strips of lead once inserted between lines of metal type.</dd>
-          <dt>Widow</dt>
-          <dd>A last line of a paragraph carried alone to the top of a page. An orphan is the mirror case at the foot.</dd>
         </dl>
       </div>
     </div>
@@ -1585,10 +1682,15 @@ typeface.
     <label for="tab-list-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>The marker's colour, weight and width must be under control. A grey marker with black text reads as one thing; a black marker competes with the first word.</li><li>Runover lines align to the text, never to the marker.</li><li>Two levels of nesting is the limit worth designing for.</li><li>Definition lists are underused: they are the right shape for a glossary, a set of terms, or the field-and-value blocks of a letter.</li></ul><h4 class="spec-el">Unordered list</h4><table class="spec-table"><tbody><tr><th>marker</th><td><code>·</code></td></tr><tr><th>marker color</th><td><code>ink_muted</code></td></tr><tr><th>marker weight</th><td><code>700</code></td></tr><tr><th>marker column width</th><td><code>1.4em</code></td></tr><tr><th>indent</th><td><code>1.4em</code></td></tr><tr><th>item space after</th><td><code>2.75pt</code></td></tr><tr><th>space after</th><td><code>11pt</code></td></tr></tbody></table><h4 class="spec-el">Unordered list, nested</h4><table class="spec-table"><tbody><tr><th>marker</th><td><code>–</code></td></tr><tr><th>marker weight</th><td><code>400</code></td></tr><tr><th>space before</th><td><code>2.75pt</code></td></tr></tbody></table><h4 class="spec-el">Ordered list</h4><table class="spec-table"><tbody><tr><th>marker</th><td><code>1.</code></td></tr><tr><th>marker color</th><td><code>ink_muted</code></td></tr><tr><th>numerals</th><td><code>lining tabular</code></td></tr><tr><th>marker column width</th><td><code>1.4em</code></td></tr><tr><th>indent</th><td><code>1.4em</code></td></tr><tr><th>item space after</th><td><code>2.75pt</code></td></tr></tbody></table><p class="spec-note">Tabular numerals so 9 and 10 align.</p><h4 class="spec-el">Ordered list, nested</h4><table class="spec-table"><tbody><tr><th>marker</th><td><code>a.</code></td></tr></tbody></table><h4 class="spec-el">Tight list <span class="spec-optin">opt-in · ts-list-tight</span></h4><table class="spec-table"><tbody><tr><th>item space after</th><td><code>0</code></td></tr></tbody></table><p class="spec-note">For enumerations that are not prose.</p><h4 class="spec-el">Definition term</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>sans</code></td></tr><tr><th>weight</th><td><code>600</code></td></tr><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>6.6pt</code></td></tr><tr><th>space before first</th><td><code>0</code></td></tr><tr><th>break after</th><td><code>avoid</code></td></tr></tbody></table><h4 class="spec-el">Definition description</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>indent left</th><td><code>16.5pt</code></td></tr><tr><th>space after</th><td><code>0</code></td></tr></tbody></table></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L504">list</a></p><pre>&lt;ul&gt;
-  &lt;li&gt;An unordered item, with a grey mid-dot for a marker.&lt;/li&gt;
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L504">list</a></p><pre>&lt;!-- Unordered list --&gt;
+&lt;ul&gt;
+  &lt;li&gt;An unordered item.&lt;/li&gt;
   &lt;li&gt;A second item, long enough to wrap onto a second line so you can see that the runover aligns to the text, not to the marker.&lt;/li&gt;
-  &lt;li&gt;A nested list follows:
+&lt;/ul&gt;
+
+&lt;!-- Unordered list, nested --&gt;
+&lt;ul&gt;
+  &lt;li&gt;A first-level item, followed by a nested list:
     &lt;ul&gt;
       &lt;li&gt;The nested marker is an en dash.&lt;/li&gt;
       &lt;li&gt;Two levels is the limit worth designing for.&lt;/li&gt;
@@ -1596,41 +1698,77 @@ typeface.
   &lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;ol&gt;
-  &lt;li&gt;Ordered items use tabular lining figures, so 9 and 10 align.&lt;/li&gt;
-  &lt;li&gt;Sub-items switch to lower alpha:
-    &lt;ol&gt;&lt;li&gt;First sub-item.&lt;/li&gt;&lt;li&gt;Second sub-item.&lt;/li&gt;&lt;/ol&gt;
-  &lt;/li&gt;
-  &lt;li&gt;The tenth item would still align. It is the small things.&lt;/li&gt;
+&lt;!-- Ordered list --&gt;
+&lt;ol start=&quot;8&quot;&gt;
+  &lt;li&gt;Eighth item.&lt;/li&gt;
+  &lt;li&gt;Ninth item.&lt;/li&gt;
+  &lt;li&gt;Tenth item — the marker still sits in the same column as the single digits above it.&lt;/li&gt;
+  &lt;li&gt;Eleventh item.&lt;/li&gt;
 &lt;/ol&gt;
 
+&lt;!-- Ordered list, nested --&gt;
+&lt;ol&gt;
+  &lt;li&gt;A first-level item, followed by sub-items:
+    &lt;ol&gt;
+      &lt;li&gt;First sub-item.&lt;/li&gt;
+      &lt;li&gt;Second sub-item.&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;!-- Tight list --&gt;
+&lt;ul class=&quot;ts-list-tight&quot;&gt;
+  &lt;li&gt;11pt body&lt;/li&gt;
+  &lt;li&gt;9.5pt table&lt;/li&gt;
+  &lt;li&gt;8pt caption label&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;!-- Definition term --&gt;
+&lt;dl&gt;
+  &lt;dt&gt;Measure&lt;/dt&gt;
+  &lt;dd&gt;The length of a line of type, counted in characters rather than in millimetres.&lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;!-- Definition description --&gt;
 &lt;dl&gt;
   &lt;dt&gt;Measure&lt;/dt&gt;
   &lt;dd&gt;The length of a line of type, counted in characters rather than in millimetres.&lt;/dd&gt;
   &lt;dt&gt;Leading&lt;/dt&gt;
   &lt;dd&gt;The vertical distance between baselines. Named for the strips of lead once inserted between lines of metal type.&lt;/dd&gt;
-  &lt;dt&gt;Widow&lt;/dt&gt;
-  &lt;dd&gt;A last line of a paragraph carried alone to the top of a page. An orphan is the mirror case at the foot.&lt;/dd&gt;
 &lt;/dl&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L342">list</a></p><pre>- An unordered item, with a grey mid-dot for a marker.
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L342">list</a></p><pre>- An unordered item.
 - A second item, long enough to wrap onto a second line so you can see that the
   runover aligns to the text, not to the marker.
-- A nested list <span class="c-prop">follows</span>:
+
+- A first-level item, followed by a nested <span class="c-prop">list</span>:
   - The nested marker is an en dash.
   - Two levels is the limit worth designing for.
 
-+ Ordered items use tabular lining figures, so <span class="c-val">9</span> and <span class="c-val">10</span> align.
-+ Sub-items restart the <span class="c-prop">counter</span>:
+#enum(<span class="c-prop">start</span>: <span class="c-val">8</span>,
+  [Eighth item.],
+  [Ninth item.],
+  [Tenth item — the marker still sits in the same column as the single digits above it.],
+  [Eleventh item.],
+)
+
+<span class="c-comment">// Nesting is indent-driven here, the same as the unordered list above; this</span>
+<span class="c-comment">// file's `set enum(numbering: &quot;1.&quot;)` applies at every depth, so the sub-items</span>
+<span class="c-comment">// below count 1, 2 rather than switching to lower alpha the way the</span>
+<span class="c-comment">// stylesheet's `ol ol` selector does.</span>
++ A first-level item, followed by <span class="c-prop">sub-items</span>:
   + First sub-item.
   + Second sub-item.
-+ The tenth item would still align. It is the small things.
+
+#list(<span class="c-prop">tight</span>: <span class="c-at">true</span>,
+  [<span class="c-val">11pt</span> body],
+  [<span class="c-val">9.5pt</span> table],
+  [<span class="c-val">8pt</span> caption label],
+)
 
 / <span class="c-prop">Measure</span>: The length of a line of type, counted in characters rather than in
   millimetres.
 / <span class="c-prop">Leading</span>: The vertical distance between baselines. Named for the strips of lead
-  once inserted between lines of metal type.
-/ <span class="c-prop">Widow</span>: A last line of a paragraph carried alone to the top of a page. An
-  orphan is the mirror case at the foot.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+  once inserted between lines of metal type.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
 </div>
     </div>
@@ -1647,27 +1785,111 @@ typeface.
   </div>
   <div class="pair">
     <div>
-      <p class="pair__label">How it must look</p>
+      <p class="pair__label" data-element="table">1 · Table</p>
+      <p class="demo-note">Sans at 9.5pt, tabular figures, and rules rather than a grid: one above the header, one below it, one below the last row of the body — never a vertical rule between columns.</p>
+      <div class="paper typeset">
+        <table>
+          <thead>
+            <tr><th>Typeface</th><th>Category</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>EB Garamond</td><td>Serif text face</td></tr>
+            <tr><td>Source Sans 3</td><td>Sans display face</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="pair__label" data-element="table-header-cell">2 · Header cell</p>
+      <p class="demo-note">Uppercase, tracked, and muted — a header cell reads as a label for the column beneath it, not as another row of data.</p>
+      <div class="paper typeset">
+        <table>
+          <thead>
+            <tr><th>Setting</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Body size</td><td>11pt</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="pair__label" data-element="table-cell">3 · Body cell</p>
+      <p class="demo-note">Baseline-aligned and flush left, with a hairline rule under every row but the last, which carries the heavier rule that closes the table.</p>
+      <div class="paper typeset">
+        <table>
+          <thead><tr><th>Typeface</th><th>Category</th></tr></thead>
+          <tbody>
+            <tr><td>EB Garamond</td><td>Serif text face</td></tr>
+            <tr><td>Source Sans 3</td><td>Sans display face</td></tr>
+            <tr><td>IBM Plex Mono</td><td>Monospace face</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="pair__label" data-element="table-cell-numeric">4 · Numeric cell</p>
+      <p class="demo-note">Right-aligned, on tabular figures, so a column of numbers lines up on its own right edge instead of trailing off like prose.</p>
+      <div class="paper typeset">
+        <table>
+          <thead><tr><th>Typeface</th><th class="ts-table-cell-numeric">Size (pt)</th></tr></thead>
+          <tbody>
+            <tr><td>EB Garamond</td><td class="ts-table-cell-numeric">11.0</td></tr>
+            <tr><td>Source Serif</td><td class="ts-table-cell-numeric">10.5</td></tr>
+            <tr><td>Charis SIL</td><td class="ts-table-cell-numeric">10.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="pair__label" data-element="table-footer-cell">5 · Footer cell</p>
+      <p class="demo-note">Bold, with its own rule dropped — the row above it already carries the table's closing rule, so a second one directly beneath would only double it.</p>
+      <div class="paper typeset">
+        <table>
+          <thead><tr><th>Typeface</th><th class="ts-table-cell-numeric">Size (pt)</th></tr></thead>
+          <tbody>
+            <tr><td>EB Garamond</td><td class="ts-table-cell-numeric">11.0</td></tr>
+            <tr><td>Source Serif</td><td class="ts-table-cell-numeric">10.5</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td>Median</td><td class="ts-table-cell-numeric">10.75</td></tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <p class="pair__label" data-element="table-caption">6 · Caption</p>
+      <p class="demo-note">Above the table, not below — a reader meets the table's subject before the table itself, and the caption keeps the body's own measure rather than shrinking to the table's width.</p>
+      <div class="paper typeset">
+        <table>
+          <caption>Setting widths for a single-column A4 page, by point size.</caption>
+          <thead><tr><th>Typeface</th><th class="ts-table-cell-numeric">Measure (mm)</th></tr></thead>
+          <tbody>
+            <tr><td>EB Garamond</td><td class="ts-table-cell-numeric">128</td></tr>
+            <tr><td>Source Serif</td><td class="ts-table-cell-numeric">124</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="pair__label" data-element="table-caption-label">7 · Caption label</p>
+      <p class="demo-note">Small caps and tracking mark "Table 1" itself as a label, distinct from the sentence describing the table that follows it.</p>
       <div class="paper typeset">
         <table>
           <caption><span class="ts-label ts-table-caption-label">Table 1</span> — Setting widths for a single-column A4 page, by point size.</caption>
-          <thead>
-            <tr>
-              <th>Typeface</th>
-              <th class="ts-table-cell-numeric">Size (pt)</th>
-              <th class="ts-table-cell-numeric">Leading</th>
-              <th class="ts-table-cell-numeric">Measure (mm)</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Typeface</th><th class="ts-table-cell-numeric">Measure (mm)</th></tr></thead>
           <tbody>
-            <tr><td>EB Garamond</td><td class="ts-table-cell-numeric">11.0</td><td class="ts-table-cell-numeric">1.45</td><td class="ts-table-cell-numeric">128</td></tr>
-            <tr><td>Source Serif</td><td class="ts-table-cell-numeric">10.5</td><td class="ts-table-cell-numeric">1.42</td><td class="ts-table-cell-numeric">124</td></tr>
-            <tr><td>Charis SIL</td><td class="ts-table-cell-numeric">10.0</td><td class="ts-table-cell-numeric">1.40</td><td class="ts-table-cell-numeric">119</td></tr>
-            <tr><td>IBM Plex Serif</td><td class="ts-table-cell-numeric">10.5</td><td class="ts-table-cell-numeric">1.45</td><td class="ts-table-cell-numeric">131</td></tr>
+            <tr><td>EB Garamond</td><td class="ts-table-cell-numeric">128</td></tr>
+            <tr><td>Source Serif</td><td class="ts-table-cell-numeric">124</td></tr>
           </tbody>
-          <tfoot>
-            <tr><td>Median</td><td class="ts-table-cell-numeric">10.5</td><td class="ts-table-cell-numeric">1.43</td><td class="ts-table-cell-numeric">126</td></tr>
-          </tfoot>
+        </table>
+      </div>
+
+      <p class="pair__label" data-element="table-zebra">8 · Zebra striping</p>
+      <p class="demo-note">A wash on every even body row — reached for on a wide, dense table only, not a default worth applying here.</p>
+      <div class="paper typeset">
+        <table class="ts-table-zebra">
+          <thead><tr><th>Typeface</th><th class="ts-table-cell-numeric">Size (pt)</th></tr></thead>
+          <tbody>
+            <tr><td>EB Garamond</td><td class="ts-table-cell-numeric">11.0</td></tr>
+            <tr><td>Source Serif</td><td class="ts-table-cell-numeric">10.5</td></tr>
+            <tr><td>Charis SIL</td><td class="ts-table-cell-numeric">10.0</td></tr>
+            <tr><td>IBM Plex Serif</td><td class="ts-table-cell-numeric">10.5</td></tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -1682,41 +1904,172 @@ typeface.
     <label for="tab-table-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>Rules, not grids. Vertical rules are almost never needed — the columns already read as columns, and every added line is ink competing with data.</li><li>Three horizontal rules only: above the header, below the header, below the body.</li><li>A table is scanned, not read. Sans at 9.5pt; the serif's job is reading.</li><li>Numbers align on their right edge, on tabular figures. Units go in the header, not in every cell.</li><li>A table that spans pages MUST repeat its header on each. Without it, page two of a table is unreadable.</li></ul><h4 class="spec-el">Table</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>sans</code></td></tr><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>line height</th><td><code>1.35</code></td></tr><tr><th>numerals</th><td><code>lining tabular</code></td></tr><tr><th>width</th><td><code>full measure</code></td></tr><tr><th>space before</th><td><code>13.75pt</code></td></tr><tr><th>space after</th><td><code>13.75pt</code></td></tr><tr><th>border collapse</th><td>yes</td></tr></tbody></table><h4 class="spec-el">Header cell</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>sans</code></td></tr><tr><th>weight</th><td><code>600</code></td></tr><tr><th>size</th><td><code>8pt</code></td></tr><tr><th>case</th><td><code>uppercase</code></td></tr><tr><th>tracking</th><td><code>0.07em</code></td></tr><tr><th>color</th><td><code>ink_muted</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>border bottom</th><td><code>1pt rule_strong</code></td></tr><tr><th>padding</th><td><code>0.45em 0.7em 0.45em 0</code></td></tr><tr><th>repeats across pages</th><td>yes</td></tr></tbody></table><h4 class="spec-el">Body cell</h4><table class="spec-table"><tbody><tr><th>align</th><td><code>left</code></td></tr><tr><th>vertical align</th><td><code>baseline</code></td></tr><tr><th>border bottom</th><td><code>0.5pt rule</code></td></tr><tr><th>padding</th><td><code>0.45em 0.7em 0.45em 0</code></td></tr><tr><th>last row border bottom</th><td><code>1pt rule_strong</code></td></tr></tbody></table><h4 class="spec-el">Numeric cell</h4><table class="spec-table"><tbody><tr><th>align</th><td><code>right</code></td></tr><tr><th>numerals</th><td><code>lining tabular</code></td></tr></tbody></table><h4 class="spec-el">Footer cell</h4><table class="spec-table"><tbody><tr><th>weight</th><td><code>600</code></td></tr><tr><th>border bottom</th><td><code>none</code></td></tr></tbody></table><h4 class="spec-el">Caption</h4><table class="spec-table"><tbody><tr><th>position</th><td><code>above the table</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>font</th><td><code>sans</code></td></tr><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>space after</th><td><code>0.5em</code></td></tr><tr><th>max width</th><td><code>none</code></td></tr></tbody></table><h4 class="spec-el">Row</h4><table class="spec-table"><tbody><tr><th>break inside</th><td><code>avoid</code></td></tr></tbody></table><h4 class="spec-el">Zebra striping <span class="spec-optin">opt-in · ts-table-zebra</span></h4><table class="spec-table"><tbody><tr><th>background</th><td><code>wash on even body rows</code></td></tr></tbody></table><p class="spec-note">For wide, dense tables only. Not a default.</p><h4 class="spec-el">Caption label</h4><table class="spec-table"><tbody><tr><th>weight</th><td><code>600</code></td></tr><tr><th>caps</th><td><code>all small caps</code></td></tr><tr><th>tracking</th><td><code>0.06em</code></td></tr></tbody></table></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L565">table</a></p><pre>&lt;table&gt;
-  &lt;caption&gt;&lt;span class=&quot;ts-label ts-table-caption-label&quot;&gt;Table 1&lt;/span&gt; — Setting widths for a single-column A4 page, by point size.&lt;/caption&gt;
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L565">table</a></p><pre>&lt;!-- Table --&gt;
+&lt;table&gt;
   &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Typeface&lt;/th&gt;
-      &lt;th class=&quot;ts-table-cell-numeric&quot;&gt;Size (pt)&lt;/th&gt;
-      &lt;th class=&quot;ts-table-cell-numeric&quot;&gt;Leading&lt;/th&gt;
-      &lt;th class=&quot;ts-table-cell-numeric&quot;&gt;Measure (mm)&lt;/th&gt;
-    &lt;/tr&gt;
+    &lt;tr&gt;&lt;th&gt;Typeface&lt;/th&gt;&lt;th&gt;Category&lt;/th&gt;&lt;/tr&gt;
   &lt;/thead&gt;
   &lt;tbody&gt;
-    &lt;tr&gt;&lt;td&gt;EB Garamond&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;11.0&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;1.45&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;128&lt;/td&gt;&lt;/tr&gt;
-    &lt;tr&gt;&lt;td&gt;Source Serif&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;10.5&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;1.42&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;124&lt;/td&gt;&lt;/tr&gt;
-    &lt;tr&gt;&lt;td&gt;Charis SIL&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;10.0&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;1.40&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;119&lt;/td&gt;&lt;/tr&gt;
-    &lt;tr&gt;&lt;td&gt;IBM Plex Serif&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;10.5&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;1.45&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;131&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;EB Garamond&lt;/td&gt;&lt;td&gt;Serif text face&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Source Sans 3&lt;/td&gt;&lt;td&gt;Sans display face&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;!-- Header cell --&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;Setting&lt;/th&gt;&lt;th&gt;Value&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;Body size&lt;/td&gt;&lt;td&gt;11pt&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;!-- Body cell --&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Typeface&lt;/th&gt;&lt;th&gt;Category&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;EB Garamond&lt;/td&gt;&lt;td&gt;Serif text face&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Source Sans 3&lt;/td&gt;&lt;td&gt;Sans display face&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;IBM Plex Mono&lt;/td&gt;&lt;td&gt;Monospace face&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;!-- Numeric cell --&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Typeface&lt;/th&gt;&lt;th class=&quot;ts-table-cell-numeric&quot;&gt;Size (pt)&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;EB Garamond&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;11.0&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Source Serif&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;10.5&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Charis SIL&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;10.0&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;!-- Footer cell --&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Typeface&lt;/th&gt;&lt;th class=&quot;ts-table-cell-numeric&quot;&gt;Size (pt)&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;EB Garamond&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;11.0&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Source Serif&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;10.5&lt;/td&gt;&lt;/tr&gt;
   &lt;/tbody&gt;
   &lt;tfoot&gt;
-    &lt;tr&gt;&lt;td&gt;Median&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;10.5&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;1.43&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;126&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Median&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;10.75&lt;/td&gt;&lt;/tr&gt;
   &lt;/tfoot&gt;
+&lt;/table&gt;
+
+&lt;!-- Caption --&gt;
+&lt;table&gt;
+  &lt;caption&gt;Setting widths for a single-column A4 page, by point size.&lt;/caption&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Typeface&lt;/th&gt;&lt;th class=&quot;ts-table-cell-numeric&quot;&gt;Measure (mm)&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;EB Garamond&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;128&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Source Serif&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;124&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;!-- Caption label --&gt;
+&lt;table&gt;
+  &lt;caption&gt;&lt;span class=&quot;ts-label ts-table-caption-label&quot;&gt;Table 1&lt;/span&gt; — Setting widths for a single-column A4 page, by point size.&lt;/caption&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Typeface&lt;/th&gt;&lt;th class=&quot;ts-table-cell-numeric&quot;&gt;Measure (mm)&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;EB Garamond&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;128&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Source Serif&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;124&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;!-- Zebra striping --&gt;
+&lt;table class=&quot;ts-table-zebra&quot;&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Typeface&lt;/th&gt;&lt;th class=&quot;ts-table-cell-numeric&quot;&gt;Size (pt)&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;EB Garamond&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;11.0&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Source Serif&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;10.5&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Charis SIL&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;10.0&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;IBM Plex Serif&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;10.5&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
 &lt;/table&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L358">table</a></p><pre>#figure(
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L358">table</a></p><pre>#ts-table(
+  <span class="c-prop">columns</span>: (<span class="c-val">1</span>fr, <span class="c-val">1</span>fr),
+  <span class="c-prop">rows</span>: <span class="c-val">2</span>,
+  table.header([Typeface], [Category]),
+  [EB Garamond], [Serif text face],
+  [Source Sans <span class="c-val">3</span>], [Sans display face],
+)
+
+#ts-table(
+  <span class="c-prop">columns</span>: (<span class="c-val">1</span>fr, <span class="c-val">1</span>fr),
+  <span class="c-prop">rows</span>: <span class="c-val">1</span>,
+  table.header([Setting], [Value]),
+  [Body size], [<span class="c-val">11pt</span>],
+)
+
+#ts-table(
+  <span class="c-prop">columns</span>: (<span class="c-val">1</span>fr, <span class="c-val">1</span>fr),
+  <span class="c-prop">rows</span>: <span class="c-val">3</span>,
+  table.header([Typeface], [Category]),
+  [EB Garamond], [Serif text face],
+  [Source Sans <span class="c-val">3</span>], [Sans display face],
+  [IBM Plex Mono], [Monospace face],
+)
+
+#ts-table(
+  <span class="c-prop">columns</span>: (<span class="c-val">1</span>fr, <span class="c-at">auto</span>),
+  <span class="c-prop">rows</span>: <span class="c-val">3</span>,
+  <span class="c-prop">align</span>: (left + horizon, right + horizon),
+  table.header([Typeface], [Size (pt)]),
+  [EB Garamond], [<span class="c-val">11.0</span>],
+  [Source Serif], [<span class="c-val">10.5</span>],
+  [Charis SIL], [<span class="c-val">10.0</span>],
+)
+
+<span class="c-comment">// table-footer-cell drops its own bottom rule in the stylesheet; ts-table</span>
+<span class="c-comment">// draws a rule under every row but the header and the last, so the closing</span>
+<span class="c-comment">// rule below falls on this footer row regardless — close enough to the</span>
+<span class="c-comment">// spec's own look that a second, hand-written stroke override isn't worth</span>
+<span class="c-comment">// the row it would cost this file's readability.</span>
+#ts-table(
+  <span class="c-prop">columns</span>: (<span class="c-val">1</span>fr, <span class="c-at">auto</span>),
+  <span class="c-prop">rows</span>: <span class="c-val">3</span>,
+  <span class="c-prop">align</span>: (left + horizon, right + horizon),
+  table.header([Typeface], [Size (pt)]),
+  [EB Garamond], [<span class="c-val">11.0</span>],
+  [Source Serif], [<span class="c-val">10.5</span>],
+  [#strong[Median]], [#strong[<span class="c-val">10.75</span>]],
+)
+
+<span class="c-comment">// One figure() call stands for both table-caption and table-caption-label:</span>
+<span class="c-comment">// the show rule at &quot;@s figure&quot; always renders the supplement and counter</span>
+<span class="c-comment">// (&quot;Table 1&quot;) in the label's own small caps ahead of the caption body, so</span>
+<span class="c-comment">// Typst has no way to produce a caption without that label already applied.</span>
+#figure(
   <span class="c-prop">caption</span>: [Setting widths for a single-column A<span class="c-val">4</span> page, by point size.],
   <span class="c-prop">kind</span>: table,
   <span class="c-prop">supplement</span>: [Table],
   ts-table(
-    <span class="c-prop">columns</span>: (<span class="c-val">1</span>fr, <span class="c-at">auto</span>, <span class="c-at">auto</span>, <span class="c-at">auto</span>),
-    <span class="c-prop">rows</span>: <span class="c-val">4</span>,
-    <span class="c-prop">align</span>: (left + horizon, right + horizon, right + horizon, right + horizon),
-    table.header([Typeface], [Size (pt)], [Leading], [Measure (mm)]),
-    [EB Garamond], [<span class="c-val">11.0</span>], [<span class="c-val">1.45</span>], [<span class="c-val">128</span>],
-    [Source Serif], [<span class="c-val">10.5</span>], [<span class="c-val">1.42</span>], [<span class="c-val">124</span>],
-    [Charis SIL], [<span class="c-val">10.0</span>], [<span class="c-val">1.40</span>], [<span class="c-val">119</span>],
-    [IBM Plex Serif], [<span class="c-val">10.5</span>], [<span class="c-val">1.45</span>], [<span class="c-val">131</span>],
-    [Median], [<span class="c-val">10.5</span>], [<span class="c-val">1.43</span>], [<span class="c-val">126</span>],
+    <span class="c-prop">columns</span>: (<span class="c-val">1</span>fr, <span class="c-at">auto</span>),
+    <span class="c-prop">rows</span>: <span class="c-val">2</span>,
+    <span class="c-prop">align</span>: (left + horizon, right + horizon),
+    table.header([Typeface], [Measure (mm)]),
+    [EB Garamond], [<span class="c-val">128</span>],
+    [Source Serif], [<span class="c-val">124</span>],
   ),
+)
+
+<span class="c-comment">// table-row is not shown: its one property, break-inside: avoid, only ever</span>
+<span class="c-comment">// changes what happens at a page boundary, which a screen-rendered document</span>
+<span class="c-comment">// never reaches — see tools/check.mjs's EXEMPTIONS entry for it.</span>
+
+<span class="c-comment">// No zebra parameter on ts-table — the stylesheet reaches an even body row</span>
+<span class="c-comment">// by its position in the DOM, which a Typst table has no equivalent</span>
+<span class="c-comment">// selector for, so the fill is set cell by cell instead.</span>
+#ts-table(
+  <span class="c-prop">columns</span>: (<span class="c-val">1</span>fr, <span class="c-at">auto</span>),
+  <span class="c-prop">rows</span>: <span class="c-val">4</span>,
+  <span class="c-prop">align</span>: (left + horizon, right + horizon),
+  table.header([Typeface], [Size (pt)]),
+  [EB Garamond], [<span class="c-val">11.0</span>],
+  table.cell(<span class="c-prop">fill</span>: wash)[Source Serif], table.cell(<span class="c-prop">fill</span>: wash)[<span class="c-val">10.5</span>],
+  [Charis SIL], [<span class="c-val">10.0</span>],
+  table.cell(<span class="c-prop">fill</span>: wash)[IBM Plex Serif], table.cell(<span class="c-prop">fill</span>: wash)[<span class="c-val">10.5</span>],
 )</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
 </div>
@@ -2657,14 +3010,17 @@ is more than most annual reports manage.]</pre><button class="copy" type="button
   </div>
   <div class="pair">
     <div>
-      <p class="pair__label">How it must look</p>
+      <p class="pair__label" data-element="utility-tie">1 · Tie</p>
+      <p class="demo-note">A non-breaking join between a figure and its unit, a section mark and its number — so a line break can never fall between them, wherever the paragraph happens to wrap.</p>
       <div class="paper typeset">
-        <dl>
-          <dt>.ts-utility-break-before</dt><dd>Start this element on a new page. For chapter openings.</dd>
-          <dt>.ts-utility-keep-together</dt><dd>Never split this element across pages. For a short table, a signature block, a callout.</dd>
-          <dt>.ts-utility-tie</dt><dd>Keep a figure with its unit: <span class="ts-utility-tie">11 pt</span>, <span class="ts-utility-tie">§2.1</span>, <span class="ts-utility-tie">Fig. 1</span>.</dd>
-          <dt>.ts-print-only / .ts-screen-only</dt><dd>For the URL list a printed page needs and a screen does not, and the navigation a screen needs and a page does not.</dd>
-        </dl>
+        <p>Keep a figure with its unit: <span class="ts-utility-tie">11 pt</span>, <span class="ts-utility-tie">§2.1</span>, <span class="ts-utility-tie">Fig. 1</span> — none of them ever break across a line.</p>
+      </div>
+
+      <p class="pair__label" data-element="utility-no-hyphens">2 · No hyphenation</p>
+      <p class="demo-note">Stops the dictionary from breaking one specific run — a name, a trademark — while everything else in a justified paragraph keeps hyphenating as usual. Disabling hyphenation for a whole justified paragraph is the mistake the justification section shows; this narrows the override to the one word that must never take a hyphen.</p>
+      <div class="paper typeset typeset--justified typeset--measure-narrow" lang="en">
+        <p>The village of Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch sits on Anglesey, and this justified paragraph is left to hyphenate its name wherever the dictionary allows, the same as any other word here.</p>
+        <p>The village of <span class="ts-utility-no-hyphens">Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch</span> sits on Anglesey, and this justified paragraph must never hyphenate that one name, however freely it hyphenates every other word here.</p>
       </div>
     </div>
     <div>
@@ -2678,20 +3034,40 @@ is more than most annual reports manage.]</pre><button class="copy" type="button
     <label for="tab-utility-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>The small set of overrides reached for while proofing a real document. Every one of them is a manual decision about a specific page, not a style.</li></ul><h4 class="spec-el">Break before</h4><table class="spec-table"><tbody><tr><th>effect</th><td>start this element on a new page</td></tr></tbody></table><p class="spec-note">Chapter openings.</p><h4 class="spec-el">Break after</h4><table class="spec-table"><tbody><tr><th>effect</th><td>start the next element on a new page</td></tr></tbody></table><h4 class="spec-el">Keep together</h4><table class="spec-table"><tbody><tr><th>effect</th><td>never split this element across pages</td></tr></tbody></table><p class="spec-note">A short table, a signature block, a callout.</p><h4 class="spec-el">No hyphenation</h4><table class="spec-table"><tbody><tr><th>hyphenation</th><td><code>manual</code></td></tr></tbody></table><h4 class="spec-el">Tie</h4><table class="spec-table"><tbody><tr><th>effect</th><td><code>no line break inside</code></td></tr></tbody></table><p class="spec-note">A figure with its unit, an initial with a surname, a section mark with its number.</p><h4 class="spec-el">Print only / screen only</h4><table class="spec-table"><tbody><tr><th>effect</th><td>present in one medium, absent in the other</td></tr></tbody></table><p class="spec-note">The URL list a page needs and a screen does not; the navigation a screen needs and a page does not.</p><h4 class="spec-el">Exact colour</h4><table class="spec-table"><tbody><tr><th>effect</th><td>backgrounds and rules survive the output device's ink-saving</td></tr></tbody></table><p class="spec-note">Without it a print dialog can strip every rule in a table.</p></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L1170">utility</a></p><pre>&lt;dl&gt;
-  &lt;dt&gt;.ts-utility-break-before&lt;/dt&gt;&lt;dd&gt;Start this element on a new page. For chapter openings.&lt;/dd&gt;
-  &lt;dt&gt;.ts-utility-keep-together&lt;/dt&gt;&lt;dd&gt;Never split this element across pages. For a short table, a signature block, a callout.&lt;/dd&gt;
-  &lt;dt&gt;.ts-utility-tie&lt;/dt&gt;&lt;dd&gt;Keep a figure with its unit: &lt;span class=&quot;ts-utility-tie&quot;&gt;11 pt&lt;/span&gt;, &lt;span class=&quot;ts-utility-tie&quot;&gt;§2.1&lt;/span&gt;, &lt;span class=&quot;ts-utility-tie&quot;&gt;Fig. 1&lt;/span&gt;.&lt;/dd&gt;
-  &lt;dt&gt;.ts-print-only / .ts-screen-only&lt;/dt&gt;&lt;dd&gt;For the URL list a printed page needs and a screen does not, and the navigation a screen needs and a page does not.&lt;/dd&gt;
-&lt;/dl&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L1158">utility</a></p><pre>/ `utility-keep-together`: Never split this element across pages. For a short
-  table, a signature block, a callout.
-/ `utility-tie`: Keep a figure with its <span class="c-prop">unit</span>: #utility-tie[<span class="c-val">11</span> pt],
-  #utility-tie[§<span class="c-val">2.1</span>], #utility-tie[Fig. <span class="c-val">1</span>].
-/ `<span class="c-at">set</span> text(<span class="c-prop">hyphenate</span>: <span class="c-at">false</span>)`: Stop a hyphen the dictionary puts in the wrong
-  place. Hyphenation is a text setting, so there is no separate utility.
-/ `pagebreak()`: Start the next element on a new page. It is refused inside a
-  container, so a document that leaves the measure <span class="c-at">set</span> has no way to reach it.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L1170">utility</a></p><pre>&lt;!-- Tie --&gt;
+&lt;p&gt;Keep a figure with its unit: &lt;span class=&quot;ts-utility-tie&quot;&gt;11 pt&lt;/span&gt;, &lt;span class=&quot;ts-utility-tie&quot;&gt;§2.1&lt;/span&gt;, &lt;span class=&quot;ts-utility-tie&quot;&gt;Fig. 1&lt;/span&gt; — none of them ever break across a line.&lt;/p&gt;
+
+&lt;!-- No hyphenation --&gt;
+&lt;div class=&quot;typeset typeset--justified typeset--measure-narrow&quot; lang=&quot;en&quot;&gt;
+  &lt;p&gt;The village of Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch sits on Anglesey, and this justified paragraph is left to hyphenate its name wherever the dictionary allows, the same as any other word here.&lt;/p&gt;
+  &lt;p&gt;The village of &lt;span class=&quot;ts-utility-no-hyphens&quot;&gt;Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch&lt;/span&gt; sits on Anglesey, and this justified paragraph must never hyphenate that one name, however freely it hyphenates every other word here.&lt;/p&gt;
+&lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L1158">utility</a></p><pre>Keep a figure with its <span class="c-prop">unit</span>: #utility-tie[<span class="c-val">11</span> pt], #utility-tie[§<span class="c-val">2.1</span>],
+#utility-tie[Fig. <span class="c-val">1</span>] — <span class="c-at">none</span> of them ever break across a line.
+
+<span class="c-comment">// utility-break-before, utility-break-after, utility-keep-together and</span>
+<span class="c-comment">// utility-color-adjust are not shown here: each only changes something at a</span>
+<span class="c-comment">// page boundary or inside a print dialog's own ink-saving pass, neither of</span>
+<span class="c-comment">// which a screen render reaches — see tools/check.mjs's EXEMPTIONS entries</span>
+<span class="c-comment">// for the one-sentence reason each carries. pagebreak(), utility-keep-together()</span>
+<span class="c-comment">// and their CSS counterparts still exist for a document that is actually</span>
+<span class="c-comment">// paginated; this file just has nothing paginated to show them against.</span>
+
+#measured(<span class="c-prop">width</span>: measure-narrow)[
+  #justified[
+    The village of Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch
+    sits on Anglesey, and this justified paragraph is left to hyphenate its
+    name wherever the dictionary allows, the same as any other word here.
+  ]
+]
+
+#measured(<span class="c-prop">width</span>: measure-narrow)[
+  #justified[
+    The village of #text(<span class="c-prop">hyphenate</span>: <span class="c-at">false</span>)[Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch]
+    sits on Anglesey, and this justified paragraph must never hyphenate that
+    one name, however freely it hyphenates every other word here.
+  ]
+]</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
 </div>
     </div>
