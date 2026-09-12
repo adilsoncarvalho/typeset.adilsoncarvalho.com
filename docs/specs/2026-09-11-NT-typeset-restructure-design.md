@@ -294,3 +294,40 @@ template.
 One branch at a time. Each group opens a draft PR, goes green in CI, is marked
 ready, and is reviewed and merged to `master` before the next branch is cut.
 No parallel branches.
+
+## Carried forward
+
+Found while implementing a group, deliberately not fixed there. Each names the
+group that owns it, so nothing here is homeless. The per-group ledgers under
+`.superpowers/` are scratch and get deleted when a group closes — this list is
+committed because these items must outlive them.
+
+**Owned by the API group** (rides with the singular rename, before Group 5):
+
+- **A bibliography heading has no element.** `templates.two-column.spanning.always`
+  named one, but the `bibliography` section holds exactly `bibliography-entry`,
+  and the entry contradicted `spanning.never`'s "heading 2 and below". Group 4
+  dropped it from the list rather than invent an element inside a page-layouts
+  task. The `#references` block this group is building is the natural owner of a
+  heading, and both implementations should span it once it exists. Until then an
+  author marks it with `.ts-span` / `#span()`, which still works.
+
+**Owned by Group 3** (handholding — an example for every style):
+
+- **Nine spec elements have no Typst implementation.** They pass the CSS side of
+  the conformance check and have nothing to compile on the other. The coverage
+  gate Group 3 builds is what will surface them as a list rather than a
+  recollection.
+
+**Unowned — decide before 2.0.0 ships:**
+
+- **`dropcap()` reads `body.text`**, which holds only when the body is a bare
+  string. Any markup and the cap is taken from the wrong character, silently.
+- **`typeset()` ends in `block(width: measure, doc)`**, and a container is a
+  place where `set page()` cannot take effect. That is what broke the letter
+  page: `#show: letter-page` then `#show: typeset` put the page rules inside the
+  block. The fix is a design question about how `typeset` should assert a
+  measure, not a patch.
+- **`notes-sidenote` is fixed at 13em**, so a sidenote does not follow a clamped
+  measure on A5. Group 4 found it and left it, because sizing a sidenote against
+  the margin it lives in is its own piece of work.
