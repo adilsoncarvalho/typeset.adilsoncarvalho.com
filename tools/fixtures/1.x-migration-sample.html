@@ -1,17 +1,22 @@
 <!-- A document written against 1.x class names, one representative token
      from each of the twelve plural groups plus the one frozen section
-     rename. Used by tools/codemod-names.mjs's own chain proof: running the
-     codemod once must carry this file all the way to 2.0.0 singular names,
-     through the frozen 1.x map and the generated singular map, with no
-     2.0.0 plural name left standing in between.
+     rename. tools/check.mjs gate 16a runs tools/codemod-names.mjs over this
+     file and requires one run to carry it all the way to 2.0 singular
+     names — through the frozen 1.x map and then the singular map — with
+     every class it lands on a name this release carries, and a second run
+     changing nothing further.
 
-     ts-link, ts-table, ts-figure and ts-callout also each round-trip through
-     a doubled 2.0.0 plural spelling (ts-links-link, ts-tables-table,
-     ts-figures-figure, ts-callouts-callout) that the singular map collapses
-     back to the bare id — so each of these four ends this run spelled
-     exactly as it started, which is the point: the fix-round-1 bug produced
-     ts-link-link, ts-table-table, ts-figure-figure and ts-callout-callout
-     instead. -->
+     A token has to stay here for each group the maps rewrite: the gate
+     derives the list of groups from the singular map, so a group this file
+     stops covering fails the build rather than quietly dropping out of the
+     proof.
+
+     ts-link, ts-table, ts-figure and ts-callout end the run spelled exactly
+     as they start. Each passes through a doubled 2.0.0 plural spelling
+     (ts-links-link and its three siblings) that the singular map collapses
+     back to the bare id, and a map that doubled the id instead would chain
+     just as cleanly — the round trip is the only thing that tells them
+     apart. -->
 <article class="typeset">
   <h1 class="ts-h1">On the measure of a line</h1>
   <p class="ts-paragraph">An ordinary paragraph, set with a paragraph rule.</p>

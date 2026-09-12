@@ -11,6 +11,7 @@ import { buildAll } from './build-site.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
 import { typstBoilerplate, typstDocument, setsItsOwnPage } from '../src/boilerplate.mjs';
+import { rewrite } from './codemod-names.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
@@ -3521,6 +3522,193 @@ for (const file of typstSnippets) {
     fail.push(`${path}:${lineNo}: a millimetre literal (${hit.text}) is reached from Typst code, `
       + 'not from prose — a demo that hand-picks a dimension is evidence of a missing function in '
       + 'implementations/typeset.typ, not a line for an exemption list');
+  }
+}
+
+
+/* ---- 16. The migration surface: the codemod, the two rename maps, and the
+           class table a 1.x reader follows ------------------------------- */
+
+/* Every other gate in this file holds an implementation against spec.json.
+   These hold the migration path — the codemod, both rename maps, and the
+   class table a reader hand-migrates from — against each other and against
+   the release they describe. Nothing else does, and none of what they check
+   shows up as a broken build on its own: a map row pointing at a dead
+   selector, a table row that was never added, a codemod that rewrites the
+   spec's own schema keys all leave the tree compiling and the site
+   rendering. They surface as a reader's document silently losing a style. */
+
+const frozenMap = JSON.parse(readFileSync('tools/rename-map.json', 'utf8'));
+const singularMap = JSON.parse(readFileSync('tools/rename-map-2.0-singular.json', 'utf8'));
+
+/* 16a. One codemod run must carry a 1.x document all the way to 2.0 singular
+   names — through the frozen 1.x -> 2.0.0 map and then the 2.0.0 plural ->
+   singular map — and leave every class it produces standing on a real rule. */
+const FIXTURE = 'tools/fixtures/1.x-migration-sample.html';
+const fixtureSrc = readFileSync(FIXTURE, 'utf8');
+const migratedFixture = rewrite(fixtureSrc);
+
+if (migratedFixture === fixtureSrc) {
+  fail.push(`${FIXTURE}: the codemod leaves it unchanged, so it is no longer a 1.x document `
+    + 'and proves nothing — it must carry names the rename maps still rewrite');
+}
+
+/* A live 2.0 name is one this release carries: a spec element (whether
+   typeset.css reaches it through .ts-<id> or through a plain element selector
+   behind an @style marker) or one of the shared internal bases. */
+const isLiveClass = (cls) => specIds.has(cls.replace(/^ts-/, ''))
+  || cssClasses.has(cls) || INTERNAL_CLASSES.has(cls);
+
+for (const cls of classesIn(migratedFixture)) {
+  if (isLiveClass(cls)) continue;
+  fail.push(`${FIXTURE}: one codemod run leaves .${cls}, which is no name this release `
+    + 'carries — a migrated 1.x document would render that element unstyled, with no error '
+    + 'and no visual cue');
+}
+
+if (rewrite(migratedFixture) !== migratedFixture) {
+  fail.push(`${FIXTURE}: a second codemod run over the migrated file changes it again, so one `
+    + 'run does not finish the job the migration guide says it finishes');
+}
+
+/* The fixture is only a proof while it still carries a token from every group
+   the maps rewrite. Derived from the singular map rather than listed here, so
+   a spec that grows a section the maps cover fails until the fixture covers
+   it too. */
+for (const id of new Set(Object.values(singularMap.sections))) {
+  const covered = [...classesIn(migratedFixture)]
+    .some((c) => c === `ts-${id}` || c.startsWith(`ts-${id}-`));
+  if (!covered) {
+    fail.push(`${FIXTURE}: carries no 1.x class that migrates into the "${id}" section, so the `
+      + 'chain proof does not cover it');
+  }
+}
+
+/* The four ids that collapse to the bare section id (links-link -> link, and
+   the same for table, figure, callout) end this run spelled exactly as they
+   started, because each was already spelled that way in 1.x. A map that
+   doubled the id instead — ts-link-link — would still chain cleanly and
+   would still look like a rename, so the round trip is the only thing that
+   catches it. */
+for (const id of ['link', 'table', 'figure', 'callout']) {
+  if (classesIn(fixtureSrc).has(`ts-${id}`) && !classesIn(migratedFixture).has(`ts-${id}`)) {
+    fail.push(`${FIXTURE}: .ts-${id} does not survive the chain under its own name — the `
+      + `doubled 2.0.0 spelling ts-${id}s-${id} did not collapse back to the bare id`);
+  }
+}
+
+/* 16b. Pointing the codemod at spec.json must not move a single schema key.
+   A section id and a schema key are the same word in this file — "notes" is
+   a section and also the key holding an element's notes array — and the
+   bare-section-id pass sees both as a quoted token. Getting that wrong
+   corrupts the file every other gate in this run reads as normative, and the
+   damage reports as "index.html is stale". Compared as key sets rather than
+   as text, because an "id" VALUE is exactly what the pass is supposed to
+   rewrite; only the keys must not move. */
+const jsonKeys = (value, into = new Set()) => {
+  if (Array.isArray(value)) for (const v of value) jsonKeys(v, into);
+  else if (value && typeof value === 'object') {
+    for (const [k, v] of Object.entries(value)) { into.add(k); jsonKeys(v, into); }
+  }
+  return into;
+};
+const specKeysBefore = jsonKeys(spec);
+const specKeysAfter = jsonKeys(JSON.parse(rewrite(readFileSync('spec.json', 'utf8'))));
+for (const k of specKeysBefore) {
+  if (!specKeysAfter.has(k)) {
+    fail.push(`tools/codemod-names.mjs: running it over spec.json renames the schema key `
+      + `"${k}" — a key names a property, never a section, and the file it corrupts is the `
+      + 'one every other gate in this run reads as normative');
+  }
+}
+
+/* 16c. Both maps must land every row on a name this release actually
+   carries. rename-map.json's own note calls a row that rewrites a document
+   onto a selector the stylesheet does not carry "a defect to correct here",
+   and this is what makes that a checkable claim rather than an intention. An
+   emptied map fails here too, which is the one shape a per-row check alone
+   would pass vacuously. */
+if (Object.keys(frozenMap.classes).length === 0
+  || Object.keys(singularMap.sections).length === 0
+  || Object.keys(singularMap.elements).length === 0) {
+  fail.push('tools/rename-map.json / tools/rename-map-2.0-singular.json: a map is empty, so the '
+    + 'codemod half-migrates every document it is pointed at and reports success');
+}
+
+for (const from of Object.keys(frozenMap.classes)) {
+  const to = rewrite(from);
+  if (to.startsWith('typeset--')) continue;
+  if (!isLiveClass(to)) {
+    fail.push(`tools/rename-map.json: .${from} chains to .${to}, which is no name this release `
+      + 'carries — the codemod would rewrite a 1.x document onto a selector with no rule '
+      + 'behind it');
+  }
+}
+
+const sectionIds = new Set(spec.sections.map((s) => s.id));
+for (const [from, to] of Object.entries(singularMap.sections)) {
+  if (!sectionIds.has(to)) {
+    fail.push(`tools/rename-map-2.0-singular.json: section row ${from} -> ${to} names no `
+      + 'section spec.json declares');
+  }
+}
+for (const [from, to] of Object.entries(singularMap.elements)) {
+  if (!specIds.has(to) && !sectionIds.has(to)) {
+    fail.push(`tools/rename-map-2.0-singular.json: element row ${from} -> ${to} names no `
+      + 'element spec.json declares');
+  }
+}
+
+/* 16d. docs/migrating-to-2.0.md's class table and its counts must be what
+   the codemod does, not what someone counted once. A missing row is the
+   worst defect this document can carry: the reader who runs the tool is
+   fine, so nothing looks wrong, and only the reader who hand-migrates or
+   audits keeps a class 2.0 does not style. */
+const guide = readFileSync('docs/migrating-to-2.0.md', 'utf8');
+const guideTable = guide.slice(guide.indexOf('## The full class table'));
+const guideRows = [...guideTable.matchAll(/^\| `\.([a-z0-9-]+)` \| `\.([a-z0-9-]+)` \|$/gm)]
+  .map((m) => [m[1], m[2]]);
+const mapRows = Object.keys(frozenMap.classes);
+const changedRows = mapRows.filter((k) => rewrite(k) !== k);
+const identicalRows = mapRows.filter((k) => rewrite(k) === k);
+
+for (const from of changedRows) {
+  if (!guideRows.some(([a]) => a === from)) {
+    fail.push(`docs/migrating-to-2.0.md: .${from} changes name in this release (to `
+      + `.${rewrite(from)}) and the class table does not list it — a reader hand-migrating a `
+      + '1.x document keeps a class 2.0 does not style');
+  }
+}
+for (const [from, to] of guideRows) {
+  if (rewrite(from) !== to) {
+    fail.push(`docs/migrating-to-2.0.md: the class table maps .${from} to .${to}, but the `
+      + `codemod rewrites it to .${rewrite(from)}`);
+  }
+}
+
+/* Each count is read back out of the prose by the words around it, so the
+   sentence has to keep saying what it says for the gate to keep matching. A
+   count that loses its anchor fails as "not stated", never as silently
+   unchecked. */
+const guideCounts = [
+  [/(\d+) classes change name between 1\.x and 2\.0/, changedRows.length, 'classes change name'],
+  [/— (\d+) named-style classes, plus/, changedRows.filter((k) => k.startsWith('ts-')).length,
+    'named-style classes that change'],
+  [/(\d+) more named-style classes are spelled identically/, identicalRows.length,
+    'classes spelled identically'],
+  [/(\d+) always were/, identicalRows.filter((k) => frozenMap.classes[k] === k).length,
+    'classes that always were identical'],
+  [/and (\d+) more —/, identicalRows.filter((k) => frozenMap.classes[k] !== k).length,
+    'classes that round-trip back to their 1.x spelling'],
+];
+for (const [pattern, derived, what] of guideCounts) {
+  const m = guide.match(pattern);
+  if (!m) {
+    fail.push(`docs/migrating-to-2.0.md: the sentence stating the number of ${what} no longer `
+      + `matches ${pattern} — reword the gate with the prose, or the count stops being checked`);
+  } else if (Number(m[1]) !== derived) {
+    fail.push(`docs/migrating-to-2.0.md: says ${m[1]} ${what}; tools/rename-map.json chained `
+      + `through the codemod gives ${derived}`);
   }
 }
 

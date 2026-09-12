@@ -136,6 +136,13 @@ produce:
   copies it gets markup that renders as shown.
 - The scale labels in both tokens demos are `spec.json`'s own values, in both
   directions.
+- The migration path is held to the release it describes: one run of
+  `tools/codemod-names.mjs` carries `tools/fixtures/1.x-migration-sample.html`
+  from 1.x class names to 2.0 ones and lands every class on a name this
+  release carries, a second run changes nothing further, the two rename maps
+  point only at live names, running the codemod over `spec.json` moves no
+  schema key, and `docs/migrating-to-2.0.md`'s class table and its five counts
+  are re-derived from the maps rather than trusted.
 
 Run it before pushing.
 
