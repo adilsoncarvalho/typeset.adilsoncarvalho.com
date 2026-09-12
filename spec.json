@@ -1426,7 +1426,8 @@
             "marker": "none",
             "break_inside": "avoid",
             "title_style": "italic"
-          }
+          },
+          "fallback": "in Typst: every property here except the hanging indent — a wrapped line sits flush with the surname instead of indented past it"
         }
       ]
     },

@@ -1448,6 +1448,8 @@ Where unsupported: leaders render, page numbers are omitted
 | break inside | `avoid` |
 | title style | `italic` |
 
+Where unsupported: in Typst: every property here except the hanging indent — a wrapped line sits flush with the surname instead of indented past it
+
 ### Documents
 
 #### Front matter
