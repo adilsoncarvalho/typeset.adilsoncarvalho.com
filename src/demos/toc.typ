@@ -1,10 +1,6 @@
 #heading(level: 3, outlined: false)[Contents]
 
-#block[
-  #set text(font: sans, size: sm)
-  #set outline.entry(fill: repeat(gap: 0.4em)[.])
-  #outline(title: none, indent: 1.5em)
-]
+#toc()
 
 = Composition
 

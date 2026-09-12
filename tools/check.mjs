@@ -137,11 +137,18 @@ for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.typ'))) {
 
 /* ---- 3h. Every Typst snippet must compile under the harness -------------- */
 
-/* A snippet is a fragment — no import, no #show — the same decision the HTML
-   demos make about publishing markup rather than a full document. A reader
-   who pastes one needs typeset.typ imported and its show rule applied first,
-   so that is exactly what this wraps the fragment in before asking typst to
-   render it: the shape a real document built on this library takes.
+/* A snippet is a fragment — no import — the same decision the HTML demos make
+   about publishing markup rather than a full document. A reader who pastes
+   one needs typeset.typ imported and its show rule applied first, so that is
+   exactly what this wraps the fragment in before asking typst to render it:
+   the shape a real document built on this library takes.
+
+   A snippet that configures typeset() itself — numbering's #show:
+   typeset.with(numbered: true) is the one today — opens with that call
+   rather than needing the wrapper to supply it. The wrapper must not add its
+   own #show: typeset on top: typeset() sets the page, and set page() cannot
+   run inside a container, which is what nesting a second call would make of
+   the outer one's content.
 
    typst denies a relative import that reaches outside the compiled file's own
    directory unless the project root is named explicitly, so the wrapper is
@@ -149,6 +156,8 @@ for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.typ'))) {
    below already resolves to implementations/typeset.typ — and removed again
    once that one file is compiled. The rendered PDF goes to a system temp
    directory and never touches the repository. */
+
+const opensWithTypesetShow = (fragment) => fragment.trimStart().startsWith('#show: typeset');
 
 function typstAvailable() {
   try {
@@ -172,7 +181,8 @@ if (typstSnippets.length > 0) {
   for (const file of typstSnippets) {
     const snippetPath = `src/demos/${file}`;
     const fragment = readFileSync(snippetPath, 'utf8');
-    const wrapped = '#import "../../implementations/typeset.typ": *\n#show: typeset\n' + fragment;
+    const preamble = opensWithTypesetShow(fragment) ? '' : '#show: typeset\n';
+    const wrapped = `#import "../../implementations/typeset.typ": *\n${preamble}${fragment}`;
     const wrapperPath = `src/demos/.check-${file}`;
     const pdfPath = join(pdfDir, file.replace(/\.typ$/, '.pdf'));
     writeFileSync(wrapperPath, wrapped);

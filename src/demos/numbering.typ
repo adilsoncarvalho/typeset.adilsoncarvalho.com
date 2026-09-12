@@ -1,4 +1,4 @@
-#set heading(numbering: "1.1  ")
+#show: typeset.with(numbered: true)
 
 = Scope
 
