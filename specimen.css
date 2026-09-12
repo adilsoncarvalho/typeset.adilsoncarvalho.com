@@ -316,7 +316,7 @@ a { color: inherit; }
 
 
 @media print {
-  .nav, .copy, .pair__label, .code, .btnrow, .masthead .meta { display: none; }
+  .nav, .copy, .pair__label, .code, .btnrow, .masthead .meta, .boilerplate { display: none; }
   .shell { grid-template-columns: 1fr; }
   .paper { border: 0; box-shadow: none; padding: 0; }
   .pair { display: block; }
@@ -576,6 +576,49 @@ table.spec-table code {
   color: var(--ui-accent);
 }
 .btn--strong:hover { border-color: var(--ui-accent); background: var(--ui-bg-sunken); }
+
+/* ---- Snippet boilerplate, stated once above the sections ----------------- */
+
+.boilerplate {
+  margin-top: 1.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+  border: 1px solid var(--ui-border);
+  border-left: 3px solid var(--ui-accent);
+  border-radius: 3px;
+  background: var(--ui-bg-raised);
+}
+.boilerplate__label {
+  margin: 0 0 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ui-fg-faint);
+}
+.boilerplate__pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.25rem;
+}
+@media (max-width: 48rem) { .boilerplate__pair { grid-template-columns: 1fr; } }
+.boilerplate p { margin: 0 0 0.6rem; font-size: 0.8125rem; color: var(--ui-fg-muted); }
+.boilerplate code { font-family: var(--ui-mono); font-size: 0.85em; }
+.boilerplate__pre {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  background: var(--ui-code-bg);
+  border-radius: 3px;
+  overflow-x: auto;
+}
+.boilerplate__pre code {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--ui-code-fg);
+  white-space: pre;
+}
 
 /* Syntax colours, unscoped: the same palette serves the specimen page's code
    panes and the file viewers. Previously scoped under `.code`, which the build

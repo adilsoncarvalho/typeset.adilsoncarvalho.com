@@ -135,6 +135,33 @@
       </div>
     </div>
   </div>
+
+  <div class="boilerplate">
+    <p class="boilerplate__label">Running a snippet</p>
+    <div class="boilerplate__pair">
+      <div>
+        <p>Every HTML pane below is a fragment. To run one on its own: link <a href="files/typeset-css.html"><code>typeset.css</code></a>, load the three families from <a href="fonts/"><code>fonts/</code></a>, and wrap the fragment in an element carrying <code>class="typeset"</code> — every rule in the stylesheet is scoped under that class, so nothing outside it is touched.</p>
+        <pre class="boilerplate__pre"><code data-boilerplate="html">&lt;link rel=&quot;stylesheet&quot; href=&quot;typeset.css&quot;&gt;
+&lt;style&gt;
+  @font-face { font-family: &quot;EB Garamond&quot;; src: url(&quot;fonts/EB-Garamond/EBGaramond-Regular.otf&quot;); }
+  @font-face { font-family: &quot;Source Sans 3&quot;; src: url(&quot;fonts/Source-Sans-3/SourceSans3-400.ttf&quot;); }
+  @font-face { font-family: &quot;IBM Plex Mono&quot;; src: url(&quot;fonts/IBM-Plex-Mono/IBMPlexMono-400.ttf&quot;); }
+&lt;/style&gt;
+
+&lt;div class=&quot;typeset&quot;&gt;
+  &lt;!-- the fragment from any HTML pane goes here --&gt;
+&lt;/div&gt;</code></pre>
+      </div>
+      <div>
+        <p>Every Typst pane below assumes <code>typeset.typ</code> is imported and shown once, before any of the snippets:</p>
+        <pre class="boilerplate__pre"><code data-boilerplate="typst">#<span class="c-at">import</span> &quot;typeset.typ&quot;: (
+  typeset, letter-page, quotes-epigraph, quotes-pullquote,
+  callouts-callout, breaks-asterisks,
+)
+#<span class="c-at">show</span>: typeset.with(<span class="c-prop">justified</span>: <span class="c-at">true</span>, <span class="c-prop">indented</span>: <span class="c-at">true</span>)</code></pre>
+      </div>
+    </div>
+  </div>
 </header>
 
 <section class="section" id="tokens">

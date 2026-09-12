@@ -162,9 +162,63 @@ const counts = (() => {
   return `${spec.sections.length} sections, ${els} elements, ${templates} templates`;
 })();
 
+/* ---- Masthead boilerplate -------------------------------------------------
+   The block every reader needs once, above the sections: what to add around
+   a copied HTML or Typst snippet to make it run. Both halves are read from
+   the files that already own the values they state, so the block can never
+   drift from the fonts fonts/ actually carries or the import shape
+   typeset.typ actually declares. */
+
+/* One representative, non-italic face per spec-required family. Checked
+   against fonts/manifest.json below, so a renamed or removed font file
+   fails the build instead of shipping a dead src: in a page nobody
+   proofreads by hand. */
+const BOILERPLATE_FACE = {
+  'EB Garamond': 'EBGaramond-Regular.otf',
+  'Source Sans 3': 'SourceSans3-400.ttf',
+  'IBM Plex Mono': 'IBMPlexMono-400.ttf',
+};
+
+function boilerplateHtml() {
+  const manifest = JSON.parse(read('fonts/manifest.json'));
+  const faces = ['serif', 'sans', 'mono'].map((role) => {
+    const family = spec.foundation.fonts[role].family;
+    const file = BOILERPLATE_FACE[family];
+    const entry = manifest.families.find((f) => f.family === family);
+    if (!entry || !file || !entry.faces.some((fc) => fc.file === file)) {
+      throw new Error(`fonts/manifest.json has no "${file}" face for ${family} — `
+        + 'update BOILERPLATE_FACE in tools/build-site.mjs');
+    }
+    return `  @font-face { font-family: "${family}"; src: url("${entry.dir}/${file}"); }`;
+  });
+  return esc(`<link rel="stylesheet" href="typeset.css">
+<style>
+${faces.join('\n')}
+</style>
+
+<div class="typeset">
+  <!-- the fragment from any HTML pane goes here -->
+</div>`);
+}
+
+/* The exact form typeset.typ's own top-of-file "Usage:" comment gives, read
+   from that comment rather than retyped here — so a renamed export cannot
+   leave this block importing a name that no longer exists. */
+function boilerplateTypst() {
+  const source = read('implementations/typeset.typ');
+  const m = source.match(/\/\/ Usage:\n((?:\/\/.*\n)+)/);
+  if (!m) throw new Error('implementations/typeset.typ has no "// Usage:" comment '
+    + 'to read the masthead boilerplate from');
+  const lines = m[1].split('\n').filter(Boolean).map((l) => l.replace(/^\/\/ ?/, ''));
+  const indent = Math.min(...lines.map((l) => l.match(/^ */)[0].length));
+  return byLang('typst', lines.map((l) => l.slice(indent)).join('\n'));
+}
+
 const masthead = read('src/masthead.html').trimEnd()
   .replace('<span data-spec-counts>every value</span>', counts)
-  .replace('<span data-spec-version>—</span>', `${spec.version} · ${spec.updated}`);
+  .replace('<span data-spec-version>—</span>', `${spec.version} · ${spec.updated}`)
+  .replace('<code data-boilerplate="html"></code>', `<code data-boilerplate="html">${boilerplateHtml()}</code>`)
+  .replace('<code data-boilerplate="typst"></code>', `<code data-boilerplate="typst">${boilerplateTypst()}</code>`);
 
 output.set('index.html', shell({
   title: 'typeset — a typographic specification',
