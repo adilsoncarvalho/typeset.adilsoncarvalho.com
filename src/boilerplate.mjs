@@ -33,10 +33,22 @@ export function typstBoilerplate(source = readFileSync('implementations/typeset.
   return lines.map((l) => l.slice(indent)).join('\n');
 }
 
-/* Matches only "#show: typeset" as a whole call — followed by ".with(", by
+/* True where a snippet's first line of code is its own call to typeset().
+
+   Matches only "#show: typeset" as a whole call — followed by ".with(", by
    whitespace before the rest of the line, or by nothing else on the line — so
-   a future #show: typesetter or #show: typeset-alt is not mistaken for it. */
-export const configuresTypeset = (fragment) => /^#show:\s*typeset(\.|\s|$)/.test(fragment.trimStart());
+   a future #show: typesetter or #show: typeset-alt is not mistaken for it.
+
+   Comment lines and blank lines above it are skipped. A snippet may say what
+   it demonstrates before it demonstrates it, and a match anchored at the first
+   character would read such a snippet as configuring nothing, put the
+   boilerplate's own "#show: typeset" above a second call, and fail on
+   "page configuration is not allowed inside of containers". */
+export function configuresTypeset(fragment) {
+  const firstCode = fragment.split('\n')
+    .find((line) => line.trim() !== '' && !line.trimStart().startsWith('//'));
+  return /^#show:\s*typeset(\.|\s|$)/.test((firstCode ?? '').trimStart());
+}
 
 /* A snippet appended to the boilerplate, exactly as the masthead prints it,
    with one substitution the masthead states in prose: a snippet that

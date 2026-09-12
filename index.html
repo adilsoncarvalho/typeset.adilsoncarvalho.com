@@ -1042,7 +1042,18 @@ gap is a small invitation to stop reading.
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>For the opening of an essay or a chapter, and nowhere else.</li><li>The size and line height are tuned together to cover exactly three lines. Change the leading and the cap must be retuned.</li><li>The opening words go in small caps. Without them the jump from 33pt to 11pt is too abrupt and the eye skips the first line.</li></ul><h4 class="spec-el">Drop cap</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>weight</th><td><code>400</code></td></tr><tr><th>size</th><td><code>3.05em</code></td></tr><tr><th>size pt</th><td><code>33.55pt</code></td></tr><tr><th>line height</th><td><code>0.86</code></td></tr><tr><th>color</th><td><code>accent</code></td></tr><tr><th>float</th><td><code>left</code></td></tr><tr><th>lines covered</th><td><code>3</code></td></tr><tr><th>padding right</th><td><code>0.06em</code></td></tr><tr><th>padding top</th><td><code>0.02em</code></td></tr><tr><th>first line indent</th><td><code>0</code></td></tr></tbody></table><h4 class="spec-el">Opening words</h4><table class="spec-table"><tbody><tr><th>variant</th><td><code>all small caps</code></td></tr><tr><th>tracking</th><td><code>0.04em</code></td></tr><tr><th>extent</th><td>the first two to four words</td></tr></tbody></table></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L288">dropcap</a></p><pre>&lt;p class=&quot;ts-dropcap&quot;&gt;&lt;span class=&quot;ts-dropcap-lede&quot;&gt;There is nothing&lt;/span&gt; especially modern about wanting a document to look considered. The drop cap descends from the illuminated initial, which existed for a practical reason: in a manuscript with no title page and no table of contents, a large decorated letter was the only way to tell the reader that something had begun.&lt;/p&gt;
 &lt;p&gt;The practical reason is gone. The signal is not.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L365">dropcap</a></p><pre>#dropcap[There is nothing especially modern about wanting a document to look considered. The drop cap descends from the illuminated initial, which existed for a practical reason. In a manuscript with no title page and no table of contents, a large decorated letter was the only way to tell the reader that something had begun.]
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L365">dropcap</a></p><pre><span class="c-comment">// Typst has no counterpart to the lede. The CSS implementation sets the opening</span>
+<span class="c-comment">// words of this paragraph in small caps with .ts-dropcap-lede; dropcap() takes</span>
+<span class="c-comment">// the whole paragraph as one body and offers no way to mark a run inside it.</span>
+<span class="c-comment">//</span>
+<span class="c-comment">// dropcap() reads body.text, which exists only where the body is a single text</span>
+<span class="c-comment">// element. Typst splits markup into a sequence at a colon, at an apostrophe or</span>
+<span class="c-comment">// a quotation mark, and at a dash shorthand, and the call is then refused with</span>
+<span class="c-comment">// `sequence does not have field &quot;text&quot;`. The CSS implementation punctuates the</span>
+<span class="c-comment">// sentence below with a colon — &quot;a practical reason: in a manuscript&quot; — and</span>
+<span class="c-comment">// this one cannot.</span>
+
+#dropcap[There is nothing especially modern about wanting a document to look considered. The drop cap descends from the illuminated initial, which existed for a practical reason. In a manuscript with no title page and no table of contents, a large decorated letter was the only way to tell the reader that something had begun.]
 
 The practical reason is gone. The signal is not.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
@@ -1185,7 +1196,7 @@ summarised #link(&lt;measure&gt;)[in section <span class="c-val">02</span>]. Cor
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “foundation” region of typeset.typ: <a href="files/typeset-typ.html#L119">foundation</a></p><pre>#text(..oldstyle)[Old-style, in prose — between <span class="c-val">1908</span> and <span class="c-val">1935</span> the foundry cut <span class="c-val">47</span>
 sizes, of which <span class="c-val">12</span> survive.]
 
-#text(..lining)[LINING, FOR DISPLAY — BETWEEN <span class="c-val">1908</span> AND <span class="c-val">1935</span>, <span class="c-val">47</span> SIZES]
+#text(..lining)[Lining, for display — BETWEEN <span class="c-val">1908</span> AND <span class="c-val">1935</span>, <span class="c-val">47</span> SIZES]
 
 #table(
   <span class="c-prop">columns</span>: (<span class="c-val">1</span>fr, <span class="c-at">auto</span>, <span class="c-at">auto</span>),
@@ -1311,6 +1322,8 @@ column is not an aesthetic misjudgement; it is a failure to convey.
 And the duty is discharged in the measure long before it is discharged in the
 typeface.
 
+<span class="c-comment">// quotes-verse() sets the stanza and nothing else: it takes no attribution,</span>
+<span class="c-comment">// where the CSS implementation closes the verse with &lt;cite&gt;Robert Frost&lt;/cite&gt;.</span>
 #quotes-verse[
   Whose woods these are I think I know. \
   His house is in the village though; \
@@ -1553,7 +1566,10 @@ typeface.
 /* Repeat the header on every page the table spans. */
 .typeset thead { display: table-header-group; }&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Which is all it takes.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L243">codeblock</a></p><pre>The declaration is a single line — <span class="c-at">set</span> `font-variant-numeric` on the table and
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L243">codeblock</a></p><pre><span class="c-comment">// Typst colours a raw block by its language. typeset.css sets code in a single</span>
+<span class="c-comment">// ink, so the CSS implementation renders this same sample monochrome.</span>
+
+The declaration is a single line — <span class="c-at">set</span> `font-variant-numeric` on the table and
 every cell inherits <span class="c-prop">it</span>:
 
 ```css
@@ -1815,38 +1831,46 @@ And a plain rule, where it cannot.</pre><button class="copy" type="button" data-
     &lt;li id=&quot;n2&quot;&gt;Below about 40 characters, hyphenation stops being optional.&lt;/li&gt;
   &lt;/ol&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L594">notes</a></p><pre>Bringhurst puts the ideal measure between <span class="c-val">45</span> and <span class="c-val">75</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L594">notes</a></p><pre><span class="c-comment">// Two examples here, one in the CSS implementation. Typst sets footnotes at the</span>
+<span class="c-comment">// foot of the page natively; no browser implements the CSS footnote model, so</span>
+<span class="c-comment">// the CSS example degrades to the numbered endnote block the spec names as the</span>
+<span class="c-comment">// fallback, and its sidenotes are shown as a separate full-page example.</span>
+<span class="c-comment">//</span>
+<span class="c-comment">// Sidenotes are paid for out of the measure, so the whole document narrows to</span>
+<span class="c-comment">// 27em rather than one block inside it: the notes sit in the margin the</span>
+<span class="c-comment">// narrowing frees, which is a property of the page, not of a container.</span>
+#<span class="c-at">show</span>: typeset.with(<span class="c-prop">measure</span>: <span class="c-val">27em</span>)
+
+Bringhurst puts the ideal measure between <span class="c-val">45</span> and <span class="c-val">75</span>
 characters,#footnote[Robert Bringhurst, _The Elements of Typographic Style_,
 <span class="c-val">4</span>th ed., §<span class="c-val">2.1</span>.<span class="c-val">2</span>.] a range narrow enough to be useful and wide enough to survive
 a change of typeface. The lower bound matters more in a two-column
 layout.#footnote[Below about <span class="c-val">40</span> characters, hyphenation stops being optional.]
 
-#block(<span class="c-prop">width</span>: <span class="c-val">27em</span>)[
-  == The measure of a line
+== The measure of a line
 
-  Bringhurst puts the ideal measure between <span class="c-val">45</span> and <span class="c-val">75</span> characters, a range narrow
-  enough to be useful and wide enough to survive a change of
-  typeface.#notes-sidenote[_Elements_, <span class="c-val">4</span>th ed., §<span class="c-val">2.1</span>.<span class="c-val">2</span>.]
+Bringhurst puts the ideal measure between <span class="c-val">45</span> and <span class="c-val">75</span> characters, a range narrow
+enough to be useful and wide enough to survive a change of
+typeface.#notes-sidenote[_Elements_, <span class="c-val">4</span>th ed., §<span class="c-val">2.1</span>.<span class="c-val">2</span>.]
 
-  The lower bound matters more in a two-column layout, where the column is the
-  measure and there is no slack to give away.#notes-sidenote[Below <span class="c-val">40</span> characters,
-  hyphenation stops being optional.]
+The lower bound matters more in a two-column layout, where the column is the
+measure and there is no slack to give away.#notes-sidenote[Below <span class="c-val">40</span> characters,
+hyphenation stops being optional.]
 
-  What the range really encodes is the number of fixations the eye makes per
-  line, which depends on the reader, the difficulty of the prose, and the size of
-  the type relative to the viewing distance.
+What the range really encodes is the number of fixations the eye makes per
+line, which depends on the reader, the difficulty of the prose, and the size of
+the type relative to the viewing distance.
 
-  === The cost
+=== The cost
 
-  Sidenotes are paid for in horizontal <span class="c-prop">space</span>: the text column gives up six ems so
-  the margin can have twelve.#notes-sidenote[Which is why they are forbidden in
-  two <span class="c-prop">columns</span>: no margin is left to give.] On a single-column A<span class="c-val">4</span> page that is
-  affordable, and the margin was going to be white anyway.
+Sidenotes are paid for in horizontal <span class="c-prop">space</span>: the text column gives up six ems so
+the margin can have twelve.#notes-sidenote[Which is why they are forbidden in
+two <span class="c-prop">columns</span>: no margin is left to give.] On a single-column A<span class="c-val">4</span> page that is
+affordable, and the margin was going to be white anyway.
 
-  The alternative is a footnote, which asks the reader to travel to the foot of
-  the page and back. A sidenote asks them to glance right. Over forty pages the
-  difference is not small.
-]</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+The alternative is a footnote, which asks the reader to travel to the foot of
+the page and back. A sidenote asks them to glance right. Over forty pages the
+difference is not small.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
 </div>
     </div>

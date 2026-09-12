@@ -1,7 +1,7 @@
 #text(..oldstyle)[Old-style, in prose — between 1908 and 1935 the foundry cut 47
 sizes, of which 12 survive.]
 
-#text(..lining)[LINING, FOR DISPLAY — BETWEEN 1908 AND 1935, 47 SIZES]
+#text(..lining)[Lining, for display — BETWEEN 1908 AND 1935, 47 SIZES]
 
 #table(
   columns: (1fr, auto, auto),

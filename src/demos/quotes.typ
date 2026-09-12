@@ -21,6 +21,8 @@ column is not an aesthetic misjudgement; it is a failure to convey.
 And the duty is discharged in the measure long before it is discharged in the
 typeface.
 
+// quotes-verse() sets the stanza and nothing else: it takes no attribution,
+// where the CSS implementation closes the verse with <cite>Robert Frost</cite>.
 #quotes-verse[
   Whose woods these are I think I know. \
   His house is in the village though; \

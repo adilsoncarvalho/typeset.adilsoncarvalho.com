@@ -1,3 +1,6 @@
+// Typst colours a raw block by its language. typeset.css sets code in a single
+// ink, so the CSS implementation renders this same sample monochrome.
+
 The declaration is a single line — set `font-variant-numeric` on the table and
 every cell inherits it:
 
