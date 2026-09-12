@@ -198,16 +198,42 @@ again.
 
 ## The full class table
 
-84 classes change name between 1.x and 2.0 — 82 named-style classes, plus
+88 classes change name between 1.x and 2.0 — 86 named-style classes, plus
 the two measure variants from Margins above, `.typeset--narrow` and
-`.typeset--wide`. 42 more named-style classes are spelled identically in
-both and are not listed below: 15 always were (`ts-dropcap`,
-`ts-code-inline`, `ts-toc`, the numerals classes and others), and 27 more —
-`ts-table`, `ts-figure`, `ts-callout`, `ts-link`, every `ts-list-*` and
-`ts-break-*` variant, and a handful of others — arrive back at their 1.x
-spelling because the singular rename undoes the pluralisation the 2.0.0 name
-briefly carried. `.ts-print-only` and `.ts-screen-only` are unchanged in 2.0
-as well.
+`.typeset--wide`. 38 more named-style classes are spelled identically in
+both and are not listed below: 11 always were (`ts-dropcap`,
+`ts-code-inline`, `ts-toc` and others), and 27 more — `ts-table`,
+`ts-figure`, `ts-callout`, `ts-link`, every `ts-list-*` and `ts-break-*`
+variant, and a handful of others — arrive back at their 1.x spelling
+because the singular rename undoes the pluralisation the 2.0.0 name briefly
+carried. `.ts-print-only` and `.ts-screen-only` are unchanged in 2.0 as
+well.
+
+The four `.ts-numerals-*` classes are in the table below, not in that
+identical list. They kept their spelling through the 1.x → 2.0.0 step and
+changed on the singular one, so a document carrying `.ts-numerals-prose`
+does need migrating — and an unmigrated one falls back to the default
+numeral style with no error and no visual cue, the same way `.typeset--narrow`
+does above.
+
+Every count in the two paragraphs above, and every row in the table below,
+is derived from `tools/rename-map.json` chained through the codemod, and
+`tools/check.mjs` re-derives them on each run — the guide and the tool
+cannot disagree for longer than one CI run. To read them off yourself:
+
+    node --input-type=module -e '
+      import { readFileSync } from "node:fs";
+      import { rewrite } from "./tools/codemod-names.mjs";
+      const rows = Object.entries(
+        JSON.parse(readFileSync("tools/rename-map.json", "utf8")).classes);
+      const changed = rows.filter(([k]) => rewrite(k) !== k);
+      const same = rows.filter(([k]) => rewrite(k) === k);
+      console.log("change name:", changed.length);
+      console.log("  named-style:", changed.filter(([k]) => k.startsWith("ts-")).length);
+      console.log("spelled identically:", same.length);
+      console.log("  always were:", same.filter(([k, v]) => v === k).length);
+      console.log("  round-trip:", same.filter(([k, v]) => v !== k).length);
+    '
 
 | 1.x | 2.0 |
 |---|---|
@@ -261,6 +287,10 @@ as well.
 | `.ts-num` | `.ts-table-cell-numeric` |
 | `.ts-number-h2` | `.ts-numbering-h2` |
 | `.ts-number-h3` | `.ts-numbering-h3` |
+| `.ts-numerals-display` | `.ts-numeral-display` |
+| `.ts-numerals-fractions` | `.ts-numeral-fraction` |
+| `.ts-numerals-prose` | `.ts-numeral-prose` |
+| `.ts-numerals-tabular` | `.ts-numeral-tabular` |
 | `.ts-nums-lining` | `.ts-numeral-display` |
 | `.ts-nums-oldstyle` | `.ts-numeral-prose` |
 | `.ts-nums-tabular` | `.ts-numeral-tabular` |
