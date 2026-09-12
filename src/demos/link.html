@@ -1,6 +1,19 @@
-<p class="pair__label">How it must look</p>
+<p class="pair__label" data-element="link">1 · Link</p>
+<p class="demo-note">The link colour inherits from the surrounding text — a link is not blue here, only underlined — and the underline skips descenders rather than cutting through them.</p>
 <div class="paper typeset">
-  <h2 id="measure">The measure of a line</h2>
-  <p>The argument is set out in full <a href="https://example.org/on-the-measure">on the measure of a line</a>, and summarised <a href="#measure">in section 02</a>. Corrections to <a href="mailto:hello@example.org">hello@example.org</a>.</p>
-  <p class="demo-print-note">Printed, the first link becomes: on the measure of a line <span class="demo-print-note__url">(https://example.org/on-the-measure)</span> — the other two are left alone.</p>
+  <p>The full argument runs on the project's own site, at <a href="https://example.org/measure">example.org/measure</a>.</p>
+</div>
+
+<p class="pair__label" data-element="link-print-url">2 · Printed URL</p>
+<p class="demo-note">Paper has no hover and no click, so an external link's own URL is spelled out after the link text — in parentheses, mono, muted, one size down. Internal anchors and <code>mailto:</code> links are left alone; both already read fine as they are.</p>
+<div class="paper typeset">
+  <p>The essay itself is online, at <a href="https://example.org/on-the-measure">the measure of a line</a>.</p>
+  <p class="demo-print-note">Printed, this becomes: the measure of a line <span class="demo-print-note__url">(https://example.org/on-the-measure)</span> — a reader holding paper still has a way to find it.</p>
+</div>
+
+<p class="pair__label" data-element="link-bare">3 · Link — URL suppressed</p>
+<p class="demo-note">An opt-out for a link whose URL would be noise in print: a tracking parameter, a shortened redirect, or one the surrounding sentence already gives.</p>
+<div class="paper typeset">
+  <p>Corrections go to <a class="ts-link-bare" href="https://example.org/t/8f3d2x-corrections">the correction form</a>, whose address is a tracking redirect nobody should copy by hand.</p>
+  <p class="demo-print-note">Printed, this stays: the correction form — no parenthetical follows it.</p>
 </div>
