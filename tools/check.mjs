@@ -19,6 +19,15 @@ const specMd = readFileSync('SPEC.md', 'utf8');
 const fail = [];
 const warn = [];
 
+/* Prints every accumulated failure and stops. Used both where a missing demo
+   file would otherwise crash a later step instead of reporting cleanly, and
+   at the end of a clean run. */
+function reportFailuresAndExit() {
+  console.error(`\n${fail.length} conformance failure${fail.length > 1 ? 's' : ''}:`);
+  for (const f of fail) console.error(`  ✗ ${f}`);
+  process.exit(1);
+}
+
 /* ---- 1. Foundation tokens must appear in the CSS with the spec's values --- */
 
 const cssVar = (name) => {
@@ -105,11 +114,18 @@ for (const sec of spec.sections) {
 
 /* ---- 3b. Every manifest section must have a demo, and vice versa --------- */
 
+/* Tracked separately from fail[] so the check below can stop before
+   buildAll(): section() there reads every manifest section's demo files
+   unconditionally, and a missing one crashes it with a raw ENOENT instead of
+   the message this gate already produced. */
+let missingDemo = false;
+
 for (const s of manifest) {
   const demo = `src/demos/${s.id}.html`;
-  if (!existsSync(demo)) fail.push(`${demo} is missing`);
+  if (!existsSync(demo)) { fail.push(`${demo} is missing`); missingDemo = true; }
   if (s.fullrow && !existsSync(`src/demos/${s.id}.fullrow.html`)) {
     fail.push(`src/demos/${s.id}.fullrow.html is declared but missing`);
+    missingDemo = true;
   }
 }
 const declared = new Set(manifest.map((s) => s.id));
@@ -128,12 +144,21 @@ for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
 
 for (const s of manifest) {
   const snippet = `src/demos/${s.id}.typ`;
-  if (!existsSync(snippet)) fail.push(`${snippet}: no Typst snippet for section "${s.id}"`);
+  if (!existsSync(snippet)) {
+    fail.push(`${snippet}: no Typst snippet for section "${s.id}"`);
+    missingDemo = true;
+  }
 }
 for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.typ'))) {
   const id = f.replace(/\.typ$/, '');
   if (!declared.has(id)) warn.push(`src/demos/${f} is not referenced by src/sections.json`);
 }
+
+/* Stop here, before anything below reaches a missing file: buildAll() (3d)
+   reads every manifest section's demo files unconditionally, so it would
+   crash on the same file this gate just reported missing, with a raw stack
+   trace instead of this gate's own message. */
+if (missingDemo) reportFailuresAndExit();
 
 /* ---- 3h. Every Typst snippet must compile under the harness -------------- */
 
@@ -143,12 +168,11 @@ for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.typ'))) {
    exactly what this wraps the fragment in before asking typst to render it:
    the shape a real document built on this library takes.
 
-   A snippet that configures typeset() itself — numbering's #show:
-   typeset.with(numbered: true) is the one today — opens with that call
-   rather than needing the wrapper to supply it. The wrapper must not add its
-   own #show: typeset on top: typeset() sets the page, and set page() cannot
-   run inside a container, which is what nesting a second call would make of
-   the outer one's content.
+   A snippet that configures typeset() itself opens with that call rather
+   than needing the wrapper to supply it. The wrapper must not add its own
+   #show: typeset on top: typeset() sets the page, and set page() cannot run
+   inside a container, which is what nesting a second call would make of the
+   outer one's content.
 
    typst denies a relative import that reaches outside the compiled file's own
    directory unless the project root is named explicitly, so the wrapper is
@@ -157,7 +181,11 @@ for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.typ'))) {
    once that one file is compiled. The rendered PDF goes to a system temp
    directory and never touches the repository. */
 
-const opensWithTypesetShow = (fragment) => fragment.trimStart().startsWith('#show: typeset');
+/* Matches only "#show: typeset" as a whole call — followed by ".with(", by
+   whitespace before the rest of the line, or by nothing else on the line —
+   so a future #show: typesetter or #show: typeset-alt is not mistaken for
+   this one and silently denied the wrapper's own #show: typeset. */
+const opensWithTypesetShow = (fragment) => /^#show:\s*typeset(\.|\s|$)/.test(fragment.trimStart());
 
 function typstAvailable() {
   try {
@@ -961,9 +989,5 @@ const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);
 console.log(`typeset spec ${spec.version} — ${spec.sections.length} sections, ${elements} elements`);
 console.log(`  css markers ${cssIds.size} · typst markers ${typIds.size} · panels ${panelAttrs.length} · generated pages ${output.size}`);
 for (const wn of warn) console.log(`  note: ${wn}`);
-if (fail.length) {
-  console.error(`\n${fail.length} conformance failure${fail.length > 1 ? 's' : ''}:`);
-  for (const f of fail) console.error(`  ✗ ${f}`);
-  process.exit(1);
-}
+if (fail.length) reportFailuresAndExit();
 console.log('\nall checks passed');
