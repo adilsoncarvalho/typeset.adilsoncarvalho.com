@@ -50,7 +50,7 @@
         <pre class="boilerplate__pre"><code data-boilerplate="html"></code></pre>
       </div>
       <div>
-        <p>Every Typst pane below assumes <a href="files/typeset-typ.html"><code>typeset.typ</code></a> sits beside the document and has been imported and shown once, above the snippet. A snippet that opens with its own <code>#show: typeset.with(…)</code> replaces the second line rather than nesting under it — <code>typeset()</code> sets the page, and a page cannot be set inside a container.</p>
+        <p>Every Typst pane below assumes <a href="files/typeset-typ.html"><code>typeset.typ</code></a> sits beside the document and has been imported and shown once, above the snippet. A snippet that opens with its own <code>#show: typeset.with(…)</code>, or with a template that sets a page of its own such as <code>#show: two-column.with(…)</code>, replaces the second line rather than nesting under it — both set the page, and a page cannot be set inside a container.</p>
         <pre class="boilerplate__pre"><code data-boilerplate="typst"></code></pre>
       </div>
     </div>

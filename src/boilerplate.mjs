@@ -33,32 +33,37 @@ export function typstBoilerplate(source = readFileSync('implementations/typeset.
   return lines.map((l) => l.slice(indent)).join('\n');
 }
 
-/* True where a snippet's first line of code is its own call to typeset().
+/* True where a snippet's first line of code opens the document itself, rather
+   than continuing one the boilerplate has already opened. Two entry points do
+   that: typeset(), and a template such as two-column() that sets a page of its
+   own before composing a body. What they have in common is the page, which is
+   the whole reason the substitution below exists.
 
-   Matches only "#show: typeset" as a whole call — followed by ".with(", by
-   whitespace before the rest of the line, or by nothing else on the line — so
-   a future #show: typesetter or #show: typeset-alt is not mistaken for it.
+   Matches only a whole call — the name followed by ".with(", by whitespace
+   before the rest of the line, or by nothing else on the line — so a
+   neighbouring name that merely begins with one of them (a future
+   #show: typesetter, #show: typeset-alt, #show: two-column-body) is not
+   mistaken for it.
 
    Comment lines and blank lines above it are skipped. A snippet may say what
    it demonstrates before it demonstrates it, and a match anchored at the first
    character would read such a snippet as configuring nothing, put the
    boilerplate's own "#show: typeset" above a second call, and fail on
    "page configuration is not allowed inside of containers". */
-export function configuresTypeset(fragment) {
+export function setsItsOwnPage(fragment) {
   const firstCode = fragment.split('\n')
     .find((line) => line.trim() !== '' && !line.trimStart().startsWith('//'));
-  return /^#show:\s*typeset(\.|\s|$)/.test((firstCode ?? '').trimStart());
+  return /^#show:\s*(typeset|two-column)(\.|\s|$)/.test((firstCode ?? '').trimStart());
 }
 
 /* A snippet appended to the boilerplate, exactly as the masthead prints it,
-   with one substitution the masthead states in prose: a snippet that
-   configures typeset() itself replaces the boilerplate's bare "#show: typeset"
-   rather than nesting under it. typeset() sets the page, and set page() is
-   refused inside a container, which is what a second call would make of the
-   first. */
+   with one substitution the masthead states in prose: a snippet that opens the
+   document itself replaces the boilerplate's bare "#show: typeset" rather than
+   nesting under it. Both entry points set the page, and set page() is refused
+   inside a container, which is what a second call would make of the first. */
 export function typstDocument(fragment) {
   const lines = typstBoilerplate().split('\n');
-  const kept = configuresTypeset(fragment)
+  const kept = setsItsOwnPage(fragment)
     ? lines.filter((l) => !/^#show:\s*typeset\s*$/.test(l))
     : lines;
   return `${kept.join('\n')}\n${fragment}`;
