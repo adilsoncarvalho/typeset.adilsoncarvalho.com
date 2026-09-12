@@ -2729,6 +2729,105 @@ if (!keyMatch) {
   }
 }
 
+/* ---- 14. reference() must not double the punctuation between an author's
+            own facts and the template's own -------------------------------- */
+
+/* references()/reference() compose the punctuation between the facts an
+   author supplies — author roman, title italic, the rest in order, "the
+   punctuation between them the template's business and not the author's".
+   A parameter an author supplies with its own trailing mark (an
+   `edition: [4th ed.]`, a `publisher: [Hyphen Press.]`) therefore produces a
+   doubled one once composed: this class of bug shipped once, in the demo
+   itself, caught only by rendering it and reading the result, not by any
+   gate. This is that gate.
+
+   It has to read RENDERED text, not typeset.typ's source: the doubling is a
+   property of the composed content tree at the point two adjacent runs of
+   text meet, which no regex over a #let's own source could see — the
+   template's own period is written once, in one place, regardless of how
+   many times an author's value happens to collide with it.
+
+   `typst query` serializes a labelled region of the compiled document to
+   JSON; every leaf run of text is {"func": "text", "text": "..."} and every
+   literal space is {"func": "space"}, both in reading order, so walking that
+   tree and rejoining them reconstructs exactly what a reader sees — without
+   a PDF/SVG text-extraction dependency this file would otherwise need.
+
+   references() itself opens on `context` (it reads ts-two-column-body), and
+   a label on unresolved context content queries as the raw, unevaluated
+   context node rather than its rendered children — so this probes
+   reference()'s own composition directly: the demo's `#references[...]`
+   wrapper is stripped down to its entries, which are plain, immediately-
+   resolvable content (no context of their own), and re-wrapped in a label
+   this gate can query. */
+
+function collectQueryText(node, out) {
+  if (Array.isArray(node)) {
+    for (const child of node) collectQueryText(child, out);
+    return;
+  }
+  if (!node || typeof node !== 'object') return;
+  if (node.func === 'text' && typeof node.text === 'string') {
+    out.push(node.text);
+    return;
+  }
+  if (node.func === 'space') {
+    out.push(' ');
+    return;
+  }
+  for (const value of Object.values(node)) {
+    if (value && typeof value === 'object') collectQueryText(value, out);
+  }
+}
+
+if (typstAvailable()) {
+  const bibliographyDemo = readFileSync('src/demos/bibliography.typ', 'utf8');
+  const entriesMatch = /^#references(?:\([^\n]*\))?\[\n([\s\S]*)\n\]\n?$/.exec(bibliographyDemo);
+  if (!entriesMatch) {
+    fail.push('tools/check.mjs: src/demos/bibliography.typ is not in the shape this gate expects '
+      + '(a single #references[ ... ] wrapping the entries) — update the gate if the demo was '
+      + 'deliberately restructured');
+  } else {
+    const bibProbeDir = mkdtempSync(join(tmpdir(), 'typeset-bib-punct-check-'));
+    try {
+      copyFileSync('implementations/typeset.typ', join(bibProbeDir, 'typeset.typ'));
+      const probeDoc = typstDocument(`#[\n${entriesMatch[1]}\n] <bib-punctuation-check>`);
+      const probePath = join(bibProbeDir, 'bib-punctuation-check.typ');
+      writeFileSync(probePath, probeDoc);
+
+      let queryResult;
+      try {
+        const out = execFileSync(
+          'typst',
+          ['query', '--font-path', resolve('fonts'), probePath, '<bib-punctuation-check>'],
+          { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+        );
+        queryResult = JSON.parse(out.toString());
+      } catch (err) {
+        const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+        fail.push(`src/demos/bibliography.typ: could not query the compiled reference text:\n${detail}`);
+        queryResult = null;
+      }
+
+      if (queryResult) {
+        const textPieces = [];
+        collectQueryText(queryResult, textPieces);
+        const text = textPieces.join('');
+        const doubled = text.match(/([.,])\1|\.,|,\./g);
+        if (doubled) {
+          fail.push('src/demos/bibliography.typ: the rendered reference text contains doubled '
+            + `punctuation (${[...new Set(doubled)].join(', ')}) in "${text.trim()}" — `
+            + "reference() composes the punctuation between an author's facts, so a fact supplied "
+            + 'with its own trailing "." or "," produces a doubled mark; check every reference() '
+            + 'call\'s author, title, edition, publisher, year and note for one');
+        }
+      }
+    } finally {
+      rmSync(bibProbeDir, { recursive: true, force: true });
+    }
+  }
+}
+
 /* ---- Report ------------------------------------------------------------- */
 
 const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);
