@@ -3986,40 +3986,18 @@ const EXEMPTIONS = new Map([
      appearance of its own to put beside a label. */
   ['justification-exclusions', 'states a prohibition — what must never be '
     + 'justified — not a style with an appearance of its own to show'],
-  /* Forces a page break. There is a page boundary to point at in a paginated
-     render, and nothing at all in a screen demo. */
-  ['utility-break-before', 'changes pagination — there is a page boundary to show '
-    + 'in print and nothing at all to show on a screen'],
-  /* Hides content in one medium and shows it in the other, by design — the
-     effect is only observable by comparing print output against a screen. */
-  ['utility-print-only', 'hides on screen by design — the effect is only '
-    + 'observable in a printed or paginated rendering, not on a screen demo'],
-  /* Starts the next element on a new page — the mirror of utility-break-before,
-     with the same "nothing to show on a screen" reasoning. */
-  ['utility-break-after', 'changes pagination — there is a page boundary to show '
-    + 'in print and nothing at all to show on a screen, the same reasoning as '
-    + 'utility-break-before'],
-  /* break-inside: avoid only has an effect at a page boundary a screen-rendered
-     ".paper" div never reaches — the same reasoning again, one level down at a
-     single element rather than the flow between two. */
-  ['utility-keep-together', 'never lets a page break fall inside this element — '
-    + 'there is no page boundary inside a screen-rendered ".paper" div for that '
-    + 'to show, the same reasoning as utility-break-before'],
-  /* Only fires inside @media print, forcing a background or rule to survive
-     the print dialog's own ink-saving pass — a screen render never enters that
-     mode, so there is nothing to show it against. */
-  ['utility-color-adjust', 'only takes effect inside the print dialog\'s own '
-    + 'ink-saving pass — a screen render never enters that mode, so there is '
-    + 'nothing on screen for it to change'],
-  /* table-row's only declared property is break-inside: avoid — the exact
-     same page-boundary effect as utility-keep-together, just scoped to a
-     table row rather than an arbitrary element. A <tr> carries no class of
-     its own for this (typeset.css applies it to every "tr", not to a
-     data-element target), so there is neither a visible difference nor a
-     stylable hook to bind a pane to. */
-  ['table-row', 'break-inside: avoid on every row — a page-boundary effect '
-    + 'with nothing to show inside a screen-rendered ".paper" div, the same '
-    + 'reasoning as utility-break-before'],
+  /* Not an opt-in style: typeset.css declares break-inside: avoid on the "tr"
+     tag itself, so every row of every table in the section is already set
+     this way and there is no second form to put beside one. A pane would be
+     a copy of the table above it under a label claiming a difference that is
+     not there — which is the one thing the duplicate-fragment gate in 3d
+     exists to stop. What the property does at a page boundary is drawn by
+     utility-keep-together's own pane, which carries the same
+     break-inside: avoid one level up. */
+  ['table-row', 'break-inside: avoid declared on the "tr" tag, not opt-in — '
+    + 'every table in the section is already set this way, so a pane of its '
+    + 'own would be a duplicate under a label claiming a difference that is '
+    + 'not there; utility-keep-together draws what the property does'],
 ]);
 
 for (const [id, reason] of EXEMPTIONS) {
@@ -4053,6 +4031,19 @@ for (const [id, bindings] of elementBindings) {
       fail.push(`${file}: data-element="${id}" on "${label ?? '(unlabelled)'}" names no element `
         + 'spec.json declares');
     }
+  }
+}
+
+/* An exemption that is no longer true is the failure this whole gate exists
+   to prevent, one level up: the list is meant to name what cannot be shown,
+   and an entry that survives the arrival of its own pane turns into a record
+   of what somebody once thought. The loop below skips an exempt element
+   entirely, so nothing else here would ever notice. */
+for (const [id] of EXEMPTIONS) {
+  if (elementBindings.has(id)) {
+    fail.push(`tools/check.mjs: "${id}" is exempt from needing a labelled example, and `
+      + `${elementBindings.get(id).map((b) => b.file).join(', ')} binds a pane to it anyway — `
+      + 'the exemption has outlived its reason and must be deleted, not left standing');
   }
 }
 
