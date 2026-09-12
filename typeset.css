@@ -125,7 +125,7 @@
 @page ts-margin-duplex-wide:left  { margin-left: 27mm; margin-right: 33mm; }
 /*! @e */
 
-/*! @s headings :: Headings */
+/*! @s heading :: Headings */
 /* The shared base every heading level builds on: line-height, color, margin rhythm and break behaviour. Not a style in its own right — each level below overrides family, weight and size to become itself. */
 .typeset h1,
 .typeset h2,
@@ -147,7 +147,7 @@
   text-wrap: balance;
 }
 
-/* @style headings-h1 */
+/* @style heading-h1 */
 .typeset h1 {
   font-size: var(--ts-h1);
   font-weight: 300;
@@ -155,20 +155,20 @@
   margin-top: 0;
 }
 
-/* @style headings-h2 */
+/* @style heading-h2 */
 .typeset h2 {
   font-size: var(--ts-h2);
   letter-spacing: -0.01em;
 }
 
-/* @style headings-h3 */
+/* @style heading-h3 */
 .typeset h3 { font-size: var(--ts-h3); }
 
-/* @style headings-h4 */
+/* @style heading-h4 */
 .typeset h4 { font-size: var(--ts-h4); }
 
 /* Below h4, drop the size change and shift register instead. */
-/* @style headings-h5 */
+/* @style heading-h5 */
 .typeset h5 {
   font-size: var(--ts-base);
   font-family: var(--ts-serif);
@@ -177,7 +177,7 @@
   letter-spacing: 0.06em;
 }
 
-/* @style headings-h6 */
+/* @style heading-h6 */
 .typeset h6 {
   font-size: var(--ts-base);
   font-family: var(--ts-serif);
@@ -186,39 +186,39 @@
 }
 
 /* A run-in heading: the h6 sits on the first line of its paragraph. */
-.typeset .ts-headings-run-in {
+.typeset .ts-heading-run-in {
   display: inline;
   margin: 0;
 }
-.typeset .ts-headings-run-in + p { display: inline; }
-.typeset .ts-headings-run-in::after { content: " · "; color: var(--ts-ink-faint); }
+.typeset .ts-heading-run-in + p { display: inline; }
+.typeset .ts-heading-run-in::after { content: " · "; color: var(--ts-ink-faint); }
 /*! @e */
 
 /*! @s numbering :: Section numbering */
-.typeset--numbered { counter-reset: ts-headings-h2; }
+.typeset--numbered { counter-reset: ts-heading-h2; }
 
 /* @style numbering-h2 */
 .typeset--numbered h2 {
-  counter-increment: ts-headings-h2;
-  counter-reset: ts-headings-h3;
+  counter-increment: ts-heading-h2;
+  counter-reset: ts-heading-h3;
 }
 .typeset--numbered h2::before {
-  content: counter(ts-headings-h2) "  ";
+  content: counter(ts-heading-h2) "  ";
   color: var(--ts-ink-faint);
   font-variant-numeric: lining-nums tabular-nums;
 }
 
 /* @style numbering-h3 */
-.typeset--numbered h3 { counter-increment: ts-headings-h3; }
+.typeset--numbered h3 { counter-increment: ts-heading-h3; }
 .typeset--numbered h3::before {
-  content: counter(ts-headings-h2) "." counter(ts-headings-h3) "  ";
+  content: counter(ts-heading-h2) "." counter(ts-heading-h3) "  ";
   color: var(--ts-ink-faint);
   font-variant-numeric: lining-nums tabular-nums;
 }
 /*! @e */
 
-/*! @s paragraphs :: Paragraphs */
-/* @style paragraphs-spaced */
+/*! @s paragraph :: Paragraphs */
+/* @style paragraph-spaced */
 .typeset {
   /* Paragraph separation is one decision expressed as two values: a gap, or an
      indent, never both. A template sets these; nothing else needs to know. */
@@ -226,7 +226,7 @@
   --ts-para-indent: 0;
 }
 
-/* @style paragraphs-indented */
+/* @style paragraph-indented */
 .typeset--indented {
   --ts-para-gap: 0;
   --ts-para-indent: 1.5em;
@@ -245,7 +245,7 @@
    Enumerated rather than written as `:is(...)`. Paged.js rewrites every
    stylesheet through its own CSS parser, which does not understand `:is()`: it
    splits the selector on the commas INSIDE the argument list and emits
-   fragments like ` .ts-callouts-callout)+p`, which throw on querySelectorAll
+   fragments like ` .ts-callout)+p`, which throw on querySelectorAll
    and abort pagination entirely — a blank document, not a degraded one. Keep
    this list flat. */
 .typeset h1 + p,
@@ -260,7 +260,7 @@
 .typeset table + p,
 .typeset hr + p,
 .typeset .ts-break + p,
-.typeset .ts-callouts-callout + p,
+.typeset .ts-callout + p,
 .typeset > p:first-child {
   text-indent: 0;
 }
@@ -300,7 +300,7 @@
 
 /* `text-align-last` inherits as well, so a block that centres itself must
    restore it — otherwise its last line, which for a one-line block is its only
-   line, is flushed left. See .ts-quotes-pullquote and .ts-break.
+   line, is flushed left. See .ts-quote-pullquote and .ts-break.
 
    Never justify a heading, a cell, or a listing. Every other block that must
    stay flush left — subtitle, byline, caption, address, notes — declares
@@ -398,8 +398,8 @@
 }
 /*! @e */
 
-/*! @s links :: Links in print */
-/* @style links-link */
+/*! @s link :: Links in print */
+/* @style link */
 .typeset a {
   color: inherit;
   text-decoration: underline;
@@ -410,7 +410,7 @@
 
 /* Paper has no hover. Spell out external URLs where they carry information. */
 @media print {
-  /* @style links-print-url */
+  /* @style link-print-url */
   .typeset a[href^="http"]::after {
     content: " (" attr(href) ")";
     font: 0.82em var(--ts-mono);
@@ -420,22 +420,22 @@
   /* Internal and mailto links read fine as-is. */
   .typeset a[href^="#"]::after,
   .typeset a[href^="mailto"]::after,
-  .typeset a.ts-links-bare::after { content: none; }
+  .typeset a.ts-link-bare::after { content: none; }
 }
 /*! @e */
 
-/*! @s numerals :: Numerals */
+/*! @s numeral :: Numerals */
 /* Old-style figures sit in the x-height and belong in running prose.
    Lining figures are uniform-height and belong in headings and tables.
    Tabular figures share one advance width so columns align. */
-.typeset .ts-numerals-prose     { font-variant-numeric: oldstyle-nums proportional-nums; }
-.typeset .ts-numerals-display   { font-variant-numeric: lining-nums proportional-nums; }
-.typeset .ts-numerals-tabular   { font-variant-numeric: lining-nums tabular-nums; }
-.typeset .ts-numerals-fractions { font-variant-numeric: diagonal-fractions; }
+.typeset .ts-numeral-prose     { font-variant-numeric: oldstyle-nums proportional-nums; }
+.typeset .ts-numeral-display   { font-variant-numeric: lining-nums proportional-nums; }
+.typeset .ts-numeral-tabular   { font-variant-numeric: lining-nums tabular-nums; }
+.typeset .ts-numeral-fraction { font-variant-numeric: diagonal-fractions; }
 /*! @e */
 
-/*! @s quotes :: Block quotations */
-/* @style quotes-blockquote */
+/*! @s quote :: Block quotations */
+/* @style quote-blockquote */
 .typeset blockquote {
   margin: calc(var(--ts-space) * 1.25) 0;
   padding-left: calc(var(--ts-space) * 1.5);
@@ -448,7 +448,7 @@
 
 /* Attribution: an em dash, and never inside the quote. */
 .typeset blockquote cite,
-.typeset .ts-quotes-attribution {
+.typeset .ts-quote-attribution {
   display: block;
   text-align: left;
   margin-top: calc(var(--ts-space) * 0.5);
@@ -457,10 +457,10 @@
   color: var(--ts-ink-muted);
 }
 .typeset blockquote cite::before,
-.typeset .ts-quotes-attribution::before { content: "— "; }
+.typeset .ts-quote-attribution::before { content: "— "; }
 
 /* An epigraph opens a chapter: no rule, indented from the right, italic. */
-.typeset .ts-quotes-epigraph {
+.typeset .ts-quote-epigraph {
   border: 0;
   text-align: left;
   margin: 0 0 calc(var(--ts-space) * 2) auto;
@@ -470,11 +470,11 @@
   font-size: 10pt;
   color: var(--ts-ink-muted);
 }
-.typeset .ts-quotes-epigraph cite { font-style: normal; }
+.typeset .ts-quote-epigraph cite { font-style: normal; }
 
 /* A pull quote is display type lifted from the body. It repeats — so it must
    never be the only place a claim appears. */
-.typeset .ts-quotes-pullquote {
+.typeset .ts-quote-pullquote {
   border: 0;
   text-align: center;
   text-align-last: center;
@@ -490,7 +490,7 @@
 }
 
 /* Verse: preserve the poet's line breaks, indent the runovers. */
-.typeset .ts-quotes-verse {
+.typeset .ts-quote-verse {
   border: 0;
   text-align: left;
   padding-left: calc(var(--ts-space) * 2);
@@ -501,7 +501,7 @@
 }
 /*! @e */
 
-/*! @s lists :: Lists */
+/*! @s list :: Lists */
 .typeset ul,
 .typeset ol {
   margin: 0 0 var(--ts-space);
@@ -512,7 +512,7 @@
 .typeset li > ol { margin: calc(var(--ts-space) * 0.25) 0 0; }
 .typeset li:last-child { margin-bottom: 0; }
 
-/* @style lists-unordered */
+/* @style list-unordered */
 .typeset ul { list-style: none; }
 .typeset ul > li::before {
   content: "·";
@@ -523,10 +523,10 @@
   color: var(--ts-ink-muted);
   font-weight: 700;
 }
-/* @style lists-unordered-nested */
+/* @style list-unordered-nested */
 .typeset ul ul > li::before { content: "–"; font-weight: 400; }
 
-/* @style lists-ordered */
+/* @style list-ordered */
 .typeset ol {
   list-style: none;
   counter-reset: ts-ol;
@@ -540,15 +540,15 @@
   color: var(--ts-ink-muted);
   font-variant-numeric: lining-nums tabular-nums;
 }
-/* @style lists-ordered-nested */
+/* @style list-ordered-nested */
 .typeset ol ol > li::before { content: counter(ts-ol, lower-alpha) "."; }
 
 /* A tight list for enumerations that are not prose. */
-.typeset .ts-lists-tight li { margin-bottom: 0; }
+.typeset .ts-list-tight li { margin-bottom: 0; }
 
 /* Definition lists: the right shape for terms, glossaries, and letter fields. */
 .typeset dl { margin: 0 0 var(--ts-space); }
-/* @style lists-definition-term */
+/* @style list-definition-term */
 .typeset dt {
   text-align: left;
   font-weight: 600;
@@ -558,12 +558,12 @@
   break-after: avoid;
 }
 .typeset dt:first-child { margin-top: 0; }
-/* @style lists-definition-description */
+/* @style list-definition-description */
 .typeset dd { margin: 0 0 0 calc(var(--ts-space) * 1.5); }
 /*! @e */
 
-/*! @s tables :: Tables */
-/* @style tables-table */
+/*! @s table :: Tables */
+/* @style table */
 .typeset table {
   width: 100%;
   border-collapse: collapse;
@@ -576,7 +576,7 @@
 
 /* Rules, not grids. Vertical rules are almost never needed — the columns
    already read as columns. */
-/* @style tables-cell */
+/* @style table-cell */
 .typeset th,
 .typeset td {
   padding: 0.45em 0.7em 0.45em 0;
@@ -587,7 +587,7 @@
 .typeset th:last-child,
 .typeset td:last-child { padding-right: 0; }
 
-/* @style tables-header-cell */
+/* @style table-header-cell */
 .typeset thead th {
   font-weight: 600;
   font-size: var(--ts-xs);
@@ -597,20 +597,20 @@
   border-bottom: 1pt solid var(--ts-rule-strong);
 }
 .typeset tbody tr:last-child td { border-bottom: 1pt solid var(--ts-rule-strong); }
-/* @style tables-footer-cell */
+/* @style table-footer-cell */
 .typeset tfoot td { font-weight: 600; border-bottom: 0; }
 
 /* Numbers align on their right edge. Units go in the header, not every cell. */
-.typeset .ts-tables-cell-numeric { text-align: right; font-variant-numeric: lining-nums tabular-nums; }
-.typeset th.ts-tables-cell-numeric { text-align: right; }
+.typeset .ts-table-cell-numeric { text-align: right; font-variant-numeric: lining-nums tabular-nums; }
+.typeset th.ts-table-cell-numeric { text-align: right; }
 
 /* Repeat the header on every page a long table spans. */
 .typeset thead { display: table-header-group; }
 .typeset tfoot { display: table-footer-group; }
-/* @style tables-row */
+/* @style table-row */
 .typeset tr { break-inside: avoid; }
 
-/* @style tables-caption */
+/* @style table-caption */
 .typeset caption {
   caption-side: top;
   text-align: left;
@@ -632,10 +632,10 @@
 }
 /* Empty on purpose: the base above already carries everything a table
    caption's label needs. The class exists so the style has a name. */
-.typeset .ts-tables-caption-label { }
+.typeset .ts-table-caption-label { }
 
 /* Optional zebra for wide, dense tables only. */
-.typeset .ts-tables-zebra tbody tr:nth-child(even) { background: var(--ts-wash); }
+.typeset .ts-table-zebra tbody tr:nth-child(even) { background: var(--ts-wash); }
 /*! @e */
 
 /*! @s codeblock :: Code blocks */
@@ -667,8 +667,8 @@
 }
 /*! @e */
 
-/*! @s figures :: Figures & captions */
-/* @style figures-figure */
+/*! @s figure :: Figures & captions */
+/* @style figure */
 .typeset figure {
   margin: calc(var(--ts-space) * 1.5) 0;
   break-inside: avoid;
@@ -679,7 +679,7 @@
   max-width: 100%;
   height: auto;
 }
-/* @style figures-caption */
+/* @style figure-caption */
 .typeset figcaption {
   text-align: left;
   font-family: var(--ts-sans);
@@ -690,13 +690,13 @@
   padding-top: 0.4em;
   border-top: 0.5pt solid var(--ts-rule);
 }
-.typeset .ts-figures-caption-label { color: var(--ts-ink); }
+.typeset .ts-figure-caption-label { color: var(--ts-ink); }
 /*! @e */
 
-/*! @s notes :: Footnotes & endnotes */
+/*! @s note :: Footnotes & endnotes */
 /* The reference mark. Superscript, no brackets, and it must not disturb
    the line's leading. */
-.typeset .ts-notes-marker {
+.typeset .ts-note-marker {
   font-size: 0.7em;
   line-height: 0;
   position: relative;
@@ -705,9 +705,9 @@
   text-decoration: none;
   color: var(--ts-accent);
 }
-.typeset .ts-notes-marker::before { content: counter(ts-notes-footnote); }
-.typeset { counter-reset: ts-notes-footnote; }
-.typeset .ts-notes-marker { counter-increment: ts-notes-footnote; }
+.typeset .ts-note-marker::before { content: counter(ts-note-footnote); }
+.typeset { counter-reset: ts-note-footnote; }
+.typeset .ts-note-marker { counter-increment: ts-note-footnote; }
 
 /* True bottom-of-page footnotes need an engine that implements the CSS
    footnote spec — WeasyPrint 53+ and Prince do; browsers do not. Where they
@@ -715,16 +715,16 @@
    live in the document rather than in a generated-content property. */
 @supports (float: footnote) {
   /* @style letter-footnote — a letter's footnote is the document footnote mechanism: the marker above and the endnotes block below. */
-  .typeset .ts-notes-footnote {
+  .typeset .ts-note-footnote {
     float: footnote;
     footnote-display: block;
     font-size: var(--ts-sm);
     line-height: 1.35;
   }
-  .typeset .ts-notes-endnotes { display: none; }
+  .typeset .ts-note-endnotes { display: none; }
 }
 
-.typeset .ts-notes-endnotes {
+.typeset .ts-note-endnotes {
   text-align: left;
   margin-top: calc(var(--ts-space) * 2);
   padding-top: var(--ts-space);
@@ -733,8 +733,8 @@
   line-height: 1.4;
   counter-reset: ts-endnote;
 }
-.typeset .ts-notes-endnotes ol { padding-left: 1.8em; }
-.typeset .ts-notes-endnotes li { margin-bottom: 0.4em; }
+.typeset .ts-note-endnotes ol { padding-left: 1.8em; }
+.typeset .ts-note-endnotes li { margin-bottom: 0.4em; }
 
 /* Sidenotes: no page-break arithmetic, and the reader never loses their
    place. They cost you a wide right margin. */
@@ -742,7 +742,7 @@
    here, with an em to spare. */
 .typeset--sidenotes { --ts-measure: 27em; padding-right: 14em; }
 .typeset--sidenotes p { position: relative; }
-.typeset .ts-notes-sidenote {
+.typeset .ts-note-sidenote {
   position: absolute;
 
   /* Anchored to the paragraph's own right edge, NOT to `calc(measure + 2em)`.
@@ -761,15 +761,15 @@
   text-align: left;
   text-indent: 0;
 }
-.typeset .ts-notes-sidenote::before {
-  content: counter(ts-notes-footnote) " ";
+.typeset .ts-note-sidenote::before {
+  content: counter(ts-note-footnote) " ";
   color: var(--ts-accent);
   font-weight: 600;
 }
 /*! @e */
 
-/*! @s callouts :: Callouts */
-.typeset .ts-callouts-callout {
+/*! @s callout :: Callouts */
+.typeset .ts-callout {
   margin: calc(var(--ts-space) * 1.25) 0;
   padding: 0.75em 1em;
   border: 0.5pt solid var(--ts-rule);
@@ -778,8 +778,8 @@
   font-size: 10pt;
   break-inside: avoid;
 }
-.typeset .ts-callouts-callout > :last-child { margin-bottom: 0; }
-.typeset .ts-callouts-title {
+.typeset .ts-callout > :last-child { margin-bottom: 0; }
+.typeset .ts-callout-title {
   font-family: var(--ts-sans);
   font-size: var(--ts-xs);
   font-weight: 700;
@@ -788,11 +788,11 @@
   color: var(--ts-ink-muted);
   margin-bottom: 0.35em;
 }
-.typeset .ts-callouts-warning { border-left-color: var(--ts-accent); }
-.typeset .ts-callouts-warning .ts-callouts-title { color: var(--ts-accent); }
+.typeset .ts-callout-warning { border-left-color: var(--ts-accent); }
+.typeset .ts-callout-warning .ts-callout-title { color: var(--ts-accent); }
 /*! @e */
 
-/*! @s breaks :: Section breaks */
+/*! @s break :: Section breaks */
 /* A blank line cannot survive a page break — if the break falls on the gap,
    the reader never sees it. Use a visible mark: one of the four variants
    below, each supplying its own ::before content.
@@ -811,7 +811,7 @@
   break-after: avoid;
 }
 /* A bare <hr> carries no variant class, so its mark is fixed here: three
-   widely spaced asterisks, the same values .ts-breaks-asterisks::before
+   widely spaced asterisks, the same values .ts-break-asterisks::before
    uses below for a document that spells the choice out explicitly. */
 .typeset hr::before {
   content: "* * *";
@@ -820,14 +820,14 @@
 }
 
 /* Three widely spaced asterisks, the default treatment. */
-.typeset .ts-breaks-asterisks::before { content: "* * *"; letter-spacing: 0.6em; font-size: 10pt; }
+.typeset .ts-break-asterisks::before { content: "* * *"; letter-spacing: 0.6em; font-size: 10pt; }
 /* An asterism, for a heavier division. */
-.typeset .ts-breaks-asterism::before { content: "⁂"; letter-spacing: 0; font-size: 14pt; }
+.typeset .ts-break-asterism::before { content: "⁂"; letter-spacing: 0; font-size: 14pt; }
 /* A fleuron, for a decorative one. */
-.typeset .ts-breaks-fleuron::before { content: "❦"; letter-spacing: 0; font-size: 12pt; color: var(--ts-accent); }
+.typeset .ts-break-fleuron::before { content: "❦"; letter-spacing: 0; font-size: 12pt; color: var(--ts-accent); }
 /* A plain rule, for a report. */
-.typeset .ts-breaks-rule::before { content: none; }
-.typeset .ts-breaks-rule { border-top: 0.5pt solid var(--ts-rule); height: 0; }
+.typeset .ts-break-rule::before { content: none; }
+.typeset .ts-break-rule { border-top: 0.5pt solid var(--ts-rule); height: 0; }
 /*! @e */
 
 /*! @s frontmatter :: Front matter */
@@ -924,8 +924,8 @@
 /*! @e */
 
 /*! @s bibliography :: Bibliography */
-/* Same scale and weight as headings-h2 — a bibliography heading reads as a
-   section heading — but its own element, distinct from headings-h2, which is
+/* Same scale and weight as heading-h2 — a bibliography heading reads as a
+   section heading — but its own element, distinct from heading-h2, which is
    what lets it span both columns in the two-column template while an
    ordinary section heading cannot (templates.two-column.spanning). */
 .typeset .ts-bibliography-heading {
@@ -1136,7 +1136,7 @@
 
 /* A sidenote has no margin to live in here. Rather than let it be positioned
    off the page and silently lost, it degrades to an inline aside. */
-.typeset--two-column .ts-notes-sidenote {
+.typeset--two-column .ts-note-sidenote {
   position: static;
   display: block;
   width: auto;
@@ -1161,23 +1161,23 @@
 .typeset--two-column table { font-size: 8pt; line-height: 1.3; }
 .typeset--two-column pre { font-size: 7.5pt; }
 .typeset--two-column figcaption { font-size: 8pt; }
-.typeset--two-column .ts-notes-endnotes { font-size: 8.5pt; }
-.typeset--two-column .ts-quotes-pullquote { font-size: 12pt; }
+.typeset--two-column .ts-note-endnotes { font-size: 8.5pt; }
+.typeset--two-column .ts-quote-pullquote { font-size: 12pt; }
 .typeset--two-column .ts-frontmatter-abstract { font-size: 9pt; max-width: none; }
-.typeset--two-column .ts-quotes-epigraph { max-width: none; }
+.typeset--two-column .ts-quote-epigraph { max-width: none; }
 /*! @e */
 
-/*! @s utilities :: Pagination utilities */
-.ts-utilities-break-before  { break-before: page; }
-.ts-utilities-break-after   { break-after: page; }
-.ts-utilities-keep-together { break-inside: avoid; page-break-inside: avoid; }
-.ts-utilities-no-hyphens    { hyphens: manual; }
+/*! @s utility :: Pagination utilities */
+.ts-utility-break-before  { break-before: page; }
+.ts-utility-break-after   { break-after: page; }
+.ts-utility-keep-together { break-inside: avoid; page-break-inside: avoid; }
+.ts-utility-no-hyphens    { hyphens: manual; }
 
 /* Non-breaking spaces belong in the markup, but these catch the common cases:
    a figure and its unit, an initial and a surname. */
-.ts-utilities-tie { white-space: nowrap; }
+.ts-utility-tie { white-space: nowrap; }
 
-/* @style utilities-print-only — names the pair: this block and the .ts-print-only block right below it. */
+/* @style utility-print-only — names the pair: this block and the .ts-print-only block right below it. */
 @media print {
   .ts-screen-only { display: none !important; }
 }
@@ -1186,7 +1186,7 @@
 }
 
 /* Force backgrounds and rules to survive the print dialog's ink-saving. */
-/* @style utilities-color-adjust */
+/* @style utility-color-adjust */
 @media print {
   .typeset,
   .typeset * {

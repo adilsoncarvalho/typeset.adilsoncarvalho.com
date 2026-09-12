@@ -34,7 +34,7 @@ separation for the return sweep to stay unambiguous, and the saving is real: at
 Headings come down hardest. A 24pt level-2 heading inside an 82mm column spends
 three lines saying two words, so the scale runs 20/13/11/9.5.
 
-#callouts-callout(title: [What does not change])[
+#callout(title: [What does not change])[
   The palette, the rule weights, the numeral conventions and the pagination
   rules are all identical.
 ]
@@ -45,7 +45,7 @@ At 49 characters a ragged right edge serrates the column visibly, and the word
 gaps in an unhyphenated justified column read as rivers. Both faults are
 tolerable at 66 characters and neither is tolerable here.
 
-#quotes-pullquote[The one place the spec removes a choice.]
+#quote(type: "pullquote")[The one place the spec removes a choice.]
 
 So the template asserts justification rather than offering it as an option.
 

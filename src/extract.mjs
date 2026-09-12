@@ -23,7 +23,7 @@
    only its inner markup — the element itself would say nothing a plain
    "typeset" class does not already say.
 
-   Two demos, two-column and notes.fullrow, nest the document inside scaled
+   Two demos, two-column and note.fullrow, nest the document inside scaled
    .mini page chrome, so the wrapper matched here never carries "typeset"
    itself. There the fragment starts at the first descendant that does. */
 
@@ -37,7 +37,7 @@ const GENERIC_LABEL = 'How it must look';
 
 /* Classes the stylesheet gives significant whitespace to, so that a line
    break inside the element is content rather than source layout. Only
-   .ts-quotes-verse qualifies: `white-space: pre-line` is what keeps the
+   .ts-quote-verse qualifies: `white-space: pre-line` is what keeps the
    poet's line breaks, and it is the sole class-declared rule in typeset.css
    that preserves a break. The other is `white-space: pre-wrap` on `.typeset
    pre`, which is the same thing declared by tag and is handled as one.
@@ -46,7 +46,7 @@ const GENERIC_LABEL = 'How it must look';
    sits at the fragment's indent while its content sits at column zero, so
    the shared indent collapses to zero and nothing is stripped — the tag
    keeps its source indentation and a reader copies it. */
-const VERBATIM_CLASSES = ['ts-quotes-verse'];
+const VERBATIM_CLASSES = ['ts-quote-verse'];
 
 const ANY_OPEN_TAG_RE = /<([a-z][a-z0-9]*)\b([^>]*)>/gi;
 
@@ -253,7 +253,7 @@ function resolveTarget(source, wrapperOpenTag, contentStart, wrapperClose) {
    its own, and the element stays. `ts-toc--demo` only suppresses that
    generated number so a browser shows one figure rather than two. `demo-aside`
    only sets a document paragraph smaller — and in the numerals demo that
-   paragraph carries the sole `.ts-numerals-fractions` in the repo, so taking
+   paragraph carries the sole `.ts-numeral-fraction` in the repo, so taking
    the element would take the demonstration with it. */
 export const APPARATUS_ELEMENTS = new Set(['demo-note', 'demo-print-note', 'ts-folio']);
 export const APPARATUS_CLASSES = new Set(['demo-aside', 'ts-toc--demo']);

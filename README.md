@@ -92,10 +92,12 @@ class or a `/* @style <id> */` marker, rebuild, and run the checker. The checker
 names a missing demo or snippet before the build trips over it.
 
 Naming the elements: an element id is either the bare section id or
-`<section-id>-<leaf>`. A plural section name enumerates its members, so every
-element takes a leaf (`tables-table`, `tables-cell`); a singular one names a
-single style, so its principal element takes the section id alone (`dropcap`,
-`codeblock`, `toc`) and any others hang off it (`dropcap-lede`, `toc-entry`).
+`<section-id>-<leaf>`. A section built around one style gives its principal
+element the bare section id (`dropcap`, `codeblock`, `toc`, `table`) and hangs
+any others off it (`dropcap-lede`, `toc-entry`, `table-cell`); a section that
+enumerates a family of variants has no bare id of its own and gives every
+element a leaf (`heading-h1` … `heading-h6`, `list-ordered`,
+`list-unordered`).
 
 ## Working on it
 
@@ -134,6 +136,15 @@ produce:
   copies it gets markup that renders as shown.
 - The scale labels in both tokens demos are `spec.json`'s own values, in both
   directions.
+- `SPEC.md` is regenerated from `spec.json` and compared byte for byte, so a
+  stale property table fails rather than passing on a matching version line.
+- The migration path is held to the release it describes: one run of
+  `tools/codemod-names.mjs` carries `tools/fixtures/1.x-migration-sample.html`
+  from 1.x class names to 2.0 ones and lands every class on a name this
+  release carries, a second run changes nothing further, the two rename maps
+  point only at live names, running the codemod over `spec.json` moves no
+  schema key, and `docs/migrating-to-2.0.md`'s class table and its five counts
+  are re-derived from the maps rather than trusted.
 
 Run it before pushing.
 
@@ -369,7 +380,7 @@ content inside its page boxes, so things that are true of a normal page are not
 true under it.
 
 - **It cannot parse `:is()` or `:has()`.** It splits the selector on the commas
-  inside the argument list, emits a fragment like `.ts-callouts-callout)+p`, and that
+  inside the argument list, emits a fragment like `.ts-callout)+p`, and that
   throws on `querySelectorAll` — aborting pagination entirely. Blank document, no
   error on the page. Keep selector lists flat.
 - **It applies `@media print` rules unconditionally**, since that is how it builds

@@ -40,8 +40,8 @@
 
   <p>Headings come down hardest. A 24pt level-2 heading inside an 82mm column spends three lines saying two words, so the scale runs 20/13/11/9.5 — and the level-1 heading keeps display size only because it spans both columns.</p>
 
-  <div class="ts-callouts-callout">
-    <p class="ts-callouts-title">What does not change</p>
+  <div class="ts-callout">
+    <p class="ts-callout-title">What does not change</p>
     <p>The colour palette, the rule weights, the numeral conventions, the treatment of quotations and the pagination rules are all identical. A template sets the page and the scale; it does not get its own typography.</p>
   </div>
 
@@ -49,7 +49,7 @@
 
   <p>At 49 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.</p>
 
-  <blockquote class="ts-quotes-pullquote">
+  <blockquote class="ts-quote-pullquote">
     <p>This is the one place the spec removes a choice it otherwise offers.</p>
   </blockquote>
 
@@ -61,13 +61,13 @@
 
   <figure class="ts-span">
     <table>
-      <caption><span class="ts-label ts-tables-caption-label">Table 1</span> — Characters per line for an 82mm column, by base size. The floor is 45: 11pt and 10.5pt both fall short, 10pt clears it by two, and the template still drops one step further, to 9.5pt, for headroom rather than a bare pass.</caption>
+      <caption><span class="ts-label ts-table-caption-label">Table 1</span> — Characters per line for an 82mm column, by base size. The floor is 45: 11pt and 10.5pt both fall short, 10pt clears it by two, and the template still drops one step further, to 9.5pt, for headroom rather than a bare pass.</caption>
       <thead>
-        <tr><th>Base size</th><th class="ts-tables-cell-numeric">11pt</th><th class="ts-tables-cell-numeric">10.5pt</th><th class="ts-tables-cell-numeric">10pt</th><th class="ts-tables-cell-numeric">9.5pt</th><th class="ts-tables-cell-numeric">9pt</th></tr>
+        <tr><th>Base size</th><th class="ts-table-cell-numeric">11pt</th><th class="ts-table-cell-numeric">10.5pt</th><th class="ts-table-cell-numeric">10pt</th><th class="ts-table-cell-numeric">9.5pt</th><th class="ts-table-cell-numeric">9pt</th></tr>
       </thead>
       <tbody>
-        <tr><td>Characters</td><td class="ts-tables-cell-numeric">42</td><td class="ts-tables-cell-numeric">44</td><td class="ts-tables-cell-numeric">47</td><td class="ts-tables-cell-numeric">49</td><td class="ts-tables-cell-numeric">52</td></tr>
-        <tr><td>Conformant</td><td class="ts-tables-cell-numeric">no</td><td class="ts-tables-cell-numeric">no</td><td class="ts-tables-cell-numeric">yes</td><td class="ts-tables-cell-numeric">yes</td><td class="ts-tables-cell-numeric">yes</td></tr>
+        <tr><td>Characters</td><td class="ts-table-cell-numeric">42</td><td class="ts-table-cell-numeric">44</td><td class="ts-table-cell-numeric">47</td><td class="ts-table-cell-numeric">49</td><td class="ts-table-cell-numeric">52</td></tr>
+        <tr><td>Conformant</td><td class="ts-table-cell-numeric">no</td><td class="ts-table-cell-numeric">no</td><td class="ts-table-cell-numeric">yes</td><td class="ts-table-cell-numeric">yes</td><td class="ts-table-cell-numeric">yes</td></tr>
       </tbody>
     </table>
   </figure>
@@ -76,7 +76,7 @@
 
   <p>Sidenotes have nowhere to go: there is no margin left. They become footnotes or endnotes, and an implementation should degrade them visibly rather than positioning them off the page — as this one does:</p>
 
-  <p>The claim is set out at length elsewhere.<span class="ts-notes-marker"></span><span class="ts-notes-sidenote">In two columns this sidenote degrades to an inline aside rather than being positioned off the page and lost.</span></p>
+  <p>The claim is set out at length elsewhere.<span class="ts-note-marker"></span><span class="ts-note-sidenote">In two columns this sidenote degrades to an inline aside rather than being positioned off the page and lost.</span></p>
 
   <p class="ts-dropcap"><span class="ts-dropcap-lede">A three-line drop cap</span> at 3.05em is 29pt — 10mm of the column given to one letter. So the cap is neutralised here and the opening words carry the signal in small caps instead, as this paragraph does.</p>
 

@@ -38,7 +38,7 @@ Headings come down hardest. A 24pt level-2 heading inside an 82mm column spends
 three lines saying two words, so the scale runs 20/13/11/9.5 and the level-1
 heading keeps display size only because it spans both columns.
 
-#callouts-callout(title: [What does not change])[
+#callout(title: [What does not change])[
   The colour palette, the rule weights, the numeral conventions, the treatment of
   quotations and the pagination rules are all identical. A template sets the page
   and the scale; it does not get its own typography.
@@ -50,7 +50,7 @@ At 49 characters a ragged right edge serrates the column visibly, and the word
 gaps in an unhyphenated justified column read as rivers. Both faults are
 tolerable at 66 characters and neither is tolerable here.
 
-#quotes-pullquote[This is the one place the spec removes a choice it otherwise offers.]
+#quote(type: "pullquote")[This is the one place the spec removes a choice it otherwise offers.]
 
 So the two-column template asserts justification rather than accepting it as a
 parameter. An implementation that offers ragged-right two columns is not

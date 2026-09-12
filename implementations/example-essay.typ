@@ -16,7 +16,7 @@
   measure cannot be rescued by any choice of face.
 ]
 
-#epigraph-right(attribution: [Jost Hochuli])[
+#quote(type: "epigraph", attribution: [Jost Hochuli])[
   Anything but the simplest of documents is an argument about attention.
 ]
 
@@ -32,14 +32,14 @@ The conventional figure is forty-five to seventy-five characters for a single
 column, with sixty-six given as the ideal.#footnote[Robert Bringhurst, _The Elements of Typographic Style_, 4th ed., §2.1.2.]
 The width of the range is the interesting part.
 
-#quote(block: true, attribution: [Emil Ruder, _Typographie_, 1967])[
+#quote(attribution: [Emil Ruder, _Typographie_, 1967])[
   Typography has one plain duty before it and that is to convey information in
   writing. No argument or consideration can absolve typography from this duty.
 ]
 
-#quotes-pullquote[No argument can absolve typography from this duty.]
+#quote(type: "pullquote")[No argument can absolve typography from this duty.]
 
-#breaks-asterism()
+#break-asterism()
 
 == What the measure costs
 
@@ -58,7 +58,7 @@ is not empty, and you can put something in it.
   ),
 )
 
-#callouts-callout(title: [Note])[
+#callout(title: [Note])[
   Point sizes assume the document is printed at 100%. Fit-to-page scaling
   silently invalidates every measurement here.
 ]
@@ -69,7 +69,7 @@ is not empty, and you can put something in it.
 / Measure: The length of a line of type, counted in characters.
 / Leading: The vertical distance between baselines.
 
-#quotes-verse[
+#quote(type: "verse")[
   Whose woods these are I think I know. \
   His house is in the village though;
 ]

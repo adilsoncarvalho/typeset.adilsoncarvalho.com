@@ -331,7 +331,7 @@ so all five are gone from here.
   page: `#show: letter-page` then `#show: typeset` put the page rules inside the
   block. The fix is a design question about how `typeset` should assert a
   measure, not a patch.
-- **`notes-sidenote` is fixed at 13em**, so a sidenote does not follow a clamped
+- **`note-sidenote` is fixed at 13em**, so a sidenote does not follow a clamped
   measure on A5. Group 4 found it and left it, because sizing a sidenote against
   the margin it lives in is its own piece of work.
 - **`tools/check.mjs`'s CSS conformance checks assert source text; its Typst
@@ -355,3 +355,27 @@ so all five are gone from here.
   should decide whether that dependency is worth paying for before 2.0.0 ships;
   until it is, expect the CSS arm of any future conformance gate to have the
   same shape of blind spot the spanning gate did.
+- **Typst cannot render a hanging indent inside any container, and two spec
+  elements rely on one.** `set par(hanging-indent:)` is defeated by `block()`,
+  `block(inset:)` and `pad()` alike, whether the `set par` sits inside or
+  outside the container — confirmed independently twice, against
+  `quote-verse`'s runover indent and against `bibliography-entry`'s hanging
+  indent, by rendering a wrapped line and reading its position back out of
+  the compiled SVG. Both elements share this one cause, so a fix for one is
+  almost certainly the fix for the other. `spec.json` now carries a
+  `fallback` on both recording what Typst actually produces.
+
+  The bibliography case is the more serious of the two. `typeset.css`'s own
+  comment states why the property exists: "the author's surname is the
+  thing being scanned, so it must be the leftmost thing on the entry."
+  Without it, a reader cannot scan the list by surname, which is the only
+  thing a bibliography is for. It is also not old debt: `references()`/
+  `reference()` were built three days ago, in the previous group,
+  specifically so an author would not have to hand-format citations — and
+  the function that took over that responsibility does not deliver the one
+  property that makes the resulting list usable. The next person to read
+  this should know the gap was introduced by work that looked finished and
+  was reviewed.
+
+  A real fix means laying each element's lines out individually, for both,
+  rather than relying on `hanging-indent`. Nobody has scoped that work.

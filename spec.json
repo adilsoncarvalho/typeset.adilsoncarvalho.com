@@ -1,7 +1,7 @@
 {
   "name": "typeset",
   "version": "2.0.0",
-  "updated": "2026-09-12",
+  "updated": "2026-09-13",
   "owner": "Adilson Carvalho",
   "canonical_url": "https://typeset.adilsoncarvalho.com",
   "intent": "A normative typographic specification for printed documents — essays, letters, reports. This file is the source of truth. CSS, Typst, LaTeX or any other implementation conforms to it; where an implementation and this file disagree, this file is right.",
@@ -207,7 +207,7 @@
   },
   "sections": [
     {
-      "id": "headings",
+      "id": "heading",
       "title": "Headings",
       "group": "Structure",
       "principles": [
@@ -218,7 +218,7 @@
       ],
       "elements": [
         {
-          "id": "headings-h1",
+          "id": "heading-h1",
           "name": "Heading 1 — document title",
           "properties": {
             "font": "sans",
@@ -237,7 +237,7 @@
           }
         },
         {
-          "id": "headings-h2",
+          "id": "heading-h2",
           "name": "Heading 2 — section",
           "properties": {
             "font": "sans",
@@ -257,7 +257,7 @@
           }
         },
         {
-          "id": "headings-h3",
+          "id": "heading-h3",
           "name": "Heading 3 — subsection",
           "properties": {
             "font": "sans",
@@ -273,7 +273,7 @@
           }
         },
         {
-          "id": "headings-h4",
+          "id": "heading-h4",
           "name": "Heading 4",
           "properties": {
             "font": "sans",
@@ -289,7 +289,7 @@
           }
         },
         {
-          "id": "headings-h5",
+          "id": "heading-h5",
           "name": "Heading 5",
           "properties": {
             "font": "serif",
@@ -307,7 +307,7 @@
           ]
         },
         {
-          "id": "headings-h6",
+          "id": "heading-h6",
           "name": "Heading 6",
           "properties": {
             "font": "serif",
@@ -321,7 +321,7 @@
           }
         },
         {
-          "id": "headings-run-in",
+          "id": "heading-run-in",
           "name": "Run-in heading",
           "properties": {
             "display": "inline with the first line of its paragraph",
@@ -370,7 +370,7 @@
       ]
     },
     {
-      "id": "paragraphs",
+      "id": "paragraph",
       "title": "Paragraphs",
       "group": "Prose",
       "principles": [
@@ -379,7 +379,7 @@
       ],
       "elements": [
         {
-          "id": "paragraphs-spaced",
+          "id": "paragraph-spaced",
           "name": "Paragraph — spaced (default)",
           "properties": {
             "font": "serif",
@@ -397,7 +397,7 @@
           }
         },
         {
-          "id": "paragraphs-indented",
+          "id": "paragraph-indented",
           "name": "Paragraph — indented",
           "opt_in": "typeset--indented",
           "properties": {
@@ -688,7 +688,7 @@
       ]
     },
     {
-      "id": "links",
+      "id": "link",
       "title": "Links in print",
       "group": "Prose",
       "principles": [
@@ -696,7 +696,7 @@
       ],
       "elements": [
         {
-          "id": "links-link",
+          "id": "link",
           "name": "Link",
           "properties": {
             "color": "inherit",
@@ -707,7 +707,7 @@
           }
         },
         {
-          "id": "links-print-url",
+          "id": "link-print-url",
           "name": "Printed URL",
           "properties": {
             "content": "the href in parentheses, after the link text",
@@ -724,7 +724,7 @@
           }
         },
         {
-          "id": "links-bare",
+          "id": "link-bare",
           "name": "Link — URL suppressed",
           "properties": {
             "print_url": false
@@ -736,7 +736,7 @@
       ]
     },
     {
-      "id": "numerals",
+      "id": "numeral",
       "title": "Numerals",
       "group": "Prose",
       "principles": [
@@ -745,28 +745,28 @@
       ],
       "elements": [
         {
-          "id": "numerals-prose",
+          "id": "numeral-prose",
           "name": "In running prose",
           "properties": {
             "numerals": "oldstyle proportional"
           }
         },
         {
-          "id": "numerals-display",
+          "id": "numeral-display",
           "name": "In headings and display",
           "properties": {
             "numerals": "lining proportional"
           }
         },
         {
-          "id": "numerals-tabular",
+          "id": "numeral-tabular",
           "name": "In tables and columns",
           "properties": {
             "numerals": "lining tabular"
           }
         },
         {
-          "id": "numerals-fractions",
+          "id": "numeral-fraction",
           "name": "Fractions",
           "properties": {
             "form": "diagonal"
@@ -775,7 +775,7 @@
       ]
     },
     {
-      "id": "quotes",
+      "id": "quote",
       "title": "Quotations",
       "group": "Blocks",
       "principles": [
@@ -785,7 +785,7 @@
       ],
       "elements": [
         {
-          "id": "quotes-blockquote",
+          "id": "quote-blockquote",
           "name": "Block quote",
           "properties": {
             "font": "serif",
@@ -801,7 +801,7 @@
           }
         },
         {
-          "id": "quotes-attribution",
+          "id": "quote-attribution",
           "name": "Attribution",
           "properties": {
             "display": "block",
@@ -814,7 +814,7 @@
           }
         },
         {
-          "id": "quotes-epigraph",
+          "id": "quote-epigraph",
           "name": "Epigraph",
           "properties": {
             "font": "serif",
@@ -832,7 +832,7 @@
           ]
         },
         {
-          "id": "quotes-pullquote",
+          "id": "quote-pullquote",
           "name": "Pull quote",
           "properties": {
             "font": "sans",
@@ -850,7 +850,7 @@
           }
         },
         {
-          "id": "quotes-verse",
+          "id": "quote-verse",
           "name": "Verse",
           "properties": {
             "font": "serif",
@@ -863,12 +863,13 @@
           },
           "notes": [
             "Runover lines indent further than the verse line they continue, so a wrapped line cannot be mistaken for a new one."
-          ]
+          ],
+          "fallback": "in Typst: the left indent and the authored line breaks, but no runover indent — a wrapped line reads the same as one the poet wrote"
         }
       ]
     },
     {
-      "id": "lists",
+      "id": "list",
       "title": "Lists",
       "group": "Blocks",
       "principles": [
@@ -879,7 +880,7 @@
       ],
       "elements": [
         {
-          "id": "lists-unordered",
+          "id": "list-unordered",
           "name": "Unordered list",
           "properties": {
             "marker": "·",
@@ -892,7 +893,7 @@
           }
         },
         {
-          "id": "lists-unordered-nested",
+          "id": "list-unordered-nested",
           "name": "Unordered list, nested",
           "properties": {
             "marker": "–",
@@ -901,7 +902,7 @@
           }
         },
         {
-          "id": "lists-ordered",
+          "id": "list-ordered",
           "name": "Ordered list",
           "properties": {
             "marker": "1.",
@@ -916,16 +917,16 @@
           ]
         },
         {
-          "id": "lists-ordered-nested",
+          "id": "list-ordered-nested",
           "name": "Ordered list, nested",
           "properties": {
             "marker": "a."
           }
         },
         {
-          "id": "lists-tight",
+          "id": "list-tight",
           "name": "Tight list",
-          "opt_in": "ts-lists-tight",
+          "opt_in": "ts-list-tight",
           "properties": {
             "item_space_after": "0"
           },
@@ -934,7 +935,7 @@
           ]
         },
         {
-          "id": "lists-definition-term",
+          "id": "list-definition-term",
           "name": "Definition term",
           "properties": {
             "font": "sans",
@@ -947,7 +948,7 @@
           }
         },
         {
-          "id": "lists-definition-description",
+          "id": "list-definition-description",
           "name": "Definition description",
           "properties": {
             "font": "serif",
@@ -959,7 +960,7 @@
       ]
     },
     {
-      "id": "tables",
+      "id": "table",
       "title": "Tables",
       "group": "Blocks",
       "principles": [
@@ -971,7 +972,7 @@
       ],
       "elements": [
         {
-          "id": "tables-table",
+          "id": "table",
           "name": "Table",
           "properties": {
             "font": "sans",
@@ -985,7 +986,7 @@
           }
         },
         {
-          "id": "tables-header-cell",
+          "id": "table-header-cell",
           "name": "Header cell",
           "properties": {
             "font": "sans",
@@ -1001,7 +1002,7 @@
           }
         },
         {
-          "id": "tables-cell",
+          "id": "table-cell",
           "name": "Body cell",
           "properties": {
             "align": "left",
@@ -1012,7 +1013,7 @@
           }
         },
         {
-          "id": "tables-cell-numeric",
+          "id": "table-cell-numeric",
           "name": "Numeric cell",
           "properties": {
             "align": "right",
@@ -1020,7 +1021,7 @@
           }
         },
         {
-          "id": "tables-footer-cell",
+          "id": "table-footer-cell",
           "name": "Footer cell",
           "properties": {
             "weight": 600,
@@ -1028,7 +1029,7 @@
           }
         },
         {
-          "id": "tables-caption",
+          "id": "table-caption",
           "name": "Caption",
           "properties": {
             "position": "above the table",
@@ -1041,16 +1042,16 @@
           }
         },
         {
-          "id": "tables-row",
+          "id": "table-row",
           "name": "Row",
           "properties": {
             "break_inside": "avoid"
           }
         },
         {
-          "id": "tables-zebra",
+          "id": "table-zebra",
           "name": "Zebra striping",
-          "opt_in": "ts-tables-zebra",
+          "opt_in": "ts-table-zebra",
           "properties": {
             "background": "wash on even body rows"
           },
@@ -1059,7 +1060,7 @@
           ]
         },
         {
-          "id": "tables-caption-label",
+          "id": "table-caption-label",
           "name": "Caption label",
           "properties": {
             "weight": 600,
@@ -1098,7 +1099,7 @@
       ]
     },
     {
-      "id": "figures",
+      "id": "figure",
       "title": "Figures & captions",
       "group": "Blocks",
       "principles": [
@@ -1108,7 +1109,7 @@
       ],
       "elements": [
         {
-          "id": "figures-figure",
+          "id": "figure",
           "name": "Figure",
           "properties": {
             "space_before": "16.5pt",
@@ -1118,7 +1119,7 @@
           }
         },
         {
-          "id": "figures-caption",
+          "id": "figure-caption",
           "name": "Figure caption",
           "properties": {
             "position": "below the figure",
@@ -1133,7 +1134,7 @@
           }
         },
         {
-          "id": "figures-caption-label",
+          "id": "figure-caption-label",
           "name": "Figure caption label",
           "properties": {
             "weight": 600,
@@ -1145,7 +1146,7 @@
       ]
     },
     {
-      "id": "callouts",
+      "id": "callout",
       "title": "Callouts",
       "group": "Blocks",
       "principles": [
@@ -1154,7 +1155,7 @@
       ],
       "elements": [
         {
-          "id": "callouts-callout",
+          "id": "callout",
           "name": "Callout",
           "properties": {
             "font": "serif",
@@ -1169,7 +1170,7 @@
           }
         },
         {
-          "id": "callouts-title",
+          "id": "callout-title",
           "name": "Callout title",
           "properties": {
             "font": "sans",
@@ -1182,7 +1183,7 @@
           }
         },
         {
-          "id": "callouts-warning",
+          "id": "callout-warning",
           "name": "Callout — warning",
           "properties": {
             "border_left": "2.5pt accent",
@@ -1192,7 +1193,7 @@
       ]
     },
     {
-      "id": "breaks",
+      "id": "break",
       "title": "Section breaks",
       "group": "Blocks",
       "principles": [
@@ -1201,7 +1202,7 @@
       ],
       "elements": [
         {
-          "id": "breaks-asterisks",
+          "id": "break-asterisks",
           "name": "Break — three asterisks",
           "properties": {
             "content": "* * *",
@@ -1218,7 +1219,7 @@
           ]
         },
         {
-          "id": "breaks-asterism",
+          "id": "break-asterism",
           "name": "Break — asterism",
           "properties": {
             "content": "⁂",
@@ -1231,7 +1232,7 @@
           ]
         },
         {
-          "id": "breaks-fleuron",
+          "id": "break-fleuron",
           "name": "Break — fleuron",
           "properties": {
             "content": "❦",
@@ -1244,7 +1245,7 @@
           ]
         },
         {
-          "id": "breaks-rule",
+          "id": "break-rule",
           "name": "Break — rule",
           "properties": {
             "border_top": "0.5pt rule",
@@ -1257,7 +1258,7 @@
       ]
     },
     {
-      "id": "notes",
+      "id": "note",
       "title": "Footnotes, endnotes & sidenotes",
       "group": "Apparatus",
       "principles": [
@@ -1268,7 +1269,7 @@
       ],
       "elements": [
         {
-          "id": "notes-marker",
+          "id": "note-marker",
           "name": "Reference mark",
           "properties": {
             "content": "the note number",
@@ -1283,7 +1284,7 @@
           }
         },
         {
-          "id": "notes-footnote",
+          "id": "note-footnote",
           "name": "Footnote",
           "properties": {
             "position": "foot of the page carrying the mark",
@@ -1295,7 +1296,7 @@
           "fallback": "an endnotes block at the end of the document"
         },
         {
-          "id": "notes-endnotes",
+          "id": "note-endnotes",
           "name": "Endnotes block",
           "properties": {
             "font": "serif",
@@ -1314,7 +1315,7 @@
           ]
         },
         {
-          "id": "notes-sidenote",
+          "id": "note-sidenote",
           "name": "Sidenote",
           "opt_in": "typeset--sidenotes",
           "properties": {
@@ -1389,7 +1390,7 @@
       "group": "Apparatus",
       "principles": [
         "Hanging indent, always. The surname is what is being scanned, so it must be the leftmost thing on the entry.",
-        "The heading is its own element, not an instance of headings-h2, even though it shares h2's scale and weight: the distinct id is what lets it span both columns in the two-column template while an ordinary section heading — headings-h2 through headings-h6 — cannot."
+        "The heading is its own element, not an instance of heading-h2, even though it shares h2's scale and weight: the distinct id is what lets it span both columns in the two-column template while an ordinary section heading — heading-h2 through heading-h6 — cannot."
       ],
       "elements": [
         {
@@ -1425,7 +1426,8 @@
             "marker": "none",
             "break_inside": "avoid",
             "title_style": "italic"
-          }
+          },
+          "fallback": "in Typst: every property here except the hanging indent — a wrapped line sits flush with the surname instead of indented past it"
         }
       ]
     },
@@ -1698,7 +1700,7 @@
       ]
     },
     {
-      "id": "utilities",
+      "id": "utility",
       "title": "Pagination utilities",
       "group": "Documents",
       "principles": [
@@ -1706,7 +1708,7 @@
       ],
       "elements": [
         {
-          "id": "utilities-break-before",
+          "id": "utility-break-before",
           "name": "Break before",
           "properties": {
             "effect": "start this element on a new page"
@@ -1716,14 +1718,14 @@
           ]
         },
         {
-          "id": "utilities-break-after",
+          "id": "utility-break-after",
           "name": "Break after",
           "properties": {
             "effect": "start the next element on a new page"
           }
         },
         {
-          "id": "utilities-keep-together",
+          "id": "utility-keep-together",
           "name": "Keep together",
           "properties": {
             "effect": "never split this element across pages"
@@ -1733,14 +1735,14 @@
           ]
         },
         {
-          "id": "utilities-no-hyphens",
+          "id": "utility-no-hyphens",
           "name": "No hyphenation",
           "properties": {
             "hyphenation": "manual"
           }
         },
         {
-          "id": "utilities-tie",
+          "id": "utility-tie",
           "name": "Tie",
           "properties": {
             "effect": "no line break inside"
@@ -1750,7 +1752,7 @@
           ]
         },
         {
-          "id": "utilities-print-only",
+          "id": "utility-print-only",
           "name": "Print only / screen only",
           "properties": {
             "effect": "present in one medium, absent in the other"
@@ -1760,7 +1762,7 @@
           ]
         },
         {
-          "id": "utilities-color-adjust",
+          "id": "utility-color-adjust",
           "name": "Exact colour",
           "properties": {
             "effect": "backgrounds and rules survive the output device's ink-saving"
@@ -1859,25 +1861,25 @@
           "frontmatter-byline",
           "frontmatter-dateline",
           "frontmatter-abstract",
-          "headings-h1",
+          "heading-h1",
           "bibliography-heading",
           "frontmatter-colophon"
         ],
         "optional": [
-          "figure",
-          "table",
-          "code block",
-          "pull quote"
+          "a figure",
+          "a table",
+          "a code block",
+          "a pull quote"
         ],
         "never": [
-          "paragraph",
-          "list",
-          "blockquote",
-          "callout",
+          "a paragraph",
+          "a list",
+          "a block quote",
+          "a callout",
           "heading 2 and below",
-          "endnotes"
+          "a block of endnotes"
         ],
-        "note": "A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` stay prose because they describe author choice and default flow, which nothing enforces. `bibliography-heading` is on `always` as its own element, distinct from `headings-h2`: `never`'s \"heading 2 and below\" names the generic heading levels headings-h2 through headings-h6, not a differently-identified element that happens to share their scale — so a bibliography heading may span both columns while an ordinary section heading may not."
+        "note": "A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` are prose, because they describe author choice and default flow rather than a property either implementation can be held to. Each of those entries is written so that it cannot be read as an id — tools/check.mjs fails if one ever matches an element or section id, which is what keeps the two arms distinguishable by shape now that `figure`, `table`, `list` and `callout` are ids in their own right. `bibliography-heading` is on `always` as its own element, distinct from `heading-h2`: `never`'s \"heading 2 and below\" names the generic heading levels heading-h2 through heading-h6, not a differently-identified element that happens to share their scale — so a bibliography heading may span both columns while an ordinary section heading may not."
       },
       "forbidden": {
         "sidenote": "There is no margin to put it in. Use a footnote or an endnote.",

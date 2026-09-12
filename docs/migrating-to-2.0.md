@@ -55,17 +55,17 @@ unchanged. Three things the rewrite does not settle on its own:
 
 1.x used a base class plus a modifier: `class="ts-break ts-break--asterism"`.
 2.0 gives each variant its own class standing alone over the same internal
-base: `class="ts-break ts-breaks-asterism"`.
+base: `class="ts-break ts-break-asterism"`.
 
 The case that bites: a bare `class="ts-break"`, with no modifier, rendered
 three asterisks in 1.x — the base class's own `::before` carried that
-default. In 2.0 the default lives on `.ts-breaks-asterisks` instead, and the
+default. In 2.0 the default lives on `.ts-break-asterisks` instead, and the
 base carries no mark of its own. An unmigrated bare `ts-break` renders as
-**empty white space**, not three asterisks. Add `ts-breaks-asterisks`,
-`ts-breaks-asterism`, `ts-breaks-fleuron` or `ts-breaks-rule` explicitly.
+**empty white space**, not three asterisks. Add `ts-break-asterisks`,
+`ts-break-asterism`, `ts-break-fleuron` or `ts-break-rule` explicitly.
 
-Either element carries the variant. `<div class="ts-break ts-breaks-asterism">`
-is what the codemod leaves behind and stays correct; `<hr class="ts-breaks-asterism">`
+Either element carries the variant. `<div class="ts-break ts-break-asterism">`
+is what the codemod leaves behind and stays correct; `<hr class="ts-break-asterism">`
 is the form the examples on the site use, because `<hr>` is the element HTML
 already has for a thematic break, and a reader of the markup gets the meaning
 without the class. The four variants render the same either way, as does the
@@ -74,7 +74,7 @@ stylesheet gives `<hr>` `overflow: hidden`, so a document that also clamps the
 mark's `height` or `line-height` tightly enough for the glyph to spill out of
 its box would see it clipped on the `<hr>` and not on the `<div>`. No variant
 is exposed to it as shipped: three leave the height `auto` so the box grows to
-fit the mark, and `.ts-breaks-rule` does set `height: 0` but renders no mark to
+fit the mark, and `.ts-break-rule` does set `height: 0` but renders no mark to
 clip. So this is a reason to be careful when overriding, not a reason to prefer
 one element. There is no need to convert a migrated document.
 
@@ -85,7 +85,7 @@ caption, a figure caption, the abstract, a letter's address block each gave
 it different rules through the surrounding selector. 2.0 keeps `.ts-label`
 as a shared base (small caps, weight, tracking) but moves what makes each
 one different onto four named variants chosen by context:
-`ts-tables-caption-label`, `ts-figures-caption-label`,
+`ts-table-caption-label`, `ts-figure-caption-label`,
 `ts-frontmatter-abstract-label`, `ts-letter-address-label`. A `.ts-label`
 left bare, with no variant, renders with only the shared treatment and none
 of the context-specific styling it had in 1.x.
@@ -98,8 +98,8 @@ the documents you point it at.
 
 Two are worth knowing about by name. `ts-nowrap` and `ts-tie` were two 1.x
 names for one rule, and `ts-page-break-avoid` and `ts-keep-together` were two
-names for another; 2.0 keeps `ts-utilities-tie` and
-`ts-utilities-keep-together`. If your own stylesheet or scripts select on the
+names for another; 2.0 keeps `ts-utility-tie` and
+`ts-utility-keep-together`. If your own stylesheet or scripts select on the
 1.x spellings, update those selectors by hand — the codemod rewrites documents,
 not the code that reads them.
 
@@ -114,14 +114,14 @@ It does not touch Typst source. Rename these symbols by hand:
 
 | 1.x | 2.0 |
 |---|---|
-| `epigraph` | `quotes-epigraph` |
-| `pullquote` | `quotes-pullquote` |
-| `verse` | `quotes-verse` |
-| `callout` | `callouts-callout` |
-| `break-scene(kind: "asterisks")` | `breaks-asterisks()` |
-| `break-scene(kind: "asterism")` | `breaks-asterism()` |
-| `break-scene(kind: "fleuron")` | `breaks-fleuron()` |
-| `break-scene(kind: "rule")` | `breaks-rule()` |
+| `epigraph` | `quote(type: "epigraph")` |
+| `pullquote` | `quote(type: "pullquote")` |
+| `verse` | `quote(type: "verse")` |
+| `epigraph-right` | `quote(type: "epigraph")` |
+| `break-scene(kind: "asterisks")` | `break-asterisks()` |
+| `break-scene(kind: "asterism")` | `break-asterism()` |
+| `break-scene(kind: "fleuron")` | `break-fleuron()` |
+| `break-scene(kind: "rule")` | `break-rule()` |
 | `title-block` | `frontmatter-title-block` |
 | `abstract` | `frontmatter-abstract` |
 | `colophon` | `frontmatter-colophon` |
@@ -131,14 +131,61 @@ It does not touch Typst source. Rename these symbols by hand:
 | `signature` | `letter-signature` |
 | `enclosures` | `letter-enclosures` |
 | `postscript` | `letter-postscript` |
-| `sidenote` | `notes-sidenote` |
-| `keep-together` | `utilities-keep-together` |
-| `tie` | `utilities-tie` |
+| `sidenote` | `note-sidenote` |
+| `keep-together` | `utility-keep-together` |
+| `tie` | `utility-tie` |
 
 `break-scene` took a `kind:` argument selecting one of four looks; 2.0 gives
-each look its own zero-argument function. `dropcap`, `toc`, `ts-table`,
-`two-column`, `span` and `epigraph-right` keep their 1.x names, with no
-change to how they're called.
+each look its own zero-argument function. `callout`, `dropcap`, `toc`,
+`ts-table`, `two-column` and `span` keep their 1.x names, with no change to
+how they're called.
+
+### `quote` — four functions become one
+
+1.x called the ordinary block quote through Typst's own builtin,
+`#quote(block: true, attribution: [...])[...]`, and reached the other three
+treatments through three separate functions plus `epigraph-right` for a
+right-flushed epigraph. 2.0 replaces all four with a single `quote(type:,
+attribution:)` — the `type:` argument above selects the treatment, and the
+default (`type: none`, or `type:` omitted) is the ordinary block quote.
+
+Three changes apply even where the name `quote` did not change:
+
+- **`block:` is gone.** The unified function always renders a block quote —
+  the spec has no inline quote element for it to select against — so
+  `#quote(block: true, attribution: [...])[...]` becomes
+  `#quote(attribution: [...])[...]`. Passing `block:` now hard-errors as an
+  unexpected argument.
+- **A `show` or `set` rule on quotations names `native-quote`, not `quote`.**
+  `quote(type:)` is an ordinary function, and an ordinary function cannot
+  carry `.where()` or stand in a set rule, so in a document that imports
+  `typeset.typ` both of these now hard-error:
+
+      #show quote.where(block: true): it => ...
+        error: `where()` can only be called on element functions
+      #set quote(block: true)
+        error: only element functions can be used in set rules
+
+  2.0 publishes Typst's own quote element under the name `native-quote` for
+  exactly this. Rewrite the two lines as `#show
+  native-quote.where(block: true): it => ...` and `#set native-quote(...)`;
+  they select the same elements `#quote(...)` produces, including the ones
+  `#quote(type:)` renders through the default path. Nothing else about the
+  rules changes. The errors above point at your own line and say nothing
+  about the library having taken the name, so this is worth knowing before
+  you hit it.
+- **An epigraph is always flush right.** `epigraph-right` is gone along with
+  the plain, un-aligned `quote-epigraph`: the spec's own quote-epigraph
+  element declares `block_alignment: flush right`, so `type: "epigraph"`
+  always renders that way, and there is no `align:` parameter to opt out.
+  `#epigraph-right(attribution: [...])[...]` and the unused
+  `#quote-epigraph(attribution: [...])[...]` both become
+  `#quote(type: "epigraph", attribution: [...])[...]`.
+
+Calling `quote(type:)` with anything other than `none`, `"epigraph"`,
+`"pullquote"` or `"verse"` panics naming the valid values, rather than
+rendering as an ordinary quote — so a typo in the type is loud, not a
+silently wrong document.
 
 `letter-page` also keeps its 1.x name, but not its 1.x usage — the name
 surviving is what makes this easy to miss. A letter now opens with
@@ -151,12 +198,42 @@ again.
 
 ## The full class table
 
-111 classes change name between 1.x and 2.0 — 109 named-style classes, plus
+88 classes change name between 1.x and 2.0 — 86 named-style classes, plus
 the two measure variants from Margins above, `.typeset--narrow` and
-`.typeset--wide`. 15 more named-style classes — `ts-dropcap`,
-`ts-code-inline`, `ts-toc`, the numerals classes and others — are spelled
-identically in both and are not listed below. `.ts-print-only` and
-`.ts-screen-only` are unchanged in 2.0 as well.
+`.typeset--wide`. 38 more named-style classes are spelled identically in
+both and are not listed below: 11 always were (`ts-dropcap`,
+`ts-code-inline`, `ts-toc` and others), and 27 more — `ts-table`,
+`ts-figure`, `ts-callout`, `ts-link`, every `ts-list-*` and `ts-break-*`
+variant, and a handful of others — arrive back at their 1.x spelling
+because the singular rename undoes the pluralisation the 2.0.0 name briefly
+carried. `.ts-print-only` and `.ts-screen-only` are unchanged in 2.0 as
+well.
+
+The four `.ts-numerals-*` classes are in the table below, not in that
+identical list. They kept their spelling through the 1.x → 2.0.0 step and
+changed on the singular one, so a document carrying `.ts-numerals-prose`
+does need migrating — and an unmigrated one falls back to the default
+numeral style with no error and no visual cue, the same way `.typeset--narrow`
+does above.
+
+Every count in the two paragraphs above, and every row in the table below,
+is derived from `tools/rename-map.json` chained through the codemod, and
+`tools/check.mjs` re-derives them on each run — the guide and the tool
+cannot disagree for longer than one CI run. To read them off yourself:
+
+    node --input-type=module -e '
+      import { readFileSync } from "node:fs";
+      import { rewrite } from "./tools/codemod-names.mjs";
+      const rows = Object.entries(
+        JSON.parse(readFileSync("tools/rename-map.json", "utf8")).classes);
+      const changed = rows.filter(([k]) => rewrite(k) !== k);
+      const same = rows.filter(([k]) => rewrite(k) === k);
+      console.log("change name:", changed.length);
+      console.log("  named-style:", changed.filter(([k]) => k.startsWith("ts-")).length);
+      console.log("spelled identically:", same.length);
+      console.log("  always were:", same.filter(([k, v]) => v === k).length);
+      console.log("  round-trip:", same.filter(([k, v]) => v !== k).length);
+    '
 
 | 1.x | 2.0 |
 |---|---|
@@ -164,110 +241,87 @@ identically in both and are not listed below. `.ts-print-only` and
 | `.ts-abstract` | `.ts-frontmatter-abstract` |
 | `.ts-address` | `.ts-letter-address-block` |
 | `.ts-address-block` | `.ts-letter-address-block` |
-| `.ts-attribution` | `.ts-quotes-attribution` |
-| `.ts-bare` | `.ts-links-bare` |
+| `.ts-attribution` | `.ts-quote-attribution` |
+| `.ts-bare` | `.ts-link-bare` |
 | `.ts-bibliography` | `.ts-bibliography-entry` |
-| `.ts-blockquote` | `.ts-quotes-blockquote` |
-| `.ts-break--asterism` | `.ts-breaks-asterism` |
-| `.ts-break--fleuron` | `.ts-breaks-fleuron` |
-| `.ts-break--rule` | `.ts-breaks-rule` |
-| `.ts-break-asterisks` | `.ts-breaks-asterisks` |
-| `.ts-break-asterism` | `.ts-breaks-asterism` |
-| `.ts-break-fleuron` | `.ts-breaks-fleuron` |
-| `.ts-break-rule` | `.ts-breaks-rule` |
+| `.ts-blockquote` | `.ts-quote-blockquote` |
+| `.ts-break--asterism` | `.ts-break-asterism` |
+| `.ts-break--fleuron` | `.ts-break-fleuron` |
+| `.ts-break--rule` | `.ts-break-rule` |
 | `.ts-byline` | `.ts-frontmatter-byline` |
-| `.ts-callout` | `.ts-callouts-callout` |
-| `.ts-callout--warning` | `.ts-callouts-warning` |
-| `.ts-callout-title` | `.ts-callouts-title` |
-| `.ts-callout-warning` | `.ts-callouts-warning` |
+| `.ts-callout--warning` | `.ts-callout-warning` |
 | `.ts-closing` | `.ts-letter-closing` |
 | `.ts-colophon` | `.ts-frontmatter-colophon` |
 | `.ts-date` | `.ts-letter-date` |
 | `.ts-date-note` | `.ts-letter-date-note` |
 | `.ts-dateline` | `.ts-frontmatter-dateline` |
-| `.ts-definition-description` | `.ts-lists-definition-description` |
-| `.ts-definition-term` | `.ts-lists-definition-term` |
+| `.ts-definition-description` | `.ts-list-definition-description` |
+| `.ts-definition-term` | `.ts-list-definition-term` |
 | `.ts-deleted` | `.ts-inline-deleted` |
 | `.ts-emphasis` | `.ts-inline-emphasis` |
 | `.ts-emphasis-nested` | `.ts-inline-emphasis-nested` |
 | `.ts-enclosures` | `.ts-letter-enclosures` |
-| `.ts-endnotes` | `.ts-notes-endnotes` |
-| `.ts-epigraph` | `.ts-quotes-epigraph` |
-| `.ts-figure` | `.ts-figures-figure` |
-| `.ts-figure-caption` | `.ts-figures-caption` |
-| `.ts-footnote` | `.ts-notes-footnote` |
-| `.ts-frac` | `.ts-numerals-fractions` |
-| `.ts-h1` | `.ts-headings-h1` |
-| `.ts-h2` | `.ts-headings-h2` |
-| `.ts-h3` | `.ts-headings-h3` |
-| `.ts-h4` | `.ts-headings-h4` |
-| `.ts-h5` | `.ts-headings-h5` |
-| `.ts-h6` | `.ts-headings-h6` |
-| `.ts-heading-run-in` | `.ts-headings-run-in` |
+| `.ts-endnotes` | `.ts-note-endnotes` |
+| `.ts-epigraph` | `.ts-quote-epigraph` |
+| `.ts-footnote` | `.ts-note-footnote` |
+| `.ts-frac` | `.ts-numeral-fraction` |
+| `.ts-h1` | `.ts-heading-h1` |
+| `.ts-h2` | `.ts-heading-h2` |
+| `.ts-h3` | `.ts-heading-h3` |
+| `.ts-h4` | `.ts-heading-h4` |
+| `.ts-h5` | `.ts-heading-h5` |
+| `.ts-h6` | `.ts-heading-h6` |
 | `.ts-highlight` | `.ts-inline-highlight` |
 | `.ts-inserted` | `.ts-inline-inserted` |
 | `.ts-justified-exclusions` | `.ts-justification-exclusions` |
 | `.ts-justified-prose` | `.ts-justification-justified` |
 | `.ts-kbd` | `.ts-inline-kbd` |
-| `.ts-keep-together` | `.ts-utilities-keep-together` |
+| `.ts-keep-together` | `.ts-utility-keep-together` |
 | `.ts-leader` | `.ts-toc-leader` |
 | `.ts-lede` | `.ts-dropcap-lede` |
 | `.ts-letterhead` | `.ts-letter-sender` |
-| `.ts-link` | `.ts-links-link` |
-| `.ts-link-print-url` | `.ts-links-print-url` |
-| `.ts-list-ordered` | `.ts-lists-ordered` |
-| `.ts-list-ordered-nested` | `.ts-lists-ordered-nested` |
-| `.ts-list-tight` | `.ts-lists-tight` |
-| `.ts-list-unordered` | `.ts-lists-unordered` |
-| `.ts-list-unordered-nested` | `.ts-lists-unordered-nested` |
-| `.ts-no-hyphens` | `.ts-utilities-no-hyphens` |
-| `.ts-note` | `.ts-notes-footnote` |
-| `.ts-note-marker` | `.ts-notes-marker` |
-| `.ts-noteref` | `.ts-notes-marker` |
-| `.ts-nowrap` | `.ts-utilities-tie` |
-| `.ts-num` | `.ts-tables-cell-numeric` |
+| `.ts-no-hyphens` | `.ts-utility-no-hyphens` |
+| `.ts-note` | `.ts-note-footnote` |
+| `.ts-noteref` | `.ts-note-marker` |
+| `.ts-nowrap` | `.ts-utility-tie` |
+| `.ts-num` | `.ts-table-cell-numeric` |
 | `.ts-number-h2` | `.ts-numbering-h2` |
 | `.ts-number-h3` | `.ts-numbering-h3` |
-| `.ts-nums-lining` | `.ts-numerals-display` |
-| `.ts-nums-oldstyle` | `.ts-numerals-prose` |
-| `.ts-nums-tabular` | `.ts-numerals-tabular` |
-| `.ts-page-break-after` | `.ts-utilities-break-after` |
-| `.ts-page-break-avoid` | `.ts-utilities-keep-together` |
-| `.ts-page-break-before` | `.ts-utilities-break-before` |
-| `.ts-paragraph` | `.ts-paragraphs-spaced` |
-| `.ts-paragraph-indented` | `.ts-paragraphs-indented` |
+| `.ts-numerals-display` | `.ts-numeral-display` |
+| `.ts-numerals-fractions` | `.ts-numeral-fraction` |
+| `.ts-numerals-prose` | `.ts-numeral-prose` |
+| `.ts-numerals-tabular` | `.ts-numeral-tabular` |
+| `.ts-nums-lining` | `.ts-numeral-display` |
+| `.ts-nums-oldstyle` | `.ts-numeral-prose` |
+| `.ts-nums-tabular` | `.ts-numeral-tabular` |
+| `.ts-page-break-after` | `.ts-utility-break-after` |
+| `.ts-page-break-avoid` | `.ts-utility-keep-together` |
+| `.ts-page-break-before` | `.ts-utility-break-before` |
+| `.ts-paragraph` | `.ts-paragraph-spaced` |
 | `.ts-postscript` | `.ts-letter-postscript` |
 | `.ts-ps` | `.ts-letter-postscript` |
-| `.ts-pullquote` | `.ts-quotes-pullquote` |
+| `.ts-pullquote` | `.ts-quote-pullquote` |
 | `.ts-ragged-prose` | `.ts-justification-ragged` |
-| `.ts-run-in` | `.ts-headings-run-in` |
+| `.ts-run-in` | `.ts-heading-run-in` |
 | `.ts-salutation` | `.ts-letter-salutation` |
 | `.ts-sc` | `.ts-inline-small-caps` |
-| `.ts-sidenote` | `.ts-notes-sidenote` |
+| `.ts-sidenote` | `.ts-note-sidenote` |
 | `.ts-signature` | `.ts-letter-signature` |
 | `.ts-small-caps` | `.ts-inline-small-caps` |
 | `.ts-strong` | `.ts-inline-strong` |
 | `.ts-subscript` | `.ts-inline-subscript` |
 | `.ts-subtitle` | `.ts-frontmatter-subtitle` |
 | `.ts-superscript` | `.ts-inline-superscript` |
-| `.ts-table` | `.ts-tables-table` |
-| `.ts-table-caption` | `.ts-tables-caption` |
-| `.ts-table-cell` | `.ts-tables-cell` |
-| `.ts-table-cell-numeric` | `.ts-tables-cell-numeric` |
-| `.ts-table-footer-cell` | `.ts-tables-footer-cell` |
-| `.ts-table-header-cell` | `.ts-tables-header-cell` |
-| `.ts-table-row` | `.ts-tables-row` |
-| `.ts-table-zebra` | `.ts-tables-zebra` |
-| `.ts-tie` | `.ts-utilities-tie` |
+| `.ts-tie` | `.ts-utility-tie` |
 | `.ts-title-block` | `.ts-frontmatter-title-block` |
 | `.ts-titleblock` | `.ts-frontmatter-title-block` |
 | `.ts-toc-2` | `.ts-toc-entry-2` |
-| `.ts-util-break-after` | `.ts-utilities-break-after` |
-| `.ts-util-break-before` | `.ts-utilities-break-before` |
-| `.ts-util-color-adjust` | `.ts-utilities-color-adjust` |
-| `.ts-util-keep-together` | `.ts-utilities-keep-together` |
-| `.ts-util-no-hyphens` | `.ts-utilities-no-hyphens` |
-| `.ts-util-tie` | `.ts-utilities-tie` |
-| `.ts-verse` | `.ts-quotes-verse` |
+| `.ts-util-break-after` | `.ts-utility-break-after` |
+| `.ts-util-break-before` | `.ts-utility-break-before` |
+| `.ts-util-color-adjust` | `.ts-utility-color-adjust` |
+| `.ts-util-keep-together` | `.ts-utility-keep-together` |
+| `.ts-util-no-hyphens` | `.ts-utility-no-hyphens` |
+| `.ts-util-tie` | `.ts-utility-tie` |
+| `.ts-verse` | `.ts-quote-verse` |
 | `.typeset--narrow` | `.typeset--measure-narrow` |
 | `.typeset--wide` | `.typeset--measure-wide` |

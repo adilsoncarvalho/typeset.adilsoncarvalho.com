@@ -8,9 +8,11 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { buildAll } from './build-site.mjs';
+import { buildSpecMd } from './build-spec.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
 import { typstBoilerplate, typstDocument, setsItsOwnPage } from '../src/boilerplate.mjs';
+import { rewrite } from './codemod-names.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
@@ -143,8 +145,8 @@ for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
 
 /* src/demos/<id>.typ is the fragment a reader would drop into a document
    that imports typeset.typ — the third tab's counterpart to the HTML/CSS
-   pane checked above. Keyed on section ids, not filenames: notes.fullrow.html
-   is a second HTML demo for the "notes" section, not a second section, and
+   pane checked above. Keyed on section ids, not filenames: note.fullrow.html
+   is a second HTML demo for the "note" section, not a second section, and
    src/demos now holds both file types side by side. */
 
 for (const s of manifest) {
@@ -221,6 +223,261 @@ if (typstSnippets.length > 0) {
   rmSync(readerDir, { recursive: true, force: true });
 }
 
+/* ---- 3k. Every shipped Typst example must compile AS SHIPPED -------------- */
+
+/* Unlike 3h above, these three are not snippets to wrap in the published
+   boilerplate — they are whole documents a reader downloads: the ones
+   README.md links to, the ones tools/build-bundle.mjs zips into the
+   downloadable Typst bundle. Each already carries its own
+   `#import "typeset.typ": *` and page setup, so this compiles them exactly
+   where they sit in implementations/, with no synthetic wrapper and no
+   copy into a reader directory — that is the distinction that let a symbol
+   rename ship silently once already: 3h's snippet harness only ever proves
+   that a fragment renders under the boilerplate this file supplies, and
+   these three supply their own, so nothing above ever asked Typst to
+   resolve a single name in them. A rename that misses one shows up here as
+   a hard compile error, the same way it would in a reader's own terminal.
+
+   The list below is explicit, not `readdirSync('implementations').filter(...)`:
+   a directory listing goes quiet the moment a file is deleted, silently
+   checking two examples instead of three, which is exactly the failure this
+   gate exists to make loud instead. Keep this list in sync with
+   tools/build-bundle.mjs's own explicit zip list and the paths README.md
+   names; existsSync below reports a missing file by name rather than
+   letting the loop just iterate over fewer files. */
+const EXAMPLE_TYP_FILES = [
+  'implementations/example-essay.typ',
+  'implementations/example-letter.typ',
+  'implementations/example-two-column.typ',
+];
+
+if (!typstAvailable()) {
+  console.error('typst is not on PATH — cannot verify that the Typst examples compile.');
+  console.error('Install typst (https://typst.app) and re-run node tools/check.mjs.');
+  process.exit(1);
+}
+
+{
+  const outDir = mkdtempSync(join(tmpdir(), 'typeset-examples-check-'));
+  const fontPath = resolve('fonts');
+  for (const file of EXAMPLE_TYP_FILES) {
+    if (!existsSync(file)) {
+      fail.push(`${file} is missing — README.md and tools/build-bundle.mjs both name it `
+        + 'as one of the three shipped Typst examples');
+      continue;
+    }
+    const outPath = join(outDir, `${file.replace(/[\\/]/g, '_')}.pdf`);
+    try {
+      execFileSync(
+        'typst',
+        ['compile', '--font-path', fontPath, file, outPath],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message)).trim();
+      fail.push(`${file} does not compile as shipped:\n${detail}`);
+    }
+  }
+  rmSync(outDir, { recursive: true, force: true });
+}
+
+/* ---- 3l. #quote(type:) rejects an unknown type; its default path stays a - */
+/*         genuine native `quote` element ------------------------------------ */
+
+/* Four behaviours behind one call is only safe if a typo in `type:` is loud.
+   This compiles a probe calling #quote(type: "pullqoute") — a plausible typo
+   of "pullquote" — and requires the compile to FAIL, with the panic message
+   naming the valid values. A probe that compiled clean here would mean the
+   typo silently fell through to an ordinary quote, the worst outcome this
+   call surface can produce.
+
+   A second probe checks the opposite failure mode: that shadowing Typst's
+   builtin `quote` to add `type:` did not also break the *default* path.
+   `typst query` reads the document's own element tree before layout, so it
+   can confirm the default call still produces exactly one genuine native
+   `quote` element — not some other shape this file's own block() produces —
+   with block: true, the same invariant implementations/typeset.typ's own
+   `native-quote` comment names.
+
+   A third probe holds the capability the shadow would otherwise take away.
+   `#let quote(type:)` replaces an element function with an ordinary one, so
+   `quote.where(...)` and `#set quote(...)` stop working in any importing
+   document; typeset.typ publishes the element as `native-quote` so they keep
+   working under that name. Compiling a document that only *mentions*
+   `native-quote` would prove the binding exists but not that it still selects
+   anything, so the probe panics from inside the show rule and requires the
+   compile to fail with that panic — the rule firing is the assertion. */
+
+if (typstAvailable()) {
+  const quoteProbeDir = mkdtempSync(join(tmpdir(), 'typeset-quote-check-'));
+  copyFileSync('implementations/typeset.typ', join(quoteProbeDir, 'typeset.typ'));
+  const fontPath = resolve('fonts');
+
+  const badTypePath = join(quoteProbeDir, 'bad-type.typ');
+  writeFileSync(badTypePath, typstDocument(
+    '#quote(type: "pullqoute")[A typo, not a real type.]'));
+  try {
+    execFileSync(
+      'typst',
+      ['compile', '--font-path', fontPath, badTypePath, join(quoteProbeDir, 'bad-type.pdf')],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    );
+    fail.push('typeset.typ: #quote(type: "pullqoute") compiled instead of panicking — an '
+      + 'unknown type silently fell through to the ordinary quote, the worst outcome this '
+      + 'call surface can produce');
+  } catch (err) {
+    /* Typst's CLI prints a panic's string payload Rust-Debug-escaped, so the
+       literal bytes on stderr are \"epigraph\" (backslash included), not
+       "epigraph" — match the bare word rather than the quoting around it. */
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message));
+    for (const want of ['epigraph', 'pullquote', 'verse']) {
+      if (!detail.includes(want)) {
+        fail.push(`typeset.typ: #quote(type:)'s unknown-type panic does not name "${want}" as a `
+          + `valid value:\n${detail.trim()}`);
+      }
+    }
+  }
+
+  const defaultPath = join(quoteProbeDir, 'default.typ');
+  writeFileSync(defaultPath, typstDocument(
+    '#quote(attribution: [A. Author])[The default path.]'));
+  try {
+    const out = execFileSync(
+      'typst',
+      ['query', '--font-path', fontPath, defaultPath, 'quote', '--field', 'block', '--one'],
+      { stdio: ['pipe', 'pipe', 'pipe'], timeout: 30_000 },
+    );
+    if (JSON.parse(out.toString()) !== true) {
+      fail.push('typeset.typ: #quote(...) with no type produced a native quote element with '
+        + 'block: false — the show rule this file styles it with only targets block quotes');
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message));
+    fail.push('typeset.typ: #quote(...) with no type no longer produces exactly one native '
+      + `quote element — check that native-quote still aliases the real builtin:\n${detail.trim()}`);
+  }
+
+  const PANIC = 'native-quote show rule reached';
+  const selectorPath = join(quoteProbeDir, 'selector.typ');
+  writeFileSync(selectorPath, typstDocument(
+    `#set native-quote(block: true)\n`
+    + `#show native-quote.where(block: true): _ => panic("${PANIC}")\n`
+    + '#quote(attribution: [A. Author])[Selected by the author\'s own rule.]'));
+  try {
+    execFileSync(
+      'typst',
+      ['compile', '--font-path', fontPath, selectorPath, join(quoteProbeDir, 'selector.pdf')],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    );
+    fail.push('typeset.typ: an importing document\'s own '
+      + '#show native-quote.where(block: true) never fired — #quote(...) no longer produces '
+      + 'elements that rule selects, so shadowing `quote` has taken away the show/set route '
+      + 'with nothing standing in for it');
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message));
+    if (!detail.includes(PANIC)) {
+      fail.push('typeset.typ: a document importing this file can no longer write '
+        + '#set native-quote(...) and #show native-quote.where(...) — the engine\'s quote '
+        + `element is not addressable under that name:\n${detail.trim()}`);
+    }
+  }
+
+  rmSync(quoteProbeDir, { recursive: true, force: true });
+}
+
+/* ---- 3m. The two hanging-indent fallbacks must still describe what Typst - */
+/*          actually renders --------------------------------------------- */
+
+/* quote-verse and bibliography-entry both set par(hanging-indent:) and both
+   carry a `fallback` in spec.json saying the runover indent does not survive:
+   Typst suppresses the property inside any container, and every element here
+   is composed inside one. The property stays in the source so a Typst that
+   honours it renders the spec, and this gate reads the rendered output back
+   rather than the source — a source check would assert the presence of a
+   value with no effect, and would go on passing whichever way the engine
+   behaved.
+
+   So the assertion is the fallback's own claim: every line of the element
+   shares one left edge. It fails in both directions. A dropped
+   hanging-indent leaves the fallback true and nothing changes; the day Typst
+   honours the property, the second line moves right, this goes red, and the
+   fallback has to come off spec.json rather than sitting there stale and
+   authoritative. */
+
+/* Per line of text, the leftmost run's x offset, read out of a compiled SVG.
+   Typst emits one <g class="typst-text"> per run, so a line that changes font
+   mid-way (an author in roman, a title in italic) is several runs sharing one
+   y — hence the grouping. */
+function lineLeftEdges(svg) {
+  const byLine = new Map();
+  for (const m of svg.matchAll(
+    /<g class="typst-text" transform="matrix\(1 0 0 -1 ([-0-9.]+) ([-0-9.]+)\)"/g)) {
+    const x = Number(m[1]);
+    const y = Number(m[2]).toFixed(2);
+    byLine.set(y, Math.min(byLine.get(y) ?? Infinity, x));
+  }
+  return [...byLine.entries()].sort(([a], [b]) => Number(a) - Number(b)).map(([, x]) => x);
+}
+
+if (typstAvailable()) {
+  const indentDir = mkdtempSync(join(tmpdir(), 'typeset-indent-check-'));
+  copyFileSync('implementations/typeset.typ', join(indentDir, 'typeset.typ'));
+  const fontPath = resolve('fonts');
+
+  const wrapping = [
+    ['quote-verse', '#quote(type: "verse")[\n  A line of verse long enough that it has to '
+      + 'wrap onto a second line, which is the only line on which a runover indent is '
+      + 'visible.\n]'],
+    ['bibliography-entry', '#references(title: [R])[#reference(author: [Aaaaaa, B.], '
+      + 'title: [A title long enough that this one entry has to wrap onto a second line, '
+      + 'which is the only line on which a hanging indent is visible], '
+      + 'publisher: [A Publisher], year: [2026])]'],
+  ];
+
+  for (const [id, snippet] of wrapping) {
+    const el = spec.sections.flatMap((s) => s.elements).find((e) => e.id === id);
+    if (!el.fallback || !/hanging indent|runover indent/.test(el.fallback)) {
+      fail.push(`spec.json: ${id} sets a hanging indent Typst does not render and no longer `
+        + 'declares a fallback saying so — a reader of the spec is told the indent is there');
+      continue;
+    }
+
+    const path = join(indentDir, `${id}.typ`);
+    const svgPath = join(indentDir, `${id}.svg`);
+    /* The trailing newline is load-bearing, not tidiness: without it Typst
+       folds the document's last paragraph into its enclosing context, the
+       outer par settings win, and the probe measures no indent whatever the
+       engine does with the property. */
+    writeFileSync(path, `${typstDocument(snippet)}\n`);
+    try {
+      execFileSync(
+        'typst',
+        ['compile', '--font-path', fontPath, '--format', 'svg', path, svgPath],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message)).trim();
+      fail.push(`typeset.typ: the ${id} probe does not compile:\n${detail}`);
+      continue;
+    }
+
+    const edges = lineLeftEdges(readFileSync(svgPath, 'utf8'));
+    if (edges.length < 2) {
+      fail.push(`typeset.typ: the ${id} probe rendered ${edges.length} line(s) — it has to wrap `
+        + 'for a runover indent to be measurable at all');
+      continue;
+    }
+    if (Math.max(...edges) - Math.min(...edges) > 0.5) {
+      fail.push(`spec.json: ${id}'s fallback says Typst renders no runover indent, but the `
+        + `compiled lines start at ${edges.map((x) => x.toFixed(1)).join(', ')}pt — the engine `
+        + 'honours the property now, so remove the fallback and restore the note it replaced');
+    }
+  }
+
+  rmSync(indentDir, { recursive: true, force: true });
+}
+
+
 /* Every class name typeset.css defines, comment text excluded. Read once here
    because two gates need it from opposite directions: the apparatus check in
    3c holds what is stripped OUT of a pane against it, and 3e holds what is
@@ -290,7 +547,7 @@ const TAG_OPEN_RE = /<([a-z][a-z0-9]*)\b([^>]*)>/g;
 /* Walks forward from `from` (bounded by `to`) for the first descendant tag
    whose class list carries the literal token "typeset" — the same target
    extract.mjs's own resolveTarget() descends to for two-column and
-   notes.fullrow, found here independently. */
+   note.fullrow, found here independently. */
 function findTypesetTag(source, from, to) {
   TAG_OPEN_RE.lastIndex = from;
   let m;
@@ -390,8 +647,8 @@ function commonIndent(text) {
 
    The class is matched by splitting the attribute into whole tokens, the way
    classTokens() above does and for the same reason src/extract.mjs documents:
-   "\bts-quotes-verse\b" also matches "ts-quotes-verse-x" and
-   "my-ts-quotes-verse", because a hyphen is not a word character. */
+   "\bts-quote-verse\b" also matches "ts-quote-verse-x" and
+   "my-ts-quote-verse", because a hyphen is not a word character. */
 function verbatimInteriors(fragment) {
   const found = [];
   const pre = /<pre\b[^>]*>([\s\S]*?)<\/pre>/gi;
@@ -400,7 +657,7 @@ function verbatimInteriors(fragment) {
 
   const openTag = /<([a-z][a-z0-9]*)\b[^>]*>/gi;
   while ((m = openTag.exec(fragment)) !== null) {
-    if (!classTokens(m[0]).includes('ts-quotes-verse')) continue;
+    if (!classTokens(m[0]).includes('ts-quote-verse')) continue;
     const close = findMatchingClose(fragment, openTag.lastIndex, m[1]);
     if (close !== -1) found.push(fragment.slice(openTag.lastIndex, close));
   }
@@ -421,7 +678,7 @@ function reindent(fragment, amount) {
    here rather than imported from extract.mjs. That duplication is the point:
    the pane publishes demo.html, which is demo.source with these names taken
    out, and a gate that read extract.mjs's own list would agree with whatever
-   that list happened to say. Adding a document class to it — ts-callouts-title,
+   that list happened to say. Adding a document class to it — ts-callout-title,
    say — would then strip real styling out of every published pane and this
    file would still print "all checks passed".
 
@@ -598,7 +855,7 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
     } else {
       /* A "container" fragment is the whole target element, with "paper"
          dropped from its class attribute where it carried that class at
-         all — two-column and notes.fullrow descend to an <article> that
+         all — two-column and note.fullrow descend to an <article> that
          never did. Reversing the drop means padding every line back out
          to the element's true source indentation — found the same way
          extract.mjs finds it, as the run of spaces and tabs immediately
@@ -862,7 +1119,7 @@ if (two) {
 }
 for (const id of cssIds) {
   const isFoundation = ['tokens', 'foundation', 'page', 'justification', 'numbering', 'dropcap',
-    'links', 'code-inline', 'utilities'].includes(id);
+    'link', 'code-inline', 'utility'].includes(id);
   const isTemplate = Object.keys(spec.templates).includes(id);
   if (!spec.sections.some((s) => s.id === id) && !isFoundation && !isTemplate) {
     warn.push(`typeset.css: section "${id}" has no counterpart in spec.json`);
@@ -1071,7 +1328,7 @@ const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]
      .pagemap__lines (left/right, the same horizontal inset), .pagemap__gauge
      (top/bottom, the same vertical inset), and .mini__sheet — the scaled
      full-page preview .pagemap does not itself replace, used by
-     src/demos/two-column.html and src/demos/notes.fullrow.html. A margin
+     src/demos/two-column.html and src/demos/note.fullrow.html. A margin
      drawn in one of these and stated in the prose beside it is two statements
      of one number, and only one of them is anybody's job to update. */
   const specimenCss = readFileSync('specimen.css', 'utf8');
@@ -1134,11 +1391,14 @@ const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]
 
 /* ---- 4. SPEC.md must be current ----------------------------------------- */
 
-if (!specMd.includes(`Version ${spec.version} · updated ${spec.updated}`)) {
+/* Regenerated and compared byte for byte, the same way gate 3d holds the
+   generated pages. A version line plus a list of section ids is a sample, not
+   a comparison: every property table, every note and every fallback line can
+   be stale while both of those still match, and the file exists to be pasted
+   into a reader's or a model's context, where a stale property is invisible
+   and authoritative at once. */
+if (specMd !== buildSpecMd(spec)) {
   fail.push('SPEC.md is stale — run node tools/build-spec.mjs');
-}
-for (const sec of spec.sections) {
-  if (!specMd.includes(`\`${sec.id}\``)) fail.push(`SPEC.md is missing section "${sec.id}" — regenerate`);
 }
 
 /* ---- 5. Every named style is findable in the stylesheet by its name ------ */
@@ -1295,9 +1555,10 @@ for (const path of documentFiles) {
 }
 
 /* Observes the exported Typst surface. Every symbol is a named style, is
-   written down here as internal, or is mapped in IMPLEMENTS below as an
-   author-facing name for a spec element — so a new export has to be a
-   deliberate choice among the three. This set is only for a symbol with no
+   written down here as internal, is mapped in IMPLEMENTS below as an
+   author-facing name for a spec element, or is an engine element re-published
+   under a second name in ENGINE_ELEMENTS — so a new export has to be a
+   deliberate choice among the four. This set is only for a symbol with no
    spec element behind it at all; one that implements an element under a
    different name belongs in IMPLEMENTS instead, never here. */
 const INTERNAL_SYMBOLS = new Set([
@@ -1334,24 +1595,34 @@ const INTERNAL_SYMBOLS = new Set([
   /* the page's own text block, published by _typeset-styles and read by
      measured() to resolve measure-full — not a style itself */
   'ts-text-width',
-  /* epigraph-right has no element behind it at all */
-  'epigraph-right',
 ]);
+
+/* Engine element functions this file re-publishes under a second name. Not
+   internal — the whole point of one is that a document can name it — and not
+   an implements-relationship either: the element belongs to Typst, not to
+   this spec, so mapping it to a spec element id in IMPLEMENTS would claim
+   this file defines the style. A symbol earns a place here only where
+   `#let` shadows an engine element and the element still has to be
+   addressable in a `show` or `set` rule. */
+const ENGINE_ELEMENTS = new Set(['native-quote']);
 
 /* Symbols named for what they do rather than for the spec element id they
    implement — an author-facing name, not the spec's own taxonomy, and (for
-   block-spaced/block-indented) a name that does not have to change the day
-   paragraphs-* is renamed to paragraph-*. This is NOT the same list as
-   INTERNAL_SYMBOLS: every value here is a real implements-relationship, so a
-   symbol belongs in exactly one of the two lists, never both. Gated below:
-   every value must resolve to an id spec.json actually declares, or a typo
-   here would silence a real "no symbol" coverage warning forever. */
+   block-spaced/block-indented) independent of whatever the spec calls the
+   underlying element (paragraph-spaced, paragraph-indented). This is NOT the
+   same list as INTERNAL_SYMBOLS or ENGINE_ELEMENTS: every value here is a
+   real implements-relationship, so a symbol belongs in exactly one of the
+   three lists, never two. A value is normally one element id; it is a list of ids
+   for a symbol that genuinely implements several under one call, such as
+   quote(type:) below. Gated below: every id named here must resolve to one
+   spec.json actually declares, or a typo would silence a real "no symbol"
+   coverage warning forever. */
 const IMPLEMENTS = new Map([
-  ['block-spaced', 'paragraphs-spaced'],
-  ['block-indented', 'paragraphs-indented'],
-  /* ts-table implements element tables-table under its 1.x spelling, which
+  ['block-spaced', 'paragraph-spaced'],
+  ['block-indented', 'paragraph-indented'],
+  /* ts-table implements element table under its 1.x spelling, which
      the migration note discloses. */
-  ['ts-table', 'tables-table'],
+  ['ts-table', 'table'],
   /* key is the author-facing name for inline-kbd — the owner asked for it
      by that name, and an author reaching for a keycap does not know the
      spec's own element id. */
@@ -1371,18 +1642,28 @@ const IMPLEMENTS = new Map([
      spec element in its own right and needs a name resolving to one, the
      same shape as ts-table above. */
   ['references', 'bibliography-heading'],
+  /* One #quote(type:) call genuinely implements all five quotation
+     elements — the ordinary block quote and its attribution via the native
+     show rule's default path, and the other three by type. */
+  ['quote', [
+    'quote-blockquote', 'quote-attribution',
+    'quote-epigraph', 'quote-pullquote', 'quote-verse',
+  ]],
 ]);
 
-for (const [sym, id] of IMPLEMENTS) {
-  if (!specIds.has(id)) {
-    fail.push(`tools/check.mjs: IMPLEMENTS maps "${sym}" to "${id}", which spec.json does not `
-      + 'declare as an element id — a typo here would silence a real "no symbol or marker '
-      + 'region" coverage warning forever');
+for (const [sym, ids] of IMPLEMENTS) {
+  for (const id of Array.isArray(ids) ? ids : [ids]) {
+    if (!specIds.has(id)) {
+      fail.push(`tools/check.mjs: IMPLEMENTS maps "${sym}" to "${id}", which spec.json does not `
+        + 'declare as an element id — a typo here would silence a real "no symbol or marker '
+        + 'region" coverage warning forever');
+    }
   }
 }
 
 for (const sym of typSymbols) {
   if (INTERNAL_SYMBOLS.has(sym) || specIds.has(sym) || IMPLEMENTS.has(sym)) continue;
+  if (ENGINE_ELEMENTS.has(sym)) continue;
   fail.push(`typeset.typ: #let ${sym} names no spec element and is not listed as internal`);
 }
 
@@ -1394,7 +1675,8 @@ for (const sym of typSymbols) {
    promoting this direction means settling every one of the notes it prints
    first. The reverse direction above is a failure, because an export with no
    name behind it is a decision someone can write down in one line. */
-const implementedIds = new Set(IMPLEMENTS.values());
+const implementedIds = new Set(
+  [...IMPLEMENTS.values()].flatMap((ids) => (Array.isArray(ids) ? ids : [ids])));
 for (const id of specIds) {
   if (!typSymbols.has(id) && !implementedIds.has(id) && !new RegExp(`//\\s*@s\\s+${id}\\s*\\n`).test(typ))
     warn.push(`typeset.typ: no symbol or marker region named "${id}"`);
@@ -1407,6 +1689,13 @@ for (const id of specIds) {
    implementations to; `optional` and `never` stay prose describing author
    choice and default flow, which nothing enforces.
 
+   Which arm a list belongs to used to be readable off its entries: an id was
+   a compound (`figures-figure`), prose was a bare word. Singular ids collapse
+   that difference — `figure`, `table`, `list` and `callout` are ids now — so
+   the distinction is asserted here instead. An entry that matches an id is
+   either a prose line that has become ambiguous, or an id filed under an arm
+   nothing enforces; both read to the next author as a list this gate covers.
+
    This gate asserts the whole property per element — left edge at the page
    margin, width equal to the full text width, and vertical position at the
    top or the bottom of the page, never mid-column, which templates.two-column.requirements
@@ -1417,6 +1706,18 @@ for (const id of specIds) {
    one-axis assertions can always be walked around one axis at a time; this
    gate does not leave an axis unchecked to walk around. */
 const spanningAlways = spec.templates['two-column'].spanning.always;
+
+const spanningSectionIds = new Set(spec.sections.map((sec) => sec.id));
+for (const arm of ['optional', 'never']) {
+  for (const entry of spec.templates['two-column'].spanning[arm]) {
+    if (specIds.has(entry) || spanningSectionIds.has(entry)) {
+      fail.push(`spec.json: templates.two-column.spanning.${arm} names "${entry}", which is a `
+        + 'live id — that arm is prose describing author choice, and nothing holds an '
+        + 'implementation to it, so an entry that reads as an id claims coverage this '
+        + 'checker does not provide');
+    }
+  }
+}
 
 for (const id of spanningAlways) {
   if (!specIds.has(id)) {
@@ -1466,7 +1767,7 @@ const inBand = (y, edge) => Math.abs(y - edge) <= VERTICAL_TOLERANCE_PT;
    see the loop just before the render check. */
 const TYPST_EXEMPT_CARRIED_BY_TITLE_BLOCK = ['frontmatter-subtitle', 'frontmatter-byline', 'frontmatter-dateline'];
 const TYPST_RENDER_CHECKED = [
-  'frontmatter-title-block', 'frontmatter-abstract', 'frontmatter-colophon', 'headings-h1',
+  'frontmatter-title-block', 'frontmatter-abstract', 'frontmatter-colophon', 'heading-h1',
   'bibliography-heading',
 ];
 
@@ -1486,7 +1787,7 @@ for (const id of TYPST_RENDER_CHECKED) {
 
 /* CSS: every id on spanning.always is a standalone class (typeset.css's @s
    frontmatter block gives subtitle, byline and dateline their own rules,
-   siblings of the title block's) except headings-h1, styled through the bare
+   siblings of the title block's) except heading-h1, styled through the bare
    `h1` selector rather than a class — handled as its own case below, not
    folded into a count of "how many are classes", which spec.json already
    owns via spanning.always itself. So a document may use any of the class-
@@ -1541,7 +1842,7 @@ for (const rule of cssLeafRules) {
 }
 
 for (const id of spanningAlways) {
-  const selector = id === 'headings-h1' ? '.typeset--two-column > h1' : `.typeset--two-column > .ts-${id}`;
+  const selector = id === 'heading-h1' ? '.typeset--two-column > h1' : `.typeset--two-column > .ts-${id}`;
   const values = columnSpanValuesBySelector.get(selector) || [];
   if (values.length === 0) {
     fail.push(`typeset.css: templates.two-column.spanning.always names "${id}", but no rule declares `
@@ -1743,7 +2044,7 @@ const BIBLIOGRAPHY_HEADING_FILL = '#e10005';
    control rather than silently passing the real check for the wrong reason. */
 const typstProbes = [
   {
-    id: 'headings-h1',
+    id: 'heading-h1',
     source: `${docPreamble}${LEADING_FILLER}\n\n#heading(level: 1)[#${markerRect(HEADING_FILL)}]\n`,
     fill: HEADING_FILL,
     vertical: 'top',
@@ -2210,13 +2511,13 @@ if (!measureEmMatch) {
 /* The literal values first. _paragraphs-rule backs both typeset()'s own
    `indented` option and the two standalone functions, so a hand-copied number
    drifting in any one of the three call sites shows up here as a mismatch
-   against spec.json's own paragraphs-spaced/paragraphs-indented elements —
+   against spec.json's own paragraph-spaced/paragraph-indented elements —
    the elements block-spaced/block-indented implement, per IMPLEMENTS above. */
 
-const paragraphsSpec = spec.sections.find((s) => s.id === 'paragraphs');
+const paragraphsSpec = spec.sections.find((s) => s.id === 'paragraph');
 const specEl = (id) => paragraphsSpec.elements.find((e) => e.id === id).properties;
-const spacedProps = specEl('paragraphs-spaced');
-const indentedProps = specEl('paragraphs-indented');
+const spacedProps = specEl('paragraph-spaced');
+const indentedProps = specEl('paragraph-indented');
 
 /* A scale dictionary's own value for one field, so the two scales can be held
    to spec.json's base element and to the two-column template's override of it
@@ -2239,7 +2540,7 @@ if (!rule) {
   const spacedIndent = /first-line-indent:\s*([^\n,)}]+)/.exec(spacedBranch)?.[1]?.trim();
   if (spacedIndent !== '0pt') {
     fail.push(`typeset.typ: block-spaced's first-line-indent is ${spacedIndent}, but `
-      + `spec.json's paragraphs-spaced.first_line_indent is "${spacedProps.first_line_indent}" (0) `
+      + `spec.json's paragraph-spaced.first_line_indent is "${spacedProps.first_line_indent}" (0) `
       + '— every line flush');
   }
   /* The gap is the ACTIVE scale's, never the module's. _paragraphs-rule is
@@ -2257,7 +2558,7 @@ if (!rule) {
   if (spaceDefault !== 'sp') {
     fail.push(`typeset.typ: _paragraphs-rule's space parameter defaults to \`${spaceDefault}\`, `
       + `expected the module's own \`sp\` (${spacedProps.space_after}, spec.json's `
-      + 'paragraphs-spaced.space_after) — the single-column unit, for a caller with no scale');
+      + 'paragraph-spaced.space_after) — the single-column unit, for a caller with no scale');
   }
   if (!/\.\._paragraphs-rule\(indented, leading: scale\.leading, space: scale\.space, indent: scale\.indent\)/.test(typ)) {
     fail.push('typeset.typ: _typeset-styles does not pass scale.leading, scale.space and '
@@ -2267,7 +2568,7 @@ if (!rule) {
 
   /* And each scale's own indent against the spec statement that owns it. */
   const indentOwners = [
-    ['scale-single-column', indentedProps.first_line_indent, 'paragraphs-indented.first_line_indent'],
+    ['scale-single-column', indentedProps.first_line_indent, 'paragraph-indented.first_line_indent'],
     ['scale-two-column', spec.templates['two-column'].element_overrides.paragraph.first_line_indent,
       'templates.two-column.element_overrides.paragraph.first_line_indent'],
   ];
@@ -2288,7 +2589,7 @@ if (!rule) {
   } else {
     /* The indent is the scale's too, for the same reason the gap is: a
        template states its own. spec.json declares 1.5em on
-       paragraphs-indented and 1.25em on
+       paragraph-indented and 1.25em on
        templates.two-column.element_overrides.paragraph, and while the amount
        was a literal in this branch there was nowhere for the override to
        live — the file's own comment presented that as the point. */
@@ -2299,19 +2600,19 @@ if (!rule) {
     }
     if (indentDefault !== indentedProps.first_line_indent) {
       fail.push(`typeset.typ: _paragraphs-rule's indent parameter defaults to ${indentDefault}, but `
-        + `spec.json's paragraphs-indented.first_line_indent is "${indentedProps.first_line_indent}"`);
+        + `spec.json's paragraph-indented.first_line_indent is "${indentedProps.first_line_indent}"`);
     }
     if (indentedAmount[2] !== 'false') {
       fail.push('typeset.typ: block-indented sets first-line-indent all: true — this applies '
         + "the indent even after a heading, blockquote, figure or break, and to the document's "
-        + 'first paragraph, contradicting the note on spec.json\'s paragraphs-indented element: '
-        + `"${paragraphsSpec.elements.find((e) => e.id === 'paragraphs-indented').notes[0]}"`);
+        + 'first paragraph, contradicting the note on spec.json\'s paragraph-indented element: '
+        + `"${paragraphsSpec.elements.find((e) => e.id === 'paragraph-indented').notes[0]}"`);
     }
   }
   const indentedSpacing = /spacing:\s*([^\n,)}]+)/.exec(indentedBranch)?.[1]?.trim();
   if (!/^leading-for\(/.test(indentedSpacing ?? '')) {
     fail.push(`typeset.typ: block-indented's spacing is "${indentedSpacing}", expected `
-      + `leading-for(..) — spec.json's paragraphs-indented.space_after is "${indentedProps.space_after}" `
+      + `leading-for(..) — spec.json's paragraph-indented.space_after is "${indentedProps.space_after}" `
       + '(no gap beyond the ordinary line leading)');
   }
 }
@@ -2429,7 +2730,7 @@ const gapProbeDir = mkdtempSync(join(tmpdir(), 'typeset-para-gap-check-'));
 try {
   copyFileSync('implementations/typeset.typ', join(gapProbeDir, 'typeset.typ'));
 
-  /* The single-column arm is also the spec's own number: paragraphs-spaced
+  /* The single-column arm is also the spec's own number: paragraph-spaced
      declares an 11pt space_after at an 11pt base, so its expected advance is
      spec.json's value, not merely typeset.typ's agreeing with itself. */
   const specGap = parseFloat(spacedProps.space_after) + parseFloat(spacedProps.size);
@@ -2445,7 +2746,7 @@ try {
     const expected = base + space;
     if (scaleName === 'scale-single-column' && Math.abs(expected - specGap) > 0.01) {
       fail.push(`typeset.typ: ${scaleName} gives a spaced advance of ${expected}pt, but `
-        + `spec.json's paragraphs-spaced is ${spacedProps.size} of text and a `
+        + `spec.json's paragraph-spaced is ${spacedProps.size} of text and a `
         + `${spacedProps.space_after} space_after, i.e. ${specGap}pt`);
     }
 
@@ -3209,7 +3510,7 @@ if (typstAvailable()) {
    measurement) of which 19 are legitimate: these demos are prose *about*
    margins and column arithmetic ("A4 is 210mm wide..."), and forbidding that
    forbids the demos from explaining themselves. Exactly one hit is real:
-   src/demos/figures.typ used to hand-pick 128mm for a diagram's scale, tied
+   src/demos/figure.typ used to hand-pick 128mm for a diagram's scale, tied
    to the measure with nothing saying so.
 
    So this checks a narrower, defensible claim: a millimetre literal is a
@@ -3321,6 +3622,193 @@ for (const file of typstSnippets) {
     fail.push(`${path}:${lineNo}: a millimetre literal (${hit.text}) is reached from Typst code, `
       + 'not from prose — a demo that hand-picks a dimension is evidence of a missing function in '
       + 'implementations/typeset.typ, not a line for an exemption list');
+  }
+}
+
+
+/* ---- 16. The migration surface: the codemod, the two rename maps, and the
+           class table a 1.x reader follows ------------------------------- */
+
+/* Every other gate in this file holds an implementation against spec.json.
+   These hold the migration path — the codemod, both rename maps, and the
+   class table a reader hand-migrates from — against each other and against
+   the release they describe. Nothing else does, and none of what they check
+   shows up as a broken build on its own: a map row pointing at a dead
+   selector, a table row that was never added, a codemod that rewrites the
+   spec's own schema keys all leave the tree compiling and the site
+   rendering. They surface as a reader's document silently losing a style. */
+
+const frozenMap = JSON.parse(readFileSync('tools/rename-map.json', 'utf8'));
+const singularMap = JSON.parse(readFileSync('tools/rename-map-2.0-singular.json', 'utf8'));
+
+/* 16a. One codemod run must carry a 1.x document all the way to 2.0 singular
+   names — through the frozen 1.x -> 2.0.0 map and then the 2.0.0 plural ->
+   singular map — and leave every class it produces standing on a real rule. */
+const FIXTURE = 'tools/fixtures/1.x-migration-sample.html';
+const fixtureSrc = readFileSync(FIXTURE, 'utf8');
+const migratedFixture = rewrite(fixtureSrc);
+
+if (migratedFixture === fixtureSrc) {
+  fail.push(`${FIXTURE}: the codemod leaves it unchanged, so it is no longer a 1.x document `
+    + 'and proves nothing — it must carry names the rename maps still rewrite');
+}
+
+/* A live 2.0 name is one this release carries: a spec element (whether
+   typeset.css reaches it through .ts-<id> or through a plain element selector
+   behind an @style marker) or one of the shared internal bases. */
+const isLiveClass = (cls) => specIds.has(cls.replace(/^ts-/, ''))
+  || cssClasses.has(cls) || INTERNAL_CLASSES.has(cls);
+
+for (const cls of classesIn(migratedFixture)) {
+  if (isLiveClass(cls)) continue;
+  fail.push(`${FIXTURE}: one codemod run leaves .${cls}, which is no name this release `
+    + 'carries — a migrated 1.x document would render that element unstyled, with no error '
+    + 'and no visual cue');
+}
+
+if (rewrite(migratedFixture) !== migratedFixture) {
+  fail.push(`${FIXTURE}: a second codemod run over the migrated file changes it again, so one `
+    + 'run does not finish the job the migration guide says it finishes');
+}
+
+/* The fixture is only a proof while it still carries a token from every group
+   the maps rewrite. Derived from the singular map rather than listed here, so
+   a spec that grows a section the maps cover fails until the fixture covers
+   it too. */
+for (const id of new Set(Object.values(singularMap.sections))) {
+  const covered = [...classesIn(migratedFixture)]
+    .some((c) => c === `ts-${id}` || c.startsWith(`ts-${id}-`));
+  if (!covered) {
+    fail.push(`${FIXTURE}: carries no 1.x class that migrates into the "${id}" section, so the `
+      + 'chain proof does not cover it');
+  }
+}
+
+/* The four ids that collapse to the bare section id (links-link -> link, and
+   the same for table, figure, callout) end this run spelled exactly as they
+   started, because each was already spelled that way in 1.x. A map that
+   doubled the id instead — ts-link-link — would still chain cleanly and
+   would still look like a rename, so the round trip is the only thing that
+   catches it. */
+for (const id of ['link', 'table', 'figure', 'callout']) {
+  if (classesIn(fixtureSrc).has(`ts-${id}`) && !classesIn(migratedFixture).has(`ts-${id}`)) {
+    fail.push(`${FIXTURE}: .ts-${id} does not survive the chain under its own name — the `
+      + `doubled 2.0.0 spelling ts-${id}s-${id} did not collapse back to the bare id`);
+  }
+}
+
+/* 16b. Pointing the codemod at spec.json must not move a single schema key.
+   A section id and a schema key are the same word in this file — "notes" is
+   a section and also the key holding an element's notes array — and the
+   bare-section-id pass sees both as a quoted token. Getting that wrong
+   corrupts the file every other gate in this run reads as normative, and the
+   damage reports as "index.html is stale". Compared as key sets rather than
+   as text, because an "id" VALUE is exactly what the pass is supposed to
+   rewrite; only the keys must not move. */
+const jsonKeys = (value, into = new Set()) => {
+  if (Array.isArray(value)) for (const v of value) jsonKeys(v, into);
+  else if (value && typeof value === 'object') {
+    for (const [k, v] of Object.entries(value)) { into.add(k); jsonKeys(v, into); }
+  }
+  return into;
+};
+const specKeysBefore = jsonKeys(spec);
+const specKeysAfter = jsonKeys(JSON.parse(rewrite(readFileSync('spec.json', 'utf8'))));
+for (const k of specKeysBefore) {
+  if (!specKeysAfter.has(k)) {
+    fail.push(`tools/codemod-names.mjs: running it over spec.json renames the schema key `
+      + `"${k}" — a key names a property, never a section, and the file it corrupts is the `
+      + 'one every other gate in this run reads as normative');
+  }
+}
+
+/* 16c. Both maps must land every row on a name this release actually
+   carries. rename-map.json's own note calls a row that rewrites a document
+   onto a selector the stylesheet does not carry "a defect to correct here",
+   and this is what makes that a checkable claim rather than an intention. An
+   emptied map fails here too, which is the one shape a per-row check alone
+   would pass vacuously. */
+if (Object.keys(frozenMap.classes).length === 0
+  || Object.keys(singularMap.sections).length === 0
+  || Object.keys(singularMap.elements).length === 0) {
+  fail.push('tools/rename-map.json / tools/rename-map-2.0-singular.json: a map is empty, so the '
+    + 'codemod half-migrates every document it is pointed at and reports success');
+}
+
+for (const from of Object.keys(frozenMap.classes)) {
+  const to = rewrite(from);
+  if (to.startsWith('typeset--')) continue;
+  if (!isLiveClass(to)) {
+    fail.push(`tools/rename-map.json: .${from} chains to .${to}, which is no name this release `
+      + 'carries — the codemod would rewrite a 1.x document onto a selector with no rule '
+      + 'behind it');
+  }
+}
+
+const sectionIds = new Set(spec.sections.map((s) => s.id));
+for (const [from, to] of Object.entries(singularMap.sections)) {
+  if (!sectionIds.has(to)) {
+    fail.push(`tools/rename-map-2.0-singular.json: section row ${from} -> ${to} names no `
+      + 'section spec.json declares');
+  }
+}
+for (const [from, to] of Object.entries(singularMap.elements)) {
+  if (!specIds.has(to) && !sectionIds.has(to)) {
+    fail.push(`tools/rename-map-2.0-singular.json: element row ${from} -> ${to} names no `
+      + 'element spec.json declares');
+  }
+}
+
+/* 16d. docs/migrating-to-2.0.md's class table and its counts must be what
+   the codemod does, not what someone counted once. A missing row is the
+   worst defect this document can carry: the reader who runs the tool is
+   fine, so nothing looks wrong, and only the reader who hand-migrates or
+   audits keeps a class 2.0 does not style. */
+const guide = readFileSync('docs/migrating-to-2.0.md', 'utf8');
+const guideTable = guide.slice(guide.indexOf('## The full class table'));
+const guideRows = [...guideTable.matchAll(/^\| `\.([a-z0-9-]+)` \| `\.([a-z0-9-]+)` \|$/gm)]
+  .map((m) => [m[1], m[2]]);
+const mapRows = Object.keys(frozenMap.classes);
+const changedRows = mapRows.filter((k) => rewrite(k) !== k);
+const identicalRows = mapRows.filter((k) => rewrite(k) === k);
+
+for (const from of changedRows) {
+  if (!guideRows.some(([a]) => a === from)) {
+    fail.push(`docs/migrating-to-2.0.md: .${from} changes name in this release (to `
+      + `.${rewrite(from)}) and the class table does not list it — a reader hand-migrating a `
+      + '1.x document keeps a class 2.0 does not style');
+  }
+}
+for (const [from, to] of guideRows) {
+  if (rewrite(from) !== to) {
+    fail.push(`docs/migrating-to-2.0.md: the class table maps .${from} to .${to}, but the `
+      + `codemod rewrites it to .${rewrite(from)}`);
+  }
+}
+
+/* Each count is read back out of the prose by the words around it, so the
+   sentence has to keep saying what it says for the gate to keep matching. A
+   count that loses its anchor fails as "not stated", never as silently
+   unchecked. */
+const guideCounts = [
+  [/(\d+) classes change name between 1\.x and 2\.0/, changedRows.length, 'classes change name'],
+  [/— (\d+) named-style classes, plus/, changedRows.filter((k) => k.startsWith('ts-')).length,
+    'named-style classes that change'],
+  [/(\d+) more named-style classes are spelled identically/, identicalRows.length,
+    'classes spelled identically'],
+  [/(\d+) always were/, identicalRows.filter((k) => frozenMap.classes[k] === k).length,
+    'classes that always were identical'],
+  [/and (\d+) more —/, identicalRows.filter((k) => frozenMap.classes[k] !== k).length,
+    'classes that round-trip back to their 1.x spelling'],
+];
+for (const [pattern, derived, what] of guideCounts) {
+  const m = guide.match(pattern);
+  if (!m) {
+    fail.push(`docs/migrating-to-2.0.md: the sentence stating the number of ${what} no longer `
+      + `matches ${pattern} — reword the gate with the prose, or the count stops being checked`);
+  } else if (Number(m[1]) !== derived) {
+    fail.push(`docs/migrating-to-2.0.md: says ${m[1]} ${what}; tools/rename-map.json chained `
+      + `through the codemod gives ${derived}`);
   }
 }
 

@@ -18,10 +18,10 @@ layout.#footnote[Below about 40 characters, hyphenation stops being optional.]
 
 Bringhurst puts the ideal measure between 45 and 75 characters, a range narrow
 enough to be useful and wide enough to survive a change of
-typeface.#notes-sidenote[_Elements_, 4th ed., §2.1.2.]
+typeface.#note-sidenote[_Elements_, 4th ed., §2.1.2.]
 
 The lower bound matters more in a two-column layout, where the column is the
-measure and there is no slack to give away.#notes-sidenote[Below 40 characters,
+measure and there is no slack to give away.#note-sidenote[Below 40 characters,
 hyphenation stops being optional.]
 
 What the range really encodes is the number of fixations the eye makes per
@@ -31,7 +31,7 @@ the type relative to the viewing distance.
 === The cost
 
 Sidenotes are paid for in horizontal space: the text column gives up six ems so
-the margin can have twelve.#notes-sidenote[Which is why they are forbidden in
+the margin can have twelve.#note-sidenote[Which is why they are forbidden in
 two columns: no margin is left to give.] On a single-column A4 page that is
 affordable, and the margin was going to be white anyway.
 
