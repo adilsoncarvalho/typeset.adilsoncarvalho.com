@@ -320,7 +320,7 @@ Default: `single-column`
 | always | `frontmatter-title-block`, `frontmatter-subtitle`, `frontmatter-byline`, `frontmatter-dateline`, `frontmatter-abstract`, `headings-h1`, `frontmatter-colophon` |
 | optional | `figure`, `table`, `code block`, `pull quote` |
 | never | `paragraph`, `list`, `blockquote`, `callout`, `heading 2 and below`, `endnotes` |
-| note | A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` stay prose because they describe author choice and default flow, which nothing enforces. A bibliography heading is not on `always`: no heading element exists anywhere in this spec, and the bibliography section's own element list carries none either. |
+| note | A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` stay prose because they describe author choice and default flow, which nothing enforces. A bibliography heading is not on `always`: no bibliography heading element exists anywhere in this spec, and the bibliography section's own element list carries none either. |
 
 #### forbidden
 

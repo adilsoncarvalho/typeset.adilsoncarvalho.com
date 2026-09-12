@@ -11,6 +11,15 @@ There are two page templates. `single-column` is the default; `two-column` sets
 its own page and scale, and its base size is *derived* from the column width
 rather than chosen — see `templates.two-column.derivation` in `spec.json`.
 
+Either template also takes one of six named margins: `narrow`, `standard`
+(the default) and `wide`, each symmetric, plus a `duplex` variant of each for
+a document that will be bound — inner and outer edges instead of one value on
+every side, mirrored by page parity. In CSS this is a `typeset--margin-*`
+class (for example `typeset--margin-duplex-standard`); in Typst it is the
+matching `margin-*` value passed to `margin:` (for example
+`margin-duplex-standard`), or any length or margin dictionary of your own.
+See `foundation.page.margins` in `spec.json`.
+
 Read in this order:
 
 1. `/spec.json` — the normative source. Every value, with units. If your output

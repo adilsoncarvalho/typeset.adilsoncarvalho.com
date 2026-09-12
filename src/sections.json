@@ -30,7 +30,8 @@
     "group": "Foundations",
     "title": "Page setup",
     "prose": [
-      "<p>A4 at the standard margin, 20mm on all four sides — symmetric by default. A document being bound can opt into duplex margins instead, so a duplex-printed document keeps its gutter. The running head is the current level-2 heading, resolved by the engine — never typed by the author, and never allowed to drift from the section it names.</p>"
+      "<p>A4 at the standard margin, 20mm on all four sides — symmetric by default. A document being bound can opt into duplex margins instead, so a duplex-printed document keeps its gutter. The running head is the current level-2 heading, resolved by the engine — never typed by the author, and never allowed to drift from the section it names.</p>",
+      "<p>Ask for a margin by name: <code>typeset--margin-narrow</code>, <code>typeset--margin-standard</code> or <code>typeset--margin-wide</code> in CSS, and the matching duplex class — <code>typeset--margin-duplex-standard</code>, for instance — for a bound document. Typst takes the same six names as a <code>margin:</code> value.</p>"
     ],
     "note": "<div class=\"note\"><b>Engine capability.</b> Running heads and folios require the engine to write into the page margin. Typst and LaTeX do this natively. In CSS it is Paged Media, which no browser implements — Chrome's print dialog ignores it and substitutes its own header and footer, so the CSS implementation needs <a href=\"https://pagedjs.org\">Paged.js</a>, WeasyPrint or Prince. The two CSS examples do exactly that.</div>",
     "panel": {

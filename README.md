@@ -159,6 +159,31 @@ Two columns also change what is allowed: **justification stops being optional**
 (at 50 characters a ragged edge serrates the column), and **sidenotes are
 forbidden** (there is no margin left, so they degrade to an inline aside).
 
+### Margins
+
+Either template also takes one of six named margins, on `foundation.page.margins`
+in `spec.json`:
+
+| Name | Symmetric | Duplex (inner / outer) |
+|---|---|---|
+| `narrow` | 10mm | 13mm / 7mm |
+| `standard` (default) | 20mm | 23mm / 17mm |
+| `wide` | 30mm | 33mm / 27mm |
+
+Symmetric is the same value on all four sides. Duplex is the explicit opt-in
+for a document that will be bound: top and bottom stay at the symmetric
+value, left and right split into an inner (binding) edge and an outer one,
+mirrored by page parity — the pair always sums to twice the symmetric value,
+so a document keeps the same text width and the same line breaks whichever
+of the two it chooses.
+
+In CSS, ask for one with a `typeset--margin-<name>` class, for example
+`typeset--margin-duplex-standard`. In Typst, pass the matching `margin-<name>`
+value to `margin:`, for example `margin-duplex-standard` — or pass any
+length or Typst margin dictionary directly, for a page box the spec does not
+name. `tools/check.mjs` holds both implementations' six named values, and
+`paper-sizes-mm`/`sizes_mm`, to `spec.json`.
+
 ## Changing the spec
 
 1. Edit `spec.json`. Bump `version` and `updated`.
