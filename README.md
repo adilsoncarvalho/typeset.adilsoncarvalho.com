@@ -30,7 +30,10 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `specimen.css`, `specimen.js` | Chrome for the specimen page. Never shipped in a document. |
 | `files/*.html` | **Generated.** One viewer page per downloadable file. |
 | `src/sections.json` | The section manifest: order, group, title, prose, which panel to render. |
-| `src/demos/*.html` | The rendered example for each section — one file per section. |
+| `src/demos/<id>.html` | The rendered example for each section. The HTML pane is extracted from it, so the two cannot disagree. |
+| `src/demos/<id>.typ` | The Typst snippet for each section — hand-written, and compiled by the checker under the boilerplate the page publishes. |
+| `src/extract.mjs` | Pulls a demo's document fragment out of the page apparatus around it. |
+| `src/boilerplate.mjs` | The Typst boilerplate the masthead prints and the checker compiles against — one source for both. |
 | `src/panels.mjs`, `src/highlight.mjs` | Build-time panel rendering and syntax highlighting. |
 | `src/masthead.html`, `src/footer.html`, `src/nav-*.html`, `src/viewers.json` | Page furniture. |
 | `tools/build-site.mjs` | Generates `index.html` and `files/*.html` from all of the above. |
@@ -43,9 +46,21 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `tools/build-spec.mjs` | Generates `SPEC.md` from `spec.json`. |
 | `tools/check.mjs` | Verifies the implementations still match the spec. |
 
-The site quotes real code: every CSS and Typst panel is extracted from the marker
-pairs in the source files (`/*! @s id :: Title */` and `// @s id`). Nothing is
-transcribed, so a panel cannot drift from the file it describes.
+Each section's panel carries three tabs beside the rendered example.
+
+- **Spec** is rendered from `spec.json`.
+- **HTML** is the markup that produces the example beside it, extracted from
+  `src/demos/<id>.html` rather than transcribed, and held to that file by a
+  round-trip gate — so it cannot drift. Three Foundations sections state values
+  rather than demonstrate a document, so they publish **CSS** in that slot
+  instead, quoted from the `/*! @s id :: Title */` marker pairs in `typeset.css`.
+- **Typst** is `src/demos/<id>.typ`, one hand-written snippet per section. It is
+  *not* extracted, so nothing makes it match the example on its own; what holds
+  it is that the checker compiles every snippet under the exact boilerplate the
+  masthead publishes.
+
+Both code panes link back to the region of the full source they came from, by a
+line number read from the file rather than kept by hand.
 
 ## The site is generated
 
@@ -59,8 +74,8 @@ node tools/check.mjs        # fails if anything is stale or inconsistent
 ```
 
 Everything is resolved at build time: the spec tables, both code panels, and the
-syntax highlighting are plain markup in the published page, and the Spec / CSS /
-Typst tabs are radio inputs driven by CSS. **The page renders completely with
+syntax highlighting are plain markup in the published page, and the Spec /
+HTML / Typst tabs are radio inputs driven by CSS. **The page renders completely with
 JavaScript disabled**, and opens straight from the filesystem — the two scripts
 that remain (about 1.8 KB together) exist only for the copy buttons.
 
@@ -71,9 +86,10 @@ duplicate `09` that had been sitting in the page); and the four viewer pages com
 from one template instead of four near-identical files.
 
 To add a section: add an entry to `src/sections.json`, write
-`src/demos/<id>.html`, add the `@s` marker pairs in `typeset.css` and
-`implementations/typeset.typ`, give each element a `.ts-<id>` class or a
-`/* @style <id> */` marker, rebuild, and run the checker.
+`src/demos/<id>.html` and `src/demos/<id>.typ`, add the `@s` marker pairs in
+`typeset.css` and `implementations/typeset.typ`, give each element a `.ts-<id>`
+class or a `/* @style <id> */` marker, rebuild, and run the checker. The checker
+names a missing demo or snippet before the build trips over it.
 
 Naming the elements: an element id is either the bare section id or
 `<section-id>-<leaf>`. A plural section name enumerates its members, so every
@@ -83,6 +99,11 @@ single style, so its principal element takes the section id alone (`dropcap`,
 
 ## Working on it
 
+**`typst` must be on `PATH`.** `check.mjs` compiles every Typst snippet, and
+exits 1 with an install pointer rather than skipping when it cannot find one.
+Otherwise Node and nothing else: there is no `package.json` and nothing to
+install. `.github/workflows/deploy.yml` names the version CI runs.
+
 ```sh
 node tools/build-spec.mjs   # regenerate SPEC.md after editing spec.json
 node tools/build-site.mjs   # regenerate index.html and files/*.html from src/
@@ -91,9 +112,30 @@ python3 -m http.server      # optional — the pages also open straight from dis
 ```
 
 `check.mjs` fails when a token in `typeset.css` no longer matches `spec.json`,
-when a spec section has no panel or no CSS marker, when a demo file is missing,
-when `SPEC.md` is stale, or when a generated page is out of date. Run it before
-pushing.
+when a spec section has no panel or no CSS marker, when `SPEC.md` is stale, or
+when a generated page is out of date. It also holds the demos and the panes they
+produce:
+
+- Every manifest section has a demo and a Typst snippet, and nothing in
+  `src/demos` is unreferenced.
+- Every Typst snippet compiles under the boilerplate the masthead publishes —
+  the same text, composed by the same function, so the two cannot be different
+  environments.
+- Extraction is lossless: each demo file is rebuilt from what the extractor
+  returned and compared byte for byte, and the count of extracted examples must
+  equal the count of `pair__label` paragraphs, so a silently dropped example
+  fails rather than passing as nothing-to-compare.
+- A `<pre>` or a verse stanza survives extraction verbatim, checked against the
+  demo file itself rather than through the mask the extractor uses.
+- The published pane is the extracted fragment with only the declared apparatus
+  removed, and apparatus is held to what the word means: furniture this website
+  adds, which `typeset.css` never defines.
+- A pane never names a class `typeset.css` does not define, so a reader who
+  copies it gets markup that renders as shown.
+- The scale labels in both tokens demos are `spec.json`'s own values, in both
+  directions.
+
+Run it before pushing.
 
 ## Templates
 
@@ -125,7 +167,12 @@ forbidden** (there is no margin left, so they degrade to an inline aside).
 4. `node tools/check.mjs` until it passes.
 
 Adding an engine means adding an implementation that hits the values in
-`spec.json`, plus `// @s <section-id>` marker pairs so the site can quote it.
+`spec.json`, plus `// @s <section-id>` marker pairs so the site can link into
+it, plus a snippet per section under `src/demos/` so each panel can show the
+engine doing the thing the section is about. The snippets are what surface the
+gaps: writing 25 of them against 25 HTML examples is the most systematic
+comparison of two implementations this project has run, and it found three live
+bugs in `typeset.typ` that compiling three example documents never could.
 
 ## The Typst bundle is built, not committed
 
