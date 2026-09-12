@@ -136,6 +136,8 @@ produce:
   copies it gets markup that renders as shown.
 - The scale labels in both tokens demos are `spec.json`'s own values, in both
   directions.
+- `SPEC.md` is regenerated from `spec.json` and compared byte for byte, so a
+  stale property table fails rather than passing on a matching version line.
 - The migration path is held to the release it describes: one run of
   `tools/codemod-names.mjs` carries `tools/fixtures/1.x-migration-sample.html`
   from 1.x class names to 2.0 ones and lands every class on a name this

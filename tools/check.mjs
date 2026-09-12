@@ -8,6 +8,7 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { buildAll } from './build-site.mjs';
+import { buildSpecMd } from './build-spec.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
 import { typstBoilerplate, typstDocument, setsItsOwnPage } from '../src/boilerplate.mjs';
@@ -1313,11 +1314,14 @@ const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]
 
 /* ---- 4. SPEC.md must be current ----------------------------------------- */
 
-if (!specMd.includes(`Version ${spec.version} · updated ${spec.updated}`)) {
+/* Regenerated and compared byte for byte, the same way gate 3d holds the
+   generated pages. A version line plus a list of section ids is a sample, not
+   a comparison: every property table, every note and every fallback line can
+   be stale while both of those still match, and the file exists to be pasted
+   into a reader's or a model's context, where a stale property is invisible
+   and authoritative at once. */
+if (specMd !== buildSpecMd(spec)) {
   fail.push('SPEC.md is stale — run node tools/build-spec.mjs');
-}
-for (const sec of spec.sections) {
-  if (!specMd.includes(`\`${sec.id}\``)) fail.push(`SPEC.md is missing section "${sec.id}" — regenerate`);
 }
 
 /* ---- 5. Every named style is findable in the stylesheet by its name ------ */
