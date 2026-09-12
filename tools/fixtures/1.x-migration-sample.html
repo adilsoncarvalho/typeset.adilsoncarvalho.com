@@ -1,0 +1,30 @@
+<!-- A document written against 1.x class names, one representative token
+     from each of the twelve plural groups plus the one frozen section
+     rename. Used by tools/codemod-names.mjs's own chain proof: running the
+     codemod once must carry this file all the way to 2.0.0 singular names,
+     through the frozen 1.x map and the generated singular map, with no
+     2.0.0 plural name left standing in between. -->
+<article class="typeset">
+  <h1 class="ts-h1">On the measure of a line</h1>
+  <p class="ts-paragraph">An ordinary paragraph, set with a paragraph rule.</p>
+  <p><a class="ts-link" href="#">a link</a></p>
+  <p class="ts-frac">3/4 set as a case fraction</p>
+  <blockquote class="ts-epigraph">
+    <p>A sample epigraph.</p>
+  </blockquote>
+  <ul class="ts-list-tight">
+    <li>one</li>
+  </ul>
+  <table class="ts-table">
+    <tr><td>a cell</td></tr>
+  </table>
+  <figure class="ts-figure">
+    <figcaption>a caption</figcaption>
+  </figure>
+  <div class="ts-callout--warning">a warning callout</div>
+  <hr class="ts-break--asterism">
+  <p class="ts-note">a footnote marker</p>
+  <span class="ts-tie">a&nbsp;tie</span>
+  <!-- figures-numeric is the one section rename the 1.x map already carries. -->
+  <p data-section="figures-numeric">figures-numeric</p>
+</article>
