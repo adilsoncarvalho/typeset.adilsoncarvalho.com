@@ -598,21 +598,24 @@
 
 // ── Quotations: one function, four looks ────────────────────────────────────
 
-// A function bound to Typst's native `quote` element, the engine's own
-// equivalent of the markdown `>` this spec's quotations section describes:
-// Typst has no markdown blockquote syntax of its own — `typst query` over a
-// document containing `> a line` finds no element at all. `type:` selects
-// among the spec's four quote treatments; the default renders the ordinary
-// block quote. The builtin is saved under another name before the
-// redefinition below, or `quote` inside this function would call itself.
-#let _native-quote = quote
+// Typst's own `quote` element function, published under a second name.
+// `#let quote(type:)` below replaces the element binding with an ordinary
+// function, and an ordinary function cannot carry `.where()` or stand in a
+// set rule — so without this name a document that imports this file could no
+// longer write `#show quote.where(block: true): ...` or `#set quote(...)`,
+// which is how a Typst author reaches a treatment the template does not
+// offer. `native-quote` is that handle: `#show native-quote.where(block:
+// true): it => ...` and `#set native-quote(...)` both select the same
+// elements `#quote(...)` produces. It is also what the definition below
+// calls, since `quote` inside it would name itself.
+#let native-quote = quote
 
 #let quote(type: none, attribution: none, body) = if type == none {
   // Always block: the spec defines only a block quote, no inline one, so
   // there is no second reading of `>` for a `block:` parameter to select
   // between. The show rule above (`quote.where(block: true)`) styles the
   // element this produces and carries quote-attribution's own treatment.
-  _native-quote(block: true, attribution: attribution, body)
+  native-quote(block: true, attribution: attribution, body)
 } else if type == "epigraph" {
   // quote-epigraph's own block_alignment property is "flush right" — a
   // property of the element, not a variant a caller opts into — so the

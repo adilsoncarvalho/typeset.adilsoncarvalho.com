@@ -149,13 +149,31 @@ right-flushed epigraph. 2.0 replaces all four with a single `quote(type:,
 attribution:)` — the `type:` argument above selects the treatment, and the
 default (`type: none`, or `type:` omitted) is the ordinary block quote.
 
-Two changes apply even where the name `quote` did not change:
+Three changes apply even where the name `quote` did not change:
 
 - **`block:` is gone.** The unified function always renders a block quote —
   the spec has no inline quote element for it to select against — so
   `#quote(block: true, attribution: [...])[...]` becomes
   `#quote(attribution: [...])[...]`. Passing `block:` now hard-errors as an
   unexpected argument.
+- **A `show` or `set` rule on quotations names `native-quote`, not `quote`.**
+  `quote(type:)` is an ordinary function, and an ordinary function cannot
+  carry `.where()` or stand in a set rule, so in a document that imports
+  `typeset.typ` both of these now hard-error:
+
+      #show quote.where(block: true): it => ...
+        error: `where()` can only be called on element functions
+      #set quote(block: true)
+        error: only element functions can be used in set rules
+
+  2.0 publishes Typst's own quote element under the name `native-quote` for
+  exactly this. Rewrite the two lines as `#show
+  native-quote.where(block: true): it => ...` and `#set native-quote(...)`;
+  they select the same elements `#quote(...)` produces, including the ones
+  `#quote(type:)` renders through the default path. Nothing else about the
+  rules changes. The errors above point at your own line and say nothing
+  about the library having taken the name, so this is worth knowing before
+  you hit it.
 - **An epigraph is always flush right.** `epigraph-right` is gone along with
   the plain, un-aligned `quote-epigraph`: the spec's own quote-epigraph
   element declares `block_alignment: flush right`, so `type: "epigraph"`

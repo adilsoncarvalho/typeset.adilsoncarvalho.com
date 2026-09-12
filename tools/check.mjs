@@ -295,7 +295,16 @@ if (!typstAvailable()) {
    can confirm the default call still produces exactly one genuine native
    `quote` element — not some other shape this file's own block() produces —
    with block: true, the same invariant implementations/typeset.typ's own
-   `_native-quote` comment names. */
+   `native-quote` comment names.
+
+   A third probe holds the capability the shadow would otherwise take away.
+   `#let quote(type:)` replaces an element function with an ordinary one, so
+   `quote.where(...)` and `#set quote(...)` stop working in any importing
+   document; typeset.typ publishes the element as `native-quote` so they keep
+   working under that name. Compiling a document that only *mentions*
+   `native-quote` would prove the binding exists but not that it still selects
+   anything, so the probe panics from inside the show rule and requires the
+   compile to fail with that panic — the rule firing is the assertion. */
 
 if (typstAvailable()) {
   const quoteProbeDir = mkdtempSync(join(tmpdir(), 'typeset-quote-check-'));
@@ -343,7 +352,32 @@ if (typstAvailable()) {
   } catch (err) {
     const detail = (err.stderr ? err.stderr.toString() : String(err.message));
     fail.push('typeset.typ: #quote(...) with no type no longer produces exactly one native '
-      + `quote element — check that _native-quote still aliases the real builtin:\n${detail.trim()}`);
+      + `quote element — check that native-quote still aliases the real builtin:\n${detail.trim()}`);
+  }
+
+  const PANIC = 'native-quote show rule reached';
+  const selectorPath = join(quoteProbeDir, 'selector.typ');
+  writeFileSync(selectorPath, typstDocument(
+    `#set native-quote(block: true)\n`
+    + `#show native-quote.where(block: true): _ => panic("${PANIC}")\n`
+    + '#quote(attribution: [A. Author])[Selected by the author\'s own rule.]'));
+  try {
+    execFileSync(
+      'typst',
+      ['compile', '--font-path', fontPath, selectorPath, join(quoteProbeDir, 'selector.pdf')],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    );
+    fail.push('typeset.typ: an importing document\'s own '
+      + '#show native-quote.where(block: true) never fired — #quote(...) no longer produces '
+      + 'elements that rule selects, so shadowing `quote` has taken away the show/set route '
+      + 'with nothing standing in for it');
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message));
+    if (!detail.includes(PANIC)) {
+      fail.push('typeset.typ: a document importing this file can no longer write '
+        + '#set native-quote(...) and #show native-quote.where(...) — the engine\'s quote '
+        + `element is not addressable under that name:\n${detail.trim()}`);
+    }
   }
 
   rmSync(quoteProbeDir, { recursive: true, force: true });
@@ -1439,9 +1473,10 @@ for (const path of documentFiles) {
 }
 
 /* Observes the exported Typst surface. Every symbol is a named style, is
-   written down here as internal, or is mapped in IMPLEMENTS below as an
-   author-facing name for a spec element — so a new export has to be a
-   deliberate choice among the three. This set is only for a symbol with no
+   written down here as internal, is mapped in IMPLEMENTS below as an
+   author-facing name for a spec element, or is an engine element re-published
+   under a second name in ENGINE_ELEMENTS — so a new export has to be a
+   deliberate choice among the four. This set is only for a symbol with no
    spec element behind it at all; one that implements an element under a
    different name belongs in IMPLEMENTS instead, never here. */
 const INTERNAL_SYMBOLS = new Set([
@@ -1458,9 +1493,6 @@ const INTERNAL_SYMBOLS = new Set([
   'measure-standard', 'measure-narrow', 'measure-wide', 'measure-full', 'measured',
   /* helpers the styles are built from */
   'leading-for', 'smcp', 'oldstyle', 'lining', 'tabular', '_break-mark',
-  /* the original builtin quote, saved before #let quote(type:) shadows it —
-     not a style itself */
-  '_native-quote',
   /* the spacing/indent pair behind typeset()'s own `indented` option AND
      block-spaced/block-indented below — not a style itself */
   '_paragraphs-rule',
@@ -1482,6 +1514,15 @@ const INTERNAL_SYMBOLS = new Set([
      measured() to resolve measure-full — not a style itself */
   'ts-text-width',
 ]);
+
+/* Engine element functions this file re-publishes under a second name. Not
+   internal — the whole point of one is that a document can name it — and not
+   an implements-relationship either: the element belongs to Typst, not to
+   this spec, so mapping it to a spec element id in IMPLEMENTS would claim
+   this file defines the style. A symbol earns a place here only where
+   `#let` shadows an engine element and the element still has to be
+   addressable in a `show` or `set` rule. */
+const ENGINE_ELEMENTS = new Set(['native-quote']);
 
 /* Symbols named for what they do rather than for the spec element id they
    implement — an author-facing name, not the spec's own taxonomy, and (for
@@ -1540,6 +1581,7 @@ for (const [sym, ids] of IMPLEMENTS) {
 
 for (const sym of typSymbols) {
   if (INTERNAL_SYMBOLS.has(sym) || specIds.has(sym) || IMPLEMENTS.has(sym)) continue;
+  if (ENGINE_ELEMENTS.has(sym)) continue;
   fail.push(`typeset.typ: #let ${sym} names no spec element and is not listed as internal`);
 }
 
