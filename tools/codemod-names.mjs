@@ -50,11 +50,11 @@ const sectionPairsSingular = Object.entries(singularMap.sections)
    collides constantly with ordinary prose: "a hyphen breaks a word", "Two
    paragraphs set by...", "the stylesheet a reader links". A blind
    \b<word>\b replace over a file that mixes identifiers with hand-written
-   comments and JSON prose cannot tell the two apart, and Task 2 of the
-   singular-names plan found this out by hand — 32 corrupted `"notes": [...]`
-   schema keys, 13 corrupted `"numerals": "..."` property keys, and dozens of
-   sentences with broken subject-verb agreement, none of them caught by any
-   gate because nothing reads prose.
+   comments and JSON prose cannot tell the two apart. Renaming the section ids
+   by hand proved it — 32 corrupted `"notes": [...]` schema keys, 13 corrupted
+   `"numerals": "..."` property keys, and dozens of sentences with broken
+   subject-verb agreement, none of them caught by any gate because nothing
+   reads prose.
 
    So a bare section id is rewritten only where it appears in one of the
    handful of STRUCTURED positions it actually occupies as an identifier,

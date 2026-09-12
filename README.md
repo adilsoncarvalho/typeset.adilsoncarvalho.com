@@ -134,8 +134,21 @@ produce:
   adds, which `typeset.css` never defines.
 - A pane never names a class `typeset.css` does not define, so a reader who
   copies it gets markup that renders as shown.
+- Every element `spec.json` declares has exactly one labelled example: a
+  `pair__label` somewhere under `src/demos` whose `data-element` attribute
+  names that element's id. An element with no pane fails, and so does one with
+  two. See **Adding an element** below.
+- The handful of elements that cannot carry a pane are named in `check.mjs`'s
+  own `EXEMPTIONS` map, each with the one-sentence reason a reviewer needs to
+  accept it on sight. An entry with no reason fails; so does one naming an id
+  `spec.json` does not declare; and so does one that has since been given a
+  pane anyway, which is how an exemption stops outliving its reason.
 - The scale labels in both tokens demos are `spec.json`'s own values, in both
   directions.
+- The letter section's page diagram is drawn to `letter-page`'s own margins,
+  states them in words in the same three numbers, and leaves out the running
+  head and the folio that element declares it has none of — each checked
+  against `spec.json`, the same way the page section's diagram is.
 - `SPEC.md` is regenerated from `spec.json` and compared byte for byte, so a
   stale property table fails rather than passing on a matching version line.
 - The migration path is held to the release it describes: one run of
@@ -147,6 +160,34 @@ produce:
   are re-derived from the maps rather than trusted.
 
 Run it before pushing.
+
+### Adding an element
+
+A new element in `spec.json` needs a labelled example before the build is
+green. Add a pane to the section's demo file, and bind it:
+
+```html
+<p class="pair__label" data-element="table-zebra">8 · Zebra striping</p>
+<p class="demo-note">What to look at in the example below.</p>
+<div class="paper typeset">
+  <!-- the markup a reader copies -->
+</div>
+```
+
+The label's text is the word a person reads and is free to say whatever reads
+best; `data-element` is the machine key, and it is what the coverage gate
+matches on. The id must be one `spec.json` declares and one no other pane has
+already claimed — the gate fails on both mistakes, and the pane above is the
+shape to copy, not the id.
+
+Add the Typst counterpart to the section's `.typ` file so both panes show the
+same document — or, where Typst cannot express it, say so in a comment in that
+file, naming the pane and the reason.
+
+If the element genuinely cannot be shown, add it to `EXEMPTIONS` in
+`tools/check.mjs` with a reason. "It only happens in print" is not one on its
+own: `src/demos/page.html` draws a page on screen, and `src/demos/link.html`
+says in place what a printer will do with the sample above it.
 
 ## Templates
 

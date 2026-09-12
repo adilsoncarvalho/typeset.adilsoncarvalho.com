@@ -40,9 +40,13 @@
    fields to either read clumsily or be rewritten to suit a demo file.
 
    The attribute is optional in this regex, not required: a label with none
-   still extracts (elementId comes back null, below), because a demo file
-   mid-migration — every one Task 1 leaves untouched — must keep rendering
-   on the site exactly as it does today. Coverage is a separate gate's job,
+   still extracts, and elementId comes back null. Some panes have no element
+   to name. Four sections — tokens, foundation, page and two-column — state
+   values or a whole template rather than a document element, and the
+   justification demo carries two panes that teach a mistake ("Justified, no
+   hyphenation") and its exception rather than a style spec.json declares.
+   Requiring the attribute here would leave every one of those unextractable.
+   Whether an element that does exist has a pane is a separate gate's job,
    not this module's. */
 const LABEL_RE = /<p class="pair__label"([^>]*)>([\s\S]*?)<\/p>/g;
 const ELEMENT_ATTR_RE = /\bdata-element="([a-z0-9-]+)"/;

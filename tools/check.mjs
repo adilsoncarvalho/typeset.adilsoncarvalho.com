@@ -3637,12 +3637,11 @@ if (typstAvailable()) {
             and no millimetre literal reached from Typst code ------------- */
 
 /* A demo is what a reader copies. If it reaches for #set par(), #set text(),
-   or a hand-picked millimetre, the template has failed to cover that case —
-   Tasks 2-7 converted every demo that did; this gate is what stops the next
-   one reintroducing it. Ruling 2 on the plan this gate comes from forbids an
-   exemption list outright: a demo that genuinely needs to configure
-   something is evidence of a missing function in typeset.typ, not a line to
-   add here.
+   or a hand-picked millimetre, the template has failed to cover that case.
+   Every demo that did was converted before this gate was written; the gate is
+   what stops the next one reintroducing it. It takes no exemption list, by
+   design: a demo that genuinely needs to configure something is evidence of a
+   missing function in typeset.typ, not a line to add here.
 
    The #set arm is a plain substring search — #set is never legitimate inside
    a demo, in prose or in code, so it needs no context-sensitivity.
@@ -3976,9 +3975,9 @@ for (const [pattern, derived, what] of guideCounts) {
    Every demo file under src/demos is scanned, not just the one named after
    a section's own id — so a `data-element` typed into the wrong file (a
    copy-paste from a neighbouring section) still surfaces, as a binding
-   pointing at an id that section's element list does not own. A missing
-   demo file — code-inline has none — simply contributes no bindings, and
-   its element reports as unbound rather than crashing the run.
+   pointing at an id that section's element list does not own. A section with
+   no demo file of its own contributes no bindings, and its elements report as
+   unbound rather than crashing the run.
 
    Some elements cannot carry a pane of their own no matter how the demos are
    written. EXEMPTIONS names those, each with the one-sentence reason a
