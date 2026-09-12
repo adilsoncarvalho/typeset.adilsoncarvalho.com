@@ -1089,9 +1089,13 @@
   hyphenate-limit-lines: 2;
 }
 
-/* Spans both columns, always. Each is a direct child of the multicol container,
+/* Spans both columns, always — templates.two-column.spanning.always in
+   spec.json, unmarked. Each is a direct child of the multicol container,
    which is what column-span requires. */
 .typeset--two-column > .ts-frontmatter-title-block,
+.typeset--two-column > .ts-frontmatter-subtitle,
+.typeset--two-column > .ts-frontmatter-byline,
+.typeset--two-column > .ts-frontmatter-dateline,
 .typeset--two-column > .ts-frontmatter-abstract,
 .typeset--two-column > h1,
 .typeset--two-column > .ts-frontmatter-colophon,

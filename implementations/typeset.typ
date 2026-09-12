@@ -452,6 +452,25 @@
 // Typst's own `page(columns: 2)` fixes the gutter at 4% of the page width
 // (8.4mm on A4). The spec says 6mm, so the body goes through `columns()`
 // instead, which takes an explicit gutter and still breaks across pages.
+
+// Whether the content being laid out right now is the two-column body (inside
+// `columns()`), as opposed to `front` or a single-column template — read by
+// frontmatter-title-block, frontmatter-abstract and frontmatter-colophon to
+// decide whether they need to promote themselves.
+#let ts-two-column-body = state("ts-two-column-body", false)
+
+// Promotes body content to a parent-scoped float spanning both columns. A
+// spanning element costs a break in both, so it is opt-in per instance for
+// spanning.optional content (figure, table, code block, pull quote) and must
+// sit at the top or the bottom of the page — never mid-column, which makes
+// the reader find their place twice.
+#let span(body, at-bottom: false) = place(
+  if at-bottom { bottom } else { top },
+  scope: "parent",
+  float: true,
+  block(width: 100%, body),
+)
+
 #let two-column(
   paper: "a4",
   margin: margin-standard,
@@ -597,24 +616,17 @@
     v(scale-two-column.space, weak: true)
   }
 
+  // templates.two-column.spanning.always spans without a mark from here on:
+  // frontmatter-title-block, frontmatter-abstract and frontmatter-colophon
+  // read ts-two-column-body themselves (it carries subtitle, byline and
+  // dateline too — they are that block's own parameters, not standalone
+  // functions), and a body-level level-1 heading is promoted by the show rule
+  // below. Both are scoped to `doc`; `front` above renders before the columns
+  // begin, so it is already full width and never needs the wrap.
+  ts-two-column-body.update(true)
+  show heading.where(level: 1): it => span(it)
   columns(2, gutter: gutter, doc)
 }
-
-// A level-1 heading spans both columns, which in Typst means it must be a
-// parent-scoped float. That works in `front`, before the columns begin. A
-// level-1 heading in the BODY has to be wrapped in `span()` explicitly —
-// Typst cannot promote it out of the column flow on its own. In a paper the
-// body's section headings are level 2 anyway; level 1 is the title.
-//
-// Spans both columns. A spanning element costs a break in both, so it is opt-in
-// per instance and must sit at the top or the bottom of the page — never
-// mid-column, which makes the reader find their place twice.
-#let span(body, at-bottom: false) = place(
-  if at-bottom { bottom } else { top },
-  scope: "parent",
-  float: true,
-  block(width: 100%, body),
-)
 // @e
 
 // ── Front matter ────────────────────────────────────────────────────────────
@@ -622,7 +634,7 @@
 // @s frontmatter
 #let frontmatter-title-block(title: none, subtitle: none, author: none, place-date: none) = context {
   let u = text.size
-  block(
+  let content = block(
     below: u * 3, width: 100%,
     inset: (bottom: u),
     stroke: (bottom: 0.5pt + rule-color),
@@ -638,22 +650,24 @@
       }
     },
   )
+  if ts-two-column-body.get() { span(content) } else { content }
 }
 // @e
 
 #let frontmatter-abstract(width: 30em, body) = context {
   let u = text.size
-  block(below: u * 2, width: width, {
+  let content = block(below: u * 2, width: width, {
     set text(size: u * 0.91, fill: ink-muted)
     set par(justify: false, leading: leading-for(1.45), first-line-indent: 0pt)
     block(below: 0.3em, text(font: sans, size: u * 0.73, weight: 700, tracking: 0.1em, fill: ink-faint)[ABSTRACT])
     body
   })
+  if ts-two-column-body.get() { span(content) } else { content }
 }
 
 #let frontmatter-colophon(body) = context {
   let u = text.size
-  block(
+  let content = block(
     above: u * 3, width: 26em,
     inset: (top: u),
     stroke: (top: 0.5pt + rule-color),
@@ -663,6 +677,7 @@
       body
     },
   )
+  if ts-two-column-body.get() { span(content, at-bottom: true) } else { content }
 }
 
 // ── Letter ──────────────────────────────────────────────────────────────────

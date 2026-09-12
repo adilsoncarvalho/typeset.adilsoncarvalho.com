@@ -1164,6 +1164,9 @@ const INTERNAL_SYMBOLS = new Set([
   'leading-for', 'smcp', 'oldstyle', 'lining', 'tabular', '_break-mark',
   /* document and template entry points */
   'typeset', 'two-column', 'span',
+  /* two-column's own spanning.always state, read by frontmatter-title-block,
+     frontmatter-abstract and frontmatter-colophon — not a style itself */
+  'ts-two-column-body',
   /* ts-table implements element tables-table under its 1.x spelling, which the
      migration note discloses; epigraph-right has no element behind it at all */
   'ts-table', 'epigraph-right',
@@ -1185,6 +1188,241 @@ for (const sym of typSymbols) {
 for (const id of specIds) {
   if (!typSymbols.has(id) && !new RegExp(`//\\s*@s\\s+${id}\\s*\\n`).test(typ))
     warn.push(`typeset.typ: no symbol or marker region named "${id}"`);
+}
+
+/* ---- 6. templates.two-column.spanning.always must actually span, in both - */
+
+/* spanning.always is element ids (see the block's own note in spec.json),
+   because it is the one arm of `spanning` this checker can hold both
+   implementations to; `optional` and `never` stay prose describing author
+   choice and default flow, which nothing enforces.
+
+   This gate renders rather than reads, on the Typst side, because reading
+   source text next to the behaviour is not the same as observing the
+   behaviour: a deleted state-update, an inverted guard, or a `column-span:
+   all` turned to `none` all leave the substrings a text search wants intact.
+   Every geometry number below is derived from spec.json, not hardcoded —
+   hardcoding a derived value is exactly the mistake the two-column
+   derivation gate exists to catch elsewhere in this file. */
+const spanningAlways = spec.templates['two-column'].spanning.always;
+
+for (const id of spanningAlways) {
+  if (!specIds.has(id)) {
+    fail.push(`spec.json: templates.two-column.spanning.always names "${id}", which is not a spec element id`);
+  }
+}
+
+const mmToPt = (mm) => mm * 72 / 25.4;
+const twoColumnDerivation = spec.templates['two-column'].derivation;
+const marginPt = mmToPt(spec.foundation.page.margins.symmetric_mm[spec.foundation.page.margins.default]);
+const columnWidthPt = mmToPt(twoColumnDerivation.column_width_mm);
+const textWidthPt = mmToPt(twoColumnDerivation.column_width_mm * 2 + twoColumnDerivation.column_gap_mm);
+const findElement = (id) => spec.sections.flatMap((s) => s.elements).find((e) => e.id === id);
+const colophonWidthPt = parseFloat(findElement('frontmatter-colophon').properties.max_width)
+  * parseFloat(spec.templates['two-column'].scale.base);
+const GEOMETRY_TOLERANCE_PT = 0.5;
+const closeTo = (a, b) => Math.abs(a - b) < GEOMETRY_TOLERANCE_PT;
+
+/* Subtitle, byline and dateline are parameters of frontmatter-title-block,
+   not standalone Typst functions — there is no way to call them on their
+   own, so they are not rendered independently below. They span because the
+   title block spans, which the frontmatter-title-block check does cover.
+   This exemption list is named so that an id on spanning.always which is
+   neither here nor in the render-checked list below fails loudly, rather
+   than silently shipping unchecked on the Typst side the day it is added —
+   see the loop just before the render check. */
+const TYPST_EXEMPT_CARRIED_BY_TITLE_BLOCK = ['frontmatter-subtitle', 'frontmatter-byline', 'frontmatter-dateline'];
+const TYPST_RENDER_CHECKED = ['frontmatter-title-block', 'frontmatter-abstract', 'frontmatter-colophon', 'headings-h1'];
+
+for (const id of spanningAlways) {
+  if (!TYPST_RENDER_CHECKED.includes(id) && !TYPST_EXEMPT_CARRIED_BY_TITLE_BLOCK.includes(id)) {
+    fail.push(`tools/check.mjs: templates.two-column.spanning.always names "${id}", which this `
+      + 'check neither renders nor exempts as carried by frontmatter-title-block (subtitle, byline, '
+      + 'dateline) — update TYPST_RENDER_CHECKED or TYPST_EXEMPT_CARRIED_BY_TITLE_BLOCK');
+  }
+}
+for (const id of TYPST_RENDER_CHECKED) {
+  if (!spanningAlways.includes(id)) {
+    fail.push(`tools/check.mjs: "${id}" is in TYPST_RENDER_CHECKED, but templates.two-column.spanning.always `
+      + 'no longer names it — update this check');
+  }
+}
+
+/* CSS: every one of the seven is a standalone class (see the ts-frontmatter-*
+   rules in the @s frontmatter block of typeset.css), so a document may use
+   any of them as a direct child of the multicol container. `column-span`
+   requires a direct child, so the selector must carry the `>` combinator —
+   a descendant selector satisfies a bare substring search but never spans in
+   a browser. Found by the pair of markers that co-occur only in this one
+   rule (`.ts-span`, the manual affordance for spanning.optional, alongside
+   `.ts-frontmatter-title-block`), not by the first textual occurrence of
+   either alone, and sliced to the closing brace so the declaration itself —
+   not just the selector list — is what gets checked. */
+const cssRuleBlocks = [...cssNoComments.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .map((m) => ({ selectors: m[1], decls: m[2] }));
+const alwaysSpanBlock = cssRuleBlocks.find((b) => b.selectors.includes('.ts-span')
+  && b.selectors.includes('.ts-frontmatter-title-block'));
+
+if (!alwaysSpanBlock) {
+  fail.push('typeset.css: no rule selects both .ts-span and .ts-frontmatter-title-block together — '
+    + 'the two-column always-span block was not found');
+} else {
+  if (!/column-span:\s*all\s*;/.test(alwaysSpanBlock.decls)) {
+    fail.push('typeset.css: the always-span block (selectors include .ts-frontmatter-title-block and '
+      + '.ts-span) does not declare `column-span: all`');
+  }
+  for (const id of spanningAlways) {
+    const selector = id === 'headings-h1' ? '> h1' : `> .ts-${id}`;
+    if (!alwaysSpanBlock.selectors.includes(selector)) {
+      fail.push(`typeset.css: templates.two-column.spanning.always names "${id}", but `
+        + `".typeset--two-column ${selector}" (with the direct-child combinator column-span `
+        + 'requires) is not in the always-span selector list');
+    }
+  }
+}
+
+/* Typst: render a probe, don't read the source next to it. The probe places
+   each render-checked element inside the two-column BODY (`doc`, not
+   `front`, which is already full width before the columns begin) behind
+   enough filler that an unspanned element would land in column 2 rather
+   than column 1 — column 1 and the spanning region share the same left
+   edge, so without the filler a broken implementation would read as passing
+   by coincidence. Reuses gate 3h's harness: a mkdtemp reader directory, a
+   copy of typeset.typ, and `typst compile --font-path`. */
+if (!typstAvailable()) {
+  console.error('typst is not on PATH — cannot verify that templates.two-column.spanning.always actually spans.');
+  console.error('Install typst (https://typst.app) and re-run node tools/check.mjs.');
+  process.exit(1);
+}
+
+const spanProbeSource = `#import "typeset.typ": *
+
+#let marker(color) = rect(width: 100%, height: 8pt, fill: color)
+
+#show: two-column.with(paper: "a4", margin: margin-standard)
+
+#lorem(400)
+
+#heading(level: 1)[#marker(rgb("#e10001"))]
+
+#lorem(60)
+
+#frontmatter-abstract(width: 100%)[#marker(rgb("#e10002"))]
+
+#lorem(60)
+
+#frontmatter-title-block(title: [Probe title])
+
+#lorem(60)
+
+#frontmatter-colophon[Probe colophon text for the spanning check.]
+`;
+
+/* A hand-rolled walk rather than an XML library: Typst's own SVG output is
+   simple and regular (self-closing <path>, nested <g transform="matrix(...)">
+   with no other element carrying layout-relevant attributes), so a small
+   tag-and-stack scanner is enough, and it keeps this file dependency-free. */
+function svgShapesByFill(svgText, fill) {
+  const tagRe = /<([a-zA-Z][\w:-]*)((?:\s+[\w:-]+="[^"]*")*)\s*(\/?)>|<\/([a-zA-Z][\w:-]*)>/g;
+  const attrRe = /([\w:-]+)="([^"]*)"/g;
+  const parseMatrix = (t) => {
+    const m = /matrix\(([^)]+)\)/.exec(t);
+    return m ? m[1].trim().split(/[\s,]+/).map(Number) : null;
+  };
+  const multiply = (m1, m2) => {
+    const [a1, b1, c1, d1, e1, f1] = m1;
+    const [a2, b2, c2, d2, e2, f2] = m2;
+    return [
+      a1 * a2 + c1 * b2, b1 * a2 + d1 * b2,
+      a1 * c2 + c1 * d2, b1 * c2 + d1 * d2,
+      a1 * e2 + c1 * f2 + e1, b1 * e2 + d1 * f2 + f1,
+    ];
+  };
+  const apply = (m, x, y) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
+
+  const stack = [[1, 0, 0, 1, 0, 0]];
+  const shapes = [];
+  let match;
+  while ((match = tagRe.exec(svgText))) {
+    const [, openTag, attrsText, selfClose, closeTag] = match;
+    if (closeTag) {
+      if (closeTag === 'g') stack.pop();
+      continue;
+    }
+    const attrs = {};
+    if (attrsText) {
+      attrRe.lastIndex = 0;
+      let am;
+      while ((am = attrRe.exec(attrsText))) attrs[am[1]] = am[2];
+    }
+    let matrix = stack[stack.length - 1];
+    if (attrs.transform) {
+      const mm = parseMatrix(attrs.transform);
+      if (mm) matrix = multiply(matrix, mm);
+    }
+    if (openTag === 'g') {
+      if (!selfClose) stack.push(matrix);
+    } else if (openTag === 'path' && attrs.fill === fill) {
+      const d = attrs.d || '';
+      const originMatch = /M\s*0\s+0m\s+(-?[\d.]+)\s+(-?[\d.]+)/.exec(d);
+      const [lx, ly] = originMatch ? [Number(originMatch[1]), Number(originMatch[2])] : [0, 0];
+      const widthMatch = /h\s*(-?[\d.]+)/.exec(d);
+      shapes.push({ abs: apply(matrix, lx, ly), width: widthMatch ? Math.abs(Number(widthMatch[1])) : null });
+    }
+  }
+  return shapes;
+}
+
+const spanProbeDir = mkdtempSync(join(tmpdir(), 'typeset-span-check-'));
+copyFileSync('implementations/typeset.typ', join(spanProbeDir, 'typeset.typ'));
+const probeTypPath = join(spanProbeDir, 'probe.typ');
+writeFileSync(probeTypPath, spanProbeSource);
+const probeSvgPattern = join(spanProbeDir, 'probe-{n}.svg');
+try {
+  execFileSync(
+    'typst',
+    ['compile', '--font-path', resolve('fonts'), probeTypPath, probeSvgPattern],
+    { stdio: ['ignore', 'pipe', 'pipe'] },
+  );
+  const svg = readFileSync(join(spanProbeDir, 'probe-1.svg'), 'utf8');
+
+  const headingShapes = svgShapesByFill(svg, '#e10001');
+  const abstractShapes = svgShapesByFill(svg, '#e10002');
+  const ruleShapes = svgShapesByFill(svg, '#c9c4bd');
+  const colophonRule = ruleShapes.find((s) => closeTo(s.width, colophonWidthPt));
+  const titleBlockRule = ruleShapes.find((s) => s !== colophonRule
+    && (closeTo(s.width, columnWidthPt) || closeTo(s.width, textWidthPt)));
+
+  const checkFullWidth = (id, shape) => {
+    if (!shape) {
+      fail.push(`typeset.typ: the two-column render probe found no shape for "${id}" — `
+        + 'update the probe in this gate');
+    } else if (!closeTo(shape.width, textWidthPt)) {
+      fail.push(`typeset.typ: "${id}" does not span both columns under the two-column body — `
+        + `rendered width ${shape.width?.toFixed(2)}pt, expected ${textWidthPt.toFixed(2)}pt `
+        + '(spec: templates.two-column.spanning.always)');
+    }
+  };
+  const checkLeftMargin = (id, shape) => {
+    if (!shape) {
+      fail.push(`typeset.typ: the two-column render probe found no shape for "${id}" — `
+        + 'update the probe in this gate');
+    } else if (!closeTo(shape.abs[0], marginPt)) {
+      fail.push(`typeset.typ: "${id}" does not span both columns under the two-column body — `
+        + `rendered at x=${shape.abs[0].toFixed(2)}pt, expected the page margin `
+        + `${marginPt.toFixed(2)}pt (spec: templates.two-column.spanning.always)`);
+    }
+  };
+
+  checkFullWidth('headings-h1', headingShapes[0]);
+  checkFullWidth('frontmatter-abstract', abstractShapes[0]);
+  checkFullWidth('frontmatter-title-block', titleBlockRule);
+  checkLeftMargin('frontmatter-colophon', colophonRule);
+} catch (err) {
+  const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+  fail.push(`typeset.typ: the two-column spanning render probe failed to compile:\n${detail}`);
+} finally {
+  rmSync(spanProbeDir, { recursive: true, force: true });
 }
 
 /* ---- Report ------------------------------------------------------------- */
