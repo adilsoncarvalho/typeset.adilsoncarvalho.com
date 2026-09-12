@@ -147,17 +147,37 @@
 #let measure-narrow = 27em
 #let measure-wide = 40em
 
-// The fourth width, and the only one with no spec.json literal behind it:
-// the full text block, derived from the default paper and margin above
-// rather than typed. A4 at the standard margin leaves 170mm between the
-// margins.
-#let measure-full = paper-sizes-mm.at("a4").at(0) - 2 * margin-standard.left
+// The page's own text block, published by _typeset-styles — which is where a
+// layout() at the top of the document measures it directly, so nothing here
+// has to do arithmetic over the several shapes a margin can take, and a
+// duplex margin's two different sides come out right on both parities.
+#let ts-text-width = state("ts-text-width", none)
+
+// The fourth width, and the only one that is not a number: the full text
+// block. A length here could only ever be ONE paper's — A4 at the standard
+// margin leaves 170mm — and a paper is a document's to choose, so the same
+// constant oversets an A5 sheet by 48pt off the edge and falls 17pt short of
+// a Letter one, both in silence. So it is `auto`, resolved against the page
+// actually in force at the point it is used.
+#let measure-full = auto
 
 // A document reaches for one of the four names instead of a literal width:
 // `#measured[...]` for the default column, `#measured(width:
 // measure-wide)[...]` for a modifier, `#measured(width: measure-full)[...]`
-// for the full text block.
-#let measured(width: measure-standard, body) = block(width: width, body)
+// for the full text block — the PAGE's, not the enclosing block's, which is
+// what makes it the way a passage steps outside the document's own measure.
+// Where no template has published one (a bare document, or inside two
+// columns, where the column is the measure), the enclosing block is the only
+// text block there is and measure-full is that.
+#let measured(width: measure-standard, body) = if width != auto {
+  block(width: width, body)
+} else {
+  context {
+    let full = ts-text-width.get()
+    if full == none { layout(size => block(width: size.width, body)) }
+    else { block(width: full, body) }
+  }
+}
 
 // ── Document ────────────────────────────────────────────────────────────────
 
@@ -381,10 +401,13 @@
   // constrained. The block is breakable, so pagination is unaffected. The width
   // is taken against the page actually in force rather than against A4, and the
   // measure is resolved to absolute units first, because it is as often given
-  // in ems as in millimetres.
+  // in ems as in millimetres — except measure-full, which is `auto` and IS the
+  // page, so it is the width this layout() just measured.
   if measure == none { doc } else {
     layout(size => context {
-      block(width: calc.min(measure.to-absolute(), size.width), doc)
+      ts-text-width.update(size.width)
+      block(width: if measure == auto { size.width }
+        else { calc.min(measure.to-absolute(), size.width) }, doc)
     })
   }
 }
@@ -403,12 +426,12 @@
   numbered: false,
   running-head: true,
   folio: true,
-  // The measure, not the text width. A4 at the standard margin leaves
-  // measure-full (170mm) between its margins; measure-standard is smaller
-  // and keeps the remainder as slack, which is where marginalia live. It is
-  // a maximum, so a page with less than measure-standard between its
-  // margins keeps its margins. Pass `none` where the column IS the measure,
-  // as in two columns.
+  // The measure, not the text width. A4 at the standard margin leaves 170mm
+  // between its margins; measure-standard is smaller and keeps the remainder
+  // as slack, which is where marginalia live. It is a maximum, so a page with
+  // less than measure-standard between its margins keeps its margins. Pass
+  // `measure-full` where the text block IS the measure, whatever the paper,
+  // and `none` where the column is, as in two columns.
   measure: measure-standard,
   doc,
 ) = _typeset-page(
