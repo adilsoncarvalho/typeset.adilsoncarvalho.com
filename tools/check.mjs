@@ -812,6 +812,35 @@ if (two) {
       fail.push(`spec.json: two-column margins_supported is [${declared.join(', ')}], but on ${paper} at ${two.scale.base} the margins reaching the ${d.floor}-character floor are [${viable.join(', ')}] (${shown || 'none'})`);
     }
 
+    /* CSS cannot refuse a paper/margin combination the way Typst panics on one:
+       nothing stops a document combining typeset--two-column with a margin
+       class outside margins_supported, and the columns render anyway, silently
+       below the floor. Scan every demo and example for that combination
+       instead, on the class attribute that actually carries both classes
+       together — reading the supported sizes from the spec, not repeating them
+       here, so a paper or floor change moves this check with it. */
+    const marginClassSize = (cls) => cls.match(/^typeset--margin-(?:duplex-)?(narrow|standard|wide)$/)?.[1] ?? null;
+    for (const dir of ['src/demos', 'examples']) {
+      for (const file of readdirSync(dir).filter((f) => f.endsWith('.html'))) {
+        const path = `${dir}/${file}`;
+        for (const attr of readFileSync(path, 'utf8').matchAll(/class="([^"]*)"/g)) {
+          const tokens = attr[1].split(/\s+/).filter(Boolean);
+          if (!tokens.includes('typeset--two-column')) continue;
+          for (const token of tokens) {
+            const size = marginClassSize(token);
+            if (size === null || d.margins_supported.includes(size)) continue;
+            const col = columnMm(paper, size);
+            const chars = charsIn(col, basePt);
+            fail.push(`${path}: "${token}" combines typeset--two-column with a margin `
+              + `templates.two-column.derivation.margins_supported does not list — `
+              + `[${d.margins_supported.join(', ')}] on ${paper} — a ${size} margin `
+              + `leaves a ${col}mm column, carrying ${chars} characters at ${two.scale.base}, `
+              + `below the ${d.floor}-character floor`);
+          }
+        }
+      }
+    }
+
     /* Lines per column comes off the same page box, through the template's own
        baseline advance. Top and bottom take the symmetric value on either
        margin style, so one number covers both. */
