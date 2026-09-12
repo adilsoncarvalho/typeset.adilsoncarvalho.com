@@ -44,8 +44,8 @@
 )
 
 // Two columns: every step comes down. On A4 at the standard margin an 82mm
-// column carries 43 characters at 11pt — below the 45-character floor — so the
-// base drops to 9.5pt, which gives 50.
+// column carries 42 characters at 11pt — below the 45-character floor — so the
+// base drops to 9.5pt, which gives 49.
 #let scale-two-column = (
   xs: 7pt, sm: 8.5pt, base: 9.5pt,
   h4: 9.5pt, h3: 11pt, h2: 13pt, h1: 20pt,
@@ -512,9 +512,9 @@
   let floor = 45
   let base = scale-two-column.base
 
-  // The foundation measure is 66 characters in 126mm at 11pt. Characters in a
+  // The foundation measure is 66 characters in 128mm at 11pt. Characters in a
   // column follow from it, by the column's width and by the base in use.
-  let chars-in = width => int(calc.round(66 / 126 * (width / 1mm) * (11pt / base)))
+  let chars-in = width => int(calc.round(66 / 128 * (width / 1mm) * (11pt / base)))
   let mm-of = value => {
     let n = calc.round(value / 1mm, digits: 2)
     if n == calc.round(n) { str(int(n)) } else { str(n) }

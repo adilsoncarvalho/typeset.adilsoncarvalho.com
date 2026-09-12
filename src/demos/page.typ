@@ -4,7 +4,7 @@
 
 A4 at the standard margin, 20mm on all four sides — the default a document
 gets unless it asks otherwise. Between them lies 170mm of text width, of
-which the measure claims 126mm and leaves the remainder as slack.
+which the measure claims 128mm and leaves the remainder as slack.
 
 That slack is not waste. It is where a marginal note goes, where a thumb rests,
 and where the eye finds somewhere to stop. A page whose text runs to both

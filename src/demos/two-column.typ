@@ -16,7 +16,7 @@
 
   #frontmatter-abstract(width: 100%)[
     Dividing an A4 page into two equal columns leaves 82mm of measure. At the
-    single-column base of 11pt that carries 43 characters — below the floor at
+    single-column base of 11pt that carries 42 characters — below the floor at
     which a line of prose stays readable.
   ]
 
@@ -26,9 +26,9 @@
     A4 is 210mm wide. Take off the standard margin, 20mm on each side, and 170mm
     of text width remains. A 6mm gutter divides it into two columns of 82mm.
 
-    At 11pt, an 82mm column carries about 43 characters. This specification sets
-    45 as the floor for a line of prose, so 11pt is not available here. Dropping
-    the base to 9.5pt restores 50 characters.
+    At 11pt, an 82mm column carries about 42 characters. This specification sets
+    45 as the floor for a line of prose, so neither 11pt nor 10.5pt (44) is
+    available here. Dropping the base to 9.5pt restores 49 characters.
 
     === What follows
 
@@ -46,7 +46,7 @@
 
     == Justification
 
-    At 50 characters a ragged right edge serrates the column visibly, and the
+    At 49 characters a ragged right edge serrates the column visibly, and the
     word gaps in an unhyphenated justified column read as rivers. Both faults are
     tolerable at 66 characters and neither is tolerable here.
 
@@ -64,7 +64,7 @@
         rows: 2,
         align: (left + horizon,) + (right + horizon,) * 4,
         table.header([Base], [11pt], [10pt], [9.5pt], [9pt]),
-        [Characters], [43], [47], [50], [52],
+        [Characters], [42], [47], [49], [52],
         [Conformant], [no], [yes], [yes], [yes],
       ),
     ))

@@ -7,10 +7,10 @@
     rows: 4,
     align: (left + horizon, right + horizon, right + horizon, right + horizon),
     table.header([Typeface], [Size (pt)], [Leading], [Measure (mm)]),
-    [EB Garamond], [11.0], [1.45], [126],
+    [EB Garamond], [11.0], [1.45], [128],
     [Source Serif], [10.5], [1.42], [124],
     [Charis SIL], [10.0], [1.40], [119],
     [IBM Plex Serif], [10.5], [1.45], [131],
-    [Median], [10.5], [1.43], [125],
+    [Median], [10.5], [1.43], [126],
   ),
 )

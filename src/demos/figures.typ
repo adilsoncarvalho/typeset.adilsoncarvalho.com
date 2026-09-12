@@ -1,4 +1,4 @@
-#let s = 126mm / 400
+#let s = 128mm / 400
 
 #figure(
   caption: [

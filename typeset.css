@@ -1045,8 +1045,8 @@
    and referenced as much as read.
 
    The base size drops to 9.5pt here, and that is arithmetic rather than taste:
-   an 82mm column carries 43 characters at 11pt, below the 45-character floor
-   this stylesheet sets for a line of prose. 9.5pt restores 50. An
+   an 82mm column carries 42 characters at 11pt, below the 45-character floor
+   this stylesheet sets for a line of prose. 9.5pt restores 49. An
    implementation that keeps 11pt in two columns breaks the measure rule, which
    is the rule everything else is downstream of. */
 .typeset--two-column {
@@ -1080,7 +1080,7 @@
   column-fill: balance;   /* the final page balances its columns */
 
   /* Justification with hyphenation is MANDATORY at this measure, not optional:
-     at 50 characters a ragged edge serrates the column and the word gaps read
+     at 49 characters a ragged edge serrates the column and the word gaps read
      as rivers. This is the one place the stylesheet removes a choice. */
   text-align: justify;
   text-align-last: left;

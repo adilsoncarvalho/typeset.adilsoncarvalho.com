@@ -762,7 +762,7 @@ if (two) {
   const marginName = page.margins.default;
 
   /* Characters per millimetre at the 11pt base, taken from the foundation
-     measure: 66 characters in 126mm. Every count in the template is this
+     measure: 66 characters in 128mm. Every count in the template is this
      scaled by the column width and by the ratio of 11pt to the base in use. */
   const perMm = rhythm.measure_chars / rhythm.measure_mm;
   const columnMm = (paperName, margin) => (papers[paperName][0] - 2 * symmetric[margin] - d.column_gap_mm) / 2;
@@ -1781,7 +1781,7 @@ try {
 /* spec.json owns symmetric_mm, duplex_inner_mm, duplex_outer_mm and
    sizes_mm. Both implementations restate every one of these as literal
    numbers — typeset.typ as margin-* dictionaries plus paper-sizes-mm, the
-   66/126 character constant and the two-column floor; typeset.css as
+   66/128 character constant and the two-column floor; typeset.css as
    @page margin declarations — and nothing before this gate compared either
    copy to spec.json. Demonstrated: setting margin-narrow to 14mm in
    typeset.typ while spec.json stayed at 10mm left `node tools/check.mjs`
@@ -1898,11 +1898,11 @@ if (!paperDictMatch) {
   }
 }
 
-/* Typst: the foundation measure (66 characters in 126mm), inlined into
+/* Typst: the foundation measure (66 characters in 128mm), inlined into
    two-column()'s own chars-in formula, and the two-column floor. */
 const charsMatch = /calc\.round\((-?[\d.]+)\s*\/\s*(-?[\d.]+)\s*\*/.exec(typ);
 if (!charsMatch) {
-  fail.push('typeset.typ: the 66/126 characters-per-mm constant was not found in two-column()');
+  fail.push('typeset.typ: the 66/128 characters-per-mm constant was not found in two-column()');
 } else {
   if (Number(charsMatch[1]) !== spec.foundation.rhythm.measure_chars) {
     fail.push(`typeset.typ: two-column()'s characters constant is ${charsMatch[1]}, but `
@@ -2085,6 +2085,28 @@ try {
   }
 } finally {
   rmSync(measureProbeDir, { recursive: true, force: true });
+}
+
+/* ---- 10. measure_mm must not drift from measure, the canonical value ----- */
+
+/* foundation.rhythm.measure ("33em") is canonical; measure_mm is a derived
+   millimetre convenience for readers who think in paper dimensions, not a
+   second source of truth. Recompute it from measure and the 11pt base, the
+   same conversion the note describes, and fail if the declared value has
+   drifted — the two disagreeing by rounding is exactly how this task started. */
+
+const measureEmMatch = /^([\d.]+)em$/.exec(spec.foundation.rhythm.measure);
+if (!measureEmMatch) {
+  fail.push(`spec.json: foundation.rhythm.measure is "${spec.foundation.rhythm.measure}", expected an em value`);
+} else {
+  const measureEm = Number(measureEmMatch[1]);
+  const basePt = parseFloat(spec.foundation.scale.steps.base);
+  const expectedMm = Math.round(measureEm * basePt * (25.4 / 72));
+  if (spec.foundation.rhythm.measure_mm !== expectedMm) {
+    fail.push(`spec.json: foundation.rhythm.measure_mm is ${spec.foundation.rhythm.measure_mm}, but `
+      + `measure (${spec.foundation.rhythm.measure}) at the ${spec.foundation.scale.steps.base} base is `
+      + `${expectedMm}mm — measure is canonical, measure_mm must follow it`);
+  }
 }
 
 /* ---- Report ------------------------------------------------------------- */

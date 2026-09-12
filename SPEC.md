@@ -142,9 +142,9 @@ A normative typographic specification for printed documents — essays, letters,
 | space | `11pt` |
 | space note | One unit of vertical space is 11pt — one line of base leading, near enough. Every gap below is a multiple of it. |
 | measure | `33em` |
-| measure mm | `126` |
+| measure mm | `128` |
 | measure chars | `66` |
-| measure note | The single largest legibility lever. Past about 75 characters the return sweep fails and readers re-read lines without noticing; below 45 the eye fixates too often. |
+| measure note | The single largest legibility lever. Past about 75 characters the return sweep fails and readers re-read lines without noticing; below 45 the eye fixates too often. `measure` is canonical — an em measure follows a type-scale change, where a millimetre one does not. `measure_mm` is derived from it, 33 × the 11pt base, and is kept only as a millimetre convenience for readers who think in paper dimensions; tools/check.mjs asserts the two agree. |
 
 #### measure variants
 
@@ -244,7 +244,7 @@ Default: `single-column`
 | column width mm | `82` |
 | floor | `45` |
 | margins supported | `narrow`, `standard` |
-| conclusion | An 82mm column carries 43 characters at the 11pt base — below the 45-character floor this spec sets for a line of prose. The base size therefore DROPS to 9.5pt, which gives 50. 10.5pt reaches 45 exactly, and a floor is not a target: 9.5pt is the first step with room above it. This is arithmetic, not preference: an implementation that keeps 11pt in two columns violates the measure rule, which is the rule everything else in this spec is downstream of. |
+| conclusion | An 82mm column carries 42 characters at the 11pt base — below the 45-character floor this spec sets for a line of prose. 10.5pt still falls short, at 44. The base therefore DROPS to 10pt, the first step that clears the floor — but only just, at 47, two characters of headroom. The template drops one step further anyway, to 9.5pt and 49: a floor is not a target, and a bare pass is not the same as room to breathe. This is arithmetic, not preference: an implementation that keeps 11pt or 10.5pt in two columns violates the measure rule, which is the rule everything else in this spec is downstream of. |
 | refusal | Two columns are refused, not set badly, on any paper and margin whose column falls below the floor. That is a computed rule rather than a list of papers: margins_supported names the margins that reach the floor on the paper in foundation.page.size, and tools/check.mjs recomputes it. The checker fails when this declaration disagrees with the arithmetic, when the default margin cannot reach the floor, or when no named margin on the paper can. |
 | recompute when | The paper in foundation.page.size, the default margin, or the gutter. Characters per line = (foundation.rhythm.measure_chars / measure_mm) x column_mm x (11 / base_pt), rounded; column_mm = (paper width - twice the margin - the gutter) / 2. tools/check.mjs recomputes every number here from foundation.page, so a margin cannot move without these following it or the checker going red. |
 
@@ -252,10 +252,10 @@ Default: `single-column`
 
 | Property | Value |
 | --- | --- |
-| 11pt | `43` |
-| 10.5pt | `45` |
+| 11pt | `42` |
+| 10.5pt | `44` |
 | 10pt | `47` |
-| 9.5pt | `50` |
+| 9.5pt | `49` |
 | 9pt | `52` |
 
 #### page
@@ -302,12 +302,12 @@ Default: `single-column`
 | baseline advance | `13.3pt` |
 | space | `9.5pt` |
 | measure | the column — 82mm, not a character count |
-| measure chars | `50` |
+| measure chars | `49` |
 | note | Leading tightens with the measure: a shorter line needs less vertical separation to keep the return sweep unambiguous. |
 
 #### requirements
 
-- Justification with hyphenation is MANDATORY, not optional. At 50 characters a ragged right edge produces a visibly serrated column and word gaps wide enough to read as rivers. This is the one place the spec removes a choice it otherwise offers.
+- Justification with hyphenation is MANDATORY, not optional. At 49 characters a ragged right edge produces a visibly serrated column and word gaps wide enough to read as rivers. This is the one place the spec removes a choice it otherwise offers.
 - The last line of a paragraph is still flush left. Two columns make a stretched last line more visible, not less.
 - Balance the columns on the final page. A last page with one full column and one empty third reads as a printing error.
 - A spanning element must span BOTH columns fully or neither. An element that spans one and a half columns has no correct reading order.
@@ -617,7 +617,7 @@ Default: `single-column`
 
 - Ragged right is the DEFAULT, and it is a choice rather than an absence — a document states it. Justification buys a clean right edge at the cost of uneven word spacing; a ragged setting keeps the spacing even and gives up the edge. Neither is more correct, but the cost lands differently by document.
 - Choose ragged right for a letter, a memorandum, a short note — anything addressed to a person rather than to a readership. Justification reads as institutional, and its even edge is the visual signature of print that was set for strangers.
-- Choose justification for continuous prose at a full measure: an essay, a report, a paper. It is mandatory in two columns, where a ragged edge at 50 characters serrates the column.
+- Choose justification for continuous prose at a full measure: an essay, a report, a paper. It is mandatory in two columns, where a ragged edge at 49 characters serrates the column.
 - These are a single decision. Justification without hyphenation opens rivers of white space; hyphenation without justification breaks words for no gain. Take both or neither.
 - Hyphenation is per-language and requires the document language to be declared. An English dictionary applied to Portuguese produces confident nonsense.
 - The last line of a paragraph is NEVER stretched. State this explicitly — a paginating engine fragments the text, so the visual last line stops looking like the end of a paragraph and gets justified. It does not reproduce in an unpaginated preview.

@@ -146,17 +146,17 @@ them: a template does not get its own typography.
 | Template | Base | Measure | Opt-in |
 |---|---|---|---|
 | Single column (default) | 11pt / 1.45 | 33em ≈ 66 characters | — |
-| Two column, equal | 9.5pt / 1.4 | 82mm ≈ 50 characters | `typeset--two-column` |
+| Two column, equal | 9.5pt / 1.4 | 82mm ≈ 49 characters | `typeset--two-column` |
 
 **The two-column base is derived, not chosen.** A4 less the standard 20mm margin
 on each side leaves 170mm; a 6mm gutter divides it into two 82mm columns. At 11pt
-that carries 43 characters — below the 45-character floor the spec sets for
-prose. 9.5pt restores 50. `tools/check.mjs` recomputes this and fails if the
-stated numbers stop agreeing, so changing the page size, the default margin or
-the gutter cannot silently break the measure.
+that carries 42 characters — below the 45-character floor the spec sets for
+prose. 10.5pt still falls short, at 44. 9.5pt restores 49. `tools/check.mjs`
+recomputes this and fails if the stated numbers stop agreeing, so changing the
+page size, the default margin or the gutter cannot silently break the measure.
 
 Two columns also change what is allowed: **justification stops being optional**
-(at 50 characters a ragged edge serrates the column), and **sidenotes are
+(at 49 characters a ragged edge serrates the column), and **sidenotes are
 forbidden** (there is no margin left, so they degrade to an inline aside).
 
 ### Margins
