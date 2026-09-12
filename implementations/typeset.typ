@@ -133,9 +133,7 @@
   // Widow and orphan control: never one line alone at a page edge.
   set block(breakable: true)
 
-  if numbered {
-    set heading(numbering: "1.1  ")
-  }
+  set heading(numbering: if numbered { "1.1  " } else { none })
 
   // ── Headings ──────────────────────────────────────────────────────────────
   // Space above is four times the space below; a heading belongs to what
@@ -580,7 +578,8 @@
 // @s toc
 #let toc() = {
   show outline.entry: set text(font: sans, size: sm)
-  outline(title: none, fill: repeat(gap: 0.4em)[.], indent: 1.5em)
+  set outline.entry(fill: repeat(gap: 0.4em)[.])
+  outline(title: none, indent: 1.5em)
 }
 // @e
 
