@@ -1349,6 +1349,16 @@ const IMPLEMENTS = new Map([
      justification-justified/justification-ragged element ids. */
   ['justified', 'justification-justified'],
   ['ragged-right', 'justification-ragged'],
+  /* reference composes one entry — the author-facing name for
+     bibliography-entry, an author reaching for it thinks "a reference", not
+     "the spec's bibliography-entry id". */
+  ['reference', 'bibliography-entry'],
+  /* references renders the literal bibliography-heading content (a real
+     level-2 heading) and also sets up the entries' shared typography — it is
+     not only the heading, but the heading is the one piece of it that is a
+     spec element in its own right and needs a name resolving to one, the
+     same shape as ts-table above. */
+  ['references', 'bibliography-heading'],
 ]);
 
 for (const [sym, id] of IMPLEMENTS) {
@@ -1443,7 +1453,10 @@ const inBand = (y, edge) => Math.abs(y - edge) <= VERTICAL_TOLERANCE_PT;
    than silently shipping unchecked on the Typst side the day it is added —
    see the loop just before the render check. */
 const TYPST_EXEMPT_CARRIED_BY_TITLE_BLOCK = ['frontmatter-subtitle', 'frontmatter-byline', 'frontmatter-dateline'];
-const TYPST_RENDER_CHECKED = ['frontmatter-title-block', 'frontmatter-abstract', 'frontmatter-colophon', 'headings-h1'];
+const TYPST_RENDER_CHECKED = [
+  'frontmatter-title-block', 'frontmatter-abstract', 'frontmatter-colophon', 'headings-h1',
+  'bibliography-heading',
+];
 
 for (const id of spanningAlways) {
   if (!TYPST_RENDER_CHECKED.includes(id) && !TYPST_EXEMPT_CARRIED_BY_TITLE_BLOCK.includes(id)) {
@@ -1707,6 +1720,7 @@ const ABSTRACT_FILL = '#e10002';
 const TITLE_BLOCK_FILL = '#e10003';
 const COLOPHON_FILL = '#e10004';
 const COLOPHON_CONTROL_FILL = '#e100c0';
+const BIBLIOGRAPHY_HEADING_FILL = '#e10005';
 
 /* Every probe is its own document: one id, checked on its own page, so a
    stacked second float never has to be told apart from a broken one (see the
@@ -1746,6 +1760,13 @@ const typstProbes = [
     vertical: 'bottom',
     checkWidth: false,
     control: { fill: COLOPHON_CONTROL_FILL, expectedX: column2Pt },
+  },
+  {
+    id: 'bibliography-heading',
+    source: `${docPreamble}${LEADING_FILLER}\n\n#references(title: [#${markerRect(BIBLIOGRAPHY_HEADING_FILL)}])[]\n`,
+    fill: BIBLIOGRAPHY_HEADING_FILL,
+    vertical: 'top',
+    checkWidth: true,
   },
 ];
 
@@ -2638,6 +2659,12 @@ const justificationDemo = readFileSync('src/demos/justification.typ', 'utf8');
 if (/#set par|#set text/.test(justificationDemo)) {
   fail.push('src/demos/justification.typ: uses #set par or #set text directly — the point of '
     + 'justified()/ragged-right() is that an author never has to');
+}
+
+const bibliographyDemo = readFileSync('src/demos/bibliography.typ', 'utf8');
+if (/#set par|#set text/.test(bibliographyDemo)) {
+  fail.push('src/demos/bibliography.typ: uses #set par or #set text directly — the point of '
+    + 'references()/reference() is that an author never has to');
 }
 
 /* ---- 13. key() must match inline-kbd, bottom edge strictly heavier than
