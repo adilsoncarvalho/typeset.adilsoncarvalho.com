@@ -50,7 +50,7 @@ At 49 characters a ragged right edge serrates the column visibly, and the word
 gaps in an unhyphenated justified column read as rivers. Both faults are
 tolerable at 66 characters and neither is tolerable here.
 
-#quote-pullquote[This is the one place the spec removes a choice it otherwise offers.]
+#quote(type: "pullquote")[This is the one place the spec removes a choice it otherwise offers.]
 
 So the two-column template asserts justification rather than accepting it as a
 parameter. An implementation that offers ragged-right two columns is not

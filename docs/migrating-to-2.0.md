@@ -114,9 +114,10 @@ It does not touch Typst source. Rename these symbols by hand:
 
 | 1.x | 2.0 |
 |---|---|
-| `epigraph` | `quote-epigraph` |
-| `pullquote` | `quote-pullquote` |
-| `verse` | `quote-verse` |
+| `epigraph` | `quote(type: "epigraph")` |
+| `pullquote` | `quote(type: "pullquote")` |
+| `verse` | `quote(type: "verse")` |
+| `epigraph-right` | `quote(type: "epigraph")` |
 | `break-scene(kind: "asterisks")` | `break-asterisks()` |
 | `break-scene(kind: "asterism")` | `break-asterism()` |
 | `break-scene(kind: "fleuron")` | `break-fleuron()` |
@@ -136,8 +137,37 @@ It does not touch Typst source. Rename these symbols by hand:
 
 `break-scene` took a `kind:` argument selecting one of four looks; 2.0 gives
 each look its own zero-argument function. `callout`, `dropcap`, `toc`,
-`ts-table`, `two-column`, `span` and `epigraph-right` keep their 1.x names, with no
-change to how they're called.
+`ts-table`, `two-column` and `span` keep their 1.x names, with no change to
+how they're called.
+
+### `quote` — four functions become one
+
+1.x called the ordinary block quote through Typst's own builtin,
+`#quote(block: true, attribution: [...])[...]`, and reached the other three
+treatments through three separate functions plus `epigraph-right` for a
+right-flushed epigraph. 2.0 replaces all four with a single `quote(type:,
+attribution:)` — the `type:` argument above selects the treatment, and the
+default (`type: none`, or `type:` omitted) is the ordinary block quote.
+
+Two changes apply even where the name `quote` did not change:
+
+- **`block:` is gone.** The unified function always renders a block quote —
+  the spec has no inline quote element for it to select against — so
+  `#quote(block: true, attribution: [...])[...]` becomes
+  `#quote(attribution: [...])[...]`. Passing `block:` now hard-errors as an
+  unexpected argument.
+- **An epigraph is always flush right.** `epigraph-right` is gone along with
+  the plain, un-aligned `quote-epigraph`: the spec's own quote-epigraph
+  element declares `block_alignment: flush right`, so `type: "epigraph"`
+  always renders that way, and there is no `align:` parameter to opt out.
+  `#epigraph-right(attribution: [...])[...]` and the unused
+  `#quote-epigraph(attribution: [...])[...]` both become
+  `#quote(type: "epigraph", attribution: [...])[...]`.
+
+Calling `quote(type:)` with anything other than `none`, `"epigraph"`,
+`"pullquote"` or `"verse"` panics naming the valid values, rather than
+rendering as an ordinary quote — so a typo in the type is loud, not a
+silently wrong document.
 
 `letter-page` also keeps its 1.x name, but not its 1.x usage — the name
 surviving is what makes this easy to miss. A letter now opens with

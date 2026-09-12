@@ -1372,6 +1372,9 @@ const INTERNAL_SYMBOLS = new Set([
   'measure-standard', 'measure-narrow', 'measure-wide', 'measure-full', 'measured',
   /* helpers the styles are built from */
   'leading-for', 'smcp', 'oldstyle', 'lining', 'tabular', '_break-mark',
+  /* the original builtin quote, saved before #let quote(type:) shadows it —
+     not a style itself */
+  '_native-quote',
   /* the spacing/indent pair behind typeset()'s own `indented` option AND
      block-spaced/block-indented below — not a style itself */
   '_paragraphs-rule',
@@ -1392,8 +1395,6 @@ const INTERNAL_SYMBOLS = new Set([
   /* the page's own text block, published by _typeset-styles and read by
      measured() to resolve measure-full — not a style itself */
   'ts-text-width',
-  /* epigraph-right has no element behind it at all */
-  'epigraph-right',
 ]);
 
 /* Symbols named for what they do rather than for the spec element id they
@@ -1402,9 +1403,11 @@ const INTERNAL_SYMBOLS = new Set([
    underlying element (paragraph-spaced, paragraph-indented). This is NOT the
    same list as INTERNAL_SYMBOLS: every value here is a real
    implements-relationship, so a symbol belongs in exactly one of the two
-   list, never both. Gated below:
-   every value must resolve to an id spec.json actually declares, or a typo
-   here would silence a real "no symbol" coverage warning forever. */
+   list, never both. A value is normally one element id; it is a list of ids
+   for a symbol that genuinely implements several under one call, such as
+   quote(type:) below. Gated below: every id named here must resolve to one
+   spec.json actually declares, or a typo would silence a real "no symbol"
+   coverage warning forever. */
 const IMPLEMENTS = new Map([
   ['block-spaced', 'paragraph-spaced'],
   ['block-indented', 'paragraph-indented'],
@@ -1430,13 +1433,22 @@ const IMPLEMENTS = new Map([
      spec element in its own right and needs a name resolving to one, the
      same shape as ts-table above. */
   ['references', 'bibliography-heading'],
+  /* One #quote(type:) call genuinely implements all five quotation
+     elements — the ordinary block quote and its attribution via the native
+     show rule's default path, and the other three by type. */
+  ['quote', [
+    'quote-blockquote', 'quote-attribution',
+    'quote-epigraph', 'quote-pullquote', 'quote-verse',
+  ]],
 ]);
 
-for (const [sym, id] of IMPLEMENTS) {
-  if (!specIds.has(id)) {
-    fail.push(`tools/check.mjs: IMPLEMENTS maps "${sym}" to "${id}", which spec.json does not `
-      + 'declare as an element id — a typo here would silence a real "no symbol or marker '
-      + 'region" coverage warning forever');
+for (const [sym, ids] of IMPLEMENTS) {
+  for (const id of Array.isArray(ids) ? ids : [ids]) {
+    if (!specIds.has(id)) {
+      fail.push(`tools/check.mjs: IMPLEMENTS maps "${sym}" to "${id}", which spec.json does not `
+        + 'declare as an element id — a typo here would silence a real "no symbol or marker '
+        + 'region" coverage warning forever');
+    }
   }
 }
 
@@ -1453,7 +1465,8 @@ for (const sym of typSymbols) {
    promoting this direction means settling every one of the note it prints
    first. The reverse direction above is a failure, because an export with no
    name behind it is a decision someone can write down in one line. */
-const implementedIds = new Set(IMPLEMENTS.values());
+const implementedIds = new Set(
+  [...IMPLEMENTS.values()].flatMap((ids) => (Array.isArray(ids) ? ids : [ids])));
 for (const id of specIds) {
   if (!typSymbols.has(id) && !implementedIds.has(id) && !new RegExp(`//\\s*@s\\s+${id}\\s*\\n`).test(typ))
     warn.push(`typeset.typ: no symbol or marker region named "${id}"`);

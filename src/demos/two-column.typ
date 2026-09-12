@@ -45,7 +45,7 @@ At 49 characters a ragged right edge serrates the column visibly, and the word
 gaps in an unhyphenated justified column read as rivers. Both faults are
 tolerable at 66 characters and neither is tolerable here.
 
-#quote-pullquote[The one place the spec removes a choice.]
+#quote(type: "pullquote")[The one place the spec removes a choice.]
 
 So the template asserts justification rather than offering it as an option.
 

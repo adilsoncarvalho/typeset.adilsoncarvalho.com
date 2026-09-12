@@ -596,44 +596,72 @@
 }
 // @e
 
-// ── Blocks the spec names but no engine provides ────────────────────────────
+// ── Quotations: one function, four looks ────────────────────────────────────
 
-#let quote-epigraph(attribution: none, body) = context {
-  let u = text.size
-  block(above: 0pt, below: u * 2, width: 24em, {
-    set align(left)
-    set text(size: u * 0.91, style: "italic", fill: ink-muted)
-    set par(justify: false, first-line-indent: 0pt)
-    body
-    if attribution != none {
-      block(above: u * 0.5, text(style: "normal", size: u * 0.86)[— #attribution])
-    }
+// A function bound to Typst's native `quote` element, the engine's own
+// equivalent of the markdown `>` this spec's quotations section describes:
+// Typst has no markdown blockquote syntax of its own — `typst query` over a
+// document containing `> a line` finds no element at all. `type:` selects
+// among the spec's four quote treatments; the default renders the ordinary
+// block quote. The builtin is saved under another name before the
+// redefinition below, or `quote` inside this function would call itself.
+#let _native-quote = quote
+
+#let quote(type: none, attribution: none, body) = if type == none {
+  // Always block: the spec defines only a block quote, no inline one, so
+  // there is no second reading of `>` for a `block:` parameter to select
+  // between. The show rule above (`quote.where(block: true)`) styles the
+  // element this produces and carries quote-attribution's own treatment.
+  _native-quote(block: true, attribution: attribution, body)
+} else if type == "epigraph" {
+  // quote-epigraph's own block_alignment property is "flush right" — a
+  // property of the element, not a variant a caller opts into — so the
+  // type carries the alignment and there is no separate parameter for it.
+  align(right, context {
+    let u = text.size
+    block(above: 0pt, below: u * 2, width: 24em, {
+      set align(left)
+      set text(size: u * 0.91, style: "italic", fill: ink-muted)
+      set par(justify: false, first-line-indent: 0pt)
+      body
+      if attribution != none {
+        block(above: u * 0.5, text(style: "normal", size: u * 0.86)[— #attribution])
+      }
+    })
   })
-}
-#let epigraph-right(attribution: none, body) = align(right, quote-epigraph(attribution: attribution, body))
-
-#let quote-pullquote(body) = context {
-  let u = text.size
+} else if type == "pullquote" {
+  // Repeats body text lifted from elsewhere in the document, so it takes
+  // no attribution parameter.
+  context {
+    let u = text.size
+    block(
+      above: u * 1.5, below: u * 1.5, width: 100%,
+      inset: (y: u),
+      stroke: (top: 1.5pt + rule-strong, bottom: 0.5pt + rule-color),
+      {
+        set text(font: sans, size: u * 1.36, weight: 300)
+        set par(leading: leading-for(1.3), justify: false, first-line-indent: 0pt)
+        align(center, body)
+      },
+    )
+  }
+} else if type == "verse" {
+  // Sets the stanza and nothing else: no attribution parameter. A runover
+  // line's hanging-indent sits further in than the verse line it
+  // continues, so a wrapped line can never be mistaken for a line the poet
+  // wrote.
   block(
-    above: u * 1.5, below: u * 1.5, width: 100%,
-    inset: (y: u),
-    stroke: (top: 1.5pt + rule-strong, bottom: 0.5pt + rule-color),
+    above: sp * 1.25, below: sp * 1.25,
+    inset: (left: sp * 2),
     {
-      set text(font: sans, size: u * 1.36, weight: 300)
-      set par(leading: leading-for(1.3), justify: false, first-line-indent: 0pt)
-      align(center, body)
+      set par(justify: false, first-line-indent: 0pt, hanging-indent: 1.5em)
+      body
     },
   )
+} else {
+  panic("quote: unknown type " + repr(type)
+    + " — expected none, \"epigraph\", \"pullquote\" or \"verse\"")
 }
-
-#let quote-verse(body) = block(
-  above: sp * 1.25, below: sp * 1.25,
-  inset: (left: sp * 2),
-  {
-    set par(justify: false, first-line-indent: 0pt, hanging-indent: 1.5em)
-    body
-  },
-)
 
 // @s callout
 #let callout(title: none, warning: false, body) = context {
