@@ -361,6 +361,19 @@
   }
 }
 
+// ── Inline: key ─────────────────────────────────────────────────────────────
+
+// A keycap's visual signature is its bottom edge, heavier than the other
+// three — 1.5pt against 0.5pt, both in rule-color. `stroke`'s dictionary
+// form is what lets one edge carry a different weight than its neighbours;
+// a single `<length> + <color>` stroke draws all four edges alike.
+#let key(body) = box(
+  inset: (x: 0.35em, y: 0.15em),
+  radius: 2pt,
+  stroke: (rest: 0.5pt + rule-color, bottom: 1.5pt + rule-color),
+  text(font: sans, size: 0.85em, body),
+)
+
 // ── Paragraphs ──────────────────────────────────────────────────────────────
 
 // `typeset()`'s own `indented` option applies one of these two to the whole

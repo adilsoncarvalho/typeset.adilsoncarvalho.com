@@ -1340,6 +1340,10 @@ const IMPLEMENTS = new Map([
   /* ts-table implements element tables-table under its 1.x spelling, which
      the migration note discloses. */
   ['ts-table', 'tables-table'],
+  /* key is the author-facing name for inline-kbd — the owner asked for it
+     by that name, and an author reaching for a keycap does not know the
+     spec's own element id. */
+  ['key', 'inline-kbd'],
   /* The block-level overrides for the document's own `justified` default —
      named for the choice they make, not for the spec's own
      justification-justified/justification-ragged element ids. */
@@ -2634,6 +2638,68 @@ const justificationDemo = readFileSync('src/demos/justification.typ', 'utf8');
 if (/#set par|#set text/.test(justificationDemo)) {
   fail.push('src/demos/justification.typ: uses #set par or #set text directly — the point of '
     + 'justified()/ragged-right() is that an author never has to');
+}
+
+/* ---- 13. key() must match inline-kbd, bottom edge strictly heavier than
+            the other three ------------------------------------------------ */
+
+/* A keycap's whole visual signature is that one edge, per inline-kbd's
+   border vs border_bottom — a stroke that goes back to one flat weight on
+   all four sides renders as a plain bordered box, not a keycap, so this
+   gate asserts the inequality itself and not just that the two numbers are
+   present somewhere in the function. */
+
+const inlineSpec = spec.sections.find((s) => s.id === 'inline');
+const kbdProps = inlineSpec.elements.find((e) => e.id === 'inline-kbd').properties;
+
+const keyMatch = /#let key\(body\) = box\(\n([\s\S]*?)\n\)/.exec(typ);
+if (!keyMatch) {
+  fail.push('typeset.typ: key() was not found in the shape this gate expects — update the gate if '
+    + 'the function was deliberately restructured');
+} else {
+  const body = keyMatch[1];
+  const [specPadY, specPadX] = kbdProps.padding.split(' ');
+
+  const insetMatch = /inset:\s*\(x:\s*([^,]+),\s*y:\s*([^)]+)\)/.exec(body);
+  const gotInset = insetMatch && `${insetMatch[1].trim()}|${insetMatch[2].trim()}`;
+  if (gotInset !== `${specPadX}|${specPadY}`) {
+    fail.push(`typeset.typ: key()'s inset is ${insetMatch ? `(x: ${insetMatch[1].trim()}, y: ${insetMatch[2].trim()})` : 'missing'}, `
+      + `expected (x: ${specPadX}, y: ${specPadY}) from inline-kbd.padding ("${kbdProps.padding}")`);
+  }
+
+  if (!new RegExp(`radius:\\s*${kbdProps.radius}\\b`).test(body)) {
+    fail.push(`typeset.typ: key()'s radius does not match inline-kbd.radius ("${kbdProps.radius}")`);
+  }
+
+  const sizeMatch = /text\(font: sans, size:\s*([\d.]+em),/.exec(body);
+  if (sizeMatch?.[1] !== kbdProps.size) {
+    fail.push(`typeset.typ: key()'s text size is ${sizeMatch ? sizeMatch[1] : 'missing'}, expected `
+      + `inline-kbd.size ("${kbdProps.size}")`);
+  }
+
+  const strokeMatch = /stroke:\s*\(rest:\s*([\d.]+)pt \+ rule-color, bottom:\s*([\d.]+)pt \+ rule-color\)/
+    .exec(body);
+  if (!strokeMatch) {
+    fail.push('typeset.typ: key()\'s stroke is not the dictionary form (rest: <N>pt + rule-color, '
+      + 'bottom: <N>pt + rule-color) that lets one edge carry a different weight than the other three');
+  } else {
+    const [, restWidth, bottomWidth] = strokeMatch;
+    const specBorder = /^([\d.]+)pt rule$/.exec(kbdProps.border)?.[1];
+    const specBorderBottom = /^([\d.]+)pt rule$/.exec(kbdProps.border_bottom)?.[1];
+    if (restWidth !== specBorder) {
+      fail.push(`typeset.typ: key()'s stroke is ${restWidth}pt on the other three sides, expected `
+        + `inline-kbd.border ("${kbdProps.border}")`);
+    }
+    if (bottomWidth !== specBorderBottom) {
+      fail.push(`typeset.typ: key()'s bottom stroke is ${bottomWidth}pt, expected inline-kbd.border_bottom `
+        + `("${kbdProps.border_bottom}")`);
+    }
+    if (Number(bottomWidth) <= Number(restWidth)) {
+      fail.push(`typeset.typ: key()'s bottom stroke (${bottomWidth}pt) is not heavier than its other `
+        + `three sides (${restWidth}pt) — a keycap reads by that asymmetry alone, so a flattened stroke `
+        + 'renders as a plain bordered box');
+    }
+  }
 }
 
 /* ---- Report ------------------------------------------------------------- */
