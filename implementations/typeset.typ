@@ -167,6 +167,14 @@
 // actually in force at the point it is used.
 #let measure-full = auto
 
+// `width` here and typeset()'s `measure` are one axis under two names, on
+// purpose. typeset(measure:) is a policy and a MAXIMUM — _typeset-styles
+// clamps it to the page, so a document on a narrower sheet keeps its margins
+// — while `width` is exactly the width asked for and is never clamped. That
+// is what makes a deliberate overset expressible at all, which is what
+// src/demos/foundation.typ shows; naming it `measure` would promise a clamp
+// it does not perform.
+//
 // A document reaches for one of the four names instead of a literal width:
 // `#measured[...]` for the default column, `#measured(width:
 // measure-wide)[...]` for a modifier, `#measured(width: measure-full)[...]`
@@ -525,6 +533,14 @@
 // callout that needs the OTHER convention, so an author reaches for a name
 // instead of `#set par(justify: ..)` and `#set text(hyphenate: ..)` by hand —
 // the same reason block-spaced/block-indented exist for paragraph spacing.
+//
+// The `block-` prefix on that pair, and its absence here, is not drift.
+// Unprefixed, block-indented would be `indented` — already a parameter of
+// both functions below, so `#indented[..]` and `#justified(indented: true)[..]`
+// would be one word meaning two things in adjacent lines of a document, and
+// block-spaced follows its pair. The parameter-twin of `justified` lives on
+// typeset() and two-column(), which a document writes once at the top and
+// never beside a per-block override.
 //
 // Justification and hyphenation are a single decision, never two: hyphenate
 // is never a parameter here, only `lang`, because hyphenation is per-language

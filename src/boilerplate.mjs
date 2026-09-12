@@ -42,7 +42,7 @@ export function typstBoilerplate(source = readFileSync('implementations/typeset.
    Matches only a whole call — the name followed by ".with(", by whitespace
    before the rest of the line, or by nothing else on the line — so a
    neighbouring name that merely begins with one of them (a future
-   #show: typesetter, #show: typeset-alt, #show: two-column-body) is not
+   #show: typesetter, #show: typeset-alt, #show: two-column-wide) is not
    mistaken for it.
 
    Comment lines and blank lines above it are skipped. A snippet may say what

@@ -1,6 +1,6 @@
 # typeset — typographic specification
 
-Version 2.0.0 · updated 2026-09-11 · Adilson Carvalho
+Version 2.0.0 · updated 2026-09-12 · Adilson Carvalho
 Canonical: https://typeset.adilsoncarvalho.com
 
 A normative typographic specification for printed documents — essays, letters, reports. This file is the source of truth. CSS, Typst, LaTeX or any other implementation conforms to it; where an implementation and this file disagree, this file is right.

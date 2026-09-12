@@ -1066,14 +1066,14 @@ const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]
   }
 
   /* .pagemap__margins was the only sibling checked here, because it was the
-     one the diagram gate was written for. Three others in the same
-     stylesheet carry the same margin-derived geometry: .pagemap__lines
-     (left/right, the same horizontal inset) and .pagemap__gauge
-     (top/bottom, the same vertical inset) were updated by hand and are
-     correct; .mini__sheet — the scaled full-page preview .pagemap does not
-     itself replace, used by src/demos/two-column.html and
-     src/demos/notes.fullrow.html — was not, and pads the 1.x page (25mm
-     22mm 25mm 28mm) while the prose beside it now reads 170mm text width. */
+     one the diagram gate was written for. Three others in the same stylesheet
+     carry the same margin-derived geometry and are held to it below:
+     .pagemap__lines (left/right, the same horizontal inset), .pagemap__gauge
+     (top/bottom, the same vertical inset), and .mini__sheet — the scaled
+     full-page preview .pagemap does not itself replace, used by
+     src/demos/two-column.html and src/demos/notes.fullrow.html. A margin
+     drawn in one of these and stated in the prose beside it is two statements
+     of one number, and only one of them is anybody's job to update. */
   const specimenCss = readFileSync('specimen.css', 'utf8');
   const blockOf = (selector) => specimenCss.match(new RegExp(`${selector.replace(/[.]/g, '\\.')}\\s*\\{([^}]*)\\}`))?.[1];
 

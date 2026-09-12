@@ -1,7 +1,7 @@
 {
   "name": "typeset",
   "version": "2.0.0",
-  "updated": "2026-09-11",
+  "updated": "2026-09-12",
   "owner": "Adilson Carvalho",
   "canonical_url": "https://typeset.adilsoncarvalho.com",
   "intent": "A normative typographic specification for printed documents — essays, letters, reports. This file is the source of truth. CSS, Typst, LaTeX or any other implementation conforms to it; where an implementation and this file disagree, this file is right.",
