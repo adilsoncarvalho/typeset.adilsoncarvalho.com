@@ -10,7 +10,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { renderPanel } from '../src/panels.mjs';
 import { byLang, esc } from '../src/highlight.mjs';
-import { extractDemos } from '../src/extract.mjs';
+import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { typstBoilerplate } from '../src/boilerplate.mjs';
 
 /* The whole file is highlighted in one pass — a multi-line CSS comment needs
@@ -115,16 +115,29 @@ function nav() {
     .join('\n\n');
 }
 
+/* Sets a demo file at the depth the page nests it to, without touching a line
+   whose leading whitespace is content rather than markup indentation. A <pre>
+   is the case that matters: src/demos/codeblock.html holds a CSS sample whose
+   own lines are indented two spaces, and prefixing those lines publishes the
+   section about setting code with its own example misindented. Which lines
+   those are is decided by src/extract.mjs's mask, so the demo column and the
+   pane beside it agree about where whitespace is content. */
+function indentMarkup(source, pad) {
+  const text = source.trimEnd();
+  const verbatim = verbatimLineMask(text);
+  return text.split('\n')
+    .map((line, i) => (line && !verbatim[i] ? pad + line : line))
+    .join('\n');
+}
+
 function section(s, index) {
   const num = String(index + 1).padStart(2, '0');
   const prose = s.prose.map((p) => `    ${p}`).join('\n');
   const note = s.note ? `  ${s.note}\n` : '';
   const demoSource = read(`src/demos/${s.id}.html`);
-  const demo = demoSource.trimEnd()
-    .split('\n').map((l) => (l ? `      ${l}` : l)).join('\n');
+  const demo = indentMarkup(demoSource, '      ');
   const fullrow = s.fullrow
-    ? '\n' + read(`src/demos/${s.id}.fullrow.html`).trimEnd()
-        .split('\n').map((l) => (l ? `  ${l}` : l)).join('\n') + '\n'
+    ? `\n${indentMarkup(read(`src/demos/${s.id}.fullrow.html`), '  ')}\n`
     : '';
   /* Left at its own indent, not re-indented line by line like demo/fullrow
      below: the panel's HTML and Typst panes hold <pre> content a reader
