@@ -1,9 +1,23 @@
-<p class="pair__label">How it must look</p>
+<p class="pair__label" data-element="callout">1 · Callout</p>
+<p class="demo-note">Serif, on a wash, with a rule down the left edge — set apart from the argument without shouting. An aside the reader may skip without losing the thread.</p>
+<div class="paper typeset">
+  <div class="ts-callout">
+    <p>Point sizes assume the document is printed at 100%. “Fit to page” scaling in a print dialog silently invalidates every measurement in this stylesheet.</p>
+  </div>
+</div>
+
+<p class="pair__label" data-element="callout-title">2 · Callout title</p>
+<p class="demo-note">Sans, small, uppercase, tracked wide, muted — a label for the callout below it, not a heading competing with the document's own.</p>
 <div class="paper typeset">
   <div class="ts-callout">
     <p class="ts-callout-title">Note</p>
-    <p>Point sizes assume the document is printed at 100%. “Fit to page” scaling in a print dialog silently invalidates every measurement in this stylesheet.</p>
+    <p>Fonts must be embedded in the exported PDF, or the recipient's own installed fonts silently take over.</p>
   </div>
+</div>
+
+<p class="pair__label" data-element="callout-warning">3 · Callout — warning</p>
+<p class="demo-note">The same shape, in the accent colour — one variant only, alongside the neutral one, because a document with five callout colours has none.</p>
+<div class="paper typeset">
   <div class="ts-callout ts-callout-warning">
     <p class="ts-callout-title">Before you send it</p>
     <p>Check that fonts are embedded in the PDF. A document that falls back to Times on the recipient's machine has lost every decision above.</p>
