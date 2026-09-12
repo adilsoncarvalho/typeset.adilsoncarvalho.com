@@ -43,9 +43,6 @@ function markers(source, re, group) {
   return found;
 }
 
-const typMap = markers(read('implementations/typeset.typ'),
-  /\/\/\s*@s\s+([a-z0-9-]+)\s*\n([\s\S]*?)\/\/\s*@e/g, 2);
-
 /* Full CSS source per "@s" region, for the sections whose panel.pane in
    sections.json is "css" rather than "html" — they state values rather
    than demonstrate a document, so there is no markup for a reader to copy
@@ -68,6 +65,12 @@ function markerLines(source, re) {
 }
 
 const cssLines = markerLines(read('typeset.css'), /\/\*!\s*@s\s+([a-z0-9-]+)\s*::/g);
+
+/* The same, for typeset.typ's "@s" markers, so a section's Typst pane can
+   link into files/typeset-typ.html the way its HTML pane links into
+   files/typeset-css.html. Not every section marks a region of its own —
+   src/panels.mjs falls back from there. */
+const typLines = markerLines(read('implementations/typeset.typ'), /\/\/\s*@s\s+([a-z0-9-]+)\s*\n/g);
 
 /* ---- Page shell ---------------------------------------------------------- */
 
@@ -127,11 +130,12 @@ function section(s, index) {
      copies, where whitespace is part of what gets copied, and prefixing
      every line would corrupt it. */
   const panel = renderPanel({
-    spec, cssLines, cssMap, typMap, id: s.id,
+    spec, cssLines, cssMap, typLines, id: s.id,
     specIds: s.panel.spec,
     pane: s.panel.pane,
     cssKeys: (s.panel.css || s.panel.spec).split(',').map((k) => k.trim()),
     fragments: extractDemos(demoSource),
+    typSource: read(`src/demos/${s.id}.typ`).trimEnd(),
   });
 
   return `<section class="section" id="${s.id}">
@@ -226,7 +230,7 @@ ${v.extra ? `  <div class="extra">\n    ${v.extra}\n  </div>\n` : ''}  <p class=
     navLinks: nav().match(/<li>/g).length,
     viewers: VIEWERS.length,
     cssMarkers: cssLines.size,
-    typstMarkers: typMap.size,
+    typstMarkers: typLines.size,
   } };
 }
 

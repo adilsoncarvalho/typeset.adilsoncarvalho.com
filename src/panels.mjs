@@ -15,8 +15,10 @@ const FOUNDATION_PANELS = {
   page: ['page'],
 };
 
-/* Sections whose Typst values are set globally rather than per element: point
-   at the region that carries them instead of showing an empty tab. */
+/* Sections whose Typst values are set globally rather than per element: the
+   snippet itself still shows the section, but the deep link into the full
+   source points at the region that carries the setting instead of at the
+   section's own name, which typeset.typ never marks. */
 const TYPST_ELSEWHERE = {
   paragraphs: 'foundation',
   justification: 'foundation',
@@ -26,8 +28,8 @@ const TYPST_ELSEWHERE = {
   numerals: 'foundation',
 };
 
-const NO_TYPST = 'No Typst-specific code. This section states rules rather than '
-  + 'settings, or the engine provides the behaviour natively — see spec.json.';
+const NO_TYPST_REGION = 'No dedicated region in typeset.typ — this section reads off Typst’s '
+  + 'own constructs directly, or the engine provides the behaviour natively. See spec.json.';
 
 const label = (k) => k.replace(/_/g, ' ');
 
@@ -175,20 +177,40 @@ function cssPane(cssKeys, cssMap) {
   return codePane(source, 'css');
 }
 
-export function renderPanel({ spec, cssLines, cssMap, typMap, specIds, cssKeys, id, fragments, pane }) {
+/* Links a section's Typst snippet back to the region of typeset.typ it
+   demonstrates, the way cssRegionNote() links the HTML/CSS pane back to
+   typeset.css — except not every section marks its own region there:
+   TYPST_ELSEWHERE covers a value set globally rather than per element, and a
+   section that does neither reads off Typst's own constructs with no
+   dedicated region to point at. */
+function typstRegionNote(id, typLines) {
+  if (typLines.has(id)) {
+    return `Full implementation in typeset.typ — <a href="files/typeset-typ.html#L${typLines.get(id)}">${esc(id)}</a>`;
+  }
+  const via = TYPST_ELSEWHERE[id];
+  if (via && typLines.has(via)) {
+    return `Set globally rather than per element — this is the “${esc(via)}” region of typeset.typ: `
+      + `<a href="files/typeset-typ.html#L${typLines.get(via)}">${esc(via)}</a>`;
+  }
+  return NO_TYPST_REGION;
+}
+
+/* Renders the Typst snippet that produces the example: src/demos/<id>.typ,
+   the fragment a reader would drop into a document that imports typeset.typ
+   — the third tab's counterpart to the HTML/CSS pane above. Every section
+   has one (tools/check.mjs gates it), so unlike the HTML pane there is no
+   empty case to render. */
+function typstPane(typSource, id, typLines) {
+  const head = `<p class="code-note">${typstRegionNote(id, typLines)}</p>`;
+  const body = `<pre>${byLang('typst', typSource)}</pre>`;
+  return `<div class="codewrap">${head}${body}<button class="copy" type="button" data-copy>Copy</button></div>`;
+}
+
+export function renderPanel({
+  spec, cssLines, cssMap, typLines, specIds, cssKeys, id, fragments, typSource, pane,
+}) {
   const missing = cssKeys.filter((k) => !cssLines.has(k));
   if (missing.length) throw new Error(`typeset.css has no section marker for ${missing.join(', ')}`);
-
-  let typstPane;
-  if (typMap.has(id)) {
-    typstPane = codePane(typMap.get(id), 'typst');
-  } else {
-    const via = TYPST_ELSEWHERE[id];
-    typstPane = (via && typMap.has(via))
-      ? codePane(typMap.get(via), 'typst',
-          `Set globally rather than per element — this is the “${via}” region of typeset.typ.`)
-      : codePane('', 'typst', NO_TYPST);
-  }
 
   const secondPane = pane === 'css' ? cssPane(cssKeys, cssMap) : htmlPane(fragments, cssKeys, cssLines);
   const secondLabel = pane === 'css' ? 'CSS' : 'HTML';
@@ -208,7 +230,7 @@ export function renderPanel({ spec, cssLines, cssMap, typMap, specIds, cssKeys, 
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec">${renderSpec(spec, specIds)}</div></div>
     <div class="tabs__pane">${secondPane}</div>
-    <div class="tabs__pane">${typstPane}</div>
+    <div class="tabs__pane">${typstPane(typSource, id, typLines)}</div>
   </div>
 </div>`;
 }
