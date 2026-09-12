@@ -1,4 +1,5 @@
-<p class="pair__label">How it must look</p>
+<p class="pair__label" data-element="toc">1 · Table of contents</p>
+<p class="demo-note">Sans, 9.5pt, left aligned — a register of its own, distinct from the serif document it points into.</p>
 <div class="paper typeset">
   <h3>Contents</h3>
   <nav class="ts-toc ts-toc--demo">
@@ -11,6 +12,37 @@
       <li class="ts-toc-entry-2"><a href="#figures-and-their-captions"><span>Figures and their captions</span><span class="ts-toc-leader"></span><span class="ts-folio">19</span></a></li>
       <li><a href="#apparatus"><span>Apparatus</span><span class="ts-toc-leader"></span><span class="ts-folio">23</span></a></li>
       <li class="ts-toc-entry-2"><a href="#references"><span>References</span><span class="ts-toc-leader"></span><span class="ts-folio">28</span></a></li>
+    </ol>
+  </nav>
+</div>
+
+<p class="pair__label" data-element="toc-entry">2 · Entry</p>
+<p class="demo-note">No underline — the leader and the folio are the only decoration a contents entry gets.</p>
+<div class="paper typeset">
+  <nav class="ts-toc ts-toc--demo">
+    <ol>
+      <li><a href="#apparatus"><span>Apparatus</span><span class="ts-toc-leader"></span><span class="ts-folio">23</span></a></li>
+    </ol>
+  </nav>
+</div>
+
+<p class="pair__label" data-element="toc-entry-2">3 · Entry — level 2</p>
+<p class="demo-note">Indented past the level-1 entries above it, so the two levels read as a hierarchy without a second column of numbers.</p>
+<div class="paper typeset">
+  <nav class="ts-toc ts-toc--demo">
+    <ol>
+      <li class="ts-toc-entry-2"><a href="#references"><span>References</span><span class="ts-toc-leader"></span><span class="ts-folio">28</span></a></li>
+    </ol>
+  </nav>
+</div>
+
+<p class="pair__label" data-element="toc-leader">4 · Dot leader</p>
+<p class="demo-note">Fills whatever the title leaves behind, so a short title and a long one both land on a number flush with the right margin.</p>
+<div class="paper typeset">
+  <nav class="ts-toc ts-toc--demo">
+    <ol>
+      <li><a href="#preface"><span>Preface</span><span class="ts-toc-leader"></span><span class="ts-folio">1</span></a></li>
+      <li><a href="#a-longer-title"><span>A considerably longer title that pushes the leader further before it meets the number</span><span class="ts-toc-leader"></span><span class="ts-folio">42</span></a></li>
     </ol>
   </nav>
 </div>
