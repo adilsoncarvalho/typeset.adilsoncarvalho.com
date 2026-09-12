@@ -819,6 +819,49 @@
   if ts-two-column-body.get() { span(content, at-bottom: true) } else { content }
 }
 
+// ── Bibliography ────────────────────────────────────────────────────────────
+
+// @s bibliography
+// `references()` owns the block: the entries' size, leading, spacing and
+// hanging indent, and the heading — a real level-2 heading, so it takes the
+// document's own running-head and numbering behaviour, and spans both
+// columns the way frontmatter-title-block and frontmatter-colophon do,
+// because bibliography-heading (unlike headings-h2 itself) is on
+// templates.two-column.spanning.always. `reference()` composes one entry —
+// author roman, title italic, the rest in order — so the punctuation between
+// them is this file's business, not the document's.
+#let references(title: [References], body) = context {
+  let heading-content = heading(level: 2, title)
+  if ts-two-column-body.get() { span(heading-content) } else { heading-content }
+  {
+    set text(size: sm)
+    set par(
+      justify: false,
+      leading: leading-for(1.4),
+      first-line-indent: 0pt,
+      hanging-indent: 1.8em,
+    )
+    body
+  }
+}
+
+// One entry, `break_inside: avoid` — a citation split across a page break
+// loses the one thing a hanging indent is for, the surname at a glance — and
+// `space_after: 0.55em` between entries, both bibliography-entry's own.
+#let reference(
+  author: none, title: none, edition: none,
+  publisher: none, year: none, note: none,
+) = block(breakable: false, below: 0.55em, {
+  if author != none [#author. ]
+  if title != none [#emph(title). ]
+  if edition != none [#edition. ]
+  if publisher != none [#publisher]
+  if publisher != none and year != none [, ]
+  if year != none [#year.]
+  if note != none [ #note]
+})
+// @e
+
 // ── Letter ──────────────────────────────────────────────────────────────────
 
 // @s letter
