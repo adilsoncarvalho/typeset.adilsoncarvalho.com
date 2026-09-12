@@ -1046,12 +1046,12 @@ gap is a small invitation to stop reading.
 <span class="c-comment">// words of this paragraph in small caps with .ts-dropcap-lede; dropcap() takes</span>
 <span class="c-comment">// the whole paragraph as one body and offers no way to mark a run inside it.</span>
 <span class="c-comment">//</span>
-<span class="c-comment">// dropcap() reads body.text, which exists only where the body is a single text</span>
-<span class="c-comment">// element. Typst splits markup into a sequence at a colon, at an apostrophe or</span>
-<span class="c-comment">// a quotation mark, and at a dash shorthand, and the call is then refused with</span>
-<span class="c-comment">// `sequence does not have field &quot;text&quot;`. The CSS implementation punctuates the</span>
-<span class="c-comment">// sentence below with a colon — &quot;a practical reason: in a manuscript&quot; — and</span>
-<span class="c-comment">// this one cannot.</span>
+<span class="c-comment">// dropcap() reads body.text, so the body must be a single text element. Typst's</span>
+<span class="c-comment">// markup parser may split a paragraph into several, and the call is then refused</span>
+<span class="c-comment">// with `sequence does not have field &quot;text&quot;` — a colon, a parenthesis, an</span>
+<span class="c-comment">// apostrophe and an ellipsis are four marks that split it, not the whole set.</span>
+<span class="c-comment">// So this paragraph is written in plain words, where the CSS implementation</span>
+<span class="c-comment">// punctuates it &quot;a practical reason: in a manuscript&quot;.</span>
 
 #dropcap[There is nothing especially modern about wanting a document to look considered. The drop cap descends from the illuminated initial, which existed for a practical reason. In a manuscript with no title page and no table of contents, a large decorated letter was the only way to tell the reader that something had begun.]
 
