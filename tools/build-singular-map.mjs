@@ -28,6 +28,18 @@ function singularize(id) {
   throw new Error(`cannot singularize section id: ${id}`);
 }
 
+/* An element whose own suffix is just its section's name repeated
+   (links-link, tables-table, figures-figure, callouts-callout) collapses to
+   the bare singular id instead of doubling it (link-link, table-table, ...).
+   This is not a new pattern: dropcap, code-inline, codeblock and toc already
+   take the bare section id today, because each is the section's one primary
+   element rather than a part of it — collapsing here matches that
+   precedent instead of inventing a fifth shape. */
+function elementId(singularId, sectionId, elId) {
+  const naive = singularId + elId.slice(sectionId.length);
+  return naive === `${singularId}-${singularId}` ? singularId : naive;
+}
+
 const pluralSections = spec.sections.filter((sec) => /s$/.test(sec.id));
 
 const sections = {};
@@ -38,7 +50,7 @@ for (const sec of pluralSections) {
   sections[sec.id] = singularId;
   for (const el of sec.elements || []) {
     if (!el.id.startsWith(`${sec.id}-`)) continue;
-    elements[el.id] = singularId + el.id.slice(sec.id.length);
+    elements[el.id] = elementId(singularId, sec.id, el.id);
   }
 }
 

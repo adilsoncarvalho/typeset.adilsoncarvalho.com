@@ -3,7 +3,15 @@
      rename. Used by tools/codemod-names.mjs's own chain proof: running the
      codemod once must carry this file all the way to 2.0.0 singular names,
      through the frozen 1.x map and the generated singular map, with no
-     2.0.0 plural name left standing in between. -->
+     2.0.0 plural name left standing in between.
+
+     ts-link, ts-table, ts-figure and ts-callout also each round-trip through
+     a doubled 2.0.0 plural spelling (ts-links-link, ts-tables-table,
+     ts-figures-figure, ts-callouts-callout) that the singular map collapses
+     back to the bare id — so each of these four ends this run spelled
+     exactly as it started, which is the point: the fix-round-1 bug produced
+     ts-link-link, ts-table-table, ts-figure-figure and ts-callout-callout
+     instead. -->
 <article class="typeset">
   <h1 class="ts-h1">On the measure of a line</h1>
   <p class="ts-paragraph">An ordinary paragraph, set with a paragraph rule.</p>
@@ -21,6 +29,9 @@
   <figure class="ts-figure">
     <figcaption>a caption</figcaption>
   </figure>
+  <div class="ts-callout">
+    <p class="ts-callout-title">Before you send it</p>
+  </div>
   <div class="ts-callout--warning">a warning callout</div>
   <hr class="ts-break--asterism">
   <p class="ts-note">a footnote marker</p>
