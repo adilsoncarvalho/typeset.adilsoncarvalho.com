@@ -1061,6 +1061,72 @@ const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]
         + 'the label and the diagram no longer agree');
     }
   }
+
+  /* .pagemap__margins was the only sibling checked here, because it was the
+     one the diagram gate was written for. Three others in the same
+     stylesheet carry the same margin-derived geometry: .pagemap__lines
+     (left/right, the same horizontal inset) and .pagemap__gauge
+     (top/bottom, the same vertical inset) were updated by hand and are
+     correct; .mini__sheet — the scaled full-page preview .pagemap does not
+     itself replace, used by src/demos/two-column.html and
+     src/demos/notes.fullrow.html — was not, and pads the 1.x page (25mm
+     22mm 25mm 28mm) while the prose beside it now reads 170mm text width. */
+  const specimenCss = readFileSync('specimen.css', 'utf8');
+  const blockOf = (selector) => specimenCss.match(new RegExp(`${selector.replace(/[.]/g, '\\.')}\\s*\\{([^}]*)\\}`))?.[1];
+
+  const linesBlock = blockOf('.pagemap__lines');
+  if (!linesBlock) {
+    fail.push('specimen.css: no .pagemap__lines block found — the page-setup diagram cannot be checked');
+  } else {
+    const left = Number(linesBlock.match(/\bleft:\s*([\d.]+)%/)?.[1]);
+    const right = Number(linesBlock.match(/\bright:\s*([\d.]+)%/)?.[1]);
+    if (Math.abs(left - expectedHorizontalPct) > TOLERANCE_PCT || Math.abs(right - expectedHorizontalPct) > TOLERANCE_PCT) {
+      fail.push(`specimen.css: .pagemap__lines is left: ${left}% right: ${right}%, but spec.json's `
+        + `default margin draws as ${expectedHorizontalPct.toFixed(1)}% horizontally — the diagram's `
+        + 'text block no longer agrees with .pagemap__margins');
+    }
+  }
+
+  const gaugeBlock = blockOf('.pagemap__gauge');
+  if (!gaugeBlock) {
+    fail.push('specimen.css: no .pagemap__gauge block found — the page-setup diagram cannot be checked');
+  } else {
+    const top = Number(gaugeBlock.match(/\btop:\s*([\d.]+)%/)?.[1]);
+    const bottom = Number(gaugeBlock.match(/\bbottom:\s*([\d.]+)%/)?.[1]);
+    if (Math.abs(top - expectedVerticalPct) > TOLERANCE_PCT || Math.abs(bottom - expectedVerticalPct) > TOLERANCE_PCT) {
+      fail.push(`specimen.css: .pagemap__gauge is top: ${top}% bottom: ${bottom}%, but spec.json's `
+        + `default margin draws as ${expectedVerticalPct.toFixed(1)}% vertically — the gauge no longer `
+        + 'points at the margin it is labelling');
+    }
+  }
+
+  /* .mini__sheet is plain mm padding, not a percentage — the comment above
+     the rule says why: "real A4 at real point sizes, scaled down". Parsed
+     as a CSS box shorthand (1-4 values) rather than assumed to be a single
+     value, so a future asymmetric mistake is caught on whichever side it's
+     on, not just when the shorthand happens to collapse to one number. */
+  const sheetBlock = blockOf('.mini__sheet');
+  if (!sheetBlock) {
+    fail.push('specimen.css: no .mini__sheet block found — the page preview cannot be checked');
+  } else {
+    const paddingValue = sheetBlock.match(/\bpadding:\s*([^;]+);/)?.[1];
+    const tokens = paddingValue?.trim().split(/\s+/) ?? [];
+    const mmTokens = tokens.map((t) => (/^[\d.]+mm$/.test(t) ? parseFloat(t) : null));
+    const [a, b = a, c = a, d = b] = mmTokens;
+    const sides = { top: a, right: b, bottom: c, left: d };
+    if (tokens.length === 0 || tokens.length > 4 || mmTokens.some((v) => v === null)) {
+      fail.push(`specimen.css: .mini__sheet's padding ("${paddingValue}") is not a plain 1-4-value mm `
+        + 'box shorthand this check can compare to spec.json');
+    } else {
+      const wrong = Object.entries(sides).filter(([, v]) => Math.abs(v - marginMm) > 0.01);
+      if (wrong.length > 0) {
+        fail.push(`specimen.css: .mini__sheet padding is "${paddingValue}" (${wrong.map(([s, v]) => `${s}: ${v}mm`).join(', ')} `
+          + `≠ ${marginMm}mm) — spec.json's default margin (foundation.page.margins.default = `
+          + `"${marginName}") is symmetric at ${marginMm}mm, but the site's page preview still pads `
+          + 'an old, asymmetric margin');
+      }
+    }
+  }
 }
 
 /* ---- 4. SPEC.md must be current ----------------------------------------- */

@@ -538,7 +538,7 @@ table.spec-table code {
 }
 .mini__sheet {
   width: 210mm;
-  padding: 25mm 22mm 25mm 28mm;
+  padding: 20mm;
   transform: scale(0.42);
   transform-origin: top left;
 }
