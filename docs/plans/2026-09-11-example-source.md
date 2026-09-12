@@ -325,15 +325,19 @@ Build the machinery before writing 25 snippets, so each one is verified the mome
 
 - [ ] **Step 1: Decide and record the harness**
 
-A snippet is a *fragment*, matching the HTML decision — no import, no `#show`. To compile it, the checker wraps it:
+A snippet is a *fragment*, matching the HTML decision — no import, no `#show`. To compile it, the checker puts the boilerplate above it:
 
 ```typst
-#import "../../implementations/typeset.typ": *
+#import "typeset.typ": *
 #show: typeset
 <the snippet>
 ```
 
-Write the harness once in `tools/check.mjs`. Compile to a temporary file; do not leave PDFs in the tree. Check `typst` is on `PATH` and **fail with a clear message if it is not** — a silently skipped compile check is worse than none.
+Write the harness once, in `src/boilerplate.mjs` rather than in `tools/check.mjs`, and have Task 5's masthead block print what the same function returns. A harness private to the checker verifies an environment the page never publishes, and the two then drift with nothing to notice: the first version of this branch compiled against a star import while the masthead published a six-name list, and 17 of the 25 snippets did not build under the block a reader was told to paste.
+
+The import is relative, so compile in a temporary directory holding a copy of `typeset.typ` — a reader's own directory, and the only arrangement in which the published text is literally what resolves. Nothing goes into the tree, not even transiently. Check `typst` is on `PATH` and **fail with a clear message if it is not** — a silently skipped compile check is worse than none.
+
+A snippet that configures `typeset()` itself supplies its own show rule and replaces the boilerplate's, which the masthead must state in prose since it cannot be shown in the block.
 
 - [ ] **Step 2: Write one snippet, `src/demos/tokens.typ`**
 
@@ -490,14 +494,14 @@ now show that section's snippet. Quote three.
 One block on the page, above the sections, saying what a reader must add around any snippet to make it run:
 
 - **HTML** — link `typeset.css`, put the fragment inside an element with `class="typeset"`, and load the three font families. Point at `files/typeset-css.html` for the stylesheet and `fonts/` for the faces.
-- **Typst** — the `#import` and `#show` lines, in the parenthesised form. A bare `#import "…": a, b,` list does **not** continue onto a second line: it parses, silently drops every name after the first line, and fails later at the call site with a misleading hint. Copy the working form from the top of `implementations/typeset.typ`.
+- **Typst** — the `#import` and `#show` lines, emitted by the same `src/boilerplate.mjs` function Task 3's gate composes with, so the two cannot be different environments. The import is a star import: a name list denies whichever export the next snippet reaches for, and a bare `#import "…": a, b,` list does **not** continue onto a second line either — it parses, silently drops every name after the first, and fails later at the call site with a misleading hint.
 
 - [ ] **Step 2: Verify both, by running them — not by reading them**
 
-- Build a scratch HTML file: the boilerplate plus one snippet copied from a panel. Open it and confirm it renders styled, or at minimum confirm the stylesheet link resolves and the class matches a real selector.
-- Build a scratch `.typ`: the boilerplate plus one snippet. `typst compile --font-path fonts`. It must build.
+- Build a scratch HTML file: the boilerplate plus a fragment decoded from the generated page. Render it and confirm the weights and styles it asks for are the real faces, not synthesised ones — a `<strong>` and an `<em>` beside their faux equivalents.
+- Build a scratch `.typ` for **every** snippet, not one: the boilerplate plus the snippet, `typst compile --font-path fonts`, all of them must build. A sample passes whenever the sampled snippet happens to need only what the boilerplate happens to give, which is how a six-name import survived a check that tried `callouts`.
 
-Delete both scratch files. Paste both commands and their results into your report. This repo has already shipped one copy-pasteable snippet that could not run.
+Delete the scratch files. Paste the commands and their results into your report. This repo has already shipped one copy-pasteable snippet that could not run.
 
 - [ ] **Step 3: Commit**
 
