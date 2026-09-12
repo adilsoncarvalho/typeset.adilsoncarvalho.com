@@ -331,7 +331,7 @@ so all five are gone from here.
   page: `#show: letter-page` then `#show: typeset` put the page rules inside the
   block. The fix is a design question about how `typeset` should assert a
   measure, not a patch.
-- **`notes-sidenote` is fixed at 13em**, so a sidenote does not follow a clamped
+- **`note-sidenote` is fixed at 13em**, so a sidenote does not follow a clamped
   measure on A5. Group 4 found it and left it, because sizing a sidenote against
   the margin it lives in is its own piece of work.
 - **`tools/check.mjs`'s CSS conformance checks assert source text; its Typst

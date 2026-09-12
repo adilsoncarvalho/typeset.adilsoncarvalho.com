@@ -1610,9 +1610,9 @@ const ENGINE_ELEMENTS = new Set(['native-quote']);
    implement — an author-facing name, not the spec's own taxonomy, and (for
    block-spaced/block-indented) independent of whatever the spec calls the
    underlying element (paragraph-spaced, paragraph-indented). This is NOT the
-   same list as INTERNAL_SYMBOLS: every value here is a real
-   implements-relationship, so a symbol belongs in exactly one of the two
-   list, never both. A value is normally one element id; it is a list of ids
+   same list as INTERNAL_SYMBOLS or ENGINE_ELEMENTS: every value here is a
+   real implements-relationship, so a symbol belongs in exactly one of the
+   three lists, never two. A value is normally one element id; it is a list of ids
    for a symbol that genuinely implements several under one call, such as
    quote(type:) below. Gated below: every id named here must resolve to one
    spec.json actually declares, or a typo would silence a real "no symbol"
@@ -1672,7 +1672,7 @@ for (const sym of typSymbols) {
    call by name need a symbol; those are the ones carrying a CSS class that is
    not a plain element alias. A missing one is a warning, not a failure — the
    list of styles that must expose a callable Typst symbol is not final, and
-   promoting this direction means settling every one of the note it prints
+   promoting this direction means settling every one of the notes it prints
    first. The reverse direction above is a failure, because an export with no
    name behind it is a decision someone can write down in one line. */
 const implementedIds = new Set(

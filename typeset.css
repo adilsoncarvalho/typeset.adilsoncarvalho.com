@@ -303,7 +303,7 @@
    line, is flushed left. See .ts-quote-pullquote and .ts-break.
 
    Never justify a heading, a cell, or a listing. Every other block that must
-   stay flush left — subtitle, byline, caption, address, note — declares
+   stay flush left — subtitle, byline, caption, address, notes — declares
    `text-align: left` in its own rule, because a direct match always beats an
    inherited value and its descendants then inherit `left` in turn. Relying on
    an exception list here instead means every new block silently opts in. */
