@@ -69,8 +69,8 @@
 
 // Paragraph separation is one decision expressed as two par properties, never
 // both at once: a gap (spaced) or an indent (indented). `typeset()`'s own
-// `indented` option and the two standalone functions below (paragraphs-spaced,
-// paragraphs-indented) both read this, so the whole-document switch and the
+// `indented` option and the two standalone functions below (block-spaced,
+// block-indented) both read this, so the whole-document switch and the
 // per-block override can never drift apart into two different 1.5em's.
 // `leading` defaults to the single-column scale's own 1.45 for the two
 // standalone functions, which have no `scale` to read; typeset() passes its
@@ -370,6 +370,12 @@
 // but it still gets one: the way back, for one block, in a document set to
 // indented.
 //
+// Named for what they do to the reader's block, not for the spec's own
+// paragraphs-spaced/paragraphs-indented element ids: an author reaching for
+// one of these is asking "how does this block behave", never "which section
+// of the specification is this" — and a name tied to the element id would
+// also have to change the day that id does.
+//
 // `first-line-indent`'s `all: false` is what makes indented prose behave:
 // Typst withholds the indent from a paragraph that opens the document, and
 // from one right after a heading, a blockquote, a figure or a break, because
@@ -380,12 +386,12 @@
 // a probe to catch. So `body` below is scoped by a plain code block, which
 // carries no layout identity of its own, never by `block()`.
 // @s paragraphs
-#let paragraphs-spaced(body) = {
+#let block-spaced(body) = {
   set par(.._paragraphs-rule(false))
   body
 }
 
-#let paragraphs-indented(body) = {
+#let block-indented(body) = {
   set par(.._paragraphs-rule(true))
   body
 }

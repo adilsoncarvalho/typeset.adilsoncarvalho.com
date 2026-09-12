@@ -1294,9 +1294,12 @@ for (const path of documentFiles) {
   }
 }
 
-/* Observes the exported Typst surface. Every symbol is either a named style or
-   written down here, so a new export has to be a deliberate choice between the
-   two. */
+/* Observes the exported Typst surface. Every symbol is a named style, is
+   written down here as internal, or is mapped in IMPLEMENTS below as an
+   author-facing name for a spec element — so a new export has to be a
+   deliberate choice among the three. This set is only for a symbol with no
+   spec element behind it at all; one that implements an element under a
+   different name belongs in IMPLEMENTS instead, never here. */
 const INTERNAL_SYMBOLS = new Set([
   /* the palette, the scales and the spacing unit a template reads */
   'ink', 'ink-muted', 'ink-faint', 'rule-color', 'rule-strong', 'wash', 'accent',
@@ -1312,20 +1315,43 @@ const INTERNAL_SYMBOLS = new Set([
   /* helpers the styles are built from */
   'leading-for', 'smcp', 'oldstyle', 'lining', 'tabular', '_break-mark',
   /* the spacing/indent pair behind typeset()'s own `indented` option AND
-     paragraphs-spaced/paragraphs-indented below — not a style itself */
+     block-spaced/block-indented below — not a style itself */
   '_paragraphs-rule',
   /* document and template entry points */
   'typeset', 'two-column', 'span',
   /* two-column's own spanning.always state, read by frontmatter-title-block,
      frontmatter-abstract and frontmatter-colophon — not a style itself */
   'ts-two-column-body',
-  /* ts-table implements element tables-table under its 1.x spelling, which the
-     migration note discloses; epigraph-right has no element behind it at all */
-  'ts-table', 'epigraph-right',
+  /* epigraph-right has no element behind it at all */
+  'epigraph-right',
 ]);
 
+/* Symbols named for what they do rather than for the spec element id they
+   implement — an author-facing name, not the spec's own taxonomy, and (for
+   block-spaced/block-indented) a name that does not have to change the day
+   paragraphs-* is renamed to paragraph-*. This is NOT the same list as
+   INTERNAL_SYMBOLS: every value here is a real implements-relationship, so a
+   symbol belongs in exactly one of the two lists, never both. Gated below:
+   every value must resolve to an id spec.json actually declares, or a typo
+   here would silence a real "no symbol" coverage warning forever. */
+const IMPLEMENTS = new Map([
+  ['block-spaced', 'paragraphs-spaced'],
+  ['block-indented', 'paragraphs-indented'],
+  /* ts-table implements element tables-table under its 1.x spelling, which
+     the migration note discloses. */
+  ['ts-table', 'tables-table'],
+]);
+
+for (const [sym, id] of IMPLEMENTS) {
+  if (!specIds.has(id)) {
+    fail.push(`tools/check.mjs: IMPLEMENTS maps "${sym}" to "${id}", which spec.json does not `
+      + 'declare as an element id — a typo here would silence a real "no symbol or marker '
+      + 'region" coverage warning forever');
+  }
+}
+
 for (const sym of typSymbols) {
-  if (INTERNAL_SYMBOLS.has(sym) || specIds.has(sym)) continue;
+  if (INTERNAL_SYMBOLS.has(sym) || specIds.has(sym) || IMPLEMENTS.has(sym)) continue;
   fail.push(`typeset.typ: #let ${sym} names no spec element and is not listed as internal`);
 }
 
@@ -1337,8 +1363,9 @@ for (const sym of typSymbols) {
    promoting this direction means settling every one of the notes it prints
    first. The reverse direction above is a failure, because an export with no
    name behind it is a decision someone can write down in one line. */
+const implementedIds = new Set(IMPLEMENTS.values());
 for (const id of specIds) {
-  if (!typSymbols.has(id) && !new RegExp(`//\\s*@s\\s+${id}\\s*\\n`).test(typ))
+  if (!typSymbols.has(id) && !implementedIds.has(id) && !new RegExp(`//\\s*@s\\s+${id}\\s*\\n`).test(typ))
     warn.push(`typeset.typ: no symbol or marker region named "${id}"`);
 }
 
@@ -2112,13 +2139,14 @@ if (!measureEmMatch) {
   }
 }
 
-/* ---- 11. paragraphs-spaced / paragraphs-indented must match the spec, and
-            the indent must actually be suppressed only where the spec says -- */
+/* ---- 11. block-spaced / block-indented must match the spec, and the indent
+            must actually be suppressed only where the spec says ----------- */
 
 /* The literal values first. _paragraphs-rule backs both typeset()'s own
    `indented` option and the two standalone functions, so a hand-copied number
    drifting in any one of the three call sites shows up here as a mismatch
-   against spec.json's own paragraphs-spaced/paragraphs-indented elements. */
+   against spec.json's own paragraphs-spaced/paragraphs-indented elements —
+   the elements block-spaced/block-indented implement, per IMPLEMENTS above. */
 
 const paragraphsSpec = spec.sections.find((s) => s.id === 'paragraphs');
 const specEl = (id) => paragraphsSpec.elements.find((e) => e.id === id).properties;
@@ -2134,27 +2162,29 @@ if (!rule) {
 
   const spacedIndent = /first-line-indent:\s*([^\n,)}]+)/.exec(spacedBranch)?.[1]?.trim();
   if (spacedIndent !== '0pt') {
-    fail.push(`typeset.typ: paragraphs-spaced's first-line-indent is ${spacedIndent}, but `
-      + `spec.json's first_line_indent is "${spacedProps.first_line_indent}" (0) — every line flush`);
+    fail.push(`typeset.typ: block-spaced's first-line-indent is ${spacedIndent}, but `
+      + `spec.json's paragraphs-spaced.first_line_indent is "${spacedProps.first_line_indent}" (0) `
+      + '— every line flush');
   }
   const spacedSpacing = /spacing:\s*([^\n,)}]+)/.exec(spacedBranch)?.[1]?.trim();
   if (spacedSpacing !== 'sp') {
-    fail.push(`typeset.typ: paragraphs-spaced's spacing is "${spacedSpacing}", expected the module's `
+    fail.push(`typeset.typ: block-spaced's spacing is "${spacedSpacing}", expected the module's `
       + `own \`sp\` (${spacedProps.space_after}, spec.json's paragraphs-spaced.space_after)`);
   }
 
   const indentedAmount = /first-line-indent:\s*\(amount:\s*([^,]+),\s*all:\s*(true|false)\)/.exec(indentedBranch);
   if (!indentedAmount) {
-    fail.push('typeset.typ: paragraphs-indented does not set first-line-indent as an '
+    fail.push('typeset.typ: block-indented does not set first-line-indent as an '
       + '(amount: .., all: ..) dictionary — without `all`, Typst cannot know to withhold the '
       + 'indent after a heading, blockquote, figure or break, or from the document\'s first paragraph');
   } else {
     if (indentedAmount[1].trim() !== indentedProps.first_line_indent) {
-      fail.push(`typeset.typ: paragraphs-indented's first-line-indent amount is `
-        + `${indentedAmount[1].trim()}, but spec.json's first_line_indent is "${indentedProps.first_line_indent}"`);
+      fail.push(`typeset.typ: block-indented's first-line-indent amount is `
+        + `${indentedAmount[1].trim()}, but spec.json's paragraphs-indented.first_line_indent is `
+        + `"${indentedProps.first_line_indent}"`);
     }
     if (indentedAmount[2] !== 'false') {
-      fail.push('typeset.typ: paragraphs-indented sets first-line-indent all: true — this applies '
+      fail.push('typeset.typ: block-indented sets first-line-indent all: true — this applies '
         + "the indent even after a heading, blockquote, figure or break, and to the document's "
         + 'first paragraph, contradicting the note on spec.json\'s paragraphs-indented element: '
         + `"${paragraphsSpec.elements.find((e) => e.id === 'paragraphs-indented').notes[0]}"`);
@@ -2162,7 +2192,7 @@ if (!rule) {
   }
   const indentedSpacing = /spacing:\s*([^\n,)}]+)/.exec(indentedBranch)?.[1]?.trim();
   if (!/^leading-for\(/.test(indentedSpacing ?? '')) {
-    fail.push(`typeset.typ: paragraphs-indented's spacing is "${indentedSpacing}", expected `
+    fail.push(`typeset.typ: block-indented's spacing is "${indentedSpacing}", expected `
       + `leading-for(..) — spec.json's paragraphs-indented.space_after is "${indentedProps.space_after}" `
       + '(no gap beyond the ordinary line leading)');
   }
@@ -2196,18 +2226,18 @@ const paraProbeSource = `#import "typeset.typ": *\n\n`
   + `#set page(width: 300pt, height: auto, margin: ${PARA_MARGIN_PT}pt)\n`
   + `#set text(font: serif, size: ${paraBasePt}pt)\n\n`
   + `= Heading\n`
-  + `#paragraphs-indented[\n`
+  + `#block-indented[\n`
   + `  ${paraMarker(AFTER_HEADING_FILL)}Flush: this paragraph follows the heading directly.\n\n`
   + `  ${paraMarker(MID_FLOW_FILL)}Indented: this paragraph follows an ordinary paragraph.\n`
   + `]\n\n`
   + `Ordinary prose that precedes the next wrapper, so ITS first paragraph is not the `
   + `document's first paragraph and does not follow a heading, a blockquote, a figure or a break.\n\n`
-  + `#paragraphs-indented[\n`
+  + `#block-indented[\n`
   + `  ${paraMarker(WRAPPER_FIRST_FILL)}Indented: the wrapper's own first paragraph, which a `
   + `block() wrapper would wrongly flush.\n`
   + `]\n\n`
-  + `#paragraphs-spaced[\n`
-  + `  ${paraMarker(SPACED_FIRST_FILL)}Flush: paragraphs-spaced never indents.\n\n`
+  + `#block-spaced[\n`
+  + `  ${paraMarker(SPACED_FIRST_FILL)}Flush: block-spaced never indents.\n\n`
   + `  ${paraMarker(SPACED_SECOND_FILL)}Flush: still no indent, even mid-flow.\n`
   + `]\n`;
 
@@ -2238,10 +2268,10 @@ try {
 
     const checks = [
       [AFTER_HEADING_FILL, 'after a heading', PARA_MARGIN_PT],
-      [MID_FLOW_FILL, 'mid-flow inside paragraphs-indented', PARA_MARGIN_PT + paraIndentPt],
-      [WRAPPER_FIRST_FILL, "paragraphs-indented's own first paragraph, not after a heading", PARA_MARGIN_PT + paraIndentPt],
-      [SPACED_FIRST_FILL, "paragraphs-spaced's first paragraph", PARA_MARGIN_PT],
-      [SPACED_SECOND_FILL, "paragraphs-spaced's second paragraph", PARA_MARGIN_PT],
+      [MID_FLOW_FILL, 'mid-flow inside block-indented', PARA_MARGIN_PT + paraIndentPt],
+      [WRAPPER_FIRST_FILL, "block-indented's own first paragraph, not after a heading", PARA_MARGIN_PT + paraIndentPt],
+      [SPACED_FIRST_FILL, "block-spaced's first paragraph", PARA_MARGIN_PT],
+      [SPACED_SECOND_FILL, "block-spaced's second paragraph", PARA_MARGIN_PT],
     ];
     for (const [fill, label, expectedX] of checks) {
       const x = xOf(fill, label);

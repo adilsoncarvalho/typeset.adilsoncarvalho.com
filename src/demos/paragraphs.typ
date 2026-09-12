@@ -6,7 +6,7 @@ memos, reports, letters.
 The cost is vertical space, and a certain restlessness over many pages. Every
 gap is a small invitation to stop reading.
 
-#paragraphs-indented[
+#block-indented[
   ==== On continuous prose
 
   The first paragraph after a heading needs no indent: the heading has already
