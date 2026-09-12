@@ -743,22 +743,87 @@ for (const id of templateIds) {
   if (!panelIds.has(id)) fail.push(`index.html: no panel for template "${id}"`);
 }
 
-/* The two-column derivation is arithmetic, so check the arithmetic. */
+/* The two-column derivation is arithmetic, so recompute it — from foundation.page,
+   which is where the paper and the margins live. Reading the derivation's own
+   declarations back would only prove that they agree with themselves, and every
+   number below is a function of the page: move a margin and either these follow
+   or this goes red. The one number the derivation still chooses is the gutter. */
 const two = spec.templates['two-column'];
 if (two) {
   const d = two.derivation;
-  const col = (d.text_width_mm - d.column_gap_mm) / 2;
-  if (Math.abs(col - d.column_width_mm) > 0.5) {
-    fail.push(`spec.json: two-column width is ${d.column_width_mm}mm, but (${d.text_width_mm} - ${d.column_gap_mm}) / 2 = ${col}mm`);
+  const page = spec.foundation.page;
+  const rhythm = spec.foundation.rhythm;
+  const papers = page.sizes_mm;
+  const symmetric = page.margins.symmetric_mm;
+  const paper = page.size;
+  const marginName = page.margins.default;
+
+  /* Characters per millimetre at the 11pt base, taken from the foundation
+     measure: 66 characters in 126mm. Every count in the template is this
+     scaled by the column width and by the ratio of 11pt to the base in use. */
+  const perMm = rhythm.measure_chars / rhythm.measure_mm;
+  const columnMm = (paperName, margin) => (papers[paperName][0] - 2 * symmetric[margin] - d.column_gap_mm) / 2;
+  const charsIn = (colMm, basePt) => Math.round(perMm * colMm * (11 / basePt));
+  const basePt = parseFloat(two.scale.base);
+
+  if (!papers[paper]) {
+    fail.push(`spec.json: foundation.page.size is "${paper}", which foundation.page.sizes_mm does not list`);
+  } else if (!(marginName in symmetric)) {
+    fail.push(`spec.json: foundation.page.margins.default is "${marginName}", which symmetric_mm does not name`);
+  } else {
+    const col = columnMm(paper, marginName);
+    const margin = symmetric[marginName];
+    const arithmetic = `${paper} ${papers[paper][0]}mm at ${marginName} ${margin}mm leaves ${papers[paper][0] - 2 * margin}mm of text, so a column is (${papers[paper][0] - 2 * margin} - ${d.column_gap_mm}) / 2 = ${col}mm`;
+
+    if (Math.abs(col - d.column_width_mm) > 0.5) {
+      fail.push(`spec.json: two-column derivation.column_width_mm is ${d.column_width_mm}mm — ${arithmetic}`);
+    }
+    if (two.page.column_gap_mm !== d.column_gap_mm) {
+      fail.push(`spec.json: two-column page.column_gap_mm is ${two.page.column_gap_mm}mm, derivation.column_gap_mm is ${d.column_gap_mm}mm`);
+    }
+    if (Math.abs(col - two.page.column_width_mm) > 0.5) {
+      fail.push(`spec.json: two-column page.column_width_mm is ${two.page.column_width_mm}mm — ${arithmetic}`);
+    }
+
+    for (const [size, stated] of Object.entries(d.characters_per_line)) {
+      const computed = charsIn(col, parseFloat(size));
+      if (computed !== stated) {
+        fail.push(`spec.json: two-column characters_per_line[${size}] is ${stated}, but a ${col}mm column carries ${computed} — ${arithmetic}`);
+      }
+    }
+
+    /* The floor is the point of the whole derivation: a combination that cannot
+       reach it is refused rather than set badly. The refusal is computed, so a
+       paper added to sizes_mm is covered on the day it is added. */
+    const atBase = charsIn(col, basePt);
+    if (two.rhythm.measure_chars !== atBase) {
+      fail.push(`spec.json: two-column rhythm.measure_chars is ${two.rhythm.measure_chars}, but a ${col}mm column at ${two.scale.base} carries ${atBase}`);
+    }
+    const viable = Object.keys(symmetric).filter((m) => charsIn(columnMm(paper, m), basePt) >= d.floor);
+    if (atBase < d.floor) {
+      const alternatives = viable.length
+        ? `${viable.join(' and ')} would reach it`
+        : `no named margin on ${paper} reaches it — this paper cannot carry two columns at ${two.scale.base}`;
+      fail.push(`spec.json: two columns are refused on ${paper} at the ${marginName} margin — a ${col}mm column at ${two.scale.base} carries ${atBase} characters, below the ${d.floor} floor (${arithmetic}; ${alternatives})`);
+    }
+    const declared = d.margins_supported;
+    if (declared.join(',') !== viable.join(',')) {
+      const shown = viable.map((m) => `${m} ${columnMm(paper, m)}mm ${charsIn(columnMm(paper, m), basePt)}ch`).join(', ');
+      fail.push(`spec.json: two-column margins_supported is [${declared.join(', ')}], but on ${paper} at ${two.scale.base} the margins reaching the ${d.floor}-character floor are [${viable.join(', ')}] (${shown || 'none'})`);
+    }
+
+    /* Lines per column comes off the same page box, through the template's own
+       baseline advance. Top and bottom take the symmetric value on either
+       margin style, so one number covers both. */
+    const advanceMm = parseFloat(two.rhythm.baseline_advance) * (25.4 / 72);
+    const textHeight = papers[paper][1] - 2 * margin;
+    const lines = Math.floor(textHeight / advanceMm);
+    if (two.page.lines_per_column !== lines) {
+      fail.push(`spec.json: two-column lines_per_column is ${two.page.lines_per_column}, but ${paper} at ${marginName} ${margin}mm leaves ${textHeight}mm and a ${two.rhythm.baseline_advance} advance is ${advanceMm.toFixed(3)}mm, so ${lines} lines fit`);
+    }
   }
-  const chars = (base) => Math.round((66 / 126) * col * (11 / base));
-  for (const [size, stated] of Object.entries(d.characters_per_line)) {
-    const computed = chars(parseFloat(size));
-    if (computed !== stated) fail.push(`spec.json: characters_per_line[${size}] is ${stated}, computed ${computed}`);
-  }
-  const atBase = chars(parseFloat(two.scale.base));
-  if (atBase < d.floor) fail.push(`spec.json: the two-column base of ${two.scale.base} yields ${atBase} characters, below the ${d.floor} floor`);
-  const advance = +(parseFloat(two.scale.base) * two.rhythm.line_height).toFixed(2);
+
+  const advance = +(basePt * two.rhythm.line_height).toFixed(2);
   if (Math.abs(parseFloat(two.rhythm.baseline_advance) - advance) > 0.01) {
     fail.push(`spec.json: two-column baseline_advance is ${two.rhythm.baseline_advance}, computed ${advance}pt`);
   }
