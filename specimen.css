@@ -774,3 +774,55 @@ table.spec-table code {
   font: 400 8px var(--ts-mono);
   color: var(--ts-ink-faint);
 }
+
+/* The same diagram drawn inside a demo's own document markup instead of being
+   the whole pane. src/extract.mjs takes the element out of the published
+   fragment: it is a picture of a page, and nothing inside it is document
+   content — so the pane still publishes the markup a reader copies, and the
+   picture stays beside it. The padding is tighter than the standalone
+   diagram's because this one already sits inside .paper's own. */
+.demo-pagemap {
+  padding: 1.5rem 1rem 2.2rem;
+
+  /* The diagram sits inside whatever document element the pane demonstrates,
+     and a letter's is ragged — which sets `text-align-last: left`. That
+     property is inherited and applies to the only line a one-line label on
+     the sheet has, so `text-align: center` on the label itself never gets to
+     decide. Reset here rather than on each label: every one of them is
+     centred, and the next one added would inherit the same trap. */
+  text-align-last: auto;
+}
+
+/* Two sheets side by side, for a diagram whose whole point is a difference
+   between one page and another: the default page beside a letter's, or the
+   page before a break beside the page after it. The sheets are narrower than
+   the single one above so the pair fits the demo column. */
+.pagemap--pair { gap: 1.25rem; }
+.pagemap--pair .pagemap__sheet { width: 11rem; }
+
+/* A letter's margins: deeper at the head than at the foot or the sides, so
+   the sender block sits where an envelope window expects it. Written as its
+   own class rather than as a descendant override of .pagemap__margins so that
+   the gate holding the default diagram to spec.json cannot read this rule by
+   mistake; tools/check.mjs holds these three percentages to spec.json's own
+   letter-page margins in the same way. There is no gauge on this sheet: the
+   three margins differ, and one gauge can only point at one of them. */
+.pagemap__margins--letter { inset: 10.8% 11.9% 9.4%; }
+.pagemap__lines--letter { top: 12.8%; left: 11.9%; right: 11.9%; }
+
+/* A spacer between two groups of lines — the gap a letter leaves between its
+   sender block and the address under it. */
+.pagemap__line--blank { background: none; }
+
+/* The one element a page-boundary diagram is about: the block carrying the
+   override, picked out from the flow around it so a reader can see which
+   block moved and which stayed. */
+.pagemap__line--marked { background: var(--ts-accent); opacity: 0.55; }
+
+/* Where the marked block would have fallen without the override — an outline
+   with no ink in it, on the page it no longer starts on. */
+.pagemap__line--ghost {
+  background: none;
+  border: 1px dashed var(--ui-guide);
+  height: 4px;
+}

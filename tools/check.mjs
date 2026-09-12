@@ -686,7 +686,7 @@ function reindent(fragment, amount) {
    Adding apparatus is therefore a two-file change, and the second file is the
    gate. The check below it holds the same two lists to what apparatus means:
    furniture this website adds, which typeset.css never defines. */
-const SPECIMEN_ELEMENTS = ['demo-note', 'demo-print-note', 'ts-folio'];
+const SPECIMEN_ELEMENTS = ['demo-note', 'demo-print-note', 'demo-pagemap', 'ts-folio'];
 const SPECIMEN_CLASSES = ['demo-aside', 'ts-toc--demo'];
 
 /* Rebuilds the published fragment from the extracted one: apparatus elements
@@ -1385,6 +1385,124 @@ const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]
           + `≠ ${marginMm}mm) — spec.json's default margin (foundation.page.margins.default = `
           + `"${marginName}") is symmetric at ${marginMm}mm, but the site's page preview still pads `
           + 'an old, asymmetric margin');
+      }
+    }
+  }
+}
+
+/* ---- 3j2. The letter-page diagram must be spec.json's own letter page ---- */
+
+/* The letter section opens with the same .pagemap device 3j checks above,
+   drawn twice: the default page beside a letter's. Everything the pane claims
+   about the letter's page is a second copy of a value spec.json owns — the
+   three margins, drawn as percentages of the A4 sheet and stated again in
+   words in the demo note, and the absence of a running head and a folio,
+   drawn by leaving two elements out. A diagram that is silently wrong is
+   worse than no diagram, because a reader checks the picture rather than the
+   property table beside it, so every one of those is checked here against
+   letter-page's own properties.
+
+   The comparison sheet is checked too, in the other direction: the note says
+   the empty head and foot of the right-hand sheet are the difference, which
+   is only legible if the left-hand sheet still carries both. */
+
+{
+  const letterPage = spec.sections.find((sec) => sec.id === 'letter')
+    ?.elements.find((el) => el.id === 'letter-page');
+  const paper = spec.foundation.page.size;
+  const [paperWidthMm, paperHeightMm] = spec.foundation.page.sizes_mm[paper];
+  const specimen = readFileSync('specimen.css', 'utf8');
+  const demo = readFileSync('src/demos/letter.html', 'utf8');
+
+  /* The same slack 3j allows: a percentage declared to one decimal place is
+     at most 0.05 points from the exact value, and 0.06 clears that with a
+     little headroom while staying far tighter than any real mistake. */
+  const TOLERANCE_PCT = 0.06;
+
+  if (!letterPage) {
+    fail.push('spec.json declares no "letter-page" element — the letter section\'s page '
+      + 'diagram has nothing left to be checked against');
+  } else {
+    const topMm = letterPage.properties.margin_top_mm;
+    const bottomMm = letterPage.properties.margin_bottom_mm;
+    const sidesMm = letterPage.properties.margin_sides_mm;
+    const expected = {
+      top: (topMm / paperHeightMm) * 100,
+      sides: (sidesMm / paperWidthMm) * 100,
+      bottom: (bottomMm / paperHeightMm) * 100,
+    };
+
+    const inset = specimen.match(/\.pagemap__margins--letter\s*\{[^}]*\binset:\s*([\d.]+)%\s+([\d.]+)%\s+([\d.]+)%/);
+    if (!inset) {
+      fail.push('specimen.css: no .pagemap__margins--letter inset of three percentages found — '
+        + "the letter section's page diagram cannot be checked");
+    } else {
+      const drawn = { top: Number(inset[1]), sides: Number(inset[2]), bottom: Number(inset[3]) };
+      const wrong = Object.entries(expected)
+        .filter(([side, pct]) => Math.abs(drawn[side] - pct) > TOLERANCE_PCT);
+      if (wrong.length > 0) {
+        fail.push(`specimen.css: .pagemap__margins--letter is drawn ${drawn.top}% ${drawn.sides}% `
+          + `${drawn.bottom}%, but letter-page's margins (${topMm}mm head, ${sidesMm}mm sides, `
+          + `${bottomMm}mm foot on ${paper}, ${paperWidthMm}×${paperHeightMm}mm) draw as `
+          + `${expected.top.toFixed(1)}% ${expected.sides.toFixed(1)}% ${expected.bottom.toFixed(1)}% — `
+          + `the diagram no longer shows the page spec.json describes (${wrong.map(([s]) => s).join(', ')})`);
+      }
+    }
+
+    const lines = specimen.match(/\.pagemap__lines--letter\s*\{([^}]*)\}/);
+    if (!lines) {
+      fail.push('specimen.css: no .pagemap__lines--letter block found — the letter diagram\'s '
+        + 'text block cannot be checked');
+    } else {
+      const left = Number(lines[1].match(/\bleft:\s*([\d.]+)%/)?.[1]);
+      const right = Number(lines[1].match(/\bright:\s*([\d.]+)%/)?.[1]);
+      if (Math.abs(left - expected.sides) > TOLERANCE_PCT
+        || Math.abs(right - expected.sides) > TOLERANCE_PCT) {
+        fail.push(`specimen.css: .pagemap__lines--letter is left: ${left}% right: ${right}%, but `
+          + `letter-page's ${sidesMm}mm sides draw as ${expected.sides.toFixed(1)}% — the diagram's `
+          + 'text block no longer agrees with .pagemap__margins--letter');
+      }
+    }
+
+    /* The note beside the diagram states all three margins in words, so each
+       is a third statement of the same number and goes stale the same way a
+       scale label does (3f). Matched loosely — "32mm at the head" — so the
+       sentence can be rewritten around the values without the gate having to
+       be rewritten with it. */
+    const note = demo.match(/<p class="demo-note">([\s\S]*?)<\/p>/)?.[1] ?? '';
+    for (const [what, mm] of [['head', topMm], ['sides', sidesMm], ['foot', bottomMm]]) {
+      if (!new RegExp(`\\b${mm}mm\\b[^.]*\\b${what}\\b`).test(note)) {
+        fail.push(`src/demos/letter.html: the letter-page note does not state ${mm}mm at the `
+          + `${what}, which is letter-page's own margin_${what === 'sides' ? 'sides' : what === 'head' ? 'top' : 'bottom'}_mm — `
+          + 'the words beside the diagram and the diagram no longer agree');
+      }
+    }
+
+    /* Both sheets of the pair, told apart by the one class only the letter's
+       carries. Splitting on the sheet's own opening tag keeps this readable
+       without parsing HTML: each piece is one sheet's markup. */
+    const sheets = demo.split('<div class="pagemap__sheet">').slice(1);
+    const letterSheet = sheets.find((sheet) => sheet.includes('pagemap__margins--letter'));
+    const defaultSheet = sheets.find((sheet) => !sheet.includes('pagemap__margins--letter'));
+
+    if (!letterSheet || !defaultSheet) {
+      fail.push('src/demos/letter.html: the letter-page pane no longer draws two .pagemap__sheet '
+        + 'diagrams, one of them carrying .pagemap__margins--letter — there is nothing left to '
+        + 'compare a letter\'s page against');
+    } else {
+      for (const [prop, cls, what] of [
+        ['running_head', 'pagemap__runhead', 'running head'],
+        ['folio', 'pagemap__folio', 'folio'],
+      ]) {
+        if (letterPage.properties[prop] === 'none' && letterSheet.includes(cls)) {
+          fail.push(`src/demos/letter.html: the letter sheet draws a ${what} (.${cls}), but `
+            + `letter-page declares ${prop}: none — the diagram shows a page the spec forbids`);
+        }
+        if (!defaultSheet.includes(cls)) {
+          fail.push(`src/demos/letter.html: the default sheet beside the letter's draws no ${what} `
+            + `(.${cls}), so the absence of one on the letter's page is not visible as a `
+            + 'difference — which is the whole of what the pane claims to show');
+        }
       }
     }
   }
@@ -3876,16 +3994,6 @@ const EXEMPTIONS = new Map([
      effect is only observable by comparing print output against a screen. */
   ['utility-print-only', 'hides on screen by design — the effect is only '
     + 'observable in a printed or paginated rendering, not on a screen demo'],
-  /* A letter's own page: margins, and no running head or folio. Set only
-     through a CSS @page rule and a Typst page() call, neither of which has
-     any effect on the on-screen ".paper" div a pane renders into — the same
-     "nothing to show on a screen" reasoning as utility-break-before, one
-     level up at the whole-page rather than the break. src/demos/letter.typ
-     still opens with #show: letter-page, which is where this is honestly
-     shown: a real page, not a div. */
-  ['letter-page', 'sets @page margins and suppresses the running head and '
-    + 'folio — a print/paginated effect with no page boundary to show inside '
-    + 'a screen-rendered ".paper" div, the same reasoning as utility-break-before'],
   /* Starts the next element on a new page — the mirror of utility-break-before,
      with the same "nothing to show on a screen" reasoning. */
   ['utility-break-after', 'changes pagination — there is a page boundary to show '

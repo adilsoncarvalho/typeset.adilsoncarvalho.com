@@ -267,13 +267,18 @@ function resolveTarget(source, wrapperOpenTag, contentStart, wrapperClose) {
    generates with target-counter; spec.json declares no folio element, and
    publishing the span would make a real document set the page number twice.
 
+   The page diagram in the letter and pagination demos comes out the same way.
+   It is a drawing of a sheet — margins, a running head, a folio, the flow as
+   grey bars — and no element inside it is document content, so publishing it
+   would hand a reader markup for a picture of a page rather than for the page.
+
    A class the specimen adds to an element the document does need comes off on
    its own, and the element stays. `ts-toc--demo` only suppresses that
    generated number so a browser shows one figure rather than two. `demo-aside`
    only sets a document paragraph smaller — and in the numerals demo that
    paragraph carries the sole `.ts-numeral-fraction` in the repo, so taking
    the element would take the demonstration with it. */
-export const APPARATUS_ELEMENTS = new Set(['demo-note', 'demo-print-note', 'ts-folio']);
+export const APPARATUS_ELEMENTS = new Set(['demo-note', 'demo-print-note', 'demo-pagemap', 'ts-folio']);
 export const APPARATUS_CLASSES = new Set(['demo-aside', 'ts-toc--demo']);
 
 /* Removes both shapes from a fragment. Elements go first, so a class list
