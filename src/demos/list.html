@@ -1,30 +1,75 @@
-<p class="pair__label">How it must look</p>
+<p class="pair__label" data-element="list-unordered">1 · Unordered list</p>
+<p class="demo-note">A grey mid-dot marker, weighted so it reads as a mark rather than competing with the words beside it. A runover line aligns to the text, never to the marker.</p>
 <div class="paper typeset">
   <ul>
-    <li>An unordered item, with a grey mid-dot for a marker.</li>
+    <li>An unordered item.</li>
     <li>A second item, long enough to wrap onto a second line so you can see that the runover aligns to the text, not to the marker.</li>
-    <li>A nested list follows:
+  </ul>
+</div>
+
+<p class="pair__label" data-element="list-unordered-nested">2 · Unordered list, nested</p>
+<p class="demo-note">The nested marker switches to an en dash, lighter in weight than the level above it — two levels deep is the limit worth designing for.</p>
+<div class="paper typeset">
+  <ul>
+    <li>A first-level item, followed by a nested list:
       <ul>
         <li>The nested marker is an en dash.</li>
         <li>Two levels is the limit worth designing for.</li>
       </ul>
     </li>
   </ul>
+</div>
 
-  <ol>
-    <li>Ordered items use tabular lining figures, so 9 and 10 align.</li>
-    <li>Sub-items switch to lower alpha:
-      <ol><li>First sub-item.</li><li>Second sub-item.</li></ol>
-    </li>
-    <li>The tenth item would still align. It is the small things.</li>
+<p class="pair__label" data-element="list-ordered">3 · Ordered list</p>
+<p class="demo-note">Tabular lining figures, so a run past nine keeps every marker in the same column rather than drifting once a second digit appears.</p>
+<div class="paper typeset">
+  <ol start="8">
+    <li>Eighth item.</li>
+    <li>Ninth item.</li>
+    <li>Tenth item — the marker still sits in the same column as the single digits above it.</li>
+    <li>Eleventh item.</li>
   </ol>
+</div>
 
+<p class="pair__label" data-element="list-ordered-nested">4 · Ordered list, nested</p>
+<p class="demo-note">Sub-items restart the counter and switch to lower alpha — the same demotion the nested unordered marker makes.</p>
+<div class="paper typeset">
+  <ol>
+    <li>A first-level item, followed by sub-items:
+      <ol>
+        <li>First sub-item.</li>
+        <li>Second sub-item.</li>
+      </ol>
+    </li>
+  </ol>
+</div>
+
+<p class="pair__label" data-element="list-tight">5 · Tight list</p>
+<p class="demo-note">No space between items — for an enumeration of values, not a sequence of sentences a reader pauses between.</p>
+<div class="paper typeset">
+  <ul class="ts-list-tight">
+    <li>11pt body</li>
+    <li>9.5pt table</li>
+    <li>8pt caption label</li>
+  </ul>
+</div>
+
+<p class="pair__label" data-element="list-definition-term">6 · Definition term</p>
+<p class="demo-note">Sans, bold, and a size down from body — a term reads as a label the description answers, not as a sentence in its own right.</p>
+<div class="paper typeset">
+  <dl>
+    <dt>Measure</dt>
+    <dd>The length of a line of type, counted in characters rather than in millimetres.</dd>
+  </dl>
+</div>
+
+<p class="pair__label" data-element="list-definition-description">7 · Definition description</p>
+<p class="demo-note">Serif, at body size, indented under its term — the answer reads as prose, set apart from the label that introduces it.</p>
+<div class="paper typeset">
   <dl>
     <dt>Measure</dt>
     <dd>The length of a line of type, counted in characters rather than in millimetres.</dd>
     <dt>Leading</dt>
     <dd>The vertical distance between baselines. Named for the strips of lead once inserted between lines of metal type.</dd>
-    <dt>Widow</dt>
-    <dd>A last line of a paragraph carried alone to the top of a page. An orphan is the mirror case at the foot.</dd>
   </dl>
 </div>
