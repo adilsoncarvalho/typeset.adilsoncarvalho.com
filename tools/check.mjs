@@ -183,7 +183,7 @@ if (missingDemo) reportFailuresAndExit();
 
 function typstAvailable() {
   try {
-    execFileSync('typst', ['--version'], { stdio: 'ignore' });
+    execFileSync('typst', ['--version'], { stdio: 'ignore', timeout: 30_000 });
     return true;
   } catch {
     return false;
@@ -210,7 +210,7 @@ if (typstSnippets.length > 0) {
       execFileSync(
         'typst',
         ['compile', '--font-path', fontPath, docPath, join(readerDir, `${file}.pdf`)],
-        { stdio: ['ignore', 'pipe', 'pipe'] },
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
       );
     } catch (err) {
       const detail = (err.stderr ? err.stderr.toString() : String(err.message)).trim();
@@ -2909,12 +2909,12 @@ if (/#columns\(/.test(twoColumnDemo)) {
 const inlineSpec = spec.sections.find((s) => s.id === 'inline');
 const kbdProps = inlineSpec.elements.find((e) => e.id === 'inline-kbd').properties;
 
-const keyMatch = /#let key\(body\) = box\(\n([\s\S]*?)\n\)/.exec(typ);
+const keyMatch = /#let key\(body\) = text\(font: sans, size: ([\d.]+em), box\(\n([\s\S]*?)\n\)\)/.exec(typ);
 if (!keyMatch) {
   fail.push('typeset.typ: key() was not found in the shape this gate expects — update the gate if '
     + 'the function was deliberately restructured');
 } else {
-  const body = keyMatch[1];
+  const [, keySize, body] = keyMatch;
   const [specPadY, specPadX] = kbdProps.padding.split(' ');
 
   const insetMatch = /inset:\s*\(x:\s*([^,]+),\s*y:\s*([^)]+)\)/.exec(body);
@@ -2928,10 +2928,9 @@ if (!keyMatch) {
     fail.push(`typeset.typ: key()'s radius does not match inline-kbd.radius ("${kbdProps.radius}")`);
   }
 
-  const sizeMatch = /text\(font: sans, size:\s*([\d.]+em),/.exec(body);
-  if (sizeMatch?.[1] !== kbdProps.size) {
-    fail.push(`typeset.typ: key()'s text size is ${sizeMatch ? sizeMatch[1] : 'missing'}, expected `
-      + `inline-kbd.size ("${kbdProps.size}")`);
+  if (keySize !== kbdProps.size) {
+    fail.push(`typeset.typ: key()'s text size is ${keySize}, expected inline-kbd.size `
+      + `("${kbdProps.size}")`);
   }
 
   const strokeMatch = /stroke:\s*\(rest:\s*([\d.]+)pt \+ rule-color, bottom:\s*([\d.]+)pt \+ rule-color\)/
@@ -2955,6 +2954,66 @@ if (!keyMatch) {
       fail.push(`typeset.typ: key()'s bottom stroke (${bottomWidth}pt) is not heavier than its other `
         + `three sides (${restWidth}pt) — a keycap reads by that asymmetry alone, so a flattened stroke `
         + 'renders as a plain bordered box');
+    }
+  }
+
+  /* The literals above are the same three strings in both files, and agreeing
+     on them is not the same as agreeing on the result. CSS resolves an
+     element's `padding` em against that element's OWN computed font-size,
+     which the same rule set has already set to 0.85em; Typst resolves a box's
+     `inset` em against whatever size is in force where the box is declared.
+     So a `text(size: 0.85em, ..)` applied to the box's BODY leaves the
+     padding measured against the surrounding prose, and the two
+     implementations of one element differ by 18% while every literal matches.
+     No regex over the source can see that — so this measures the rendered
+     keycap against the rendered text inside it, in a real typeset() document,
+     and holds the difference to what CSS computes. */
+  const padEm = (value) => {
+    const m = /^([\d.]+)em$/.exec(value);
+    return m ? Number(m[1]) : null;
+  };
+  const sizeEm = padEm(kbdProps.size);
+  const padXEm = padEm(specPadX);
+  const padYEm = padEm(specPadY);
+  const kbdBasePt = parseFloat(spec.foundation.scale.steps.base);
+  if (sizeEm === null || padXEm === null || padYEm === null) {
+    fail.push(`spec.json: inline-kbd's size ("${kbdProps.size}") and padding ("${kbdProps.padding}") `
+      + 'are no longer all em values — update this gate to the axis they now use');
+  } else {
+    const keyProbeDir = mkdtempSync(join(tmpdir(), 'typeset-key-check-'));
+    try {
+      copyFileSync('implementations/typeset.typ', join(keyProbeDir, 'typeset.typ'));
+      const probePath = join(keyProbeDir, 'key.typ');
+      writeFileSync(probePath, '#import "typeset.typ": *\n#show: typeset\n\n'
+        + '#context {\n'
+        + '  let k = measure(key[Ctrl])\n'
+        + `  let t = measure(text(font: sans, size: ${kbdProps.size})[Ctrl])\n`
+        + '  [#metadata(((k.width - t.width) / 2 / 1pt, (k.height - t.height) / 2 / 1pt)) <key-inset>]\n'
+        + '}\n');
+      const out = execFileSync(
+        'typst',
+        ['query', probePath, '<key-inset>', '--field', 'value', '--one', '--font-path', resolve('fonts')],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+      const [gotX, gotY] = JSON.parse(out.toString()).map(Number);
+      const axes = [
+        ['horizontal', gotX, padXEm * sizeEm * kbdBasePt, specPadX],
+        ['vertical', gotY, padYEm * sizeEm * kbdBasePt, specPadY],
+      ];
+      for (const [axis, got, expected, literal] of axes) {
+        if (Math.abs(got - expected) > 0.05) {
+          fail.push(`typeset.typ: key()'s ${axis} padding renders ${got.toFixed(2)}pt, but `
+            + `.typeset kbd's ${literal} resolves against the keycap's own ${kbdProps.size} of the `
+            + `${spec.foundation.scale.steps.base} base, i.e. ${expected.toFixed(2)}pt. An em in `
+            + `\`inset\` follows the size in force where the box is declared, so the ${kbdProps.size} `
+            + 'has to wrap the box, not its body');
+        }
+      }
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+      fail.push(`typeset.typ: the keycap padding probe failed:\n${detail}`);
+    } finally {
+      rmSync(keyProbeDir, { recursive: true, force: true });
     }
   }
 }

@@ -456,12 +456,20 @@
 // three — 1.5pt against 0.5pt, both in rule-color. `stroke`'s dictionary
 // form is what lets one edge carry a different weight than its neighbours;
 // a single `<length> + <color>` stroke draws all four edges alike.
-#let key(body) = box(
+//
+// The size wraps the box rather than the box's body. An em in `inset`
+// resolves against whatever size is in force where the box is declared, so a
+// size applied inside it leaves the padding measured against the surrounding
+// prose — 3.85pt at an 11pt base, where inline-kbd's 0.35em of a 0.85em
+// keycap is 3.27pt, an 18% overshoot. CSS has no such trap: `padding` on an
+// element resolves against that element's own computed font-size, which the
+// same rule set has already made 0.85em.
+#let key(body) = text(font: sans, size: 0.85em, box(
   inset: (x: 0.35em, y: 0.15em),
   radius: 2pt,
   stroke: (rest: 0.5pt + rule-color, bottom: 1.5pt + rule-color),
-  text(font: sans, size: 0.85em, body),
-)
+  body,
+))
 
 // ── Paragraphs ──────────────────────────────────────────────────────────────
 
