@@ -6,9 +6,14 @@
 */
 
 import { readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 
-const map = JSON.parse(readFileSync('tools/rename-map.json', 'utf8'));
-const singularMap = JSON.parse(readFileSync('tools/rename-map-2.0-singular.json', 'utf8'));
+/* Resolved against this file, not the working directory: check.mjs imports
+   rewrite() and a future caller need not be rooted at the repo. */
+const here = dirname(fileURLToPath(import.meta.url));
+const map = JSON.parse(readFileSync(resolve(here, 'rename-map.json'), 'utf8'));
+const singularMap = JSON.parse(readFileSync(resolve(here, 'rename-map-2.0-singular.json'), 'utf8'));
 
 /* Every key is interpolated straight into a RegExp source below. This holds
    only while a key is a plain identifier — a key carrying a regex
@@ -55,10 +60,15 @@ const sectionPairsSingular = Object.entries(singularMap.sections)
    handful of STRUCTURED positions it actually occupies as an identifier,
    never as a free \b-bounded match over the whole file:
 
-     - the sole content of a quoted string ("notes", 'notes') — a JSON
-       "id"/"spec"/"css" value or a bare entry in a JS array literal, never a
-       multi-word value ("Section breaks", "all headings"), because those
-       have more content than just the id between the quotes;
+     - the sole content of a quoted string ("notes", 'notes') that is not a
+       key — never a multi-word value ("Section breaks", "all headings"),
+       because those have more content than just the id between the quotes,
+       and never a token immediately followed by a colon, because that is a
+       JSON or JS key naming a property rather than an id naming a section.
+       The key guard is the one the damage above needed and did not have:
+       `"notes": [...]` and `"numerals": "lining tabular"` are exactly as
+       many characters between quotes as `"id": "notes"` is, so the earlier
+       rule read all three as ids;
      - the sole content of a backtick span (`notes`) — an inline-code id
        citation in a doc comment;
      - the token right after a "@s " marker (a CSS "bang" comment opening
@@ -79,12 +89,32 @@ const sectionPairsSingular = Object.entries(singularMap.sections)
    value, a markdown heading — is prose, and this pass does not touch it. A
    file that needs a heading like "Footnotes and endnotes" singularised has
    to have that judged by hand; the ambiguity is the same one that caused
-   the damage above, and no regex resolves it safely. */
-function rewriteBareSectionIds(text, sortedPairs) {
+   the damage above, and no regex resolves it safely.
+
+   One position stays genuinely ambiguous and is NOT resolved here: a bare
+   quoted entry in an array literal. `['tokens', ..., 'utilities']` is a list
+   of section ids and has to be rewritten; `new Set(['name', 'opt_in',
+   'use_for', 'notes'])` is a list of schema-key names and must not be. The
+   two are the same shape, and no syntactic rule separates them. So this pass
+   rewrites both and reports each one it rewrote, by line, for a human to
+   read back — a rewrite the caller is told about is a different hazard from
+   one it is not. */
+function rewriteBareSectionIds(text, sortedPairs, ambiguous) {
   let out = text;
   for (const [from, to] of sortedPairs) {
     out = out
-      .replace(new RegExp(`(["'])${from}\\1`, 'g'), `$1${to}$1`)
+      .replace(new RegExp(`(["'])${from}\\1`, 'g'), (match, quote, offset, whole) => {
+        /* A key names a property, never a section. This is the guard the
+           32 `"notes": [...]` and 13 `"numerals": "..."` keys above needed. */
+        if (/^\s*:/.test(whole.slice(offset + match.length))) return match;
+        /* A value sits after `:` (JSON, a JS object literal) or `=` (an HTML
+           attribute). Anything else reaching here is a bare array entry, the
+           position the comment above calls ambiguous. */
+        if (ambiguous && !/[:=]\s*$/.test(whole.slice(0, offset))) {
+          ambiguous.push({ line: whole.slice(0, offset).split('\n').length, from, to });
+        }
+        return quote + to + quote;
+      })
       .replace(new RegExp('(`)' + from + '\\1', 'g'), `$1${to}$1`)
       .replace(new RegExp(`(@s\\s+)${from}\\b`, 'g'), `$1${to}`)
       .replace(new RegExp(`(?<!--)\\bts-${from}\\b(?!-)`, 'g'), `ts-${to}`)
@@ -93,7 +123,7 @@ function rewriteBareSectionIds(text, sortedPairs) {
   return out;
 }
 
-export function rewrite(text) {
+export function rewrite(text, ambiguous) {
   let out = text;
   for (const [from, to] of pairs) {
     /* Word-boundary on both ends so ts-note does not match inside
@@ -111,7 +141,7 @@ export function rewrite(text) {
      \b-bounded match over prose. tools/rename-map.json's one section row
      (figures-numeric) happens to be a compound already, but the rule is the
      same rule either way, not a special case for this map. */
-  out = rewriteBareSectionIds(out, sectionPairs);
+  out = rewriteBareSectionIds(out, sectionPairs, ambiguous);
   /* Element rows are blind \b-bounded matches, same as the 1.x classes pass
      above: every one is a compound id (section id plus a leaf), which does
      not collide with ordinary prose the way a bare section word does. */
@@ -124,21 +154,32 @@ export function rewrite(text) {
      names into current 2.0.0 plural ones. A document already on 2.0.0 plural
      names passes through the two passes above unchanged and is singularised
      here directly — so one run carries either document the rest of the way. */
-  out = rewriteBareSectionIds(out, sectionPairsSingular);
+  out = rewriteBareSectionIds(out, sectionPairsSingular, ambiguous);
   return out;
 }
 
-const args = process.argv.slice(2);
-const dry = args.includes('--dry-run');
-for (const path of args.filter((a) => a !== '--dry-run')) {
-  const before = readFileSync(path, 'utf8');
-  const after = rewrite(before);
-  if (before === after) { console.log(`  unchanged  ${path}`); continue; }
-  if (dry) {
-    const n = before.split('\n').filter((l, i) => l !== after.split('\n')[i]).length;
-    console.log(`  ${String(n).padStart(4)} lines  ${path}`);
-  } else {
-    writeFileSync(path, after);
-    console.log(`  rewritten  ${path}`);
+/* Importing this module must not rewrite files: tools/check.mjs imports
+   rewrite() to run the chain proof over tools/fixtures/, and an unguarded
+   CLI body would read that importer's own argv as a list of paths to
+   overwrite in place. */
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const args = process.argv.slice(2);
+  const dry = args.includes('--dry-run');
+  for (const path of args.filter((a) => a !== '--dry-run')) {
+    const before = readFileSync(path, 'utf8');
+    const ambiguous = [];
+    const after = rewrite(before, ambiguous);
+    if (before === after) { console.log(`  unchanged  ${path}`); continue; }
+    if (dry) {
+      const n = before.split('\n').filter((l, i) => l !== after.split('\n')[i]).length;
+      console.log(`  ${String(n).padStart(4)} lines  ${path}`);
+    } else {
+      writeFileSync(path, after);
+      console.log(`  rewritten  ${path}`);
+    }
+    for (const a of ambiguous) {
+      console.log(`     review  ${path}:${a.line} rewrote the array entry '${a.from}' `
+        + `to '${a.to}' — check it is a section id and not a property name`);
+    }
   }
 }
