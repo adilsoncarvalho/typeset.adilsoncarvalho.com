@@ -153,9 +153,10 @@
 // A document is a page and a set of styles, and the two do not reach equally
 // far. set page() takes effect only where a page can be set, never inside a
 // container; the styles apply wherever content is composed, columns() included.
-// They are separate functions because two-column() needs the page once per
-// document and the styles once per body, and two-column-body() needs the
-// styles without the page.
+// They are separate functions because a template composes them in its own
+// order: typeset() sets the page and holds the body to a measure, while
+// two-column() has to set the page, draw the optional column rule on it, and
+// only then set the styles the columns are composed in.
 
 #let _typeset-page(
   paper: "a4",
@@ -194,9 +195,11 @@
 }
 
 // Everything a document is set in: the scale, the paragraph shape, every named
-// style, and the measure the flow is held to. A template that composes its own
-// page calls this for the rest, so the page-setting template and the body it
-// composes share one implementation of the styles rather than restating them.
+// style, and the measure the flow is held to. Both templates call this for the
+// half that is not the page, so a second template can never drift into a second
+// set of these rules — they are applied exactly once, by whichever template
+// owns the body, which matters because they are not idempotent: two
+// applications of the heading rule wrap every heading in two blocks.
 
 #let _typeset-styles(
   scale: scale-single-column,
@@ -658,49 +661,6 @@
   block(width: 100%, body),
 )
 
-// The gutter is the one number this template chooses; the column, the
-// character count and the decision to set at all follow from it, from the
-// paper and from the margin. It is a name at this level because two functions
-// need the same number — two-column() derives the column from it, and
-// two-column-body() composes the columns with it.
-#let gutter-two-column = 6mm
-
-// The composition, without the page: the front matter full width, then the
-// body in two columns. two-column() calls this after it has set the page, and
-// a document that has no page of its own to set — a snippet inside a container
-// — calls it directly and gets the same columns, the same gutter and the same
-// scale as the template, rather than a second implementation of them.
-#let two-column-body(
-  gutter: gutter-two-column,
-  front: none,
-  numbered: false,
-  doc,
-) = {
-  show: _typeset-styles.with(
-    scale: scale-two-column,
-    measure: none,        // the column is the measure
-    justified: true,
-    indented: true,      // a blank line costs 3% of a column
-    numbered: numbered,
-  )
-
-  if front != none {
-    front
-    v(scale-two-column.space, weak: true)
-  }
-
-  // templates.two-column.spanning.always spans without a mark from here on:
-  // frontmatter-title-block, frontmatter-abstract and frontmatter-colophon
-  // read ts-two-column-body themselves (it carries subtitle, byline and
-  // dateline too — they are that block's own parameters, not standalone
-  // functions), and a body-level level-1 heading is promoted by the show rule
-  // below. Both are scoped to `doc`; `front` above renders before the columns
-  // begin, so it is already full width and never needs the wrap.
-  ts-two-column-body.update(true)
-  show heading.where(level: 1): it => span(it)
-  columns(2, gutter: gutter, doc)
-}
-
 #let two-column(
   paper: "a4",
   margin: margin-standard,
@@ -712,10 +672,11 @@
   folio: true,
   doc,
 ) = {
-  // The column, the character count and the decision to set at all are
-  // functions of the gutter above, of the paper and of the margin, recomputed
-  // here rather than carried as a list of papers that work.
-  let gutter = gutter-two-column
+  // The gutter is the one number this template chooses. The column, the
+  // character count and the decision to set at all are functions of the paper
+  // and the margin, recomputed here rather than carried as a list of papers
+  // that work.
+  let gutter = 6mm
   let floor = 45
   let base = scale-two-column.base
 
@@ -836,7 +797,29 @@
     }
   })
 
-  two-column-body(gutter: gutter, front: front, numbered: numbered, doc)
+  show: _typeset-styles.with(
+    scale: scale-two-column,
+    measure: none,        // the column is the measure
+    justified: true,
+    indented: true,      // a blank line costs 3% of a column
+    numbered: numbered,
+  )
+
+  if front != none {
+    front
+    v(scale-two-column.space, weak: true)
+  }
+
+  // templates.two-column.spanning.always spans without a mark from here on:
+  // frontmatter-title-block, frontmatter-abstract and frontmatter-colophon
+  // read ts-two-column-body themselves (it carries subtitle, byline and
+  // dateline too — they are that block's own parameters, not standalone
+  // functions), and a body-level level-1 heading is promoted by the show rule
+  // below. Both are scoped to `doc`; `front` above renders before the columns
+  // begin, so it is already full width and never needs the wrap.
+  ts-two-column-body.update(true)
+  show heading.where(level: 1): it => span(it)
+  columns(2, gutter: gutter, doc)
 }
 // @e
 
