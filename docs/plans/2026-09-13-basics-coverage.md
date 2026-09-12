@@ -55,6 +55,16 @@ already in the target shape and are the model to copy.
 
 ## How a label binds to an element
 
+> **Superseded on the branch.** The design below — match a pane to an element
+> by the label's own text — was replaced by an explicit `data-element`
+> attribute in `f234bdd` ("bind coverage to an explicit data-element, not
+> label text"), because it forced 103 normative `name` fields either to read
+> clumsily as labels or to be rewritten to suit a demo file. `tools/check.mjs`
+> argues the case at length above its `EXEMPTIONS` map. Task 1 Step 1 below
+> states the same superseded rule. Kept as written: this file is the record of
+> what was planned, not of what shipped.
+
+
 `src/extract.mjs` reads `<p class="pair__label">N · Some Name</p>` and strips the
 leading ordinal. **The remaining text is the element's `name` field in
 `spec.json`** — `quote-epigraph`'s name is "Epigraph" and its label reads
@@ -71,6 +81,15 @@ word for the thing.
 - Every new Typst demo compiles under the published boilerplate; gate 3h enforces
   it.
 - No exemption without a written reason. The list stays short and visible.
+
+> **Superseded on the branch.** The exemption list this plan produced ran to
+> eleven, nine of which rested on one premise — a print or pagination effect
+> with nothing to show on a screen — that `src/demos/page.html` and
+> `src/demos/link.html` already disproved. A whole-branch review said so, and
+> the fix round that followed built panes for nine of the eleven, leaving
+> `justification-exclusions` and `table-row`. "No exemption without a written
+> reason" turned out to be too weak a constraint: a reason can be written and
+> still be untrue. `README.md` now states what a reason may not be.
 
 ---
 
