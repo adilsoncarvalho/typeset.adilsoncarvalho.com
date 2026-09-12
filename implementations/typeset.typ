@@ -500,6 +500,14 @@
 // hyphenates, `lang` or not: a hyphen exists to serve justification, and
 // breaks a word for no gain without it.
 //
+// These set ALIGNMENT. `indented` defaults to `auto`, which is the document's
+// own paragraph convention, left exactly as it is: an author who writes
+// `#justified[..]` inside a document set `typeset(indented: true)` asked for
+// one thing, and getting a flushed first line and an inserted gap along with
+// it is a second thing they never mentioned. A stated `indented:` delegates
+// to block-indented/block-spaced rather than restating the rule, so the
+// paragraph axis has exactly one owner however it is reached.
+//
 // `set align(left)` is not restating the ambient default. Alignment inherits,
 // and Typst resolves a justified paragraph's last line against that same
 // inherited alignment — so a block nested inside a centred or right-aligned
@@ -518,20 +526,20 @@
 // and `hyphenate-limit-lines`; there is no Typst engine feature this file can
 // set in their place.
 // @s justification
-#let ragged-right(indented: false, lang: "en", body) = {
+#let ragged-right(indented: auto, lang: "en", body) = {
   set align(left)
-  set par(.._paragraphs-rule(indented), justify: false)
+  set par(justify: false)
   if lang != none { set text(lang: lang) }
   set text(hyphenate: false)
-  body
+  if indented == auto { body } else if indented { block-indented(body) } else { block-spaced(body) }
 }
 
-#let justified(indented: false, lang: "en", body) = {
+#let justified(indented: auto, lang: "en", body) = {
   set align(left)
-  set par(.._paragraphs-rule(indented), justify: true)
+  set par(justify: true)
   if lang != none { set text(lang: lang) }
   set text(hyphenate: lang != none)
-  body
+  if indented == auto { body } else if indented { block-indented(body) } else { block-spaced(body) }
 }
 // @e
 

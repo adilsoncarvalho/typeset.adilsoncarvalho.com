@@ -2459,10 +2459,11 @@ if (!raggedSigMatch) {
     + 'gate if the function was deliberately restructured');
 } else {
   const [, sig, body] = raggedSigMatch;
-  if (!/^indented: false, lang: "en", body$/.test(sig.trim())) {
+  if (!/^indented: auto, lang: "en", body$/.test(sig.trim())) {
     fail.push(`typeset.typ: ragged-right's parameters are (${sig.trim()}) — expected exactly `
-      + '(indented: false, lang: "en", body), so hyphenation is never exposed as a parameter '
-      + 'independent of `lang`');
+      + '(indented: auto, lang: "en", body), so hyphenation is never exposed as a parameter '
+      + 'independent of `lang`, and an alignment override leaves the document\'s own paragraph '
+      + 'convention alone unless it is asked to change it');
   }
   if (!/set align\(left\)/.test(body)) {
     fail.push('typeset.typ: ragged-right does not `set align(left)` — Typst resolves a paragraph\'s '
@@ -2485,10 +2486,11 @@ if (!justifiedSigMatch) {
     + 'if the function was deliberately restructured');
 } else {
   const [, sig, body] = justifiedSigMatch;
-  if (!/^indented: false, lang: "en", body$/.test(sig.trim())) {
+  if (!/^indented: auto, lang: "en", body$/.test(sig.trim())) {
     fail.push(`typeset.typ: justified's parameters are (${sig.trim()}) — expected exactly `
-      + '(indented: false, lang: "en", body), so hyphenation is never exposed as a parameter '
-      + 'independent of `lang`');
+      + '(indented: auto, lang: "en", body), so hyphenation is never exposed as a parameter '
+      + 'independent of `lang`, and an alignment override leaves the document\'s own paragraph '
+      + 'convention alone unless it is asked to change it');
   }
   if (!/set align\(left\)/.test(body)) {
     fail.push('typeset.typ: justified does not `set align(left)` — Typst resolves a paragraph\'s '
@@ -2757,11 +2759,72 @@ try {
         + 'since ragged text must never hyphenate regardless of `lang`');
     }
   }
+
+  /* ---- 12e. Rendered proof: an alignment override is only that ---------- */
+
+  /* justified() and ragged-right() state ALIGNMENT. While they defaulted to
+     `indented: false` and splatted the paragraph rule unconditionally, one
+     `#justified[..]` inside a document set typeset(indented: true) silently
+     flushed that paragraph's first line and opened a gap around it — a second
+     decision the author never asked for, and the opposite of what a named
+     function is for. Nothing could see it per-task: neither function's own
+     demo document is indented, so both demos take the branch that happens to
+     agree with the document around them.
+
+     Three arms, because "always inherit" and "never inherit" are each wrong
+     and each passes one arm on its own. The wrapped paragraph is line 2: line
+     0 opens the document (Typst withholds the indent there under `all: false`)
+     and line 1 is the ordinary paragraph the wrapped one must match. */
+
+  const overrideDoc = (docIndented, call) => `#import "typeset.typ": *\n`
+    + `#show: typeset.with(indented: ${docIndented}, measure: none, running-head: false, folio: false)\n\n`
+    + `Alpha one paragraph.\n\nBeta two paragraph.\n\n#${call}[Gamma three paragraph.]\n`;
+
+  const overrideArms = [
+    ['justified', 'true', 'justified', true],
+    ['ragged-right', 'true', 'ragged-right', true],
+    ['justified', 'false', 'justified', true],
+    ['justified', 'true', 'justified(indented: false)', false],
+  ];
+  for (const [fn, docIndented, call, followsDocument] of overrideArms) {
+    try {
+      const lines = svgTextRuns(compileSvgProbe(
+        alignProbeDir, `override-${fn}-${docIndented}-${followsDocument}`,
+        overrideDoc(docIndented, call),
+      ));
+      if (lines.length !== 3) {
+        fail.push(`tools/check.mjs: the paragraph-override probe for ${call} in `
+          + `typeset(indented: ${docIndented}) rendered ${lines.length} lines, expected 3 — `
+          + 'update the probe');
+        continue;
+      }
+      const [, ordinary, wrapped] = lines;
+      const indentDrift = wrapped.firstX - ordinary.firstX;
+      const advanceDrift = (wrapped.y - ordinary.y) - (ordinary.y - lines[0].y);
+      if (followsDocument) {
+        if (Math.abs(indentDrift) > 0.5 || Math.abs(advanceDrift) > 0.5) {
+          fail.push(`typeset.typ: #${call}[..] inside typeset(indented: ${docIndented}) starts at `
+            + `x=${wrapped.firstX.toFixed(2)}pt where the ordinary paragraph beside it starts at `
+            + `x=${ordinary.firstX.toFixed(2)}pt, and advances `
+            + `${(wrapped.y - ordinary.y).toFixed(2)}pt where that paragraph advanced `
+            + `${(ordinary.y - lines[0].y).toFixed(2)}pt — an alignment override must leave the `
+            + "document's own paragraph convention exactly as it found it");
+        }
+      } else if (Math.abs(indentDrift) < 0.5 && Math.abs(advanceDrift) < 0.5) {
+        fail.push(`typeset.typ: #${call}[..] inside typeset(indented: ${docIndented}) rendered `
+          + 'identically to the paragraph beside it — a stated `indented:` must still override the '
+          + "document's convention, or the parameter is decorative");
+      }
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+      fail.push(`typeset.typ: the paragraph-override probe for ${call} failed to compile:\n${detail}`);
+    }
+  }
 } finally {
   rmSync(alignProbeDir, { recursive: true, force: true });
 }
 
-/* ---- 12e. The demo must cover the case, not configure around it --------- */
+/* ---- 12f. The demo must cover the case, not configure around it --------- */
 
 const justificationDemo = readFileSync('src/demos/justification.typ', 'utf8');
 if (/#set par|#set text/.test(justificationDemo)) {
