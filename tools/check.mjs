@@ -986,6 +986,40 @@ const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]
   }
 }
 
+/* ---- 3j. The page-setup demo's margin labels must be the spec's own values  */
+
+/* src/demos/page.html draws a diagram of the default page and labels the
+   margin twice in text beside it — once on the gauge, once in the caption —
+   for the same reason the scale demos' labels are checked in 3f above: the
+   diagram itself is drawn from a percentage that moves with the margin,
+   while these two labels are literal text that would not, and a literal
+   label is a second copy of a value spec.json owns. Both directions matter
+   here just as they do in 3f, so a margin that gains a new default name and
+   a label that is simply never updated both fail. */
+
+{
+  const marginName = spec.foundation.page.margins.default;
+  const marginMm = spec.foundation.page.margins.symmetric_mm[marginName];
+  const paper = spec.foundation.page.size;
+  const pageDemo = readFileSync('src/demos/page.html', 'utf8');
+
+  const gaugeLabel = pageDemo.match(/<span class="pagemap__gauge-label">([^<]*)<\/span>/)?.[1];
+  const expectedGauge = `${marginMm}mm`;
+  if (gaugeLabel !== expectedGauge) {
+    fail.push(`src/demos/page.html: the margin gauge is labelled "${gaugeLabel}" but `
+      + `spec.json's default margin (foundation.page.margins.default = "${marginName}") `
+      + `is ${expectedGauge} — the label and the diagram no longer agree`);
+  }
+
+  const caption = pageDemo.match(/<div class="pagemap__caption">([^<]*)<\/div>/)?.[1];
+  const expectedCaption = `${paper} · ${expectedGauge}, symmetric`;
+  if (caption !== expectedCaption) {
+    fail.push(`src/demos/page.html: the page caption reads "${caption}" but `
+      + `spec.json's default page is "${expectedCaption}" — the label and the `
+      + 'diagram no longer agree');
+  }
+}
+
 /* ---- 4. SPEC.md must be current ----------------------------------------- */
 
 if (!specMd.includes(`Version ${spec.version} · updated ${spec.updated}`)) {
