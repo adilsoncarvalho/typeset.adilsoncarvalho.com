@@ -2866,6 +2866,143 @@ if (typstAvailable()) {
   }
 }
 
+/* ---- 15. A demo may not hand-configure layout: no #set par(/#set text(,
+            and no millimetre literal reached from Typst code ------------- */
+
+/* A demo is what a reader copies. If it reaches for #set par(), #set text(),
+   or a hand-picked millimetre, the template has failed to cover that case —
+   Tasks 2-7 converted every demo that did; this gate is what stops the next
+   one reintroducing it. Ruling 2 on the plan this gate comes from forbids an
+   exemption list outright: a demo that genuinely needs to configure
+   something is evidence of a missing function in typeset.typ, not a line to
+   add here.
+
+   The #set arm is a plain substring search — #set is never legitimate inside
+   a demo, in prose or in code, so it needs no context-sensitivity.
+
+   The millimetre arm needs it. The plan this gate implements originally
+   called for rejecting a bare millimetre literal anywhere under
+   src/demos/*.typ. Measured against the demos as they stand today, that
+   rule fires on 20 lines (not the 19 the plan's own author measured earlier —
+   src/demos/letter.typ, with a footnote citing "168mm", was added after that
+   measurement) of which 19 are legitimate: these demos are prose *about*
+   margins and column arithmetic ("A4 is 210mm wide..."), and forbidding that
+   forbids the demos from explaining themselves. Exactly one hit is real:
+   src/demos/figures.typ used to hand-pick 128mm for a diagram's scale, tied
+   to the measure with nothing saying so.
+
+   So this checks a narrower, defensible claim: a millimetre literal is a
+   problem only where it sits in Typst *code* (a #let binding, a #set
+   argument, a bare function-call argument), not where it sits in Typst
+   *markup* (prose, including inside a content-block argument such as
+   #footnote[...] or a #frontmatter-abstract(...)[...] body) — the same
+   distinction the language itself draws between an unescaped "#" and the
+   "[...]" it can open. codeMillimetreLiterals() below walks the source
+   tracking that distinction as a stack of frames, because a call can nest
+   inside a markup content block that is itself an argument to an outer call
+   (src/demos/two-column.typ's "#show: two-column.with(front: [
+   #frontmatter-title-block(...) ... ])" is exactly this shape) — a single
+   in/out flag cannot represent that, but a stack of "what recursively
+   contains this position" frames can.
+
+   Stated limit: this is a lexical approximation of Typst's grammar, not a
+   parser for it. A frame opened by a bare "#" (before any "(", "{" or "["
+   has committed it to a bracket) is closed either at the next newline, or
+   immediately once its own bracketed call finishes and the very next
+   character does not chain into another one — the same tight binding
+   #frontmatter-abstract(width: 100%)[...] relies on to keep its trailing
+   content block part of the same call. A keyword clause whose unbracketed
+   code is separated from its own content block by a further keyword and
+   whitespace — a Typst `for`/`while` head such as "#for (x) in y [...]" —
+   can be misclassified for the stretch between the closing "(" and the
+   opening "[", because the one-character lookahead this function uses does
+   not span that gap. No demo in this repo puts a millimetre literal in that
+   stretch (src/demos/tokens.typ's own #for loop has none), so the limit is
+   recorded here rather than patched over with more lookahead a real case
+   has never exercised. */
+
+function codeMillimetreLiterals(source) {
+  const hits = [];
+  const stack = [{ type: 'markup', bracket: null }];
+  const n = source.length;
+  let i = 0;
+
+  /* Closes the bracket frame that owns position `i` in `source`, then — if
+     the frame beneath it is a still-unbracketed "bare" code frame — decides
+     whether that bare frame is also finished: it is, unless the character
+     immediately at `i` chains straight into another call ("(" or "["). */
+  const closeBracket = (i) => {
+    stack.pop();
+    const frame = stack[stack.length - 1];
+    if (frame && frame.type === 'code' && frame.bracket === null
+      && source[i] !== '(' && source[i] !== '[') {
+      stack.pop();
+    }
+  };
+
+  while (i < n) {
+    const ch = source[i];
+    const next = source[i + 1];
+
+    if (ch === '/' && next === '/') {
+      const nl = source.indexOf('\n', i);
+      i = nl === -1 ? n : nl;
+      continue;
+    }
+    if (ch === '/' && next === '*') {
+      const close = source.indexOf('*/', i + 2);
+      i = close === -1 ? n : close + 2;
+      continue;
+    }
+    if (ch === '\\') { i += 2; continue; }
+
+    const frame = stack[stack.length - 1];
+
+    if (frame.type === 'markup') {
+      if (ch === '#') { stack.push({ type: 'code', bracket: null }); i += 1; continue; }
+    } else {
+      if (ch === '(' || ch === '{') { stack.push({ type: 'code', bracket: ch }); i += 1; continue; }
+      if (ch === '[') { stack.push({ type: 'markup', bracket: '[' }); i += 1; continue; }
+      if (ch === ')' && frame.bracket === '(') { closeBracket(i + 1); i += 1; continue; }
+      if (ch === '}' && frame.bracket === '{') { closeBracket(i + 1); i += 1; continue; }
+      if (ch === '\n' && frame.bracket === null) { stack.pop(); i += 1; continue; }
+    }
+    if (ch === ']' && frame.type === 'markup' && frame.bracket === '[') {
+      closeBracket(i + 1); i += 1; continue;
+    }
+
+    const m = /^(\d+(?:\.\d+)?)mm(?!\w)/.exec(source.slice(i, i + 20));
+    if (m && !/[\w.]/.test(source[i - 1] ?? ' ')) {
+      if (frame.type === 'code') hits.push({ index: i, text: m[0] });
+      i += m[0].length;
+      continue;
+    }
+
+    i += 1;
+  }
+  return hits;
+}
+
+for (const file of typstSnippets) {
+  const path = `src/demos/${file}`;
+  const src = readFileSync(path, 'utf8');
+
+  src.split('\n').forEach((line, idx) => {
+    if (/#set\s+par\(|#set\s+text\(/.test(line)) {
+      fail.push(`${path}:${idx + 1}: hand-configures the layout directly (${line.trim()}) — a `
+        + 'demo is what a reader copies, and the point of the template functions is that an '
+        + 'author never writes #set par() or #set text()');
+    }
+  });
+
+  for (const hit of codeMillimetreLiterals(src)) {
+    const lineNo = src.slice(0, hit.index).split('\n').length;
+    fail.push(`${path}:${lineNo}: a millimetre literal (${hit.text}) is reached from Typst code, `
+      + 'not from prose — a demo that hand-picks a dimension is evidence of a missing function in '
+      + 'implementations/typeset.typ, not a line for an exemption list');
+  }
+}
+
 /* ---- Report ------------------------------------------------------------- */
 
 const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);

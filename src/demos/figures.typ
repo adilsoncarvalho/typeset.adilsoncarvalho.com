@@ -1,4 +1,4 @@
-#let s = 128mm / 400
+#let s = measure-standard / 400
 
 #figure(
   caption: [
