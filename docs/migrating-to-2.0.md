@@ -6,7 +6,30 @@ separate vocabularies — a class could drift from its symbol, or either could
 drift from the spec, with nothing to catch it. `tools/check.mjs` now fails
 when they disagree.
 
-Nothing about the typography changed. This release renames things.
+Renaming is the mechanical change every document needs. The default page
+margin also changed — see below — so a migrated document does not sit on
+quite the same page it did in 1.x.
+
+## Margins
+
+1.x had one page margin, and it was always the mirrored kind: 25mm top and
+bottom, 28mm on the binding edge, 22mm on the outside. 2.0 defaults instead to
+a symmetric margin — `standard`, 20mm on all four sides — and keeps the
+mirrored scheme as an explicit opt-in, now called duplex, for a document that
+will be bound. Duplex `standard` is 23mm inner, 17mm outer: not the same
+numbers 1.x used, because the pair now derives from the symmetric value it
+sits alongside (preserving the total, 40mm, and shifting the gutter by 3mm)
+rather than being chosen on its own.
+
+Neither the class-name codemod nor the Typst rename table below touches this.
+A 1.x document that migrates cleanly on both still reflows onto a different
+page: the text width moves from 160mm to 170mm, a two-column document's
+columns move from 77mm to 82mm, and the running head and folio move with the
+margin that carries them. `narrow` and `wide` exist alongside `standard` for a
+document that wants a different page than the new default. None of the three
+named duplex sizes reproduces the 1.x 28mm/22mm split exactly — each one is
+now derived from its symmetric counterpart rather than chosen on its own — so
+a document that must keep its old 1.x page needs a custom margin override.
 
 ## Migrating an HTML or CSS document
 
