@@ -11,8 +11,11 @@
   Australia
 ]
 
-// letter-address-label is the address block's own "To" caption — its
-// label: parameter, not a symbol of its own.
+// letter-address-label is reached through letter-address-block's `label:`
+// parameter rather than through a symbol of its own. The HTML file shows the
+// block twice — without the caption and with it — where this one document
+// shows only the finished, captioned form; omitting `label:` is what the
+// first of those two panes corresponds to.
 #letter-address-block(label: [To])[
   The Registrar \
   Institute of Typographic Studies \

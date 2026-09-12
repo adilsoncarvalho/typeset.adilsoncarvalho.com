@@ -10,7 +10,18 @@
 </div>
 
 <p class="pair__label" data-element="letter-address-block">2 · Address block</p>
-<p class="demo-note">Line-broken data, not prose — the recipient's address exactly as it would sit on an envelope. The <b>To</b> caption above it is a label of this block, not a style of its own.</p>
+<p class="demo-note">Line-broken data, not prose — the recipient's address exactly as it would sit on an envelope: tighter leading than the body, never justified, and the line breaks as authored.</p>
+<div class="paper typeset typeset--ragged typeset--letter" lang="en">
+  <address class="ts-letter-address-block">
+    The Registrar<br>
+    Institute of Typographic Studies<br>
+    88 Rundle Street<br>
+    Adelaide SA 5000
+  </address>
+</div>
+
+<p class="pair__label" data-element="letter-address-label">3 · Address label</p>
+<p class="demo-note">The caption that says whose address this is: sans, uppercase, tracked open and faint, on a line of its own above the block. It never appears outside an address block — but it is set by eight declarations of its own, and the address beneath it shares none of them.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <address class="ts-letter-address-block">
     <span class="ts-label ts-letter-address-label">To</span>
@@ -21,26 +32,26 @@
   </address>
 </div>
 
-<p class="pair__label" data-element="letter-date">3 · Date line</p>
+<p class="pair__label" data-element="letter-date">4 · Date line</p>
 <p class="demo-note">Oldstyle figures, flush left — the same numeral convention the rest of the document already sets, not a date format of its own.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-date">27 August 2026</p>
 </div>
 
-<p class="pair__label" data-element="letter-date-note">4 · Line under the date</p>
+<p class="pair__label" data-element="letter-date-note">5 · Line under the date</p>
 <p class="demo-note">A dedication, a feast, a devotion — whatever the writer puts under the date. Italic, at body size, close enough beneath it that the two read as one line rather than two.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-date">27 August 2026</p>
   <p class="ts-letter-date-note">St Monica, mother of St Augustine Bishop, ora pro nobis</p>
 </div>
 
-<p class="pair__label" data-element="letter-salutation">5 · Salutation</p>
+<p class="pair__label" data-element="letter-salutation">6 · Salutation</p>
 <p class="demo-note">A greeting, set exactly like any other paragraph in the letter — no weight change, no size change, no heading trying to happen.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-salutation">Dear Registrar,</p>
 </div>
 
-<p class="pair__label" data-element="letter-footnote">6 · Footnote — in a letter</p>
+<p class="pair__label" data-element="letter-footnote">7 · Footnote — in a letter</p>
 <p class="demo-note">The same marker as the rest of the document's apparatus — superscript, no brackets. On a one-page letter, the rule and the numbered note it sits above are the page foot in every sense but name.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-salutation">Dear Registrar,</p>
@@ -58,27 +69,27 @@
   </div>
 </div>
 
-<p class="pair__label" data-element="letter-closing">7 · Closing</p>
+<p class="pair__label" data-element="letter-closing">8 · Closing</p>
 <p class="demo-note">The same plain rhythm as the salutation it echoes — the only difference is the room above it, not a style of its own.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-closing">Yours sincerely,</p>
 </div>
 
-<p class="pair__label" data-element="letter-signature">8 · Signature block</p>
+<p class="pair__label" data-element="letter-signature">9 · Signature block</p>
 <p class="demo-note">The typed name, with room above it to sign. No ruled line: a rule above a name is a form to be filled in, and this is not a form.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-closing">Yours sincerely,</p>
   <div class="ts-letter-signature">Adilson Carvalho</div>
 </div>
 
-<p class="pair__label" data-element="letter-enclosures">9 · Enclosures</p>
+<p class="pair__label" data-element="letter-enclosures">10 · Enclosures</p>
 <p class="demo-note"><b>Enc.</b> introduces a sentence; it does not head a section, so it carries no small caps and no weight change of its own.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <div class="ts-letter-signature">Adilson Carvalho</div>
   <p class="ts-letter-enclosures">Enc. typeset.css; two specimen pages</p>
 </div>
 
-<p class="pair__label" data-element="letter-postscript">10 · Postscript</p>
+<p class="pair__label" data-element="letter-postscript">11 · Postscript</p>
 <p class="demo-note">A postscript is a sentence that happens to begin with <b>P.S.</b> — the label is not a heading, so it matches the text it introduces exactly.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-enclosures">Enc. typeset.css; two specimen pages</p>

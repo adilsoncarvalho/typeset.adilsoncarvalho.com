@@ -9,9 +9,11 @@
   place-date: [Sydney, 28 August 2026],
 )
 
-// frontmatter-abstract-label is the same shape as letter-address-label: the
-// literal "ABSTRACT" caption below is frontmatter-abstract's own doing, not
-// a symbol of its own.
+// frontmatter-abstract always sets the "ABSTRACT" caption itself, so
+// frontmatter-abstract-label has no symbol of its own and — unlike
+// letter-address-block's `label:` — no way to be left off. The HTML file
+// shows the block both ways, unlabelled and labelled; only the labelled one
+// below is reachable from here.
 #frontmatter-abstract[
   Every argument about typefaces is downstream of an argument about column
   width. This essay makes the case that a document set at the wrong measure

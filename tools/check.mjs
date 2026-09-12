@@ -3868,10 +3868,6 @@ const EXEMPTIONS = new Map([
      appearance of its own to put beside a label. */
   ['justification-exclusions', 'states a prohibition — what must never be '
     + 'justified — not a style with an appearance of its own to show'],
-  /* Appears inside a quote-blockquote's own markup; it has no standalone
-     form the way an epigraph or a pull quote does. */
-  ['quote-attribution', 'a part of quote-blockquote, not a thing of its own — it '
-    + 'appears inside a block quote and has no standalone form'],
   /* Forces a page break. There is a page boundary to point at in a paginated
      render, and nothing at all in a screen demo. */
   ['utility-break-before', 'changes pagination — there is a page boundary to show '
@@ -3890,15 +3886,6 @@ const EXEMPTIONS = new Map([
   ['letter-page', 'sets @page margins and suppresses the running head and '
     + 'folio — a print/paginated effect with no page boundary to show inside '
     + 'a screen-rendered ".paper" div, the same reasoning as utility-break-before'],
-  /* Appears inside letter-address-block's own markup, the same relationship
-     quote-attribution has to quote-blockquote above. */
-  ['letter-address-label', 'a caption belonging to letter-address-block, not a '
-    + 'style of its own — the same relationship quote-attribution has to '
-    + 'quote-blockquote'],
-  /* Appears inside frontmatter-abstract's own markup — same shape again. */
-  ['frontmatter-abstract-label', 'a caption belonging to frontmatter-abstract, '
-    + 'not a style of its own — the same relationship quote-attribution has to '
-    + 'quote-blockquote'],
   /* Starts the next element on a new page — the mirror of utility-break-before,
      with the same "nothing to show on a screen" reasoning. */
   ['utility-break-after', 'changes pagination — there is a page boundary to show '
