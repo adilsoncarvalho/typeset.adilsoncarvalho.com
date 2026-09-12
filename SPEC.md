@@ -26,12 +26,17 @@ A normative typographic specification for printed documents — essays, letters,
 | size | `A4` |
 | size mm | `210`, `297` |
 | alternate size | `Letter` |
-| margin top mm | `25` |
-| margin bottom mm | `25` |
-| margin outer mm | `22` |
-| margin inner mm | `28` |
-| duplex | Margins mirror: the inner (binding) margin is 28mm on both left and right pages, so the gutter stays put when printed double-sided. |
-| text width mm | `160` |
+| text width | Not a stated constant: the paper width minus the left and right margins — twice the symmetric value, or inner plus outer for a duplex pair. The two are equal for any one size, by the rule above. |
+
+#### margins
+
+| Property | Value |
+| --- | --- |
+| default | `standard` |
+| symmetric mm | narrow: `10`; standard: `20`; wide: `30` |
+| duplex inner mm | narrow: `13`; standard: `23`; wide: `33` |
+| duplex outer mm | narrow: `7`; standard: `17`; wide: `27` |
+| note | Symmetric is what a document gets unless it asks otherwise: the named size applies to all four sides. Duplex is the explicit opt-in, for a sheet that will be bound — top and bottom stay at the symmetric value, and left and right split into an inner (binding) edge and an outer edge. A duplex pair preserves its symmetric pair's total, inner plus outer equal to twice the symmetric value, and shifts the gutter by 3mm: 20+20=40 becomes 23+17. A document keeps the same text width whichever it chooses, so switching between symmetric and duplex never reflows it. |
 
 #### running head
 
