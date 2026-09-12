@@ -986,21 +986,36 @@ const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]
   }
 }
 
-/* ---- 3j. The page-setup demo's margin labels must be the spec's own values  */
+/* ---- 3j. The page-setup demo's margin labels and diagram must be the spec's
+           own values ---------------------------------------------------- */
 
 /* src/demos/page.html draws a diagram of the default page and labels the
    margin twice in text beside it — once on the gauge, once in the caption —
    for the same reason the scale demos' labels are checked in 3f above: the
-   diagram itself is drawn from a percentage that moves with the margin,
-   while these two labels are literal text that would not, and a literal
-   label is a second copy of a value spec.json owns. Both directions matter
-   here just as they do in 3f, so a margin that gains a new default name and
-   a label that is simply never updated both fail. */
+   diagram is drawn from a percentage that moves with the margin, while
+   these two labels are literal text that would not, and a literal label is
+   a second copy of a value spec.json owns. Both directions matter here just
+   as they do in 3f, so a margin that gains a new default name and a label
+   that is simply never updated both fail.
+
+   The diagram itself is drawn in specimen.css, not in the demo file, as the
+   `.pagemap__margins` inset — a percentage of the A4 sheet, one axis per
+   side. That geometry is checked here too, independently against
+   foundation.page.sizes_mm, rather than trusted because the labels beside
+   it happen to read correctly: a label is typed text and the inset is a
+   separately-maintained CSS rule, so nothing stops one from moving without
+   the other, and only checking the label leaves exactly this diagram
+   uncovered. This is why the failure messages below can honestly end
+   "the label and the diagram no longer agree" — every one of label, caption
+   and inset is checked against spec.json independently, so a wrong diagram
+   drawn against a correctly-labelled margin is caught here rather than
+   inferred from the label having passed. */
 
 {
   const marginName = spec.foundation.page.margins.default;
   const marginMm = spec.foundation.page.margins.symmetric_mm[marginName];
   const paper = spec.foundation.page.size;
+  const [paperWidthMm, paperHeightMm] = spec.foundation.page.sizes_mm[paper];
   const pageDemo = readFileSync('src/demos/page.html', 'utf8');
 
   const gaugeLabel = pageDemo.match(/<span class="pagemap__gauge-label">([^<]*)<\/span>/)?.[1];
@@ -1017,6 +1032,34 @@ const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]
     fail.push(`src/demos/page.html: the page caption reads "${caption}" but `
       + `spec.json's default page is "${expectedCaption}" — the label and the `
       + 'diagram no longer agree');
+  }
+
+  /* The inset is declared to one decimal place, so the closest a correctly
+     rounded value can sit from the exact percentage is 0.05 points either
+     way. 0.06 clears that rounding slack with a little headroom for
+     floating-point noise, while staying far tighter than the gap a doubled
+     margin opens up (single-digit points) — so a correctly rounded value
+     always passes and a margin drawn at roughly twice the real one always
+     fails. */
+  const TOLERANCE_PCT = 0.06;
+
+  const inset = readFileSync('specimen.css', 'utf8')
+    .match(/\.pagemap__margins\s*\{[^}]*\binset:\s*([\d.]+)%\s+([\d.]+)%/);
+  const expectedVerticalPct = (marginMm / paperHeightMm) * 100;
+  const expectedHorizontalPct = (marginMm / paperWidthMm) * 100;
+
+  if (!inset) {
+    fail.push('specimen.css: no .pagemap__margins inset found — the page-setup diagram cannot be checked');
+  } else {
+    const verticalPct = Number(inset[1]);
+    const horizontalPct = Number(inset[2]);
+    if (Math.abs(verticalPct - expectedVerticalPct) > TOLERANCE_PCT
+      || Math.abs(horizontalPct - expectedHorizontalPct) > TOLERANCE_PCT) {
+      fail.push(`specimen.css: .pagemap__margins inset is "${verticalPct}% ${horizontalPct}%" but `
+        + `spec.json's default margin (${marginMm}mm on ${paper}, ${paperWidthMm}×${paperHeightMm}mm) `
+        + `draws as "${expectedVerticalPct.toFixed(1)}% ${expectedHorizontalPct.toFixed(1)}%" — `
+        + 'the label and the diagram no longer agree');
+    }
   }
 }
 
