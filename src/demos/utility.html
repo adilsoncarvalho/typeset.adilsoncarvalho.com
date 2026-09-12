@@ -1,9 +1,12 @@
-<p class="pair__label">How it must look</p>
+<p class="pair__label" data-element="utility-tie">1 · Tie</p>
+<p class="demo-note">A non-breaking join between a figure and its unit, a section mark and its number — so a line break can never fall between them, wherever the paragraph happens to wrap.</p>
 <div class="paper typeset">
-  <dl>
-    <dt>.ts-utility-break-before</dt><dd>Start this element on a new page. For chapter openings.</dd>
-    <dt>.ts-utility-keep-together</dt><dd>Never split this element across pages. For a short table, a signature block, a callout.</dd>
-    <dt>.ts-utility-tie</dt><dd>Keep a figure with its unit: <span class="ts-utility-tie">11 pt</span>, <span class="ts-utility-tie">§2.1</span>, <span class="ts-utility-tie">Fig. 1</span>.</dd>
-    <dt>.ts-print-only / .ts-screen-only</dt><dd>For the URL list a printed page needs and a screen does not, and the navigation a screen needs and a page does not.</dd>
-  </dl>
+  <p>Keep a figure with its unit: <span class="ts-utility-tie">11 pt</span>, <span class="ts-utility-tie">§2.1</span>, <span class="ts-utility-tie">Fig. 1</span> — none of them ever break across a line.</p>
+</div>
+
+<p class="pair__label" data-element="utility-no-hyphens">2 · No hyphenation</p>
+<p class="demo-note">Stops the dictionary from breaking one specific run — a name, a trademark — while everything else in a justified paragraph keeps hyphenating as usual. Disabling hyphenation for a whole justified paragraph is the mistake the justification section shows; this narrows the override to the one word that must never take a hyphen.</p>
+<div class="paper typeset typeset--justified typeset--measure-narrow" lang="en">
+  <p>The village of Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch sits on Anglesey, and this justified paragraph is left to hyphenate its name wherever the dictionary allows, the same as any other word here.</p>
+  <p>The village of <span class="ts-utility-no-hyphens">Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch</span> sits on Anglesey, and this justified paragraph must never hyphenate that one name, however freely it hyphenates every other word here.</p>
 </div>
