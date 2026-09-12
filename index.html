@@ -111,7 +111,7 @@
     <span><b>Sans</b> Source Sans 3</span>
     <span><b>Mono</b> IBM Plex Mono</span>
     <span><b>Base</b> 11pt / 1.45</span>
-    <span><b>Page</b> A4, 25×22mm</span>
+    <span><b>Page</b> A4, 20mm</span>
     <span><b>Spec</b> 2.0.0 · 2026-09-11</span>
   </div>
   <div class="btngroups">
@@ -339,8 +339,8 @@
   was a page at all. This paragraph is <span class="c-at">set</span> to the default <span class="c-val">126mm</span> measure.
 ]
 
-#block(<span class="c-prop">width</span>: <span class="c-val">160mm</span>)[
-  And this one is deliberately overset to the full <span class="c-val">160mm</span> between the margins, so
+#block(<span class="c-prop">width</span>: <span class="c-val">170mm</span>)[
+  And this one is deliberately overset to the full <span class="c-val">170mm</span> between the margins, so
   you can feel the return sweep failing. By the third line your eye has to hunt
   for the start of the next, and the hunt is what tires a reader out over twenty
   pages.
@@ -355,7 +355,7 @@
   <div class="section__head">
     <p class="section__num">03 — Foundations</p>
     <h2>Page setup</h2>
-    <p>A4 at 25×22mm, with mirrored margins so a duplex-printed document keeps its gutter. The running head is the current level-2 heading, resolved by the engine — never typed by the author, and never allowed to drift from the section it names.</p>
+    <p>A4 at the standard margin, 20mm on all four sides — symmetric by default. A document being bound can opt into duplex margins instead, so a duplex-printed document keeps its gutter. The running head is the current level-2 heading, resolved by the engine — never typed by the author, and never allowed to drift from the section it names.</p>
   </div>
   <div class="note"><b>Engine capability.</b> Running heads and folios require the engine to write into the page margin. Typst and LaTeX do this natively. In CSS it is Paged Media, which no browser implements — Chrome's print dialog ignores it and substitutes its own header and footer, so the CSS implementation needs <a href="https://pagedjs.org">Paged.js</a>, WeasyPrint or Prince. The two CSS examples do exactly that.</div>
   <div class="pair">
@@ -371,8 +371,8 @@
             <span class="pagemap__line"></span><span class="pagemap__line"></span>
             <span class="pagemap__line"></span><span class="pagemap__line pagemap__line--short"></span>
           </div>
-          <div class="pagemap__gauge"><span class="pagemap__gauge-label">25mm</span></div>
-          <div class="pagemap__caption">A4 · 22mm outer / 28mm inner</div>
+          <div class="pagemap__gauge"><span class="pagemap__gauge-label">20mm</span></div>
+          <div class="pagemap__caption">A4 · 20mm, symmetric</div>
         </div>
       </div>
     </div>
@@ -456,11 +456,9 @@
 
 == Composition
 
-A<span class="c-val">4</span> at <span class="c-val">25mm</span> head and foot, <span class="c-val">28mm</span> on the inside edge and <span class="c-val">22mm</span> on the outside. The
-margins mirror, so the wider edge is always the binding edge and a
-duplex-printed document keeps its gutter wherever the sheet is turned. Between
-them lies <span class="c-val">160mm</span> of text width, of which the measure claims <span class="c-val">126mm</span> and leaves the
-remainder as slack.
+A<span class="c-val">4</span> at the standard margin, <span class="c-val">20mm</span> on all four sides — the default a document
+gets unless it asks otherwise. Between them lies <span class="c-val">170mm</span> of text width, of
+which the measure claims <span class="c-val">126mm</span> and leaves the remainder as slack.
 
 That slack is not waste. It is where a marginal note goes, where a thumb rests,
 and where the eye finds somewhere to stop. A page whose text runs to both
@@ -489,25 +487,33 @@ Neither carries a rule. A rule under a running head is a habit inherited from
 newspapers, where the head separates two unrelated stories; in a document with a
 single argument running through it there is nothing to separate.
 
-== The arithmetic of the margin
+== A bound document opts into duplex margins
 
-The outer margin is narrower than the inner, which surprises people who expect a
-page to be symmetrical. It is not symmetrical, and it never was. A bound
-document is read as a spread of two pages, and the two inner margins meet in the
-middle to form a single gutter. Set them equal to the outer margins and that
-gutter reads as twice the width of everything <span class="c-at">else</span>, which pulls the two pages
-apart exactly where the reader needs them to be one thing.
+A document that will be bound and read as a spread can ask for duplex margins
+instead of symmetric ones. Top and bottom stay at the standard value, <span class="c-val">20mm</span>; left
+and right split into an inner edge, at the binding, and an outer edge — <span class="c-val">23mm</span>
+inside, <span class="c-val">17mm</span> outside, mirrored by page side so the wider edge is always the
+binding edge. The pair preserves the symmetric total, <span class="c-val">40mm</span>, and shifts the
+gutter by <span class="c-val">3mm</span>, so the text width is <span class="c-prop">unchanged</span>: a document does not reflow
+between the two.
 
-<span class="c-val">28mm</span> inside against <span class="c-val">22mm</span> outside gives a gutter of <span class="c-val">56mm</span> on the spread and <span class="c-val">44mm</span>
+It is not symmetrical, and that surprises people who expect a page to be. A
+bound document is read as a spread of two pages, and the two inner margins meet
+in the middle to form a single gutter. Set them equal to the outer margins and
+that gutter reads as twice the width of everything <span class="c-at">else</span>, which pulls the two
+pages apart exactly where the reader needs them to be one thing.
+
+<span class="c-val">23mm</span> inside against <span class="c-val">17mm</span> outside gives a gutter of <span class="c-val">46mm</span> on the spread and <span class="c-val">34mm</span>
 at the two outer edges — close enough to equal that the spread reads as a unit,
 and the binding still has somewhere to take its fold.
 
-The head and foot are equal here at <span class="c-val">25mm</span>, which is the concession this
-specification makes to the photocopier and the office printer. The classical
-proportions put more space at the foot than at the head, so the text block sits
-slightly above the optical centre of the sheet; it is the better setting, and it
-is the first thing lost when a document is reproduced on equipment that cannot
-be trusted to centre anything.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+The margin is equal on all four sides in the default, symmetric case — <span class="c-val">20mm</span> —
+which is the concession this specification makes to the photocopier and the
+office printer. The classical proportions put more space at the foot than at
+the head, and more at the outer edge than the inner, so the text block sits
+slightly above and toward the spine; it is the better setting, and it is the
+first thing lost when a document is reproduced on equipment that cannot be
+trusted to centre anything.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
 </div>
     </div>
@@ -519,8 +525,8 @@ be trusted to centre anything.</pre><button class="copy" type="button" data-copy
     <p class="section__num">04 — Templates</p>
     <h2>Two column, equal</h2>
     <p>For papers, journal articles, newsletters and technical notes — documents scanned and referenced as much as read. A template sets the page and the scale; it does not get its own typography, so everything else on this page still applies unchanged.</p>
-    <p><b>The base size drops to 9.5pt here, and that is arithmetic rather than taste.</b> A4 less the 28mm inner and 22mm outer margin leaves 160mm; a 6mm gutter divides it into two 77mm columns. At 11pt a 77mm column carries 40 characters — below the 45-character floor this spec sets for prose. 9.5pt restores 47, and every other step comes down with it.</p>
-    <p>Two consequences worth stating: <b>justification stops being optional</b>, because at 47 characters a ragged edge serrates the column visibly; and <b>sidenotes are forbidden</b>, because there is no margin left to put them in.</p>
+    <p><b>The base size drops to 9.5pt here, and that is arithmetic rather than taste.</b> A4 less the standard 20mm margin on each side leaves 170mm; a 6mm gutter divides it into two 82mm columns. At 11pt an 82mm column carries 43 characters — below the 45-character floor this spec sets for prose. 9.5pt restores 50, and every other step comes down with it.</p>
+    <p>Two consequences worth stating: <b>justification stops being optional</b>, because at 50 characters a ragged edge serrates the column visibly; and <b>sidenotes are forbidden</b>, because there is no margin left to put them in.</p>
   </div>
   <div class="note"><b>Engine capability.</b> A column container cannot be fragmented by <a href="https://pagedjs.org">Paged.js</a> — it moves content between page boxes and cannot split a column flow, so it produces zero pages. The CSS two-column example therefore prints directly from the browser and simulates one sheet on screen. Typst paginates columns natively.</div>
   <div class="pair">
@@ -538,29 +544,29 @@ be trusted to centre anything.</pre><button class="copy" type="button" data-copy
               </div>
               <div class="ts-frontmatter-abstract">
                 <span class="ts-label ts-frontmatter-abstract-label">Abstract</span>
-                Dividing an A4 page into two equal columns leaves 77mm of measure. At the single-column base of 11pt that carries 40 characters — below the floor at which a line of prose stays readable.
+                Dividing an A4 page into two equal columns leaves 82mm of measure. At the single-column base of 11pt that carries 43 characters — below the floor at which a line of prose stays readable.
               </div>
               <h2>The arithmetic</h2>
-              <p>A4 is 210mm wide. Take off the 28mm inner margin and the 22mm outer margin and 160mm of text width remains. A 6mm gutter divides it into two columns of 77mm.</p>
-              <p>At 11pt, a 77mm column carries about 40 characters. This specification sets 45 as the floor for a line of prose, so 11pt is not available here. Dropping the base to 9.5pt restores 47 characters.</p>
+              <p>A4 is 210mm wide. Take off the standard margin, 20mm on each side, and 170mm of text width remains. A 6mm gutter divides it into two columns of 82mm.</p>
+              <p>At 11pt, an 82mm column carries about 43 characters. This specification sets 45 as the floor for a line of prose, so 11pt is not available here. Dropping the base to 9.5pt restores 50 characters.</p>
               <h3>What follows</h3>
-              <p>Leading tightens from 1.45 to 1.4. A shorter line needs less vertical separation for the return sweep to stay unambiguous, and the saving is real: at 13.3pt of advance a column holds 52 lines instead of 47.</p>
-              <p>Headings come down hardest. A 24pt level-2 heading inside a 77mm column spends three lines saying two words, so the scale runs 20/13/11/9.5.</p>
+              <p>Leading tightens from 1.45 to 1.4. A shorter line needs less vertical separation for the return sweep to stay unambiguous, and the saving is real: at 13.3pt of advance a column holds 54 lines instead of 45.</p>
+              <p>Headings come down hardest. A 24pt level-2 heading inside an 82mm column spends three lines saying two words, so the scale runs 20/13/11/9.5.</p>
               <div class="ts-callouts-callout">
                 <p class="ts-callouts-title">What does not change</p>
                 <p>The palette, the rule weights, the numeral conventions and the pagination rules are all identical.</p>
               </div>
               <h2>Justification</h2>
-              <p>At 47 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.</p>
+              <p>At 50 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.</p>
               <blockquote class="ts-quotes-pullquote"><p>The one place the spec removes a choice.</p></blockquote>
               <p>So the template turns justification on itself rather than offering it as an option.</p>
               <figure class="ts-span">
                 <table>
-                  <caption><span class="ts-label ts-tables-caption-label">Table 1</span> — Characters per line for a 77mm column.</caption>
+                  <caption><span class="ts-label ts-tables-caption-label">Table 1</span> — Characters per line for an 82mm column.</caption>
                   <thead><tr><th>Base</th><th class="ts-tables-cell-numeric">11pt</th><th class="ts-tables-cell-numeric">10pt</th><th class="ts-tables-cell-numeric">9.5pt</th><th class="ts-tables-cell-numeric">9pt</th></tr></thead>
                   <tbody>
-                    <tr><td>Characters</td><td class="ts-tables-cell-numeric">40</td><td class="ts-tables-cell-numeric">44</td><td class="ts-tables-cell-numeric">47</td><td class="ts-tables-cell-numeric">49</td></tr>
-                    <tr><td>Conformant</td><td class="ts-tables-cell-numeric">no</td><td class="ts-tables-cell-numeric">no</td><td class="ts-tables-cell-numeric">yes</td><td class="ts-tables-cell-numeric">yes</td></tr>
+                    <tr><td>Characters</td><td class="ts-tables-cell-numeric">43</td><td class="ts-tables-cell-numeric">47</td><td class="ts-tables-cell-numeric">50</td><td class="ts-tables-cell-numeric">52</td></tr>
+                    <tr><td>Conformant</td><td class="ts-tables-cell-numeric">no</td><td class="ts-tables-cell-numeric">yes</td><td class="ts-tables-cell-numeric">yes</td><td class="ts-tables-cell-numeric">yes</td></tr>
                   </tbody>
                 </table>
               </figure>
@@ -569,7 +575,7 @@ be trusted to centre anything.</pre><button class="copy" type="button" data-copy
               <p>A three-line drop cap at 3.05em is 29pt — a quarter of the column width for one letter. The cap is neutralised and the opening words carry the signal in small caps instead.</p>
               <h3>Spanning</h3>
               <p>An element spans both columns fully or neither. Spanning costs a break in both columns, so it is opt-in per instance and belongs at the top or the bottom of a page.</p>
-              <div class="ts-frontmatter-colophon">Set in EB Garamond, 9.5 on 13.3 points, two columns of 77mm with a 6mm gutter.</div>
+              <div class="ts-frontmatter-colophon">Set in EB Garamond, 9.5 on 13.3 points, two columns of 82mm with a 6mm gutter.</div>
             </article>
           </div>
         </div>
@@ -596,29 +602,29 @@ be trusted to centre anything.</pre><button class="copy" type="button" data-copy
   &lt;/div&gt;
   &lt;div class=&quot;ts-frontmatter-abstract&quot;&gt;
     &lt;span class=&quot;ts-label ts-frontmatter-abstract-label&quot;&gt;Abstract&lt;/span&gt;
-    Dividing an A4 page into two equal columns leaves 77mm of measure. At the single-column base of 11pt that carries 40 characters — below the floor at which a line of prose stays readable.
+    Dividing an A4 page into two equal columns leaves 82mm of measure. At the single-column base of 11pt that carries 43 characters — below the floor at which a line of prose stays readable.
   &lt;/div&gt;
   &lt;h2&gt;The arithmetic&lt;/h2&gt;
-  &lt;p&gt;A4 is 210mm wide. Take off the 28mm inner margin and the 22mm outer margin and 160mm of text width remains. A 6mm gutter divides it into two columns of 77mm.&lt;/p&gt;
-  &lt;p&gt;At 11pt, a 77mm column carries about 40 characters. This specification sets 45 as the floor for a line of prose, so 11pt is not available here. Dropping the base to 9.5pt restores 47 characters.&lt;/p&gt;
+  &lt;p&gt;A4 is 210mm wide. Take off the standard margin, 20mm on each side, and 170mm of text width remains. A 6mm gutter divides it into two columns of 82mm.&lt;/p&gt;
+  &lt;p&gt;At 11pt, an 82mm column carries about 43 characters. This specification sets 45 as the floor for a line of prose, so 11pt is not available here. Dropping the base to 9.5pt restores 50 characters.&lt;/p&gt;
   &lt;h3&gt;What follows&lt;/h3&gt;
-  &lt;p&gt;Leading tightens from 1.45 to 1.4. A shorter line needs less vertical separation for the return sweep to stay unambiguous, and the saving is real: at 13.3pt of advance a column holds 52 lines instead of 47.&lt;/p&gt;
-  &lt;p&gt;Headings come down hardest. A 24pt level-2 heading inside a 77mm column spends three lines saying two words, so the scale runs 20/13/11/9.5.&lt;/p&gt;
+  &lt;p&gt;Leading tightens from 1.45 to 1.4. A shorter line needs less vertical separation for the return sweep to stay unambiguous, and the saving is real: at 13.3pt of advance a column holds 54 lines instead of 45.&lt;/p&gt;
+  &lt;p&gt;Headings come down hardest. A 24pt level-2 heading inside an 82mm column spends three lines saying two words, so the scale runs 20/13/11/9.5.&lt;/p&gt;
   &lt;div class=&quot;ts-callouts-callout&quot;&gt;
     &lt;p class=&quot;ts-callouts-title&quot;&gt;What does not change&lt;/p&gt;
     &lt;p&gt;The palette, the rule weights, the numeral conventions and the pagination rules are all identical.&lt;/p&gt;
   &lt;/div&gt;
   &lt;h2&gt;Justification&lt;/h2&gt;
-  &lt;p&gt;At 47 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.&lt;/p&gt;
+  &lt;p&gt;At 50 characters a ragged right edge serrates the column visibly, and the word gaps in an unhyphenated justified column read as rivers. Both faults are tolerable at 66 characters and neither is tolerable here.&lt;/p&gt;
   &lt;blockquote class=&quot;ts-quotes-pullquote&quot;&gt;&lt;p&gt;The one place the spec removes a choice.&lt;/p&gt;&lt;/blockquote&gt;
   &lt;p&gt;So the template turns justification on itself rather than offering it as an option.&lt;/p&gt;
   &lt;figure class=&quot;ts-span&quot;&gt;
     &lt;table&gt;
-      &lt;caption&gt;&lt;span class=&quot;ts-label ts-tables-caption-label&quot;&gt;Table 1&lt;/span&gt; — Characters per line for a 77mm column.&lt;/caption&gt;
+      &lt;caption&gt;&lt;span class=&quot;ts-label ts-tables-caption-label&quot;&gt;Table 1&lt;/span&gt; — Characters per line for an 82mm column.&lt;/caption&gt;
       &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Base&lt;/th&gt;&lt;th class=&quot;ts-tables-cell-numeric&quot;&gt;11pt&lt;/th&gt;&lt;th class=&quot;ts-tables-cell-numeric&quot;&gt;10pt&lt;/th&gt;&lt;th class=&quot;ts-tables-cell-numeric&quot;&gt;9.5pt&lt;/th&gt;&lt;th class=&quot;ts-tables-cell-numeric&quot;&gt;9pt&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
       &lt;tbody&gt;
-        &lt;tr&gt;&lt;td&gt;Characters&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;40&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;44&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;47&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;49&lt;/td&gt;&lt;/tr&gt;
-        &lt;tr&gt;&lt;td&gt;Conformant&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;no&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;no&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;yes&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;yes&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;Characters&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;43&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;47&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;50&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;52&lt;/td&gt;&lt;/tr&gt;
+        &lt;tr&gt;&lt;td&gt;Conformant&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;no&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;yes&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;yes&lt;/td&gt;&lt;td class=&quot;ts-tables-cell-numeric&quot;&gt;yes&lt;/td&gt;&lt;/tr&gt;
       &lt;/tbody&gt;
     &lt;/table&gt;
   &lt;/figure&gt;
@@ -627,7 +633,7 @@ be trusted to centre anything.</pre><button class="copy" type="button" data-copy
   &lt;p&gt;A three-line drop cap at 3.05em is 29pt — a quarter of the column width for one letter. The cap is neutralised and the opening words carry the signal in small caps instead.&lt;/p&gt;
   &lt;h3&gt;Spanning&lt;/h3&gt;
   &lt;p&gt;An element spans both columns fully or neither. Spanning costs a break in both columns, so it is opt-in per instance and belongs at the top or the bottom of a page.&lt;/p&gt;
-  &lt;div class=&quot;ts-frontmatter-colophon&quot;&gt;Set in EB Garamond, 9.5 on 13.3 points, two columns of 77mm with a 6mm gutter.&lt;/div&gt;
+  &lt;div class=&quot;ts-frontmatter-colophon&quot;&gt;Set in EB Garamond, 9.5 on 13.3 points, two columns of 82mm with a 6mm gutter.&lt;/div&gt;
 &lt;/article&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
     <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L446">two-column</a></p><pre>#block[
   #<span class="c-at">set</span> text(<span class="c-prop">size</span>: scale-two-column.base, <span class="c-prop">hyphenate</span>: <span class="c-at">true</span>)
@@ -646,29 +652,28 @@ be trusted to centre anything.</pre><button class="copy" type="button" data-copy
   )
 
   #frontmatter-abstract(<span class="c-prop">width</span>: <span class="c-val">100%</span>)[
-    Dividing an A<span class="c-val">4</span> page into two equal columns leaves <span class="c-val">77mm</span> of measure. At the
-    single-column base of <span class="c-val">11pt</span> that carries <span class="c-val">40</span> characters — below the floor at
+    Dividing an A<span class="c-val">4</span> page into two equal columns leaves <span class="c-val">82mm</span> of measure. At the
+    single-column base of <span class="c-val">11pt</span> that carries <span class="c-val">43</span> characters — below the floor at
     which a line of prose stays readable.
   ]
 
   #columns(<span class="c-val">2</span>, <span class="c-prop">gutter</span>: <span class="c-val">6mm</span>)[
     == The arithmetic
 
-    A<span class="c-val">4</span> is <span class="c-val">210mm</span> wide. Take off the <span class="c-val">28mm</span> inner margin and the <span class="c-val">22mm</span> outer margin
-    and <span class="c-val">160mm</span> of text width remains. A <span class="c-val">6mm</span> gutter divides it into two columns of
-    <span class="c-val">77mm</span>.
+    A<span class="c-val">4</span> is <span class="c-val">210mm</span> wide. Take off the standard margin, <span class="c-val">20mm</span> on each side, and <span class="c-val">170mm</span>
+    of text width remains. A <span class="c-val">6mm</span> gutter divides it into two columns of <span class="c-val">82mm</span>.
 
-    At <span class="c-val">11pt</span>, a <span class="c-val">77mm</span> column carries about <span class="c-val">40</span> characters. This specification sets
+    At <span class="c-val">11pt</span>, an <span class="c-val">82mm</span> column carries about <span class="c-val">43</span> characters. This specification sets
     <span class="c-val">45</span> as the floor for a line of prose, so <span class="c-val">11pt</span> is not available here. Dropping
-    the base to <span class="c-val">9.5pt</span> restores <span class="c-val">47</span> characters.
+    the base to <span class="c-val">9.5pt</span> restores <span class="c-val">50</span> characters.
 
     === What follows
 
     Leading tightens from <span class="c-val">1.45</span> to <span class="c-val">1.4</span>. A shorter line needs less vertical
     separation for the return sweep to stay unambiguous, and the saving is <span class="c-prop">real</span>:
-    at <span class="c-val">13.3pt</span> of advance a column holds <span class="c-val">52</span> lines instead of <span class="c-val">47</span>.
+    at <span class="c-val">13.3pt</span> of advance a column holds <span class="c-val">54</span> lines instead of <span class="c-val">45</span>.
 
-    Headings come down hardest. A <span class="c-val">24pt</span> level-<span class="c-val">2</span> heading inside a <span class="c-val">77mm</span> column
+    Headings come down hardest. A <span class="c-val">24pt</span> level-<span class="c-val">2</span> heading inside an <span class="c-val">82mm</span> column
     spends three lines saying two words, so the scale runs <span class="c-val">20</span>/<span class="c-val">13</span>/<span class="c-val">11</span>/<span class="c-val">9.5</span>.
 
     #callouts-callout(<span class="c-prop">title</span>: [What does not change])[
@@ -678,7 +683,7 @@ be trusted to centre anything.</pre><button class="copy" type="button" data-copy
 
     == Justification
 
-    At <span class="c-val">47</span> characters a ragged right edge serrates the column visibly, and the
+    At <span class="c-val">50</span> characters a ragged right edge serrates the column visibly, and the
     word gaps in an unhyphenated justified column read as rivers. Both faults are
     tolerable at <span class="c-val">66</span> characters and neither is tolerable here.
 
@@ -688,7 +693,7 @@ be trusted to centre anything.</pre><button class="copy" type="button" data-copy
     option.
 
     #span(figure(
-      <span class="c-prop">caption</span>: [Characters per line for a <span class="c-val">77mm</span> column.],
+      <span class="c-prop">caption</span>: [Characters per line for an <span class="c-val">82mm</span> column.],
       <span class="c-prop">kind</span>: table,
       <span class="c-prop">supplement</span>: [Table],
       ts-table(
@@ -696,8 +701,8 @@ be trusted to centre anything.</pre><button class="copy" type="button" data-copy
         <span class="c-prop">rows</span>: <span class="c-val">2</span>,
         <span class="c-prop">align</span>: (left + horizon,) + (right + horizon,) * <span class="c-val">4</span>,
         table.header([Base], [<span class="c-val">11pt</span>], [<span class="c-val">10pt</span>], [<span class="c-val">9.5pt</span>], [<span class="c-val">9pt</span>]),
-        [Characters], [<span class="c-val">40</span>], [<span class="c-val">44</span>], [<span class="c-val">47</span>], [<span class="c-val">49</span>],
-        [Conformant], [no], [no], [yes], [yes],
+        [Characters], [<span class="c-val">43</span>], [<span class="c-val">47</span>], [<span class="c-val">50</span>], [<span class="c-val">52</span>],
+        [Conformant], [no], [yes], [yes], [yes],
       ),
     ))
 
@@ -719,7 +724,7 @@ be trusted to centre anything.</pre><button class="copy" type="button" data-copy
   ]
 
   #frontmatter-colophon[
-    Set in EB Garamond, <span class="c-val">9.5</span> on <span class="c-val">13.3</span> points, two columns of <span class="c-val">77mm</span> with a <span class="c-val">6mm</span>
+    Set in EB Garamond, <span class="c-val">9.5</span> on <span class="c-val">13.3</span> points, two columns of <span class="c-val">82mm</span> with a <span class="c-val">6mm</span>
     gutter.
   ]
 ]</pre><button class="copy" type="button" data-copy>Copy</button></div></div>

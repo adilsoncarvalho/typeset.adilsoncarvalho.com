@@ -21,7 +21,7 @@ body { background: #e8e4dd; margin: 0; }
 .sheet {
   width: 210mm;
   margin: 2.5rem auto;
-  padding: 25mm 22mm 25mm 28mm;
+  padding: 20mm;
   background: #fffefb;
   box-shadow: 0 2px 4px rgb(0 0 0 / 0.08), 0 12px 32px -16px rgb(0 0 0 / 0.25);
 }

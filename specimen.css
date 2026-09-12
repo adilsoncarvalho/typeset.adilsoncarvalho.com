@@ -711,7 +711,7 @@ table.spec-table code {
 }
 .pagemap__margins {
   position: absolute;
-  inset: 8.4% 10.5%;
+  inset: 6.7% 9.5%;
   border: 1px dashed var(--ui-guide);
 }
 .pagemap__runhead {
@@ -736,8 +736,8 @@ table.spec-table code {
 }
 .pagemap__lines {
   position: absolute;
-  left: 10.5%;
-  right: 10.5%;
+  left: 9.5%;
+  right: 9.5%;
   top: 14%;
   display: flex;
   flex-direction: column;
@@ -749,8 +749,8 @@ table.spec-table code {
 .pagemap__gauge {
   position: absolute;
   left: -2.2rem;
-  top: 8.4%;
-  bottom: 8.4%;
+  top: 6.7%;
+  bottom: 6.7%;
   display: flex;
   align-items: center;
 }

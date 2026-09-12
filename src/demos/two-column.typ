@@ -15,29 +15,28 @@
   )
 
   #frontmatter-abstract(width: 100%)[
-    Dividing an A4 page into two equal columns leaves 77mm of measure. At the
-    single-column base of 11pt that carries 40 characters — below the floor at
+    Dividing an A4 page into two equal columns leaves 82mm of measure. At the
+    single-column base of 11pt that carries 43 characters — below the floor at
     which a line of prose stays readable.
   ]
 
   #columns(2, gutter: 6mm)[
     == The arithmetic
 
-    A4 is 210mm wide. Take off the 28mm inner margin and the 22mm outer margin
-    and 160mm of text width remains. A 6mm gutter divides it into two columns of
-    77mm.
+    A4 is 210mm wide. Take off the standard margin, 20mm on each side, and 170mm
+    of text width remains. A 6mm gutter divides it into two columns of 82mm.
 
-    At 11pt, a 77mm column carries about 40 characters. This specification sets
+    At 11pt, an 82mm column carries about 43 characters. This specification sets
     45 as the floor for a line of prose, so 11pt is not available here. Dropping
-    the base to 9.5pt restores 47 characters.
+    the base to 9.5pt restores 50 characters.
 
     === What follows
 
     Leading tightens from 1.45 to 1.4. A shorter line needs less vertical
     separation for the return sweep to stay unambiguous, and the saving is real:
-    at 13.3pt of advance a column holds 52 lines instead of 47.
+    at 13.3pt of advance a column holds 54 lines instead of 45.
 
-    Headings come down hardest. A 24pt level-2 heading inside a 77mm column
+    Headings come down hardest. A 24pt level-2 heading inside an 82mm column
     spends three lines saying two words, so the scale runs 20/13/11/9.5.
 
     #callouts-callout(title: [What does not change])[
@@ -47,7 +46,7 @@
 
     == Justification
 
-    At 47 characters a ragged right edge serrates the column visibly, and the
+    At 50 characters a ragged right edge serrates the column visibly, and the
     word gaps in an unhyphenated justified column read as rivers. Both faults are
     tolerable at 66 characters and neither is tolerable here.
 
@@ -57,7 +56,7 @@
     option.
 
     #span(figure(
-      caption: [Characters per line for a 77mm column.],
+      caption: [Characters per line for an 82mm column.],
       kind: table,
       supplement: [Table],
       ts-table(
@@ -65,8 +64,8 @@
         rows: 2,
         align: (left + horizon,) + (right + horizon,) * 4,
         table.header([Base], [11pt], [10pt], [9.5pt], [9pt]),
-        [Characters], [40], [44], [47], [49],
-        [Conformant], [no], [no], [yes], [yes],
+        [Characters], [43], [47], [50], [52],
+        [Conformant], [no], [yes], [yes], [yes],
       ),
     ))
 
@@ -88,7 +87,7 @@
   ]
 
   #frontmatter-colophon[
-    Set in EB Garamond, 9.5 on 13.3 points, two columns of 77mm with a 6mm
+    Set in EB Garamond, 9.5 on 13.3 points, two columns of 82mm with a 6mm
     gutter.
   ]
 ]

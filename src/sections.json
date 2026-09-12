@@ -30,7 +30,7 @@
     "group": "Foundations",
     "title": "Page setup",
     "prose": [
-      "<p>A4 at 25×22mm, with mirrored margins so a duplex-printed document keeps its gutter. The running head is the current level-2 heading, resolved by the engine — never typed by the author, and never allowed to drift from the section it names.</p>"
+      "<p>A4 at the standard margin, 20mm on all four sides — symmetric by default. A document being bound can opt into duplex margins instead, so a duplex-printed document keeps its gutter. The running head is the current level-2 heading, resolved by the engine — never typed by the author, and never allowed to drift from the section it names.</p>"
     ],
     "note": "<div class=\"note\"><b>Engine capability.</b> Running heads and folios require the engine to write into the page margin. Typst and LaTeX do this natively. In CSS it is Paged Media, which no browser implements — Chrome's print dialog ignores it and substitutes its own header and footer, so the CSS implementation needs <a href=\"https://pagedjs.org\">Paged.js</a>, WeasyPrint or Prince. The two CSS examples do exactly that.</div>",
     "panel": {
@@ -44,8 +44,8 @@
     "title": "Two column, equal",
     "prose": [
       "<p>For papers, journal articles, newsletters and technical notes — documents scanned and referenced as much as read. A template sets the page and the scale; it does not get its own typography, so everything else on this page still applies unchanged.</p>",
-      "<p><b>The base size drops to 9.5pt here, and that is arithmetic rather than taste.</b> A4 less the 28mm inner and 22mm outer margin leaves 160mm; a 6mm gutter divides it into two 77mm columns. At 11pt a 77mm column carries 40 characters — below the 45-character floor this spec sets for prose. 9.5pt restores 47, and every other step comes down with it.</p>",
-      "<p>Two consequences worth stating: <b>justification stops being optional</b>, because at 47 characters a ragged edge serrates the column visibly; and <b>sidenotes are forbidden</b>, because there is no margin left to put them in.</p>"
+      "<p><b>The base size drops to 9.5pt here, and that is arithmetic rather than taste.</b> A4 less the standard 20mm margin on each side leaves 170mm; a 6mm gutter divides it into two 82mm columns. At 11pt an 82mm column carries 43 characters — below the 45-character floor this spec sets for prose. 9.5pt restores 50, and every other step comes down with it.</p>",
+      "<p>Two consequences worth stating: <b>justification stops being optional</b>, because at 50 characters a ragged edge serrates the column visibly; and <b>sidenotes are forbidden</b>, because there is no margin left to put them in.</p>"
     ],
     "note": "<div class=\"note\"><b>Engine capability.</b> A column container cannot be fragmented by <a href=\"https://pagedjs.org\">Paged.js</a> — it moves content between page boxes and cannot split a column flow, so it produces zero pages. The CSS two-column example therefore prints directly from the browser and simulates one sheet on screen. Typst paginates columns natively.</div>",
     "panel": {
