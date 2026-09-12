@@ -743,12 +743,17 @@
 }
 // @e
 
-// A table that fills the measure and closes with a strong rule. Typst's stroke
-// function cannot see the row count, so it is passed in.
+// A table that fills the measure and carries the three rules the spec asks
+// for: a strong one above the header, a strong one below it, and a strong one
+// below the last body row, with hairlines between the rows in between. Typst's
+// stroke function cannot see the row count, so it is passed in.
 #let ts-table(columns: none, rows: none, ..cells) = {
   table(
     columns: columns,
-    stroke: (x, y) => (bottom: if y == 0 or y == rows { 1pt + rule-strong } else { 0.5pt + rule-color }),
+    stroke: (x, y) => (
+      top: if y == 0 { 1pt + rule-strong },
+      bottom: if y == 0 or y == rows { 1pt + rule-strong } else { 0.5pt + rule-color },
+    ),
     ..cells,
   )
 }

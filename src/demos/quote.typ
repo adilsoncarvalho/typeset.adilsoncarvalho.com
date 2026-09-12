@@ -1,3 +1,8 @@
+// The HTML file shows this quotation twice: once bare, for the block quote
+// itself, and once attributed, for quote-attribution. Here it appears once,
+// attributed — `attribution:` is the whole difference between the two panes,
+// and a second copy of the same four lines would teach nothing the parameter
+// name does not already say.
 Ruder puts the case for restraint more sharply than anyone since:
 
 #quote(attribution: [Emil Ruder, _Typographie_, 1967])[

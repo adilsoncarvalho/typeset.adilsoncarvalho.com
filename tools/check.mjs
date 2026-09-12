@@ -12,6 +12,7 @@ import { buildSpecMd } from './build-spec.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
 import { typstBoilerplate, typstDocument, setsItsOwnPage } from '../src/boilerplate.mjs';
+import { TYPST_ELSEWHERE } from '../src/panels.mjs';
 import { rewrite } from './codemod-names.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
@@ -685,7 +686,7 @@ function reindent(fragment, amount) {
    Adding apparatus is therefore a two-file change, and the second file is the
    gate. The check below it holds the same two lists to what apparatus means:
    furniture this website adds, which typeset.css never defines. */
-const SPECIMEN_ELEMENTS = ['demo-note', 'demo-print-note', 'ts-folio'];
+const SPECIMEN_ELEMENTS = ['demo-note', 'demo-print-note', 'demo-pagemap', 'ts-folio'];
 const SPECIMEN_CLASSES = ['demo-aside', 'ts-toc--demo'];
 
 /* Rebuilds the published fragment from the extracted one: apparatus elements
@@ -1389,6 +1390,124 @@ const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]
   }
 }
 
+/* ---- 3j2. The letter-page diagram must be spec.json's own letter page ---- */
+
+/* The letter section opens with the same .pagemap device 3j checks above,
+   drawn twice: the default page beside a letter's. Everything the pane claims
+   about the letter's page is a second copy of a value spec.json owns — the
+   three margins, drawn as percentages of the A4 sheet and stated again in
+   words in the demo note, and the absence of a running head and a folio,
+   drawn by leaving two elements out. A diagram that is silently wrong is
+   worse than no diagram, because a reader checks the picture rather than the
+   property table beside it, so every one of those is checked here against
+   letter-page's own properties.
+
+   The comparison sheet is checked too, in the other direction: the note says
+   the empty head and foot of the right-hand sheet are the difference, which
+   is only legible if the left-hand sheet still carries both. */
+
+{
+  const letterPage = spec.sections.find((sec) => sec.id === 'letter')
+    ?.elements.find((el) => el.id === 'letter-page');
+  const paper = spec.foundation.page.size;
+  const [paperWidthMm, paperHeightMm] = spec.foundation.page.sizes_mm[paper];
+  const specimen = readFileSync('specimen.css', 'utf8');
+  const demo = readFileSync('src/demos/letter.html', 'utf8');
+
+  /* The same slack 3j allows: a percentage declared to one decimal place is
+     at most 0.05 points from the exact value, and 0.06 clears that with a
+     little headroom while staying far tighter than any real mistake. */
+  const TOLERANCE_PCT = 0.06;
+
+  if (!letterPage) {
+    fail.push('spec.json declares no "letter-page" element — the letter section\'s page '
+      + 'diagram has nothing left to be checked against');
+  } else {
+    const topMm = letterPage.properties.margin_top_mm;
+    const bottomMm = letterPage.properties.margin_bottom_mm;
+    const sidesMm = letterPage.properties.margin_sides_mm;
+    const expected = {
+      top: (topMm / paperHeightMm) * 100,
+      sides: (sidesMm / paperWidthMm) * 100,
+      bottom: (bottomMm / paperHeightMm) * 100,
+    };
+
+    const inset = specimen.match(/\.pagemap__margins--letter\s*\{[^}]*\binset:\s*([\d.]+)%\s+([\d.]+)%\s+([\d.]+)%/);
+    if (!inset) {
+      fail.push('specimen.css: no .pagemap__margins--letter inset of three percentages found — '
+        + "the letter section's page diagram cannot be checked");
+    } else {
+      const drawn = { top: Number(inset[1]), sides: Number(inset[2]), bottom: Number(inset[3]) };
+      const wrong = Object.entries(expected)
+        .filter(([side, pct]) => Math.abs(drawn[side] - pct) > TOLERANCE_PCT);
+      if (wrong.length > 0) {
+        fail.push(`specimen.css: .pagemap__margins--letter is drawn ${drawn.top}% ${drawn.sides}% `
+          + `${drawn.bottom}%, but letter-page's margins (${topMm}mm head, ${sidesMm}mm sides, `
+          + `${bottomMm}mm foot on ${paper}, ${paperWidthMm}×${paperHeightMm}mm) draw as `
+          + `${expected.top.toFixed(1)}% ${expected.sides.toFixed(1)}% ${expected.bottom.toFixed(1)}% — `
+          + `the diagram no longer shows the page spec.json describes (${wrong.map(([s]) => s).join(', ')})`);
+      }
+    }
+
+    const lines = specimen.match(/\.pagemap__lines--letter\s*\{([^}]*)\}/);
+    if (!lines) {
+      fail.push('specimen.css: no .pagemap__lines--letter block found — the letter diagram\'s '
+        + 'text block cannot be checked');
+    } else {
+      const left = Number(lines[1].match(/\bleft:\s*([\d.]+)%/)?.[1]);
+      const right = Number(lines[1].match(/\bright:\s*([\d.]+)%/)?.[1]);
+      if (Math.abs(left - expected.sides) > TOLERANCE_PCT
+        || Math.abs(right - expected.sides) > TOLERANCE_PCT) {
+        fail.push(`specimen.css: .pagemap__lines--letter is left: ${left}% right: ${right}%, but `
+          + `letter-page's ${sidesMm}mm sides draw as ${expected.sides.toFixed(1)}% — the diagram's `
+          + 'text block no longer agrees with .pagemap__margins--letter');
+      }
+    }
+
+    /* The note beside the diagram states all three margins in words, so each
+       is a third statement of the same number and goes stale the same way a
+       scale label does (3f). Matched loosely — "32mm at the head" — so the
+       sentence can be rewritten around the values without the gate having to
+       be rewritten with it. */
+    const note = demo.match(/<p class="demo-note">([\s\S]*?)<\/p>/)?.[1] ?? '';
+    for (const [what, mm] of [['head', topMm], ['sides', sidesMm], ['foot', bottomMm]]) {
+      if (!new RegExp(`\\b${mm}mm\\b[^.]*\\b${what}\\b`).test(note)) {
+        fail.push(`src/demos/letter.html: the letter-page note does not state ${mm}mm at the `
+          + `${what}, which is letter-page's own margin_${what === 'sides' ? 'sides' : what === 'head' ? 'top' : 'bottom'}_mm — `
+          + 'the words beside the diagram and the diagram no longer agree');
+      }
+    }
+
+    /* Both sheets of the pair, told apart by the one class only the letter's
+       carries. Splitting on the sheet's own opening tag keeps this readable
+       without parsing HTML: each piece is one sheet's markup. */
+    const sheets = demo.split('<div class="pagemap__sheet">').slice(1);
+    const letterSheet = sheets.find((sheet) => sheet.includes('pagemap__margins--letter'));
+    const defaultSheet = sheets.find((sheet) => !sheet.includes('pagemap__margins--letter'));
+
+    if (!letterSheet || !defaultSheet) {
+      fail.push('src/demos/letter.html: the letter-page pane no longer draws two .pagemap__sheet '
+        + 'diagrams, one of them carrying .pagemap__margins--letter — there is nothing left to '
+        + 'compare a letter\'s page against');
+    } else {
+      for (const [prop, cls, what] of [
+        ['running_head', 'pagemap__runhead', 'running head'],
+        ['folio', 'pagemap__folio', 'folio'],
+      ]) {
+        if (letterPage.properties[prop] === 'none' && letterSheet.includes(cls)) {
+          fail.push(`src/demos/letter.html: the letter sheet draws a ${what} (.${cls}), but `
+            + `letter-page declares ${prop}: none — the diagram shows a page the spec forbids`);
+        }
+        if (!defaultSheet.includes(cls)) {
+          fail.push(`src/demos/letter.html: the default sheet beside the letter's draws no ${what} `
+            + `(.${cls}), so the absence of one on the letter's page is not visible as a `
+            + 'difference — which is the whole of what the pane claims to show');
+        }
+      }
+    }
+  }
+}
+
 /* ---- 4. SPEC.md must be current ----------------------------------------- */
 
 /* Regenerated and compared byte for byte, the same way gate 3d holds the
@@ -1665,6 +1784,27 @@ for (const sym of typSymbols) {
   if (INTERNAL_SYMBOLS.has(sym) || specIds.has(sym) || IMPLEMENTS.has(sym)) continue;
   if (ENGINE_ELEMENTS.has(sym)) continue;
   fail.push(`typeset.typ: #let ${sym} names no spec element and is not listed as internal`);
+}
+
+/* src/panels.mjs's TYPST_ELSEWHERE points a reader from a section with no
+   region of its own to the region that actually carries its Typst styling.
+   Both halves of every entry are gated, the same shape as IMPLEMENTS above:
+   a key naming no real section, or a value typeset.typ marks no region for,
+   would make typstRegionNote() fall through to "no dedicated region" with no
+   warning anywhere that the pointer went missing — which is exactly the
+   defect the singular-rename codemod left behind twice (link/numeral keyed
+   as links/numerals) before this gate existed to catch it. */
+const typstElsewhereSectionIds = new Set(spec.sections.map((s) => s.id));
+for (const [key, value] of Object.entries(TYPST_ELSEWHERE)) {
+  if (!typstElsewhereSectionIds.has(key)) {
+    fail.push(`src/panels.mjs: TYPST_ELSEWHERE names "${key}", which spec.json does not declare `
+      + 'as a section id — a reader of that section would be told nothing about where its Typst '
+      + 'styling lives');
+  }
+  if (!typIds.has(value)) {
+    fail.push(`src/panels.mjs: TYPST_ELSEWHERE maps "${key}" to "${value}", which typeset.typ `
+      + 'marks no region for — the pointer would lead nowhere');
+  }
 }
 
 /* Typst covers a subset by design — many styles are show rules on native
@@ -3442,11 +3582,16 @@ function collectQueryText(node, out) {
 
 if (typstAvailable()) {
   const bibliographyDemo = readFileSync('src/demos/bibliography.typ', 'utf8');
-  const entriesMatch = /^#references(?:\([^\n]*\))?\[\n([\s\S]*)\n\]\n?$/.exec(bibliographyDemo);
+  /* Leading "//" lines are skipped, not rejected: a demo file says in a
+     comment what its Typst half cannot show, which is the convention every
+     other demo in src/demos follows, and a gate that forbade the comment
+     would make this the one file that cannot carry one. */
+  const entriesMatch = /^(?:\/\/[^\n]*\n|[ \t]*\n)*#references(?:\([^\n]*\))?\[\n([\s\S]*)\n\]\n?$/
+    .exec(bibliographyDemo);
   if (!entriesMatch) {
     fail.push('tools/check.mjs: src/demos/bibliography.typ is not in the shape this gate expects '
-      + '(a single #references[ ... ] wrapping the entries) — update the gate if the demo was '
-      + 'deliberately restructured');
+      + '(any number of "//" comment lines, then a single #references[ ... ] wrapping the '
+      + 'entries) — update the gate if the demo was deliberately restructured');
   } else {
     const bibProbeDir = mkdtempSync(join(tmpdir(), 'typeset-bib-punct-check-'));
     try {
@@ -3492,12 +3637,11 @@ if (typstAvailable()) {
             and no millimetre literal reached from Typst code ------------- */
 
 /* A demo is what a reader copies. If it reaches for #set par(), #set text(),
-   or a hand-picked millimetre, the template has failed to cover that case —
-   Tasks 2-7 converted every demo that did; this gate is what stops the next
-   one reintroducing it. Ruling 2 on the plan this gate comes from forbids an
-   exemption list outright: a demo that genuinely needs to configure
-   something is evidence of a missing function in typeset.typ, not a line to
-   add here.
+   or a hand-picked millimetre, the template has failed to cover that case.
+   Every demo that did was converted before this gate was written; the gate is
+   what stops the next one reintroducing it. It takes no exemption list, by
+   design: a demo that genuinely needs to configure something is evidence of a
+   missing function in typeset.typ, not a line to add here.
 
    The #set arm is a plain substring search — #set is never legitimate inside
    a demo, in prose or in code, so it needs no context-sensitivity.
@@ -3809,6 +3953,115 @@ for (const [pattern, derived, what] of guideCounts) {
   } else if (Number(m[1]) !== derived) {
     fail.push(`docs/migrating-to-2.0.md: says ${m[1]} ${what}; tools/rename-map.json chained `
       + `through the codemod gives ${derived}`);
+  }
+}
+
+/* ---- 17. Every named style has its own labelled example, or a defensible - */
+/*          exemption ------------------------------------------------------- */
+
+/* The owner's ask ("handhold the user") is a binding, not a text match: for
+   every element spec.json declares, exactly one pane across src/demos must
+   carry a pair__label whose `data-element` attribute names that element's
+   id. The label's own text stays a human word chosen for the reader —
+   "Spaced", not the spec's own "Paragraph — spaced (default)" — because
+   forcing that text to equal a normative `name` field either reads clumsily
+   ("1 · Paragraph — spaced (default)", restating the heading the reader is
+   already under) or drags 103 `name` fields into being written to suit a
+   demo file. The id is the machine key; the label is what a person reads.
+   Same split, same reason, as tools/check.mjs's own IMPLEMENTS map below,
+   which binds a Typst symbol to a spec element id rather than trusting that
+   the symbol's own name matches.
+
+   Every demo file under src/demos is scanned, not just the one named after
+   a section's own id — so a `data-element` typed into the wrong file (a
+   copy-paste from a neighbouring section) still surfaces, as a binding
+   pointing at an id that section's element list does not own. A section with
+   no demo file of its own contributes no bindings, and its elements report as
+   unbound rather than crashing the run.
+
+   Some elements cannot carry a pane of their own no matter how the demos are
+   written. EXEMPTIONS names those, each with the one-sentence reason a
+   reviewer needs to accept it on sight — an exemption with no reason is
+   itself a failure, which is what stops the list from silently absorbing
+   whatever is missing on a given day instead of naming it. */
+
+const EXEMPTIONS = new Map([
+  /* States what is never justified — a prohibition, not a style with an
+     appearance of its own to put beside a label. */
+  ['justification-exclusions', 'states a prohibition — what must never be '
+    + 'justified — not a style with an appearance of its own to show'],
+  /* Not an opt-in style: typeset.css declares break-inside: avoid on the "tr"
+     tag itself, so every row of every table in the section is already set
+     this way and there is no second form to put beside one. A pane would be
+     a copy of the table above it under a label claiming a difference that is
+     not there — which is the one thing the duplicate-fragment gate in 3d
+     exists to stop. What the property does at a page boundary is drawn by
+     utility-keep-together's own pane, which carries the same
+     break-inside: avoid one level up. */
+  ['table-row', 'break-inside: avoid declared on the "tr" tag, not opt-in — '
+    + 'every table in the section is already set this way, so a pane of its '
+    + 'own would be a duplicate under a label claiming a difference that is '
+    + 'not there; utility-keep-together draws what the property does'],
+]);
+
+for (const [id, reason] of EXEMPTIONS) {
+  if (!specIds.has(id)) {
+    fail.push(`tools/check.mjs: EXEMPTIONS names "${id}", which spec.json does not declare as `
+      + 'an element id — a typo here would silently exempt the wrong element forever');
+  }
+  if (typeof reason !== 'string' || reason.trim() === '') {
+    fail.push(`tools/check.mjs: EXEMPTIONS' entry for "${id}" carries no reason — an exemption `
+      + 'with no reason is a failure, not a pass');
+  }
+}
+
+/* One row per data-element binding found anywhere under src/demos, keyed by
+   the spec element id it names — however many panes claim it, and whatever
+   file they live in. */
+const elementBindings = new Map();
+for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
+  const path = `src/demos/${file}`;
+  for (const demo of extractDemos(readFileSync(path, 'utf8'))) {
+    if (!demo.elementId) continue;
+    const bindings = elementBindings.get(demo.elementId) ?? [];
+    bindings.push({ file: path, label: demo.label });
+    elementBindings.set(demo.elementId, bindings);
+  }
+}
+
+for (const [id, bindings] of elementBindings) {
+  if (!specIds.has(id)) {
+    for (const { file, label } of bindings) {
+      fail.push(`${file}: data-element="${id}" on "${label ?? '(unlabelled)'}" names no element `
+        + 'spec.json declares');
+    }
+  }
+}
+
+/* An exemption that is no longer true is the failure this whole gate exists
+   to prevent, one level up: the list is meant to name what cannot be shown,
+   and an entry that survives the arrival of its own pane turns into a record
+   of what somebody once thought. The loop below skips an exempt element
+   entirely, so nothing else here would ever notice. */
+for (const [id] of EXEMPTIONS) {
+  if (elementBindings.has(id)) {
+    fail.push(`tools/check.mjs: "${id}" is exempt from needing a labelled example, and `
+      + `${elementBindings.get(id).map((b) => b.file).join(', ')} binds a pane to it anyway — `
+      + 'the exemption has outlived its reason and must be deleted, not left standing');
+  }
+}
+
+for (const sec of spec.sections) {
+  for (const el of sec.elements) {
+    if (EXEMPTIONS.has(el.id)) continue;
+    const bindings = elementBindings.get(el.id) ?? [];
+    if (bindings.length === 0) {
+      fail.push(`src/demos/${sec.id}.html: no pane is bound to "${el.id}" (${el.name}) via `
+        + 'data-element — element has no labelled example');
+    } else if (bindings.length > 1) {
+      const where = bindings.map((b) => `${b.file} ("${b.label ?? '(unlabelled)'}")`).join(', ');
+      fail.push(`"${el.id}" is bound to ${bindings.length} panes, not exactly one: ${where}`);
+    }
   }
 }
 

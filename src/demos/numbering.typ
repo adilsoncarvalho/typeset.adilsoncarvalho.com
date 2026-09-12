@@ -1,21 +1,25 @@
+// Each HTML pane is its own document, so each starts its counters again from
+// one: the second pane there opens at "Method" and numbers it 1, where this
+// one continuous document has already spent 1 on "Scope". No sentence below
+// names a number, for that reason — the headings carry them, and the headings
+// are what differ between one document and two.
 #show: typeset.with(numbered: true)
 
 = Scope
 
 The opening section.
 
-== Out of scope
-
-A subsection, numbered from its parent.
-
-== Assumptions
-
-The second subsection.
-
 = Method
 
-The counter for subsections resets here.
+A second top-level section — the counter advanced on its own, with nobody
+typing a number.
 
 == Instrumentation
 
-Numbered 2.1, without anyone typing “2.1”.
+A subsection, numbered from the section that contains it.
+
+= Results
+
+== Baseline
+
+The level-3 counter reset when the new level-2 section began.

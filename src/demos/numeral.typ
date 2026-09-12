@@ -11,3 +11,9 @@ sizes, of which 12 survive.]
   [Revival], [8], [8],
   [Digital], [1,204], [1,204],
 )
+
+// No dedicated fraction setting: the "frac" OpenType feature is requested
+// directly on the run, the same feature a diagonal fraction needs in any
+// engine.
+Fractions: #text(features: ("frac",))[1/2], #text(features: ("frac",))[3/4],
+#text(features: ("frac",))[7/8].

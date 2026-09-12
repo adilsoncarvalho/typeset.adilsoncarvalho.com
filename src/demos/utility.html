@@ -1,9 +1,148 @@
-<p class="pair__label">How it must look</p>
+<p class="pair__label" data-element="utility-break-before">1 · Break before</p>
+<p class="demo-note">Starts this element on a new page — a chapter opening, most often. A screen has one continuous column and no page boundary to show it against, so the boundary is drawn: the marked bar on the right-hand sheet is the heading, opening a page of its own, and the dashed outline on the left is where it would have fallen without the override.</p>
 <div class="paper typeset">
-  <dl>
-    <dt>.ts-utility-break-before</dt><dd>Start this element on a new page. For chapter openings.</dd>
-    <dt>.ts-utility-keep-together</dt><dd>Never split this element across pages. For a short table, a signature block, a callout.</dd>
-    <dt>.ts-utility-tie</dt><dd>Keep a figure with its unit: <span class="ts-utility-tie">11 pt</span>, <span class="ts-utility-tie">§2.1</span>, <span class="ts-utility-tie">Fig. 1</span>.</dd>
-    <dt>.ts-print-only / .ts-screen-only</dt><dd>For the URL list a printed page needs and a screen does not, and the navigation a screen needs and a page does not.</dd>
-  </dl>
+  <p>…and that is the last that needs saying about the measure.</p>
+  <h2 class="ts-utility-break-before">Leading</h2>
+  <p>A shorter line needs less separation between baselines for the return sweep to stay unambiguous, which is why the two decisions cannot be taken apart.</p>
+  <div class="demo-pagemap pagemap pagemap--pair">
+    <div class="pagemap__sheet">
+      <div class="pagemap__margins"></div>
+      <div class="pagemap__lines">
+        <span class="pagemap__line"></span><span class="pagemap__line"></span>
+        <span class="pagemap__line"></span><span class="pagemap__line"></span>
+        <span class="pagemap__line"></span><span class="pagemap__line"></span>
+        <span class="pagemap__line"></span><span class="pagemap__line pagemap__line--short"></span>
+        <span class="pagemap__line pagemap__line--blank"></span>
+        <span class="pagemap__line pagemap__line--ghost pagemap__line--head"></span>
+      </div>
+      <div class="pagemap__folio">4</div>
+      <div class="pagemap__caption">where the heading would have fallen</div>
+    </div>
+    <div class="pagemap__sheet">
+      <div class="pagemap__margins"></div>
+      <div class="pagemap__lines">
+        <span class="pagemap__line pagemap__line--head pagemap__line--marked"></span>
+        <span class="pagemap__line"></span><span class="pagemap__line"></span>
+        <span class="pagemap__line"></span><span class="pagemap__line pagemap__line--short"></span>
+      </div>
+      <div class="pagemap__folio">5</div>
+      <div class="pagemap__caption">where it falls instead</div>
+    </div>
+  </div>
+</div>
+
+<p class="pair__label" data-element="utility-break-after">2 · Break after</p>
+<p class="demo-note">The mirror: whatever follows the marked element starts a new page. Reached for when a block must be the last thing a reader sees on a page — a summary before the evidence, a plate before the discussion of it.</p>
+<div class="paper typeset">
+  <p>The three rules are the whole of the table style, and the rest follows from them.</p>
+  <div class="ts-frontmatter-abstract ts-utility-break-after">
+    In short: rules and not grids, sans at 9.5pt, numbers on their right edge.
+  </div>
+  <p>The argument for each of the three takes the rest of this chapter.</p>
+  <div class="demo-pagemap pagemap pagemap--pair">
+    <div class="pagemap__sheet">
+      <div class="pagemap__margins"></div>
+      <div class="pagemap__lines">
+        <span class="pagemap__line"></span><span class="pagemap__line"></span>
+        <span class="pagemap__line"></span><span class="pagemap__line"></span>
+        <span class="pagemap__line"></span><span class="pagemap__line pagemap__line--short"></span>
+        <span class="pagemap__line pagemap__line--blank"></span>
+        <span class="pagemap__line pagemap__line--marked"></span>
+        <span class="pagemap__line pagemap__line--marked"></span>
+        <span class="pagemap__line pagemap__line--marked pagemap__line--short"></span>
+      </div>
+      <div class="pagemap__folio">6</div>
+      <div class="pagemap__caption">the marked block ends the page</div>
+    </div>
+    <div class="pagemap__sheet">
+      <div class="pagemap__margins"></div>
+      <div class="pagemap__lines">
+        <span class="pagemap__line"></span><span class="pagemap__line"></span>
+        <span class="pagemap__line"></span><span class="pagemap__line"></span>
+        <span class="pagemap__line pagemap__line--short"></span>
+      </div>
+      <div class="pagemap__folio">7</div>
+      <div class="pagemap__caption">what followed it starts here</div>
+    </div>
+  </div>
+</div>
+
+<p class="pair__label" data-element="utility-keep-together">3 · Keep together</p>
+<p class="demo-note">Never lets a page break fall inside this element — a short table, a signature block, a callout. Where the room left on the page is not enough for the whole of it, all of it moves to the next page rather than half of it staying behind.</p>
+<div class="paper typeset">
+  <p>The measurements are worth reading as one set, so they are held to one page.</p>
+  <div class="ts-utility-keep-together">
+    <table>
+      <thead><tr><th>Margin</th><th class="ts-table-cell-numeric">Millimetres</th></tr></thead>
+      <tbody>
+        <tr><td>Narrow</td><td class="ts-table-cell-numeric">10</td></tr>
+        <tr><td>Standard</td><td class="ts-table-cell-numeric">20</td></tr>
+        <tr><td>Wide</td><td class="ts-table-cell-numeric">30</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="demo-pagemap pagemap pagemap--pair">
+    <div class="pagemap__sheet">
+      <div class="pagemap__margins"></div>
+      <div class="pagemap__lines">
+        <span class="pagemap__line"></span><span class="pagemap__line"></span>
+        <span class="pagemap__line"></span><span class="pagemap__line"></span>
+        <span class="pagemap__line"></span><span class="pagemap__line"></span>
+        <span class="pagemap__line"></span><span class="pagemap__line pagemap__line--short"></span>
+        <span class="pagemap__line pagemap__line--blank"></span>
+        <span class="pagemap__line pagemap__line--ghost"></span>
+        <span class="pagemap__line pagemap__line--ghost"></span>
+      </div>
+      <div class="pagemap__folio">8</div>
+      <div class="pagemap__caption">room for part of it, so it takes none</div>
+    </div>
+    <div class="pagemap__sheet">
+      <div class="pagemap__margins"></div>
+      <div class="pagemap__lines">
+        <span class="pagemap__line pagemap__line--marked"></span>
+        <span class="pagemap__line pagemap__line--marked"></span>
+        <span class="pagemap__line pagemap__line--marked pagemap__line--short"></span>
+        <span class="pagemap__line pagemap__line--blank"></span>
+        <span class="pagemap__line"></span><span class="pagemap__line"></span>
+      </div>
+      <div class="pagemap__folio">9</div>
+      <div class="pagemap__caption">all of it arrives here, unsplit</div>
+    </div>
+  </div>
+</div>
+
+<p class="pair__label" data-element="utility-no-hyphens">4 · No hyphenation</p>
+<p class="demo-note">Stops the dictionary from breaking one specific run — a name, a trademark — while everything else in a justified paragraph keeps hyphenating as usual. Disabling hyphenation for a whole justified paragraph is the mistake the justification section shows; this narrows the override to the one word that must never take a hyphen. Whether the first paragraph below breaks the name at all is the browser's decision, and rests on it having a hyphenation dictionary for the page's language; the second must never break it, dictionary or not.</p>
+<div class="paper typeset typeset--justified typeset--measure-narrow" lang="en">
+  <p>The village of Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch sits on Anglesey, and this justified paragraph is left to hyphenate its name wherever the dictionary allows, the same as any other word here.</p>
+  <p>The village of <span class="ts-utility-no-hyphens">Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch</span> sits on Anglesey, and this justified paragraph must never hyphenate that one name, however freely it hyphenates every other word here.</p>
+</div>
+
+<p class="pair__label" data-element="utility-tie">5 · Tie</p>
+<p class="demo-note">A non-breaking join between a figure and its unit, a section mark and its number — so a line break can never fall between them, wherever the paragraph happens to wrap.</p>
+<div class="paper typeset">
+  <p>Keep a figure with its unit: <span class="ts-utility-tie">11 pt</span>, <span class="ts-utility-tie">§2.1</span>, <span class="ts-utility-tie">Fig. 1</span> — none of them ever break across a line.</p>
+</div>
+
+<p class="pair__label" data-element="utility-print-only">6 · Print only / screen only</p>
+<p class="demo-note">A pair: one class hides its element on screen, the other hides it on paper. Exactly one of the two sentences below is present in any medium, and the one you can see here is the screen's.</p>
+<div class="paper typeset">
+  <p class="ts-screen-only">Every source is linked where it is cited — follow any of them for the full reference.</p>
+  <p class="ts-print-only">Every source is listed in full on the last page, because a page has no links to follow.</p>
+  <p class="demo-print-note">Printed, the sentence above disappears and this one takes its place: <i>Every source is listed in full on the last page, because a page has no links to follow.</i> Never both, and never neither.</p>
+</div>
+
+<p class="pair__label" data-element="utility-color-adjust">7 · Exact colour</p>
+<p class="demo-note">Print dialogs save ink by leaving out background graphics. A zebra table whose bands are left out is not a plainer table — it is a table whose rows have lost the thing that told them apart. This forces every background and rule in the document through to the paper instead.</p>
+<div class="paper typeset">
+  <table class="ts-table-zebra">
+    <thead><tr><th>Margin</th><th class="ts-table-cell-numeric">Top</th><th class="ts-table-cell-numeric">Sides</th></tr></thead>
+    <tbody>
+      <tr><td>Narrow</td><td class="ts-table-cell-numeric">10</td><td class="ts-table-cell-numeric">10</td></tr>
+      <tr><td>Standard</td><td class="ts-table-cell-numeric">20</td><td class="ts-table-cell-numeric">20</td></tr>
+      <tr><td>Wide</td><td class="ts-table-cell-numeric">30</td><td class="ts-table-cell-numeric">30</td></tr>
+      <tr><td>Letter</td><td class="ts-table-cell-numeric">32</td><td class="ts-table-cell-numeric">25</td></tr>
+    </tbody>
+  </table>
+  <p class="demo-print-note">Printed, the bands and the three rules above arrive on the paper exactly as they are here. Without this rule, a dialog set to leave out background graphics drops all of them, and four rows of numbers are left with nothing telling them apart.</p>
 </div>

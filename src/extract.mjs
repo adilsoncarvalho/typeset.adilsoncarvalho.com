@@ -27,7 +27,29 @@
    .mini page chrome, so the wrapper matched here never carries "typeset"
    itself. There the fragment starts at the first descendant that does. */
 
-const LABEL_RE = /<p class="pair__label"[^>]*>([\s\S]*?)<\/p>/g;
+/* The label tag carries two things that serve different readers. The text —
+   the second capture group below, ordinal stripped further down — is the
+   human word for the example, and is free to read however a demo author
+   likes: "Spaced", not the spec's own "Paragraph — spaced (default)". A
+   reader wants the word, not the record. The binding to spec.json is a
+   separate, explicit `data-element` attribute, read out of the first
+   capture group (the tag's remaining attributes) below — the same shape the
+   IMPLEMENTS map in tools/check.mjs uses to bind a Typst symbol to a spec
+   element id. A name meant for a person does not have to double as a
+   machine key, and making it do so is what forced 103 normative `name`
+   fields to either read clumsily or be rewritten to suit a demo file.
+
+   The attribute is optional in this regex, not required: a label with none
+   still extracts, and elementId comes back null. Some panes have no element
+   to name. Four sections — tokens, foundation, page and two-column — state
+   values or a whole template rather than a document element, and the
+   justification demo carries two panes that teach a mistake ("Justified, no
+   hyphenation") and its exception rather than a style spec.json declares.
+   Requiring the attribute here would leave every one of those unextractable.
+   Whether an element that does exist has a pane is a separate gate's job,
+   not this module's. */
+const LABEL_RE = /<p class="pair__label"([^>]*)>([\s\S]*?)<\/p>/g;
+const ELEMENT_ATTR_RE = /\bdata-element="([a-z0-9-]+)"/;
 const NOTE_RE = /^\s*<p class="demo-note"[^>]*>[\s\S]*?<\/p>/;
 const WRAPPER_OPEN_RE = /^\s*(<div\b[^>]*>)/;
 const DIV_TAG_RE = /<div\b[^>]*>|<\/div>/g;
@@ -249,13 +271,18 @@ function resolveTarget(source, wrapperOpenTag, contentStart, wrapperClose) {
    generates with target-counter; spec.json declares no folio element, and
    publishing the span would make a real document set the page number twice.
 
+   The page diagram in the letter and pagination demos comes out the same way.
+   It is a drawing of a sheet — margins, a running head, a folio, the flow as
+   grey bars — and no element inside it is document content, so publishing it
+   would hand a reader markup for a picture of a page rather than for the page.
+
    A class the specimen adds to an element the document does need comes off on
    its own, and the element stays. `ts-toc--demo` only suppresses that
    generated number so a browser shows one figure rather than two. `demo-aside`
    only sets a document paragraph smaller — and in the numerals demo that
    paragraph carries the sole `.ts-numeral-fraction` in the repo, so taking
    the element would take the demonstration with it. */
-export const APPARATUS_ELEMENTS = new Set(['demo-note', 'demo-print-note', 'ts-folio']);
+export const APPARATUS_ELEMENTS = new Set(['demo-note', 'demo-print-note', 'demo-pagemap', 'ts-folio']);
 export const APPARATUS_CLASSES = new Set(['demo-aside', 'ts-toc--demo']);
 
 /* Removes both shapes from a fragment. Elements go first, so a class list
@@ -290,9 +317,11 @@ export function stripApparatus(fragment) {
     .replace(/^\n+/, '').replace(/\n+$/, '');
 }
 
-/* Takes a demo file's text and returns one { label, html, source } per
-   example. label is the pair__label text with any leading "N · " ordinal
+/* Takes a demo file's text and returns one { label, elementId, html, source }
+   per example. label is the pair__label text with any leading "N · " ordinal
    stripped, or null where the label is the generic "How it must look".
+   elementId is the label's own `data-element` attribute — the spec element
+   id this pane is bound to — or null where the label carries none.
 
    source is the fragment resolveTarget() finds — the target element with
    "paper" dropped where it carries a modifier, otherwise just its inner
@@ -333,10 +362,12 @@ export function extractDemos(source) {
       html = trimBlock(dedent(source.slice(target.contentStart, target.closeIndex)));
     }
 
-    const labelText = labelMatch[1].trim().replace(ORDINAL_RE, '');
+    const labelText = labelMatch[2].trim().replace(ORDINAL_RE, '');
     const label = labelText === GENERIC_LABEL ? null : labelText;
+    const elementAttr = labelMatch[1].match(ELEMENT_ATTR_RE);
+    const elementId = elementAttr ? elementAttr[1] : null;
 
-    demos.push({ label, html: stripApparatus(html), source: html });
+    demos.push({ label, elementId, html: stripApparatus(html), source: html });
 
     LABEL_RE.lastIndex = wrapperClose + '</div>'.length;
   }

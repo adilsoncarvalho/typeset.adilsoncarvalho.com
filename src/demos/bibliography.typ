@@ -1,3 +1,8 @@
+// references() sets the heading and the entries together, so the two HTML
+// panes — the heading, then the entries under it — are one call here. The
+// sentence the first pane runs between them ("The entries follow
+// immediately…") has nowhere to go: nothing separates the heading from the
+// list this function composes.
 #references[
   #reference(
     author: [Bringhurst, Robert],

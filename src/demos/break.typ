@@ -5,14 +5,20 @@ out to.
 
 The second begins somewhere else entirely.
 
+The first part closes here, its argument made.
+
 #break-asterism()
 
-An asterism marks a heavier division — a change of part, not of scene.
+The second part opens somewhere the first could not reach.
+
+The chapter ends on its own quiet note.
 
 #break-fleuron()
 
-A fleuron, where the document can afford ornament.
+And the next opens with a small flourish rather than a bare gap.
+
+The section ends here, its findings stated.
 
 #break-rule()
 
-And a plain rule, where it cannot.
+The next section begins without ornament, only the rule to mark the gap.

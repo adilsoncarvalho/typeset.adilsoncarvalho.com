@@ -1,10 +1,30 @@
-Ordinary text, with *bold for the load-bearing clause* and _italic for a title or
-a term of art_. Emphasis nested _inside #emph[emphasis]_ flips back to roman. *Bold
-and _italic together_* when both apply.
+The deadline is *Friday, not Monday*, whatever the earlier email said.
 
-Named entities take small caps: the #text(..smcp)[Bauhaus] closed in 1933, and
-#text(..smcp)[PDF] arrived sixty years later. Water is H#sub[2]O; the claim is
-contested.#super[3]
+She is still reading _Typographie_, Ruder's own case for restraint.
 
-Revisions read as #strike[struck through] #underline[and inserted], a phrase
-can be #highlight(fill: wash)[marked], and a key is #key[⌘P].
+The review called it _the definitive account — #emph[definitive], not merely
+thorough — of the period_.
+
+The #text(..smcp)[Bauhaus] closed its doors in 1933.
+
+// No abbreviation element in Typst, and no title metadata for a reader to
+// expand — paper offers neither a screen reader nor a hovering pointer
+// anyway. The two primitives underneath (small caps, dotted underline)
+// compose directly here, the same as the CSS selector `abbr[title]` does.
+Exported as a #underline(
+  stroke: (paint: ink-faint, thickness: 0.5pt, dash: "dotted"),
+  offset: 0.15em,
+)[#text(..smcp)[PDF]], the file survives whatever the recipient has installed.
+
+The claim is contested,#super[3] and the footnote says why.
+
+Water is H#sub[2]O, nothing more exotic.
+
+Delivery takes #strike[ten] business days.
+
+Delivery takes #strike[ten] #underline[five] business days.
+
+The clause that actually #highlight(fill: wash)[changes the deadline] is
+buried in paragraph four.
+
+Save early: a document is one #key[⌘S] away from being backed up.
