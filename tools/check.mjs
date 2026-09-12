@@ -1703,6 +1703,217 @@ try {
   rmSync(spanProbeDir, { recursive: true, force: true });
 }
 
+/* ---- 7. The named margins and paper sizes are hand-copied into both
+           implementations, and gated in neither ------------------------- */
+
+/* spec.json owns symmetric_mm, duplex_inner_mm, duplex_outer_mm and
+   sizes_mm. Both implementations restate every one of these as literal
+   numbers — typeset.typ as margin-* dictionaries plus paper-sizes-mm, the
+   66/126 character constant and the two-column floor; typeset.css as
+   @page margin declarations — and nothing before this gate compared either
+   copy to spec.json. Demonstrated: setting margin-narrow to 14mm in
+   typeset.typ while spec.json stayed at 10mm left `node tools/check.mjs`
+   reporting only a stale generated page, and passing clean once the site
+   was rebuilt. Only the default (standard, symmetric) margin was covered,
+   and only incidentally, because the two-column spanning probe above
+   renders through it — the other five names, in both implementations,
+   were free to drift. */
+
+const marginNames = ['narrow', 'standard', 'wide'];
+const symmetricMm = spec.foundation.page.margins.symmetric_mm;
+const duplexInnerMm = spec.foundation.page.margins.duplex_inner_mm;
+const duplexOuterMm = spec.foundation.page.margins.duplex_outer_mm;
+const sizesMm = spec.foundation.page.sizes_mm;
+const MARGIN_TOLERANCE_MM = 0.001;
+const mmClose = (a, b) => a !== null && b !== null && Math.abs(a - b) < MARGIN_TOLERANCE_MM;
+
+/* The spec's own stated invariant — "inner plus outer equal to twice the
+   symmetric value" — is prose in foundation.page.margins.note with nothing
+   checking it. A duplex pair that stops preserving its symmetric total
+   silently reflows every document that switches between duplex and
+   symmetric, so this is asserted against spec.json's own numbers,
+   independently of either implementation. */
+for (const name of marginNames) {
+  const total = duplexInnerMm[name] + duplexOuterMm[name];
+  if (!mmClose(total, 2 * symmetricMm[name])) {
+    fail.push(`spec.json: foundation.page.margins duplex_inner_mm.${name} (${duplexInnerMm[name]}mm) + `
+      + `duplex_outer_mm.${name} (${duplexOuterMm[name]}mm) = ${total}mm, not twice symmetric_mm.${name} `
+      + `(${symmetricMm[name]}mm) — the margins note's own invariant no longer holds`);
+  }
+}
+
+/* Typst: six margin-* dictionaries. */
+const marginDictSource = (name) => {
+  const m = new RegExp(`#let margin-${name} = \\(([^)]*)\\)`).exec(typ);
+  if (!m) return null;
+  const dict = {};
+  for (const pair of m[1].matchAll(/(top|bottom|left|right|inside|outside)\s*:\s*(-?[\d.]+)mm/g)) {
+    dict[pair[1]] = Number(pair[2]);
+  }
+  return dict;
+};
+
+for (const name of marginNames) {
+  const dict = marginDictSource(name);
+  if (!dict) {
+    fail.push(`typeset.typ: #let margin-${name} was not found`);
+  } else {
+    for (const side of ['top', 'bottom', 'left', 'right']) {
+      if (!mmClose(dict[side], symmetricMm[name])) {
+        fail.push(`typeset.typ: margin-${name}.${side} is ${dict[side]}mm, but `
+          + `foundation.page.margins.symmetric_mm.${name} is ${symmetricMm[name]}mm`);
+      }
+    }
+  }
+
+  const duplexDict = marginDictSource(`duplex-${name}`);
+  if (!duplexDict) {
+    fail.push(`typeset.typ: #let margin-duplex-${name} was not found`);
+  } else {
+    for (const side of ['top', 'bottom']) {
+      if (!mmClose(duplexDict[side], symmetricMm[name])) {
+        fail.push(`typeset.typ: margin-duplex-${name}.${side} is ${duplexDict[side]}mm, but `
+          + `foundation.page.margins.symmetric_mm.${name} is ${symmetricMm[name]}mm`);
+      }
+    }
+    if (!mmClose(duplexDict.inside, duplexInnerMm[name])) {
+      fail.push(`typeset.typ: margin-duplex-${name}.inside is ${duplexDict.inside}mm, but `
+        + `foundation.page.margins.duplex_inner_mm.${name} is ${duplexInnerMm[name]}mm`);
+    }
+    if (!mmClose(duplexDict.outside, duplexOuterMm[name])) {
+      fail.push(`typeset.typ: margin-duplex-${name}.outside is ${duplexDict.outside}mm, but `
+        + `foundation.page.margins.duplex_outer_mm.${name} is ${duplexOuterMm[name]}mm`);
+    }
+  }
+}
+
+/* Typst: paper-sizes-mm, both directions — a paper named in one place and
+   not the other is exactly as wrong as one named in both with different
+   numbers. "us-letter" is Typst's own name for the spec's "Letter"; every
+   other key is the spec's own name lower-cased. */
+const PAPER_NAME_TO_SPEC = { a4: 'A4', a5: 'A5', 'us-letter': 'Letter' };
+const paperDictMatch = /#let paper-sizes-mm = \(\n([\s\S]*?)\n\)/.exec(typ);
+if (!paperDictMatch) {
+  fail.push('typeset.typ: #let paper-sizes-mm was not found');
+} else {
+  const typPapers = {};
+  for (const entry of paperDictMatch[1].matchAll(/"([\w-]+)":\s*\((-?[\d.]+)mm,\s*(-?[\d.]+)mm\)/g)) {
+    typPapers[entry[1]] = [Number(entry[2]), Number(entry[3])];
+  }
+  for (const [typKey, specKey] of Object.entries(PAPER_NAME_TO_SPEC)) {
+    if (!(typKey in typPapers)) {
+      fail.push(`typeset.typ: paper-sizes-mm has no "${typKey}" entry, but foundation.page.sizes_mm names "${specKey}"`);
+    } else {
+      const [w, h] = typPapers[typKey];
+      const [specW, specH] = sizesMm[specKey];
+      if (!mmClose(w, specW) || !mmClose(h, specH)) {
+        fail.push(`typeset.typ: paper-sizes-mm.${typKey} is (${w}mm, ${h}mm), but `
+          + `foundation.page.sizes_mm.${specKey} is (${specW}mm, ${specH}mm)`);
+      }
+    }
+  }
+  for (const typKey of Object.keys(typPapers)) {
+    if (!(typKey in PAPER_NAME_TO_SPEC)) {
+      fail.push(`typeset.typ: paper-sizes-mm has a "${typKey}" entry with no known spec.json counterpart `
+        + '— add it to PAPER_NAME_TO_SPEC in this gate');
+    }
+  }
+  for (const specKey of Object.keys(sizesMm)) {
+    if (!Object.values(PAPER_NAME_TO_SPEC).includes(specKey)) {
+      fail.push(`typeset.typ: foundation.page.sizes_mm names "${specKey}", which PAPER_NAME_TO_SPEC in `
+        + 'this gate does not map to a paper-sizes-mm entry');
+    }
+  }
+}
+
+/* Typst: the foundation measure (66 characters in 126mm), inlined into
+   two-column()'s own chars-in formula, and the two-column floor. */
+const charsMatch = /calc\.round\((-?[\d.]+)\s*\/\s*(-?[\d.]+)\s*\*/.exec(typ);
+if (!charsMatch) {
+  fail.push('typeset.typ: the 66/126 characters-per-mm constant was not found in two-column()');
+} else {
+  if (Number(charsMatch[1]) !== spec.foundation.rhythm.measure_chars) {
+    fail.push(`typeset.typ: two-column()'s characters constant is ${charsMatch[1]}, but `
+      + `foundation.rhythm.measure_chars is ${spec.foundation.rhythm.measure_chars}`);
+  }
+  if (Number(charsMatch[2]) !== spec.foundation.rhythm.measure_mm) {
+    fail.push(`typeset.typ: two-column()'s mm constant is ${charsMatch[2]}, but `
+      + `foundation.rhythm.measure_mm is ${spec.foundation.rhythm.measure_mm}`);
+  }
+}
+
+const floorMatch = /let floor = (-?[\d.]+)/.exec(typ);
+if (!floorMatch) {
+  fail.push("typeset.typ: two-column()'s `floor` constant was not found");
+} else if (Number(floorMatch[1]) !== twoColumnDerivation.floor) {
+  fail.push(`typeset.typ: two-column()'s floor is ${floorMatch[1]}, but `
+    + `templates.two-column.derivation.floor is ${twoColumnDerivation.floor}`);
+}
+
+/* CSS: the same six margins, as @page rules. `columnSpanValuesBySelector`'s
+   sibling here is a plain-declaration lookup — the margin gate needs actual
+   mm values, not a column-span keyword — over the same leaf-rule scan. */
+const cssPageDecls = (selector) => {
+  const rule = cssLeafRules.find((r) => normalizeSelector(r.selectors) === selector);
+  return rule ? parseDeclarations(rule.decls) : null;
+};
+const mmOf = (value) => (value && /^[\d.]+mm$/.test(value.trim()) ? parseFloat(value) : null);
+
+for (const name of marginNames) {
+  const symmetricDecls = cssPageDecls(`@page ts-margin-${name}`);
+  if (!symmetricDecls) {
+    fail.push(`typeset.css: @page ts-margin-${name} was not found`);
+  } else {
+    const value = symmetricDecls.get('margin');
+    const mm = mmOf(value);
+    if (mm === null) {
+      fail.push(`typeset.css: @page ts-margin-${name}'s margin ("${value}") is not a plain mm value `
+        + 'this check can compare to spec.json');
+    } else if (!mmClose(mm, symmetricMm[name])) {
+      fail.push(`typeset.css: @page ts-margin-${name} declares margin: ${value}, but `
+        + `foundation.page.margins.symmetric_mm.${name} is ${symmetricMm[name]}mm`);
+    }
+  }
+
+  const baseDecls = cssPageDecls(`@page ts-margin-duplex-${name}`);
+  const rightDecls = cssPageDecls(`@page ts-margin-duplex-${name}:right`);
+  const leftDecls = cssPageDecls(`@page ts-margin-duplex-${name}:left`);
+  if (!baseDecls || !rightDecls || !leftDecls) {
+    fail.push(`typeset.css: @page ts-margin-duplex-${name} (its base rule, :right and :left) were `
+      + 'not all found');
+  } else {
+    const top = mmOf(baseDecls.get('margin-top'));
+    const bottom = mmOf(baseDecls.get('margin-bottom'));
+    if (!mmClose(top, symmetricMm[name])) {
+      fail.push(`typeset.css: @page ts-margin-duplex-${name} declares margin-top: `
+        + `${baseDecls.get('margin-top')}, but foundation.page.margins.symmetric_mm.${name} is `
+        + `${symmetricMm[name]}mm`);
+    }
+    if (!mmClose(bottom, symmetricMm[name])) {
+      fail.push(`typeset.css: @page ts-margin-duplex-${name} declares margin-bottom: `
+        + `${baseDecls.get('margin-bottom')}, but foundation.page.margins.symmetric_mm.${name} is `
+        + `${symmetricMm[name]}mm`);
+    }
+
+    /* :right is the recto — the binding (inner) edge is on the left in a
+       left-to-right page. :left is the verso, mirrored. */
+    const rectoInner = mmOf(rightDecls.get('margin-left'));
+    const rectoOuter = mmOf(rightDecls.get('margin-right'));
+    const versoOuter = mmOf(leftDecls.get('margin-left'));
+    const versoInner = mmOf(leftDecls.get('margin-right'));
+    if (!mmClose(rectoInner, duplexInnerMm[name]) || !mmClose(versoInner, duplexInnerMm[name])) {
+      fail.push(`typeset.css: @page ts-margin-duplex-${name}'s inner (binding) edge is `
+        + `${rightDecls.get('margin-left')} on the recto and ${leftDecls.get('margin-right')} on the `
+        + `verso, but foundation.page.margins.duplex_inner_mm.${name} is ${duplexInnerMm[name]}mm`);
+    }
+    if (!mmClose(rectoOuter, duplexOuterMm[name]) || !mmClose(versoOuter, duplexOuterMm[name])) {
+      fail.push(`typeset.css: @page ts-margin-duplex-${name}'s outer edge is `
+        + `${rightDecls.get('margin-right')} on the recto and ${leftDecls.get('margin-left')} on the `
+        + `verso, but foundation.page.margins.duplex_outer_mm.${name} is ${duplexOuterMm[name]}mm`);
+    }
+  }
+}
+
 /* ---- Report ------------------------------------------------------------- */
 
 const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);
