@@ -649,10 +649,18 @@
     )
   }
 } else if type == "verse" {
-  // Sets the stanza and nothing else: no attribution parameter. A runover
-  // line's hanging-indent sits further in than the verse line it
-  // continues, so a wrapped line can never be mistaken for a line the poet
-  // wrote.
+  // Sets the stanza and nothing else: no attribution parameter.
+  //
+  // quote-verse asks for a runover indent, so that a wrapped line cannot be
+  // mistaken for a line the poet wrote — in verse the breaks are the
+  // author's and carry meaning. The hanging-indent below is that request,
+  // and Typst does not grant it: the property is suppressed inside any
+  // container, and this is one. What renders is the left indent and the
+  // authored line breaks, with a wrapped line flush against the lines
+  // around it. spec.json's fallback on quote-verse states that, and
+  // tools/check.mjs gate 3m measures it in the compiled output, so the
+  // property staying here is a live claim rather than a dormant one: the
+  // day Typst honours it, that gate goes red and the fallback comes off.
   block(
     above: sp * 1.25, below: sp * 1.25,
     inset: (left: sp * 2),
@@ -989,14 +997,21 @@
 // ── Bibliography ────────────────────────────────────────────────────────────
 
 // @s bibliography
-// `references()` owns the block: the entries' size, leading, spacing and
-// hanging indent, and the heading — a real level-2 heading, so it takes the
-// document's own running-head and numbering behaviour, and spans both
-// columns the way frontmatter-title-block and frontmatter-colophon do,
-// because bibliography-heading (unlike heading-h2 itself) is on
+// `references()` owns the block: the entries' size, leading and spacing, and
+// the heading — a real level-2 heading, so it takes the document's own
+// running-head and numbering behaviour, and spans both columns the way
+// frontmatter-title-block and frontmatter-colophon do, because
+// bibliography-heading (unlike heading-h2 itself) is on
 // templates.two-column.spanning.always. `reference()` composes one entry —
 // author roman, title italic, the rest in order — so the punctuation between
 // them is this file's business, not the document's.
+//
+// It also asks for the entries' hanging indent, and Typst does not grant
+// that: each entry is composed inside a block, and the property is
+// suppressed inside any container, so a wrapped line sits flush with the
+// surname instead of indented past it. spec.json's fallback on
+// bibliography-entry states what renders, and tools/check.mjs gate 3m
+// measures it.
 #let references(title: [References], body) = context {
   let heading-content = heading(level: 2, title)
   if ts-two-column-body.get() { span(heading-content) } else { heading-content }
@@ -1013,7 +1028,8 @@
 }
 
 // One entry, `break_inside: avoid` — a citation split across a page break
-// loses the one thing a hanging indent is for, the surname at a glance — and
+// puts the author's surname on one page and the rest of the entry on the
+// next, which is what makes a bibliography scannable — and
 // `space_after: 0.55em` between entries, both bibliography-entry's own.
 #let reference(
   author: none, title: none, edition: none,

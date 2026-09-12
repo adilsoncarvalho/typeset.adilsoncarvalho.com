@@ -385,21 +385,98 @@ if (typstAvailable()) {
   rmSync(quoteProbeDir, { recursive: true, force: true });
 }
 
-/* type: "verse"'s own branch comment names a load-bearing invariant: a
-   runover line must indent further than the verse line it continues, or a
-   wrapped line could be mistaken for one the poet wrote. Compiling would not
-   catch a dropped hanging-indent — the branch stays valid Typst either way —
-   so this holds the literal value against spec.json's own quote-verse
-   runover_indent, the same way the foundation token checks above hold
-   typeset.css's variables against spec.json. */
-const quoteVerseRunover = spec.sections
-  .find((s) => s.id === 'quote').elements
-  .find((e) => e.id === 'quote-verse').properties.runover_indent;
-if (!typ.includes(`hanging-indent: ${quoteVerseRunover}`)) {
-  fail.push('typeset.typ: type: "verse" does not set hanging-indent to spec.json\'s '
-    + `quote-verse runover_indent (${quoteVerseRunover}) — the runover-line invariant its `
-    + 'own branch comment names is unverified');
+/* ---- 3m. The two hanging-indent fallbacks must still describe what Typst - */
+/*          actually renders --------------------------------------------- */
+
+/* quote-verse and bibliography-entry both set par(hanging-indent:) and both
+   carry a `fallback` in spec.json saying the runover indent does not survive:
+   Typst suppresses the property inside any container, and every element here
+   is composed inside one. The property stays in the source so a Typst that
+   honours it renders the spec, and this gate reads the rendered output back
+   rather than the source — a source check would assert the presence of a
+   value with no effect, and would go on passing whichever way the engine
+   behaved.
+
+   So the assertion is the fallback's own claim: every line of the element
+   shares one left edge. It fails in both directions. A dropped
+   hanging-indent leaves the fallback true and nothing changes; the day Typst
+   honours the property, the second line moves right, this goes red, and the
+   fallback has to come off spec.json rather than sitting there stale and
+   authoritative. */
+
+/* Per line of text, the leftmost run's x offset, read out of a compiled SVG.
+   Typst emits one <g class="typst-text"> per run, so a line that changes font
+   mid-way (an author in roman, a title in italic) is several runs sharing one
+   y — hence the grouping. */
+function lineLeftEdges(svg) {
+  const byLine = new Map();
+  for (const m of svg.matchAll(
+    /<g class="typst-text" transform="matrix\(1 0 0 -1 ([-0-9.]+) ([-0-9.]+)\)"/g)) {
+    const x = Number(m[1]);
+    const y = Number(m[2]).toFixed(2);
+    byLine.set(y, Math.min(byLine.get(y) ?? Infinity, x));
+  }
+  return [...byLine.entries()].sort(([a], [b]) => Number(a) - Number(b)).map(([, x]) => x);
 }
+
+if (typstAvailable()) {
+  const indentDir = mkdtempSync(join(tmpdir(), 'typeset-indent-check-'));
+  copyFileSync('implementations/typeset.typ', join(indentDir, 'typeset.typ'));
+  const fontPath = resolve('fonts');
+
+  const wrapping = [
+    ['quote-verse', '#quote(type: "verse")[\n  A line of verse long enough that it has to '
+      + 'wrap onto a second line, which is the only line on which a runover indent is '
+      + 'visible.\n]'],
+    ['bibliography-entry', '#references(title: [R])[#reference(author: [Aaaaaa, B.], '
+      + 'title: [A title long enough that this one entry has to wrap onto a second line, '
+      + 'which is the only line on which a hanging indent is visible], '
+      + 'publisher: [A Publisher], year: [2026])]'],
+  ];
+
+  for (const [id, snippet] of wrapping) {
+    const el = spec.sections.flatMap((s) => s.elements).find((e) => e.id === id);
+    if (!el.fallback || !/hanging indent|runover indent/.test(el.fallback)) {
+      fail.push(`spec.json: ${id} sets a hanging indent Typst does not render and no longer `
+        + 'declares a fallback saying so — a reader of the spec is told the indent is there');
+      continue;
+    }
+
+    const path = join(indentDir, `${id}.typ`);
+    const svgPath = join(indentDir, `${id}.svg`);
+    /* The trailing newline is load-bearing, not tidiness: without it Typst
+       folds the document's last paragraph into its enclosing context, the
+       outer par settings win, and the probe measures no indent whatever the
+       engine does with the property. */
+    writeFileSync(path, `${typstDocument(snippet)}\n`);
+    try {
+      execFileSync(
+        'typst',
+        ['compile', '--font-path', fontPath, '--format', 'svg', path, svgPath],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message)).trim();
+      fail.push(`typeset.typ: the ${id} probe does not compile:\n${detail}`);
+      continue;
+    }
+
+    const edges = lineLeftEdges(readFileSync(svgPath, 'utf8'));
+    if (edges.length < 2) {
+      fail.push(`typeset.typ: the ${id} probe rendered ${edges.length} line(s) — it has to wrap `
+        + 'for a runover indent to be measurable at all');
+      continue;
+    }
+    if (Math.max(...edges) - Math.min(...edges) > 0.5) {
+      fail.push(`spec.json: ${id}'s fallback says Typst renders no runover indent, but the `
+        + `compiled lines start at ${edges.map((x) => x.toFixed(1)).join(', ')}pt — the engine `
+        + 'honours the property now, so remove the fallback and restore the note it replaced');
+    }
+  }
+
+  rmSync(indentDir, { recursive: true, force: true });
+}
+
 
 /* Every class name typeset.css defines, comment text excluded. Read once here
    because two gates need it from opposite directions: the apparatus check in
