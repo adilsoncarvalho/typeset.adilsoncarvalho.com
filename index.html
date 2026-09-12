@@ -166,7 +166,7 @@
 &lt;/div&gt;</code></pre>
       </div>
       <div>
-        <p>Every Typst pane below assumes <a href="files/typeset-typ.html"><code>typeset.typ</code></a> sits beside the document and has been imported and shown once, above the snippet. A snippet that opens with its own <code>#show: typeset.with(…)</code>, or with a template that sets a page of its own such as <code>#show: two-column.with(…)</code>, replaces the second line rather than nesting under it — both set the page, and a page cannot be set inside a container.</p>
+        <p>Every Typst pane below assumes <a href="files/typeset-typ.html"><code>typeset.typ</code></a> sits beside the document and has been imported and shown once, above the snippet. A snippet that opens with its own <code>#show: typeset.with(…)</code>, or with a template that sets a page of its own such as <code>#show: two-column.with(…)</code> or <code>#show: letter-page</code>, replaces the second line rather than nesting under it — both set the page, and a page cannot be set inside a container.</p>
         <pre class="boilerplate__pre"><code data-boilerplate="typst">#<span class="c-at">import</span> &quot;typeset.typ&quot;: *
 #<span class="c-at">show</span>: typeset</code></pre>
       </div>
@@ -2280,7 +2280,8 @@ the leftmost thing on the entry.</pre><button class="copy" type="button" data-co
   </div>
   <div class="pair">
     <div>
-      <p class="pair__label">How it must look</p>
+      <p class="pair__label" data-element="frontmatter-title-block">1 · Title block</p>
+      <p class="demo-note">The whole cluster — title, subtitle, byline and dateline — closes on a hairline rule, with the widest gap in the document below it: whatever follows is a fresh start.</p>
       <div class="paper typeset">
         <div class="ts-frontmatter-title-block">
           <h1>On the Measure of a Line</h1>
@@ -2288,10 +2289,41 @@ the leftmost thing on the entry.</pre><button class="copy" type="button" data-co
           <p class="ts-frontmatter-byline">Adilson Carvalho</p>
           <p class="ts-frontmatter-dateline">Sydney, 28 August 2026</p>
         </div>
+      </div>
+
+      <p class="pair__label" data-element="frontmatter-subtitle">2 · Subtitle</p>
+      <p class="demo-note">Light, sans, and wrapped to balance rather than to the column edge — normally set directly under the title, shown alone here for its own type.</p>
+      <div class="paper typeset">
+        <h1>On the Measure of a Line</h1>
+        <p class="ts-frontmatter-subtitle">Why the width of a text column is the first decision, and the font is the last</p>
+      </div>
+
+      <p class="pair__label" data-element="frontmatter-byline">3 · Byline</p>
+      <p class="demo-note">Small caps at body size, tracked open — the author's name read as data, not as another heading.</p>
+      <div class="paper typeset">
+        <h1>On the Measure of a Line</h1>
+        <p class="ts-frontmatter-byline">Adilson Carvalho</p>
+      </div>
+
+      <p class="pair__label" data-element="frontmatter-dateline">4 · Dateline</p>
+      <p class="demo-note">The smallest, quietest line in the block — place and date, sized like a caption because that is what it is.</p>
+      <div class="paper typeset">
+        <p class="ts-frontmatter-byline">Adilson Carvalho</p>
+        <p class="ts-frontmatter-dateline">Sydney, 28 August 2026</p>
+      </div>
+
+      <p class="pair__label" data-element="frontmatter-abstract">5 · Abstract</p>
+      <p class="demo-note">Set narrower than the body and one size down, so a reader recognises a summary before reading a word of it. The <b>Abstract</b> caption above it belongs to this block, not to a style of its own.</p>
+      <div class="paper typeset">
         <div class="ts-frontmatter-abstract">
           <span class="ts-label ts-frontmatter-abstract-label">Abstract</span>
           Every argument about typefaces is downstream of an argument about column width. This essay makes the case that a document set at the wrong measure cannot be rescued by any choice of face, and that a document set at the right one is nearly indifferent to it.
         </div>
+      </div>
+
+      <p class="pair__label" data-element="frontmatter-colophon">6 · Colophon</p>
+      <p class="demo-note">Closes the document below a rule of its own — the note at the back of a book recording how it was made, and the cheapest thing in this stylesheet to include.</p>
+      <div class="paper typeset">
         <p>The claim is not original, and it is not complicated…</p>
         <div class="ts-frontmatter-colophon">
           Set in EB Garamond, with Source Sans 3 for headings and IBM Plex Mono for code. Composed in HTML and rendered to PDF with Paged.js. A4, 11 on 16 points.
@@ -2309,27 +2341,51 @@ the leftmost thing on the entry.</pre><button class="copy" type="button" data-co
     <label for="tab-frontmatter-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>A colophon closes the document, recording how it was made and in what type. It is the one piece of matter that is purely for pleasure, and the cheapest thing here to include.</li></ul><h4 class="spec-el">Title block</h4><table class="spec-table"><tbody><tr><th>space after</th><td><code>33pt</code></td></tr><tr><th>padding bottom</th><td><code>11pt</code></td></tr><tr><th>border bottom</th><td><code>0.5pt rule</code></td></tr></tbody></table><h4 class="spec-el">Subtitle</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>sans</code></td></tr><tr><th>weight</th><td><code>300</code></td></tr><tr><th>size</th><td><code>14pt</code></td></tr><tr><th>line height</th><td><code>1.25</code></td></tr><tr><th>color</th><td><code>ink_muted</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>wrap</th><td><code>balanced</code></td></tr><tr><th>space after</th><td><code>11pt</code></td></tr></tbody></table><h4 class="spec-el">Byline</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>variant</th><td><code>all small caps</code></td></tr><tr><th>tracking</th><td><code>0.08em</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space after</th><td><code>0</code></td></tr></tbody></table><h4 class="spec-el">Dateline</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>sans</code></td></tr><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>color</th><td><code>ink_muted</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>0.2em</code></td></tr></tbody></table><h4 class="spec-el">Abstract</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>10pt</code></td></tr><tr><th>line height</th><td><code>1.45</code></td></tr><tr><th>color</th><td><code>ink_muted</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>max width</th><td><code>30em</code></td></tr><tr><th>space after</th><td><code>22pt</code></td></tr></tbody></table><h4 class="spec-el">Colophon</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>style</th><td><code>italic</code></td></tr><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>color</th><td><code>ink_muted</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>max width</th><td><code>26em</code></td></tr><tr><th>space before</th><td><code>33pt</code></td></tr><tr><th>padding top</th><td><code>11pt</code></td></tr><tr><th>border top</th><td><code>0.5pt rule</code></td></tr><tr><th>break before</th><td><code>avoid</code></td></tr></tbody></table><h4 class="spec-el">Abstract label</h4><table class="spec-table"><tbody><tr><th>display</th><td><code>block</code></td></tr><tr><th>font</th><td><code>sans</code></td></tr><tr><th>size</th><td><code>xs</code></td></tr><tr><th>weight</th><td><code>700</code></td></tr><tr><th>tracking</th><td><code>0.1em</code></td></tr><tr><th>caps</th><td><code>uppercase</code></td></tr><tr><th>color</th><td><code>ink_faint</code></td></tr></tbody></table></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L833">frontmatter</a></p><pre>&lt;div class=&quot;ts-frontmatter-title-block&quot;&gt;
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L833">frontmatter</a></p><pre>&lt;!-- Title block --&gt;
+&lt;div class=&quot;ts-frontmatter-title-block&quot;&gt;
   &lt;h1&gt;On the Measure of a Line&lt;/h1&gt;
   &lt;p class=&quot;ts-frontmatter-subtitle&quot;&gt;Why the width of a text column is the first decision, and the font is the last&lt;/p&gt;
   &lt;p class=&quot;ts-frontmatter-byline&quot;&gt;Adilson Carvalho&lt;/p&gt;
   &lt;p class=&quot;ts-frontmatter-dateline&quot;&gt;Sydney, 28 August 2026&lt;/p&gt;
 &lt;/div&gt;
+
+&lt;!-- Subtitle --&gt;
+&lt;h1&gt;On the Measure of a Line&lt;/h1&gt;
+&lt;p class=&quot;ts-frontmatter-subtitle&quot;&gt;Why the width of a text column is the first decision, and the font is the last&lt;/p&gt;
+
+&lt;!-- Byline --&gt;
+&lt;h1&gt;On the Measure of a Line&lt;/h1&gt;
+&lt;p class=&quot;ts-frontmatter-byline&quot;&gt;Adilson Carvalho&lt;/p&gt;
+
+&lt;!-- Dateline --&gt;
+&lt;p class=&quot;ts-frontmatter-byline&quot;&gt;Adilson Carvalho&lt;/p&gt;
+&lt;p class=&quot;ts-frontmatter-dateline&quot;&gt;Sydney, 28 August 2026&lt;/p&gt;
+
+&lt;!-- Abstract --&gt;
 &lt;div class=&quot;ts-frontmatter-abstract&quot;&gt;
   &lt;span class=&quot;ts-label ts-frontmatter-abstract-label&quot;&gt;Abstract&lt;/span&gt;
   Every argument about typefaces is downstream of an argument about column width. This essay makes the case that a document set at the wrong measure cannot be rescued by any choice of face, and that a document set at the right one is nearly indifferent to it.
 &lt;/div&gt;
+
+&lt;!-- Colophon --&gt;
 &lt;p&gt;The claim is not original, and it is not complicated…&lt;/p&gt;
 &lt;div class=&quot;ts-frontmatter-colophon&quot;&gt;
   Set in EB Garamond, with Source Sans 3 for headings and IBM Plex Mono for code. Composed in HTML and rendered to PDF with Paged.js. A4, 11 on 16 points.
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L948">frontmatter</a></p><pre>#frontmatter-title-block(
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L948">frontmatter</a></p><pre><span class="c-comment">// frontmatter-subtitle, frontmatter-byline and frontmatter-dateline carry no</span>
+<span class="c-comment">// symbol of their own: frontmatter-title-block composes all three itself, by</span>
+<span class="c-comment">// name, from the params below — there is no way to call for just one line</span>
+<span class="c-comment">// of the block.</span>
+#frontmatter-title-block(
   <span class="c-prop">title</span>: [On the Measure of a Line],
   <span class="c-prop">subtitle</span>: [Why the width of a text column is the first decision, and the font is the last],
   <span class="c-prop">author</span>: [Adilson Carvalho],
   <span class="c-prop">place-date</span>: [Sydney, <span class="c-val">28</span> August <span class="c-val">2026</span>],
 )
 
+<span class="c-comment">// frontmatter-abstract-label is the same shape as letter-address-label: the</span>
+<span class="c-comment">// literal &quot;ABSTRACT&quot; caption below is frontmatter-abstract's own doing, not</span>
+<span class="c-comment">// a symbol of its own.</span>
 #frontmatter-abstract[
   Every argument about typefaces is downstream of an argument about column
   width. This essay makes the case that a document <span class="c-at">set</span> at the wrong measure
@@ -2360,15 +2416,20 @@ The claim is not original, and it is not complicated…
   </div>
   <div class="pair">
     <div>
-      <p class="pair__label">How it must look</p>
-      <div class="paper typeset typeset--ragged" lang="en">
+      <p class="pair__label" data-element="letter-sender">1 · Sender block</p>
+      <p class="demo-note">One style throughout, including the name — bold or larger turns a letter into stationery. Leave out what a letter does not need: no email address, no telephone number, unless the correspondence calls for one.</p>
+      <div class="paper typeset typeset--ragged typeset--letter" lang="en">
         <div class="ts-letter-sender">
           <p>Adilson Carvalho</p>
           <p>10 Wentworth Avenue</p>
           <p>Surry Hills NSW 2010</p>
           <p>Australia</p>
         </div>
+      </div>
 
+      <p class="pair__label" data-element="letter-address-block">2 · Address block</p>
+      <p class="demo-note">Line-broken data, not prose — the recipient's address exactly as it would sit on an envelope. The <b>To</b> caption above it is a label of this block, not a style of its own.</p>
+      <div class="paper typeset typeset--ragged typeset--letter" lang="en">
         <address class="ts-letter-address-block">
           <span class="ts-label ts-letter-address-label">To</span>
           The Registrar<br>
@@ -2376,10 +2437,30 @@ The claim is not original, and it is not complicated…
           88 Rundle Street<br>
           Adelaide SA 5000
         </address>
+      </div>
 
+      <p class="pair__label" data-element="letter-date">3 · Date line</p>
+      <p class="demo-note">Oldstyle figures, flush left — the same numeral convention the rest of the document already sets, not a date format of its own.</p>
+      <div class="paper typeset typeset--ragged typeset--letter" lang="en">
+        <p class="ts-letter-date">27 August 2026</p>
+      </div>
+
+      <p class="pair__label" data-element="letter-date-note">4 · Line under the date</p>
+      <p class="demo-note">A dedication, a feast, a devotion — whatever the writer puts under the date. Italic, at body size, close enough beneath it that the two read as one line rather than two.</p>
+      <div class="paper typeset typeset--ragged typeset--letter" lang="en">
         <p class="ts-letter-date">27 August 2026</p>
         <p class="ts-letter-date-note">St Monica, mother of St Augustine Bishop, ora pro nobis</p>
+      </div>
 
+      <p class="pair__label" data-element="letter-salutation">5 · Salutation</p>
+      <p class="demo-note">A greeting, set exactly like any other paragraph in the letter — no weight change, no size change, no heading trying to happen.</p>
+      <div class="paper typeset typeset--ragged typeset--letter" lang="en">
+        <p class="ts-letter-salutation">Dear Registrar,</p>
+      </div>
+
+      <p class="pair__label" data-element="letter-footnote">6 · Footnote — in a letter</p>
+      <p class="demo-note">The same marker as the rest of the document's apparatus — superscript, no brackets. On a one-page letter, the rule and the numbered note it sits above are the page foot in every sense but name.</p>
+      <div class="paper typeset typeset--ragged typeset--letter" lang="en">
         <p class="ts-letter-salutation">Dear Registrar,</p>
 
         <p>I am writing about the setting of the Institute’s annual report, which arrived this morning and which I read with more attention to its margins than to its contents. I hope that is taken in the spirit intended.</p>
@@ -2388,18 +2469,38 @@ The claim is not original, and it is not complicated…
 
         <p>This is a cheap problem to fix, and I would be glad to send the specification I use for my own documents.</p>
 
-        <p class="ts-letter-closing">Yours sincerely,</p>
-
-        <div class="ts-letter-signature">Adilson Carvalho</div>
-
-        <p class="ts-letter-enclosures">Enc. typeset.css; two specimen pages</p>
-        <p class="ts-letter-postscript">P.S. The tables were excellent — tabular figures throughout, which is more than most annual reports manage.</p>
-
         <div class="ts-note-endnotes">
           <ol>
             <li id="ln1">Measured on page four, between the outer margins: 168mm at a 10pt body, which is about 112 characters.</li>
           </ol>
         </div>
+      </div>
+
+      <p class="pair__label" data-element="letter-closing">7 · Closing</p>
+      <p class="demo-note">The same plain rhythm as the salutation it echoes — the only difference is the room above it, not a style of its own.</p>
+      <div class="paper typeset typeset--ragged typeset--letter" lang="en">
+        <p class="ts-letter-closing">Yours sincerely,</p>
+      </div>
+
+      <p class="pair__label" data-element="letter-signature">8 · Signature block</p>
+      <p class="demo-note">The typed name, with room above it to sign. No ruled line: a rule above a name is a form to be filled in, and this is not a form.</p>
+      <div class="paper typeset typeset--ragged typeset--letter" lang="en">
+        <p class="ts-letter-closing">Yours sincerely,</p>
+        <div class="ts-letter-signature">Adilson Carvalho</div>
+      </div>
+
+      <p class="pair__label" data-element="letter-enclosures">9 · Enclosures</p>
+      <p class="demo-note"><b>Enc.</b> introduces a sentence; it does not head a section, so it carries no small caps and no weight change of its own.</p>
+      <div class="paper typeset typeset--ragged typeset--letter" lang="en">
+        <div class="ts-letter-signature">Adilson Carvalho</div>
+        <p class="ts-letter-enclosures">Enc. typeset.css; two specimen pages</p>
+      </div>
+
+      <p class="pair__label" data-element="letter-postscript">10 · Postscript</p>
+      <p class="demo-note">A postscript is a sentence that happens to begin with <b>P.S.</b> — the label is not a heading, so it matches the text it introduces exactly.</p>
+      <div class="paper typeset typeset--ragged typeset--letter" lang="en">
+        <p class="ts-letter-enclosures">Enc. typeset.css; two specimen pages</p>
+        <p class="ts-letter-postscript">P.S. The tables were excellent — tabular figures throughout, which is more than most annual reports manage.</p>
       </div>
     </div>
     <div>
@@ -2413,14 +2514,18 @@ The claim is not original, and it is not complicated…
     <label for="tab-letter-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>A letter is set ragged right. It is addressed to a person, and justification reads as institutional.</li><li>The sender block is address data, not a masthead: one style throughout, at body size, in the reading face. Nothing bold, nothing in the sans. A personal letter does not announce itself.</li><li>Address blocks are line-broken data, not prose: tighter leading, never justified, line breaks as authored.</li><li>The signature is the typed name with room above it to sign. No ruled line — a rule is a form to be filled in.</li><li>A letter carries no running head and no folio.</li><li>Footnotes belong in a letter as much as in an essay. Where the engine cannot set them at the page foot, the rule plus the numbered note at the end of a one-page letter reads as a footnote area regardless.</li></ul><h4 class="spec-el">Letter page</h4><table class="spec-table"><tbody><tr><th>margin top mm</th><td><code>32</code></td></tr><tr><th>margin bottom mm</th><td><code>28</code></td></tr><tr><th>margin sides mm</th><td><code>25</code></td></tr><tr><th>running head</th><td><code>none</code></td></tr><tr><th>folio</th><td><code>none</code></td></tr></tbody></table><p class="spec-note">The deeper top margin puts the letterhead where an envelope window expects it.</p><h4 class="spec-el">Sender block</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>weight</th><td><code>400</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>line height</th><td><code>1.35</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>line breaks</th><td>as authored — name, street, suburb and postcode, country</td></tr><tr><th>space after</th><td><code>27.5pt</code></td></tr></tbody></table><p class="spec-note">Every line is the same style, including the name. Setting the name larger or bolder turns a letter into stationery.</p><p class="spec-note">Omit what you do not use. A personal letter needs no email address and no telephone number.</p><h4 class="spec-el">Address block</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>line height</th><td><code>1.35</code></td></tr><tr><th>style</th><td><code>normal</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>line breaks</th><td><code>as authored</code></td></tr><tr><th>space after</th><td><code>16.5pt</code></td></tr></tbody></table><h4 class="spec-el">Date line</h4><table class="spec-table"><tbody><tr><th>numerals</th><td><code>oldstyle</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space after</th><td><code>16.5pt</code></td></tr></tbody></table><h4 class="spec-el">Line under the date</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>style</th><td><code>italic</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>color</th><td><code>ink</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td>0.1em — it belongs to the date, and takes no gap of its own</td></tr><tr><th>space after</th><td><code>16.5pt</code></td></tr></tbody></table><p class="spec-note">A dedication, a feast, a devotion — whatever the writer puts under the date. Italic, at body size, immediately beneath.</p><h4 class="spec-el">Salutation</h4><table class="spec-table"><tbody><tr><th>align</th><td><code>left</code></td></tr><tr><th>space after</th><td><code>11pt</code></td></tr></tbody></table><h4 class="spec-el">Closing</h4><table class="spec-table"><tbody><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>16.5pt</code></td></tr></tbody></table><h4 class="spec-el">Signature block</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>33pt — the room to sign</code></td></tr><tr><th>rule</th><td><code>none</code></td></tr><tr><th>break inside</th><td><code>avoid</code></td></tr><tr><th>signature image max height</th><td><code>16mm</code></td></tr></tbody></table><p class="spec-note">The typed name only. A ruled line above a name is a form; a letter is not a form.</p><h4 class="spec-el">Enclosures</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>22pt</code></td></tr><tr><th>label</th><td>same style as the text it introduces — no small caps, no weight change</td></tr></tbody></table><p class="spec-note">Same reasoning as the postscript: &quot;Enc.&quot; introduces a sentence, it does not head a section.</p><h4 class="spec-el">Postscript</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>11pt</code></td></tr><tr><th>align</th><td><code>left</code></td></tr><tr><th>space before</th><td><code>11pt</code></td></tr><tr><th>label</th><td>same style as the text it introduces — no small caps, no weight change</td></tr></tbody></table><p class="spec-note">A postscript is a sentence that happens to begin with &quot;P.S.&quot;. The label is not a heading.</p><h4 class="spec-el">Footnote — in a letter</h4><table class="spec-table"><tbody><tr><th>marker</th><td>as the note marker in Apparatus — superscript, accent, no brackets</td></tr><tr><th>position</th><td>foot of the page where the engine can; otherwise after the signature block</td></tr><tr><th>font</th><td><code>serif</code></td></tr><tr><th>size</th><td><code>9.5pt</code></td></tr><tr><th>separator</th><td>0.5pt rule above the notes area</td></tr><tr><th>heading</th><td><code>none</code></td></tr></tbody></table><p class="spec-fallback"><b>Where unsupported</b> — a numbered note after the signature, under a rule — which on a one-page letter is the page foot anyway</p><h4 class="spec-el">Address label</h4><table class="spec-table"><tbody><tr><th>display</th><td><code>block</code></td></tr><tr><th>font</th><td><code>sans</code></td></tr><tr><th>size</th><td><code>xs</code></td></tr><tr><th>tracking</th><td><code>0.1em</code></td></tr><tr><th>caps</th><td><code>uppercase</code></td></tr><tr><th>color</th><td><code>ink_faint</code></td></tr></tbody></table></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L962">letter</a></p><pre>&lt;div class=&quot;typeset typeset--ragged&quot; lang=&quot;en&quot;&gt;
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L962">letter</a></p><pre>&lt;!-- Sender block --&gt;
+&lt;div class=&quot;typeset typeset--ragged typeset--letter&quot; lang=&quot;en&quot;&gt;
   &lt;div class=&quot;ts-letter-sender&quot;&gt;
     &lt;p&gt;Adilson Carvalho&lt;/p&gt;
     &lt;p&gt;10 Wentworth Avenue&lt;/p&gt;
     &lt;p&gt;Surry Hills NSW 2010&lt;/p&gt;
     &lt;p&gt;Australia&lt;/p&gt;
   &lt;/div&gt;
+&lt;/div&gt;
 
+&lt;!-- Address block --&gt;
+&lt;div class=&quot;typeset typeset--ragged typeset--letter&quot; lang=&quot;en&quot;&gt;
   &lt;address class=&quot;ts-letter-address-block&quot;&gt;
     &lt;span class=&quot;ts-label ts-letter-address-label&quot;&gt;To&lt;/span&gt;
     The Registrar&lt;br&gt;
@@ -2428,10 +2533,26 @@ The claim is not original, and it is not complicated…
     88 Rundle Street&lt;br&gt;
     Adelaide SA 5000
   &lt;/address&gt;
+&lt;/div&gt;
 
+&lt;!-- Date line --&gt;
+&lt;div class=&quot;typeset typeset--ragged typeset--letter&quot; lang=&quot;en&quot;&gt;
+  &lt;p class=&quot;ts-letter-date&quot;&gt;27 August 2026&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;!-- Line under the date --&gt;
+&lt;div class=&quot;typeset typeset--ragged typeset--letter&quot; lang=&quot;en&quot;&gt;
   &lt;p class=&quot;ts-letter-date&quot;&gt;27 August 2026&lt;/p&gt;
   &lt;p class=&quot;ts-letter-date-note&quot;&gt;St Monica, mother of St Augustine Bishop, ora pro nobis&lt;/p&gt;
+&lt;/div&gt;
 
+&lt;!-- Salutation --&gt;
+&lt;div class=&quot;typeset typeset--ragged typeset--letter&quot; lang=&quot;en&quot;&gt;
+  &lt;p class=&quot;ts-letter-salutation&quot;&gt;Dear Registrar,&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;!-- Footnote — in a letter --&gt;
+&lt;div class=&quot;typeset typeset--ragged typeset--letter&quot; lang=&quot;en&quot;&gt;
   &lt;p class=&quot;ts-letter-salutation&quot;&gt;Dear Registrar,&lt;/p&gt;
 
   &lt;p&gt;I am writing about the setting of the Institute’s annual report, which arrived this morning and which I read with more attention to its margins than to its contents. I hope that is taken in the spirit intended.&lt;/p&gt;
@@ -2440,26 +2561,50 @@ The claim is not original, and it is not complicated…
 
   &lt;p&gt;This is a cheap problem to fix, and I would be glad to send the specification I use for my own documents.&lt;/p&gt;
 
-  &lt;p class=&quot;ts-letter-closing&quot;&gt;Yours sincerely,&lt;/p&gt;
-
-  &lt;div class=&quot;ts-letter-signature&quot;&gt;Adilson Carvalho&lt;/div&gt;
-
-  &lt;p class=&quot;ts-letter-enclosures&quot;&gt;Enc. typeset.css; two specimen pages&lt;/p&gt;
-  &lt;p class=&quot;ts-letter-postscript&quot;&gt;P.S. The tables were excellent — tabular figures throughout, which is more than most annual reports manage.&lt;/p&gt;
-
   &lt;div class=&quot;ts-note-endnotes&quot;&gt;
     &lt;ol&gt;
       &lt;li id=&quot;ln1&quot;&gt;Measured on page four, between the outer margins: 168mm at a 10pt body, which is about 112 characters.&lt;/li&gt;
     &lt;/ol&gt;
   &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Closing --&gt;
+&lt;div class=&quot;typeset typeset--ragged typeset--letter&quot; lang=&quot;en&quot;&gt;
+  &lt;p class=&quot;ts-letter-closing&quot;&gt;Yours sincerely,&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;!-- Signature block --&gt;
+&lt;div class=&quot;typeset typeset--ragged typeset--letter&quot; lang=&quot;en&quot;&gt;
+  &lt;p class=&quot;ts-letter-closing&quot;&gt;Yours sincerely,&lt;/p&gt;
+  &lt;div class=&quot;ts-letter-signature&quot;&gt;Adilson Carvalho&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Enclosures --&gt;
+&lt;div class=&quot;typeset typeset--ragged typeset--letter&quot; lang=&quot;en&quot;&gt;
+  &lt;div class=&quot;ts-letter-signature&quot;&gt;Adilson Carvalho&lt;/div&gt;
+  &lt;p class=&quot;ts-letter-enclosures&quot;&gt;Enc. typeset.css; two specimen pages&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;!-- Postscript --&gt;
+&lt;div class=&quot;typeset typeset--ragged typeset--letter&quot; lang=&quot;en&quot;&gt;
+  &lt;p class=&quot;ts-letter-enclosures&quot;&gt;Enc. typeset.css; two specimen pages&lt;/p&gt;
+  &lt;p class=&quot;ts-letter-postscript&quot;&gt;P.S. The tables were excellent — tabular figures throughout, which is more than most annual reports manage.&lt;/p&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L1050">letter</a></p><pre>#letter-sender[
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L1050">letter</a></p><pre><span class="c-comment">// letter-page's #show call opens the document itself, in place of the</span>
+<span class="c-comment">// boilerplate's own #show: typeset — a letter's page (a deeper top margin,</span>
+<span class="c-comment">// no running head, no folio) cannot be set from inside a container, so one</span>
+<span class="c-comment">// replaces the other rather than nesting under it.</span>
+#<span class="c-at">show</span>: letter-page
+
+#letter-sender[
   Adilson Carvalho \
   <span class="c-val">10</span> Wentworth Avenue \
   Surry Hills NSW <span class="c-val">2010</span> \
   Australia
 ]
 
+<span class="c-comment">// letter-address-label is the address block's own &quot;To&quot; caption — its</span>
+<span class="c-comment">// label: parameter, not a symbol of its own.</span>
 #letter-address-block(<span class="c-prop">label</span>: [To])[
   The Registrar \
   Institute of Typographic Studies \
@@ -2467,6 +2612,9 @@ The claim is not original, and it is not complicated…
   Adelaide SA <span class="c-val">5000</span>
 ]
 
+<span class="c-comment">// letter-date, letter-salutation and letter-closing carry no symbol of</span>
+<span class="c-comment">// their own: each is plain text, left aligned, at the same rhythm as any</span>
+<span class="c-comment">// other paragraph in the letter.</span>
 <span class="c-val">27</span> August <span class="c-val">2026</span>
 #letter-date-note[St Monica, mother of St Augustine Bishop, ora pro nobis]
 
@@ -2476,6 +2624,9 @@ I am writing about the setting of the Institute's annual report, which arrived
 this morning and which I read with more attention to its margins than to its
 contents. I hope that is taken in the spirit intended.
 
+<span class="c-comment">// letter-footnote has no symbol either: it is Typst's own footnote,</span>
+<span class="c-comment">// set at the foot of the page where the engine can — which on a one-page</span>
+<span class="c-comment">// letter is the numbered-note fallback this spec asks for anyway.</span>
 The text column runs to something near a hundred and ten
 characters.#footnote[Measured on page four, between the outer <span class="c-prop">margins</span>: <span class="c-val">168mm</span> at
 a <span class="c-val">10pt</span> body, which is about <span class="c-val">112</span> characters.] By the second page I had lost my
