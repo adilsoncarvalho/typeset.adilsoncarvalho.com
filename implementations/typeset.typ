@@ -150,32 +150,22 @@
 
 // ── Document ────────────────────────────────────────────────────────────────
 
-#let typeset(
-  // The paper by its Typst name, and the margin by one of the six names above
-  // — or by any length, for a page box the spec does not name.
+// A document is a page and a set of styles, and the two do not reach equally
+// far. set page() takes effect only where a page can be set, never inside a
+// container; the styles apply wherever content is composed, columns() included.
+// They are separate functions because two-column() needs the page once per
+// document and the styles once per body, and two-column-body() needs the
+// styles without the page.
+
+#let _typeset-page(
   paper: "a4",
   margin: margin-standard,
   scale: scale-single-column,
-  // Ragged right is the default. Justification buys a clean right edge at the
-  // cost of uneven word spacing; choose it for continuous prose at a full
-  // measure, and leave it off for a letter or a note addressed to a person.
-  justified: false,
-  indented: false,
-  numbered: false,
   running-head: true,
   folio: true,
-  // The measure, not the text width. A4 at the standard margin leaves
-  // measure-full (170mm) between its margins; measure-standard is smaller
-  // and keeps the remainder as slack, which is where marginalia live. It is
-  // a maximum, so a page with less than measure-standard between its
-  // margins keeps its margins. Pass `none` where the column IS the measure,
-  // as in two columns.
-  measure: measure-standard,
   doc,
 ) = {
-  let sm = scale.sm
   let xs = scale.xs
-  let sp = scale.space
 // @s page
   set page(
     paper: paper,
@@ -199,6 +189,26 @@
     },
 // @e
   )
+
+  doc
+}
+
+// Everything a document is set in: the scale, the paragraph shape, every named
+// style, and the measure the flow is held to. A template that composes its own
+// page calls this for the rest, so the page-setting template and the body it
+// composes share one implementation of the styles rather than restating them.
+
+#let _typeset-styles(
+  scale: scale-single-column,
+  justified: false,
+  indented: false,
+  numbered: false,
+  measure: measure-standard,
+  doc,
+) = {
+  let sm = scale.sm
+  let xs = scale.xs
+  let sp = scale.space
 
 // @s foundation
   set text(
@@ -360,6 +370,44 @@
     })
   }
 }
+
+#let typeset(
+  // The paper by its Typst name, and the margin by one of the six names above
+  // — or by any length, for a page box the spec does not name.
+  paper: "a4",
+  margin: margin-standard,
+  scale: scale-single-column,
+  // Ragged right is the default. Justification buys a clean right edge at the
+  // cost of uneven word spacing; choose it for continuous prose at a full
+  // measure, and leave it off for a letter or a note addressed to a person.
+  justified: false,
+  indented: false,
+  numbered: false,
+  running-head: true,
+  folio: true,
+  // The measure, not the text width. A4 at the standard margin leaves
+  // measure-full (170mm) between its margins; measure-standard is smaller
+  // and keeps the remainder as slack, which is where marginalia live. It is
+  // a maximum, so a page with less than measure-standard between its
+  // margins keeps its margins. Pass `none` where the column IS the measure,
+  // as in two columns.
+  measure: measure-standard,
+  doc,
+) = _typeset-page(
+  paper: paper,
+  margin: margin,
+  scale: scale,
+  running-head: running-head,
+  folio: folio,
+  _typeset-styles(
+    scale: scale,
+    justified: justified,
+    indented: indented,
+    numbered: numbered,
+    measure: measure,
+    doc,
+  ),
+)
 
 // ── Inline: key ─────────────────────────────────────────────────────────────
 
@@ -610,6 +658,49 @@
   block(width: 100%, body),
 )
 
+// The gutter is the one number this template chooses; the column, the
+// character count and the decision to set at all follow from it, from the
+// paper and from the margin. It is a name at this level because two functions
+// need the same number — two-column() derives the column from it, and
+// two-column-body() composes the columns with it.
+#let gutter-two-column = 6mm
+
+// The composition, without the page: the front matter full width, then the
+// body in two columns. two-column() calls this after it has set the page, and
+// a document that has no page of its own to set — a snippet inside a container
+// — calls it directly and gets the same columns, the same gutter and the same
+// scale as the template, rather than a second implementation of them.
+#let two-column-body(
+  gutter: gutter-two-column,
+  front: none,
+  numbered: false,
+  doc,
+) = {
+  show: _typeset-styles.with(
+    scale: scale-two-column,
+    measure: none,        // the column is the measure
+    justified: true,
+    indented: true,      // a blank line costs 3% of a column
+    numbered: numbered,
+  )
+
+  if front != none {
+    front
+    v(scale-two-column.space, weak: true)
+  }
+
+  // templates.two-column.spanning.always spans without a mark from here on:
+  // frontmatter-title-block, frontmatter-abstract and frontmatter-colophon
+  // read ts-two-column-body themselves (it carries subtitle, byline and
+  // dateline too — they are that block's own parameters, not standalone
+  // functions), and a body-level level-1 heading is promoted by the show rule
+  // below. Both are scoped to `doc`; `front` above renders before the columns
+  // begin, so it is already full width and never needs the wrap.
+  ts-two-column-body.update(true)
+  show heading.where(level: 1): it => span(it)
+  columns(2, gutter: gutter, doc)
+}
+
 #let two-column(
   paper: "a4",
   margin: margin-standard,
@@ -621,11 +712,10 @@
   folio: true,
   doc,
 ) = {
-  // The gutter is the one number this template chooses. The column, the
-  // character count and the decision to set at all are functions of the paper
-  // and the margin, recomputed here rather than carried as a list of papers
-  // that work.
-  let gutter = 6mm
+  // The column, the character count and the decision to set at all are
+  // functions of the gutter above, of the paper and of the margin, recomputed
+  // here rather than carried as a list of papers that work.
+  let gutter = gutter-two-column
   let floor = 45
   let base = scale-two-column.base
 
@@ -712,14 +802,10 @@
   assert(justified, message: "two-column requires justification: at " + str(chars)
     + " characters a ragged edge serrates the column")
 
-  show: typeset.with(
+  show: _typeset-page.with(
     paper: paper,
     margin: margin,
     scale: scale-two-column,
-    measure: none,        // the column is the measure
-    justified: true,
-    indented: true,      // a blank line costs 3% of a column
-    numbered: numbered,
     running-head: running-head,
     folio: folio,
   )
@@ -750,21 +836,7 @@
     }
   })
 
-  if front != none {
-    front
-    v(scale-two-column.space, weak: true)
-  }
-
-  // templates.two-column.spanning.always spans without a mark from here on:
-  // frontmatter-title-block, frontmatter-abstract and frontmatter-colophon
-  // read ts-two-column-body themselves (it carries subtitle, byline and
-  // dateline too — they are that block's own parameters, not standalone
-  // functions), and a body-level level-1 heading is promoted by the show rule
-  // below. Both are scoped to `doc`; `front` above renders before the columns
-  // begin, so it is already full width and never needs the wrap.
-  ts-two-column-body.update(true)
-  show heading.where(level: 1): it => span(it)
-  columns(2, gutter: gutter, doc)
+  two-column-body(gutter: gutter, front: front, numbered: numbered, doc)
 }
 // @e
 

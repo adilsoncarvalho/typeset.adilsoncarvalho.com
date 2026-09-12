@@ -1319,6 +1319,14 @@ const INTERNAL_SYMBOLS = new Set([
   '_paragraphs-rule',
   /* document and template entry points */
   'typeset', 'two-column', 'span',
+  /* typeset()'s two halves — the page it sets once per document, and the
+     styles it sets over the body. two-column() calls the first for itself and
+     two-column-body() calls the second, which is what lets the template and a
+     snippet inside a container share one implementation of the body. */
+  '_typeset-page', '_typeset-styles',
+  /* two-column()'s own body composition, and the gutter both it and the
+     column arithmetic read — a number, not a style */
+  'two-column-body', 'gutter-two-column',
   /* two-column's own spanning.always state, read by frontmatter-title-block,
      frontmatter-abstract and frontmatter-colophon — not a style itself */
   'ts-two-column-body',
