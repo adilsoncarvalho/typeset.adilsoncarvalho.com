@@ -31,6 +31,17 @@ named duplex sizes reproduces the 1.x 28mm/22mm split exactly — each one is
 now derived from its symmetric counterpart rather than chosen on its own — so
 a document that must keep its old 1.x page needs a custom margin override.
 
+A different pair of classes, spelled confusingly close to the margin names
+above, did rename: `.typeset--narrow` and `.typeset--wide` were 1.x's names
+for the measure variants — a narrower or wider text column, an axis with
+nothing to do with the page margin. They are `.typeset--measure-narrow` and
+`.typeset--measure-wide` in 2.0, precisely so `narrow`/`wide` cannot mean two
+different things once a margin can be named that too. Unlike the margin
+classes, this one is a straight rename and the codemod below rewrites both;
+an unmigrated document that still carries the 1.x class keeps a name 2.0
+does not style, and silently falls back to the 33em default measure — no
+error, no visual cue, just the wrong line length.
+
 ## Migrating an HTML or CSS document
 
     node tools/codemod-names.mjs path/to/document.html
@@ -126,12 +137,23 @@ It does not touch Typst source. Rename these symbols by hand:
 
 `break-scene` took a `kind:` argument selecting one of four looks; 2.0 gives
 each look its own zero-argument function. `dropcap`, `toc`, `ts-table`,
-`two-column`, `span`, `letter-page` and `epigraph-right` keep their 1.x
-names.
+`two-column`, `span` and `epigraph-right` keep their 1.x names, with no
+change to how they're called.
+
+`letter-page` also keeps its 1.x name, but not its 1.x usage — the name
+surviving is what makes this easy to miss. A letter now opens with
+`#show: letter-page` alone: the function calls `typeset.with()` itself, where
+1.x needed a separate `#show: typeset` line beneath it. That 1.x form now
+hard-errors — `page configuration is not allowed inside of containers`,
+pointing into the library rather than at the line to delete. Delete the
+`#show: typeset` line beneath `#show: letter-page` and the document compiles
+again.
 
 ## The full class table
 
-109 classes change name between 1.x and 2.0. 15 more — `ts-dropcap`,
+111 classes change name between 1.x and 2.0 — 109 named-style classes, plus
+the two measure variants from Margins above, `.typeset--narrow` and
+`.typeset--wide`. 15 more named-style classes — `ts-dropcap`,
 `ts-code-inline`, `ts-toc`, the numerals classes and others — are spelled
 identically in both and are not listed below. `.ts-print-only` and
 `.ts-screen-only` are unchanged in 2.0 as well.
@@ -247,3 +269,5 @@ identically in both and are not listed below. `.ts-print-only` and
 | `.ts-util-no-hyphens` | `.ts-utilities-no-hyphens` |
 | `.ts-util-tie` | `.ts-utilities-tie` |
 | `.ts-verse` | `.ts-quotes-verse` |
+| `.typeset--narrow` | `.typeset--measure-narrow` |
+| `.typeset--wide` | `.typeset--measure-wide` |
