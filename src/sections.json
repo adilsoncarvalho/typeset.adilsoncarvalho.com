@@ -135,6 +135,19 @@
     }
   },
   {
+    "id": "code-inline",
+    "group": "Prose",
+    "title": "Inline code",
+    "prose": [
+      "<p>A monospace face reads optically larger than the serif body at the same size, so the run is set at <code>0.86em</code> to correct for it — not to shrink it for its own sake.</p>",
+      "<p>Ligatures are off. An arrow rendered as one glyph is charming in an editor and wrong in a document that quotes source verbatim.</p>"
+    ],
+    "panel": {
+      "spec": "code-inline",
+      "pane": "html"
+    }
+  },
+  {
     "id": "link",
     "group": "Prose",
     "title": "Links in print",

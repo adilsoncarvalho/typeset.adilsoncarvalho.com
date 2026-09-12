@@ -50,6 +50,7 @@
     <li><a href="#justification">Justification</a></li>
     <li><a href="#dropcap">Drop cap</a></li>
     <li><a href="#inline">Inline emphasis</a></li>
+    <li><a href="#code-inline">Inline code</a></li>
     <li><a href="#link">Links in print</a></li>
     <li><a href="#numeral">Numerals</a></li>
   </ol>
@@ -1124,11 +1125,70 @@ The practical reason is gone. The signal is not.</pre><button class="copy" type=
   </div>
   <div class="pair">
     <div>
-      <p class="pair__label">How it must look</p>
+      <p class="pair__label" data-element="inline-strong">1 · Bold</p>
+      <p class="demo-note">Weight, not italics, for the sentence's own load-bearing clause — the thing a skimming reader must not miss.</p>
       <div class="paper typeset">
-        <p>Ordinary text, with <strong>bold for the load-bearing clause</strong> and <em>italic for a title or a term of art</em>. Emphasis nested <em>inside <em>emphasis</em></em> flips back to roman. <strong>Bold and <em>italic together</em></strong> when both apply.</p>
-        <p>Named entities take small caps: the <span class="ts-inline-small-caps">Bauhaus</span> closed in 1933, and <abbr title="Portable Document Format">PDF</abbr> arrived sixty years later. Water is H<sub>2</sub>O; the claim is contested.<sup>3</sup></p>
-        <p>Revisions read as <del>struck through</del> <ins>and inserted</ins>, a phrase can be <mark>marked</mark>, and a key is <kbd>⌘P</kbd>.</p>
+        <p>The deadline is <strong>Friday, not Monday</strong>, whatever the earlier email said.</p>
+      </div>
+
+      <p class="pair__label" data-element="inline-emphasis">2 · Italic</p>
+      <p class="demo-note">For a title or a term of art — not a general-purpose emphasis dial reached for whenever a word feels important.</p>
+      <div class="paper typeset">
+        <p>She is still reading <em>Typographie</em>, Ruder's own case for restraint.</p>
+      </div>
+
+      <p class="pair__label" data-element="inline-emphasis-nested">3 · Nested italic</p>
+      <p class="demo-note">Emphasis inside emphasis flips back to roman rather than compounding into a heavier italic — correct behaviour, and something most engines get wrong by default.</p>
+      <div class="paper typeset">
+        <p>The review called it <em>the definitive account — <em>definitive</em>, not merely thorough — of the period</em>.</p>
+      </div>
+
+      <p class="pair__label" data-element="inline-small-caps">4 · Small caps</p>
+      <p class="demo-note">For named entities, acronyms and stage directions — never a whole sentence shouted in capitals.</p>
+      <div class="paper typeset">
+        <p>The <span class="ts-inline-small-caps">Bauhaus</span> closed its doors in 1933.</p>
+      </div>
+
+      <p class="pair__label" data-element="inline-abbr">5 · Abbreviation</p>
+      <p class="demo-note">Small caps and a dotted underline mark a term the reader can expand. The expansion itself lives in the title attribute, for a screen reader or a hovering pointer — paper offers neither, so the mark is what a printed page keeps.</p>
+      <div class="paper typeset">
+        <p>Exported as a <abbr title="Portable Document Format">PDF</abbr>, the file survives whatever the recipient has installed.</p>
+      </div>
+
+      <p class="pair__label" data-element="inline-superscript">6 · Superscript</p>
+      <p class="demo-note">Raised, without opening up the line's own leading — a reference mark must not stretch the line it sits in.</p>
+      <div class="paper typeset">
+        <p>The claim is contested,<sup>3</sup> and the footnote says why.</p>
+      </div>
+
+      <p class="pair__label" data-element="inline-subscript">7 · Subscript</p>
+      <p class="demo-note">The same rule below the baseline — a formula's line keeps exactly the surrounding paragraph's height.</p>
+      <div class="paper typeset">
+        <p>Water is H<sub>2</sub>O, nothing more exotic.</p>
+      </div>
+
+      <p class="pair__label" data-element="inline-deleted">8 · Deletion</p>
+      <p class="demo-note">A struck, muted run for text a revision removes — present in the document, marked as gone rather than cut.</p>
+      <div class="paper typeset">
+        <p>Delivery takes <del>ten</del> business days.</p>
+      </div>
+
+      <p class="pair__label" data-element="inline-inserted">9 · Insertion</p>
+      <p class="demo-note">An underlined run for text a revision adds — the tracked-changes counterpart to deletion, meant to sit beside it rather than replace it silently.</p>
+      <div class="paper typeset">
+        <p>Delivery takes <del>ten</del> <ins>five</ins> business days.</p>
+      </div>
+
+      <p class="pair__label" data-element="inline-highlight">10 · Highlight</p>
+      <p class="demo-note">A wash behind the glyphs, bleeding slightly beyond them, for one phrase the reader's eye should catch first — not a device for a whole paragraph.</p>
+      <div class="paper typeset">
+        <p>The clause that actually <mark>changes the deadline</mark> is buried in paragraph four.</p>
+      </div>
+
+      <p class="pair__label" data-element="inline-kbd">11 · Key</p>
+      <p class="demo-note">A drawn keycap for a literal keystroke — the one inline style with its own border, because a key is an object on a keyboard, not a word to emphasise.</p>
+      <div class="paper typeset">
+        <p>Save early: a document is one <kbd>⌘S</kbd> away from being backed up.</p>
       </div>
     </div>
     <div>
@@ -1142,19 +1202,103 @@ The practical reason is gone. The signal is not.</pre><button class="copy" type=
     <label for="tab-inline-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec"><ul class="spec-rules"><li>Nested emphasis FLIPS to roman rather than compounding. This is correct typographic behaviour and most engines get it wrong by default.</li><li>Superscripts and subscripts must not disturb the line's leading.</li><li>Underline is reserved for insertions. On paper it is a typewriter's substitute for italic, and there is no reason to imitate a typewriter.</li></ul><h4 class="spec-el">Bold</h4><table class="spec-table"><tbody><tr><th>weight</th><td><code>600</code></td></tr></tbody></table><p class="spec-note">For the load-bearing clause.</p><h4 class="spec-el">Italic</h4><table class="spec-table"><tbody><tr><th>style</th><td><code>italic</code></td></tr></tbody></table><p class="spec-note">For a title or a term of art.</p><h4 class="spec-el">Nested italic</h4><table class="spec-table"><tbody><tr><th>style</th><td><code>normal</code></td></tr></tbody></table><h4 class="spec-el">Small caps</h4><table class="spec-table"><tbody><tr><th>variant</th><td><code>all small caps</code></td></tr><tr><th>tracking</th><td><code>0.05em</code></td></tr><tr><th>numerals</th><td><code>oldstyle</code></td></tr></tbody></table><p class="spec-note">Named entities, acronyms, stage directions.</p><h4 class="spec-el">Abbreviation</h4><table class="spec-table"><tbody><tr><th>variant</th><td><code>all small caps</code></td></tr><tr><th>tracking</th><td><code>0.05em</code></td></tr><tr><th>underline</th><td><code>0.5pt dotted</code></td></tr><tr><th>underline color</th><td><code>ink_faint</code></td></tr></tbody></table><h4 class="spec-el">Superscript</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>0.72em</code></td></tr><tr><th>baseline shift</th><td><code>+0.45em</code></td></tr><tr><th>line height</th><td><code>0</code></td></tr><tr><th>affects leading</th><td>no</td></tr></tbody></table><h4 class="spec-el">Subscript</h4><table class="spec-table"><tbody><tr><th>size</th><td><code>0.72em</code></td></tr><tr><th>baseline shift</th><td><code>-0.22em</code></td></tr><tr><th>line height</th><td><code>0</code></td></tr><tr><th>affects leading</th><td>no</td></tr></tbody></table><h4 class="spec-el">Deletion</h4><table class="spec-table"><tbody><tr><th>decoration</th><td><code>line-through</code></td></tr><tr><th>color</th><td><code>ink_muted</code></td></tr></tbody></table><h4 class="spec-el">Insertion</h4><table class="spec-table"><tbody><tr><th>decoration</th><td><code>underline</code></td></tr><tr><th>underline offset</th><td><code>0.15em</code></td></tr></tbody></table><h4 class="spec-el">Highlight</h4><table class="spec-table"><tbody><tr><th>background</th><td><code>wash</code></td></tr><tr><th>bleed</th><td><code>2pt beyond the glyphs</code></td></tr></tbody></table><h4 class="spec-el">Key</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>sans</code></td></tr><tr><th>size</th><td><code>0.85em</code></td></tr><tr><th>padding</th><td><code>0.15em 0.35em</code></td></tr><tr><th>border</th><td><code>0.5pt rule</code></td></tr><tr><th>border bottom</th><td><code>1.5pt rule</code></td></tr><tr><th>radius</th><td><code>2pt</code></td></tr></tbody></table></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L335">inline</a></p><pre>&lt;p&gt;Ordinary text, with &lt;strong&gt;bold for the load-bearing clause&lt;/strong&gt; and &lt;em&gt;italic for a title or a term of art&lt;/em&gt;. Emphasis nested &lt;em&gt;inside &lt;em&gt;emphasis&lt;/em&gt;&lt;/em&gt; flips back to roman. &lt;strong&gt;Bold and &lt;em&gt;italic together&lt;/em&gt;&lt;/strong&gt; when both apply.&lt;/p&gt;
-&lt;p&gt;Named entities take small caps: the &lt;span class=&quot;ts-inline-small-caps&quot;&gt;Bauhaus&lt;/span&gt; closed in 1933, and &lt;abbr title=&quot;Portable Document Format&quot;&gt;PDF&lt;/abbr&gt; arrived sixty years later. Water is H&lt;sub&gt;2&lt;/sub&gt;O; the claim is contested.&lt;sup&gt;3&lt;/sup&gt;&lt;/p&gt;
-&lt;p&gt;Revisions read as &lt;del&gt;struck through&lt;/del&gt; &lt;ins&gt;and inserted&lt;/ins&gt;, a phrase can be &lt;mark&gt;marked&lt;/mark&gt;, and a key is &lt;kbd&gt;⌘P&lt;/kbd&gt;.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L405">inline</a></p><pre>Ordinary text, with *bold for the load-bearing clause* and _italic for a title or
-a term of art_. Emphasis nested _inside #emph[emphasis]_ flips back to roman. *Bold
-and _italic together_* when both apply.
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L335">inline</a></p><pre>&lt;!-- Bold --&gt;
+&lt;p&gt;The deadline is &lt;strong&gt;Friday, not Monday&lt;/strong&gt;, whatever the earlier email said.&lt;/p&gt;
 
-Named entities take small <span class="c-prop">caps</span>: the #text(..smcp)[Bauhaus] closed in <span class="c-val">1933</span>, and
-#text(..smcp)[PDF] arrived sixty years later. Water is H#sub[<span class="c-val">2</span>]O; the claim is
-contested.#super[<span class="c-val">3</span>]
+&lt;!-- Italic --&gt;
+&lt;p&gt;She is still reading &lt;em&gt;Typographie&lt;/em&gt;, Ruder's own case for restraint.&lt;/p&gt;
 
-Revisions read as #strike[struck through] #underline[and inserted], a phrase
-can be #highlight(<span class="c-prop">fill</span>: wash)[marked], and a key is #key[⌘P].</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+&lt;!-- Nested italic --&gt;
+&lt;p&gt;The review called it &lt;em&gt;the definitive account — &lt;em&gt;definitive&lt;/em&gt;, not merely thorough — of the period&lt;/em&gt;.&lt;/p&gt;
+
+&lt;!-- Small caps --&gt;
+&lt;p&gt;The &lt;span class=&quot;ts-inline-small-caps&quot;&gt;Bauhaus&lt;/span&gt; closed its doors in 1933.&lt;/p&gt;
+
+&lt;!-- Abbreviation --&gt;
+&lt;p&gt;Exported as a &lt;abbr title=&quot;Portable Document Format&quot;&gt;PDF&lt;/abbr&gt;, the file survives whatever the recipient has installed.&lt;/p&gt;
+
+&lt;!-- Superscript --&gt;
+&lt;p&gt;The claim is contested,&lt;sup&gt;3&lt;/sup&gt; and the footnote says why.&lt;/p&gt;
+
+&lt;!-- Subscript --&gt;
+&lt;p&gt;Water is H&lt;sub&gt;2&lt;/sub&gt;O, nothing more exotic.&lt;/p&gt;
+
+&lt;!-- Deletion --&gt;
+&lt;p&gt;Delivery takes &lt;del&gt;ten&lt;/del&gt; business days.&lt;/p&gt;
+
+&lt;!-- Insertion --&gt;
+&lt;p&gt;Delivery takes &lt;del&gt;ten&lt;/del&gt; &lt;ins&gt;five&lt;/ins&gt; business days.&lt;/p&gt;
+
+&lt;!-- Highlight --&gt;
+&lt;p&gt;The clause that actually &lt;mark&gt;changes the deadline&lt;/mark&gt; is buried in paragraph four.&lt;/p&gt;
+
+&lt;!-- Key --&gt;
+&lt;p&gt;Save early: a document is one &lt;kbd&gt;⌘S&lt;/kbd&gt; away from being backed up.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="files/typeset-typ.html#L405">inline</a></p><pre>The deadline is *Friday, not Monday*, whatever the earlier email said.
+
+She is still reading _Typographie_, Ruder's own case for restraint.
+
+The review called it _the definitive account — #emph[definitive], not merely
+thorough — of the period_.
+
+The #text(..smcp)[Bauhaus] closed its doors in <span class="c-val">1933</span>.
+
+<span class="c-comment">// No abbreviation element in Typst, and no title metadata for a reader to</span>
+<span class="c-comment">// expand — paper offers neither a screen reader nor a hovering pointer</span>
+<span class="c-comment">// anyway. The two primitives underneath (small caps, dotted underline)</span>
+<span class="c-comment">// compose directly here, the same as the CSS selector `abbr[title]` does.</span>
+Exported as a #underline(
+  <span class="c-prop">stroke</span>: (<span class="c-prop">paint</span>: ink-faint, <span class="c-prop">thickness</span>: <span class="c-val">0.5pt</span>, <span class="c-prop">dash</span>: &quot;dotted&quot;),
+  <span class="c-prop">offset</span>: <span class="c-val">0.15em</span>,
+)[#text(..smcp)[PDF]], the file survives whatever the recipient has installed.
+
+The claim is contested,#super[<span class="c-val">3</span>] and the footnote says why.
+
+Water is H#sub[<span class="c-val">2</span>]O, nothing more exotic.
+
+Delivery takes #strike[ten] business days.
+
+Delivery takes #strike[ten] #underline[five] business days.
+
+The clause that actually #highlight(<span class="c-prop">fill</span>: wash)[changes the deadline] is
+buried in paragraph four.
+
+Save <span class="c-prop">early</span>: a document is one #key[⌘S] away from being backed up.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+  </div>
+</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="code-inline">
+  <div class="section__head">
+    <p class="section__num">11 — Prose</p>
+    <h2>Inline code</h2>
+    <p>A monospace face reads optically larger than the serif body at the same size, so the run is set at <code>0.86em</code> to correct for it — not to shrink it for its own sake.</p>
+    <p>Ligatures are off. An arrow rendered as one glyph is charming in an editor and wrong in a document that quotes source verbatim.</p>
+  </div>
+  <div class="pair">
+    <div>
+      <p class="pair__label" data-element="code-inline">How it must look</p>
+      <p class="demo-note">Ligatures off: a quoted arrow stays two glyphs, not one — charming in an editor, wrong in a document that quotes source.</p>
+      <div class="paper typeset">
+        <p>The type signature <code>fn(a) -&gt; b</code> is what the compiler sees; a document that quotes it verbatim must not silently improve it.</p>
+      </div>
+    </div>
+    <div>
+<div class="panel">
+  <div class="tabs">
+    <input type="radio" name="tab-code-inline" id="tab-code-inline-spec" checked>
+    <label for="tab-code-inline-spec">Spec</label>
+    <input type="radio" name="tab-code-inline" id="tab-code-inline-second">
+    <label for="tab-code-inline-second">HTML</label>
+    <input type="radio" name="tab-code-inline" id="tab-code-inline-typst">
+    <label for="tab-code-inline-typst">Typst</label>
+    <span class="tabs__rule"></span>
+    <div class="tabs__pane tabs__pane--spec"><div class="spec"><h4 class="spec-el">Inline code</h4><table class="spec-table"><tbody><tr><th>font</th><td><code>mono</code></td></tr><tr><th>size</th><td><code>0.86em</code></td></tr><tr><th>ligatures</th><td><code>disabled</code></td></tr><tr><th>background</th><td><code>wash</code></td></tr><tr><th>padding</th><td><code>0.1em 0.28em</code></td></tr><tr><th>radius</th><td><code>2pt</code></td></tr><tr><th>wrap</th><td><code>may break within a word</code></td></tr></tbody></table><p class="spec-note">The 0.86em corrects for the monospace face running optically large beside the serif.</p><p class="spec-note">Ligatures off: an arrow rendered as one glyph is charming in an editor and wrong in a document that quotes source.</p></div></div>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full rule in typeset.css — <a href="files/typeset-css.html#L388">code-inline</a></p><pre>&lt;p&gt;The type signature &lt;code&gt;fn(a) -&amp;gt; b&lt;/code&gt; is what the compiler sees; a document that quotes it verbatim must not silently improve it.&lt;/p&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Set globally rather than per element — this is the “codeblock” region of typeset.typ: <a href="files/typeset-typ.html#L388">codeblock</a></p><pre>The type signature `fn(a) -&gt; b` is what the compiler sees; a document that
+quotes it verbatim must not silently improve it.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
 </div>
     </div>
@@ -1163,7 +1307,7 @@ can be #highlight(<span class="c-prop">fill</span>: wash)[marked], and a key is 
 
 <section class="section" id="link">
   <div class="section__head">
-    <p class="section__num">11 — Prose</p>
+    <p class="section__num">12 — Prose</p>
     <h2>Links in print</h2>
     <p>Paper has no hover and no click. An external link whose URL carries information must have that URL printed after the link text. Internal anchors and <code>mailto:</code> links read fine as they are and are excluded, and any link may opt out where its URL would be noise.</p>
   </div>
@@ -1203,7 +1347,7 @@ summarised #link(&lt;measure&gt;)[in section <span class="c-val">02</span>]. Cor
 
 <section class="section" id="numeral">
   <div class="section__head">
-    <p class="section__num">12 — Prose</p>
+    <p class="section__num">13 — Prose</p>
     <h2>Numerals</h2>
     <p>Three kinds, three jobs. <b>Old-style</b> figures have ascenders and descenders, sit inside the x-height, and belong in running prose where uniform-height digits shout. <b>Lining</b> figures are all cap-height, for headings. <b>Tabular</b> figures share one advance width, which is the only reason a column of numbers can align.</p>
     <p>Getting this wrong is the most visible amateur tell in a set document — and in every engine it is one setting.</p>
@@ -1268,7 +1412,7 @@ sizes, of which <span class="c-val">12</span> survive.]
 
 <section class="section" id="quote">
   <div class="section__head">
-    <p class="section__num">13 — Blocks</p>
+    <p class="section__num">14 — Blocks</p>
     <h2>Quotations</h2>
     <p>Four different jobs, four treatments. They are shown one at a time below, because the whole point is that a reader should be able to tell them apart at a glance — if you cannot say which is which, the styling has failed.</p>
     <p>Attribution always sits outside the quotation, prefixed with an em dash. Putting it inside makes the source part of what was said.</p>
@@ -1392,7 +1536,7 @@ typeface.
 
 <section class="section" id="list">
   <div class="section__head">
-    <p class="section__num">14 — Blocks</p>
+    <p class="section__num">15 — Blocks</p>
     <h2>Lists</h2>
     <p>The marker's colour, weight and column width must be under the spec's control, not the engine's defaults. A grey marker with black text reads as one thing; a black marker competes with the first word. Runover lines align to the text, never to the marker.</p>
     <p>Definition lists are underused. They are the right shape for a glossary, a set of terms, or the field-and-value blocks in a letter — anywhere a short label governs a paragraph.</p>
@@ -1495,7 +1639,7 @@ typeface.
 
 <section class="section" id="table">
   <div class="section__head">
-    <p class="section__num">15 — Blocks</p>
+    <p class="section__num">16 — Blocks</p>
     <h2>Tables</h2>
     <p>Rules, not grids. Vertical rules are almost never needed — the columns already read as columns, and every line you add is ink competing with data. Three horizontal rules: above the header, below it, and below the body.</p>
     <p>Numbers align right, on tabular figures, and units go in the header rather than being repeated in every cell. Sans-serif at 9.5pt: a table is scanned, not read, and the serif's job is reading.</p>
@@ -1582,7 +1726,7 @@ typeface.
 
 <section class="section" id="codeblock">
   <div class="section__head">
-    <p class="section__num">16 — Blocks</p>
+    <p class="section__num">17 — Blocks</p>
     <h2>Code</h2>
     <p>Monospaced faces run optically large beside a serif, so inline code is pulled back to 0.86em and ligatures are switched off — an arrow rendered as a single glyph is charming in an editor and wrong in a document that quotes source.</p>
     <p>Paper cannot scroll, so blocks wrap rather than overflow. And long listings must be <em>allowed</em> to split across pages: forbidding the break on a fifty-line block pushes a blank page ahead of it.</p>
@@ -1644,7 +1788,7 @@ Which is all it takes.</pre><button class="copy" type="button" data-copy>Copy</b
 
 <section class="section" id="figure">
   <div class="section__head">
-    <p class="section__num">17 — Blocks</p>
+    <p class="section__num">18 — Blocks</p>
     <h2>Figures &amp; captions</h2>
     <p>A caption is not a title. It goes below the figure, sans at 9.5pt, separated by a hair rule, and it carries a small-caps label so a cross-reference in the text has something to point at. A figure and its caption stay on one page — the one place a no-break rule is unambiguously right.</p>
   </div>
@@ -1726,7 +1870,7 @@ Which is all it takes.</pre><button class="copy" type="button" data-copy>Copy</b
 
 <section class="section" id="callout">
   <div class="section__head">
-    <p class="section__num">18 — Blocks</p>
+    <p class="section__num">19 — Blocks</p>
     <h2>Callouts</h2>
     <p>For a report or a technical note: an aside the reader may skip without losing the argument. If skipping it <em>would</em> lose the argument, it is not a callout, it is a paragraph. Two variants only — neutral and warning — because a document with five callout colours has none.</p>
   </div>
@@ -1780,7 +1924,7 @@ Which is all it takes.</pre><button class="copy" type="button" data-copy>Copy</b
 
 <section class="section" id="break">
   <div class="section__head">
-    <p class="section__num">19 — Blocks</p>
+    <p class="section__num">20 — Blocks</p>
     <h2>Section breaks</h2>
     <p>A blank line cannot survive a page break. If the break happens to fall exactly on the gap, the reader never learns that the scene changed — and this is not a rare accident, it is a one-in-forty-lines certainty over a long document. Use a visible mark.</p>
     <p>Four registers: three asterisks for prose, an asterism for a heavier division, a fleuron for a decorative one, a plain rule for a report.</p>
@@ -1846,7 +1990,7 @@ And a plain rule, where it cannot.</pre><button class="copy" type="button" data-
 
 <section class="section" id="note">
   <div class="section__head">
-    <p class="section__num">20 — Apparatus</p>
+    <p class="section__num">21 — Apparatus</p>
     <h2>Footnotes &amp; sidenotes</h2>
     <p>The honest position: true bottom-of-page footnotes need an engine that can measure the page while laying it out. <b>Typst and LaTeX do this natively. WeasyPrint 53+ and Prince implement the CSS footnote model. No browser does.</b> So the note text lives in the document inside <code>.ts-note-footnote</code>, and <code>@supports (float: footnote)</code> promotes it to a real footnote where the engine can — degrading to a numbered notes block where it cannot, never to a lost note.</p>
     <p>There is <b>no heading over the notes</b>. The rule above the block is the only mark it needs; a label over two lines of small print is heavier than the thing it labels.</p>
@@ -1956,7 +2100,7 @@ difference is not small.</pre><button class="copy" type="button" data-copy>Copy<
 
 <section class="section" id="toc">
   <div class="section__head">
-    <p class="section__num">21 — Apparatus</p>
+    <p class="section__num">22 — Apparatus</p>
     <h2>Table of contents</h2>
     <p>Dot leaders work anywhere. Page numbers require the engine to resolve a cross-reference <em>after</em> pagination — native in Typst and LaTeX, Paged Media in CSS. Where it cannot, the leaders render and the number is simply absent. That is the correct failure: a table of contents with wrong page numbers is worse than one with none.</p>
     <p>The numbers below are written into the demo by hand so you can see the finished shape. In a real document they come from the engine, and nobody types them.</p>
@@ -2056,7 +2200,7 @@ the leftmost thing on the entry.</pre><button class="copy" type="button" data-co
 
 <section class="section" id="bibliography">
   <div class="section__head">
-    <p class="section__num">22 — Apparatus</p>
+    <p class="section__num">23 — Apparatus</p>
     <h2>Bibliography</h2>
     <p>Hanging indent, always. The surname is the thing being scanned, so it must be the leftmost thing on the entry — an indented first line puts the one useful token where the eye is not looking.</p>
   </div>
@@ -2130,7 +2274,7 @@ the leftmost thing on the entry.</pre><button class="copy" type="button" data-co
 
 <section class="section" id="frontmatter">
   <div class="section__head">
-    <p class="section__num">23 — Documents</p>
+    <p class="section__num">24 — Documents</p>
     <h2>Front matter</h2>
     <p>Title, subtitle, byline, dateline, abstract — and a colophon to close. The colophon is the note at the back of a book recording how it was made and in what type. It is the one piece of front-and-back matter that is purely for pleasure, and the cheapest thing in this stylesheet to include.</p>
   </div>
@@ -2207,7 +2351,7 @@ The claim is not original, and it is not complicated…
 
 <section class="section" id="letter">
   <div class="section__head">
-    <p class="section__num">24 — Documents</p>
+    <p class="section__num">25 — Documents</p>
     <h2>Letter</h2>
     <p>Set <b>ragged right</b> — a letter is addressed to a person, and justification reads as institutional.</p>
     <p>The <b>sender block is address data, not a masthead</b>: one style throughout, at body size, in the reading face. Nothing bold, nothing in the sans. A personal letter does not announce itself, and the recipient already knows who writes to them. Omit what you do not use — a personal letter needs no email address and no telephone number.</p>
@@ -2356,7 +2500,7 @@ is more than most annual reports manage.]</pre><button class="copy" type="button
 
 <section class="section" id="utility">
   <div class="section__head">
-    <p class="section__num">25 — Documents</p>
+    <p class="section__num">26 — Documents</p>
     <h2>Pagination utilities</h2>
     <p>The small set of overrides reached for while proofing a real document: force a break, forbid one, stop a hyphen, tie two words together. Every one is a manual decision about a specific page, not a style. The last of them tells the output device not to strip backgrounds and rules to save ink.</p>
   </div>

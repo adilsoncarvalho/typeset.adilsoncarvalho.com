@@ -1,6 +1,65 @@
-<p class="pair__label">How it must look</p>
+<p class="pair__label" data-element="inline-strong">1 · Bold</p>
+<p class="demo-note">Weight, not italics, for the sentence's own load-bearing clause — the thing a skimming reader must not miss.</p>
 <div class="paper typeset">
-  <p>Ordinary text, with <strong>bold for the load-bearing clause</strong> and <em>italic for a title or a term of art</em>. Emphasis nested <em>inside <em>emphasis</em></em> flips back to roman. <strong>Bold and <em>italic together</em></strong> when both apply.</p>
-  <p>Named entities take small caps: the <span class="ts-inline-small-caps">Bauhaus</span> closed in 1933, and <abbr title="Portable Document Format">PDF</abbr> arrived sixty years later. Water is H<sub>2</sub>O; the claim is contested.<sup>3</sup></p>
-  <p>Revisions read as <del>struck through</del> <ins>and inserted</ins>, a phrase can be <mark>marked</mark>, and a key is <kbd>⌘P</kbd>.</p>
+  <p>The deadline is <strong>Friday, not Monday</strong>, whatever the earlier email said.</p>
+</div>
+
+<p class="pair__label" data-element="inline-emphasis">2 · Italic</p>
+<p class="demo-note">For a title or a term of art — not a general-purpose emphasis dial reached for whenever a word feels important.</p>
+<div class="paper typeset">
+  <p>She is still reading <em>Typographie</em>, Ruder's own case for restraint.</p>
+</div>
+
+<p class="pair__label" data-element="inline-emphasis-nested">3 · Nested italic</p>
+<p class="demo-note">Emphasis inside emphasis flips back to roman rather than compounding into a heavier italic — correct behaviour, and something most engines get wrong by default.</p>
+<div class="paper typeset">
+  <p>The review called it <em>the definitive account — <em>definitive</em>, not merely thorough — of the period</em>.</p>
+</div>
+
+<p class="pair__label" data-element="inline-small-caps">4 · Small caps</p>
+<p class="demo-note">For named entities, acronyms and stage directions — never a whole sentence shouted in capitals.</p>
+<div class="paper typeset">
+  <p>The <span class="ts-inline-small-caps">Bauhaus</span> closed its doors in 1933.</p>
+</div>
+
+<p class="pair__label" data-element="inline-abbr">5 · Abbreviation</p>
+<p class="demo-note">Small caps and a dotted underline mark a term the reader can expand. The expansion itself lives in the title attribute, for a screen reader or a hovering pointer — paper offers neither, so the mark is what a printed page keeps.</p>
+<div class="paper typeset">
+  <p>Exported as a <abbr title="Portable Document Format">PDF</abbr>, the file survives whatever the recipient has installed.</p>
+</div>
+
+<p class="pair__label" data-element="inline-superscript">6 · Superscript</p>
+<p class="demo-note">Raised, without opening up the line's own leading — a reference mark must not stretch the line it sits in.</p>
+<div class="paper typeset">
+  <p>The claim is contested,<sup>3</sup> and the footnote says why.</p>
+</div>
+
+<p class="pair__label" data-element="inline-subscript">7 · Subscript</p>
+<p class="demo-note">The same rule below the baseline — a formula's line keeps exactly the surrounding paragraph's height.</p>
+<div class="paper typeset">
+  <p>Water is H<sub>2</sub>O, nothing more exotic.</p>
+</div>
+
+<p class="pair__label" data-element="inline-deleted">8 · Deletion</p>
+<p class="demo-note">A struck, muted run for text a revision removes — present in the document, marked as gone rather than cut.</p>
+<div class="paper typeset">
+  <p>Delivery takes <del>ten</del> business days.</p>
+</div>
+
+<p class="pair__label" data-element="inline-inserted">9 · Insertion</p>
+<p class="demo-note">An underlined run for text a revision adds — the tracked-changes counterpart to deletion, meant to sit beside it rather than replace it silently.</p>
+<div class="paper typeset">
+  <p>Delivery takes <del>ten</del> <ins>five</ins> business days.</p>
+</div>
+
+<p class="pair__label" data-element="inline-highlight">10 · Highlight</p>
+<p class="demo-note">A wash behind the glyphs, bleeding slightly beyond them, for one phrase the reader's eye should catch first — not a device for a whole paragraph.</p>
+<div class="paper typeset">
+  <p>The clause that actually <mark>changes the deadline</mark> is buried in paragraph four.</p>
+</div>
+
+<p class="pair__label" data-element="inline-kbd">11 · Key</p>
+<p class="demo-note">A drawn keycap for a literal keystroke — the one inline style with its own border, because a key is an object on a keyboard, not a word to emphasise.</p>
+<div class="paper typeset">
+  <p>Save early: a document is one <kbd>⌘S</kbd> away from being backed up.</p>
 </div>
