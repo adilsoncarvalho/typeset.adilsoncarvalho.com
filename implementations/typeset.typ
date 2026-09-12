@@ -52,6 +52,15 @@
   leading: 1.4, space: 9.5pt,
 )
 
+// The scale the document is set in, published by _typeset-styles below and
+// read by the standalone paragraph functions. A per-block override owes the
+// same scale as the prose around it — block-spaced() inside a two-column
+// document owes that scale's 9.5pt gap, not the single-column 11pt — and
+// nothing at the call site says which scale is in force. A state is how this
+// file already carries a document-level decision down to a function that
+// needs one (ts-two-column-body, below).
+#let ts-scale = state("ts-scale", scale-single-column)
+
 // Defaults, for the standalone helpers below.
 #let base-size = scale-single-column.base
 #let sm = scale-single-column.sm
@@ -71,15 +80,17 @@
 // both at once: a gap (spaced) or an indent (indented). `typeset()`'s own
 // `indented` option and the two standalone functions below (block-spaced,
 // block-indented) both read this, so the whole-document switch and the
-// per-block override can never drift apart into two different 1.5em's.
-// `leading` defaults to the single-column scale's own 1.45 for the two
-// standalone functions, which have no `scale` to read; typeset() passes its
-// own scale's leading, so a document on the two-column scale still gets
-// indented spacing equal to ITS leading, not the single-column one's.
-#let _paragraphs-rule(indented, leading: 1.45) = if indented {
+// per-block override can never drift apart into two different indents.
+//
+// Every number here belongs to the scale in force, never to the module: a
+// document on the two-column scale gets ITS 1.4 leading and ITS 9.5pt gap,
+// and the standalone functions read the same scale out of ts-scale. The
+// defaults are the single-column scale's own, for a caller with no scale in
+// hand at all.
+#let _paragraphs-rule(indented, leading: 1.45, space: sp) = if indented {
   (spacing: leading-for(leading), first-line-indent: (amount: 1.5em, all: false))
 } else {
-  (spacing: sp, first-line-indent: 0pt)
+  (spacing: space, first-line-indent: 0pt)
 }
 
 #let oldstyle = (number-type: "old-style", number-width: "proportional")
@@ -213,6 +224,10 @@
   let xs = scale.xs
   let sp = scale.space
 
+  // The scale reaches the standalone paragraph functions, which take no
+  // arguments and so cannot be told which one is in force.
+  ts-scale.update(scale)
+
 // @s foundation
   set text(
     font: serif,
@@ -225,7 +240,7 @@
 
   set par(
     leading: leading-for(scale.leading),
-    .._paragraphs-rule(indented, leading: scale.leading),
+    .._paragraphs-rule(indented, leading: scale.leading, space: scale.space),
     justify: justified,
 // @e
     linebreaks: "optimized",
@@ -447,16 +462,21 @@
 // document start does. A `block()` wrapper here would do that AGAIN to the
 // first paragraph *inside* this function — flushing a paragraph that is not
 // actually after a heading, a bug this file's own conformance gate compiles
-// a probe to catch. So `body` below is scoped by a plain code block, which
-// carries no layout identity of its own, never by `block()`.
+// a probe to catch. So `body` below is scoped by `context`, which resolves
+// to its own body and carries no layout identity, never by `block()`. The
+// `context` is what lets these two read the document's scale out of
+// ts-scale: a gap or an indent is the active scale's, and neither function
+// takes an argument that could carry one.
 // @s paragraphs
-#let block-spaced(body) = {
-  set par(.._paragraphs-rule(false))
+#let block-spaced(body) = context {
+  let scale = ts-scale.get()
+  set par(.._paragraphs-rule(false, leading: scale.leading, space: scale.space))
   body
 }
 
-#let block-indented(body) = {
-  set par(.._paragraphs-rule(true))
+#let block-indented(body) = context {
+  let scale = ts-scale.get()
+  set par(.._paragraphs-rule(true, leading: scale.leading, space: scale.space))
   body
 }
 // @e

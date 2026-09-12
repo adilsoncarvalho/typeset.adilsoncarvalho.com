@@ -1327,6 +1327,10 @@ const INTERNAL_SYMBOLS = new Set([
   /* two-column's own spanning.always state, read by frontmatter-title-block,
      frontmatter-abstract and frontmatter-colophon — not a style itself */
   'ts-two-column-body',
+  /* the scale the document is set in, published by _typeset-styles and read
+     by block-spaced/block-indented, which take no argument that could carry
+     one — not a style itself */
+  'ts-scale',
   /* epigraph-right has no element behind it at all */
   'epigraph-right',
 ]);
@@ -2188,12 +2192,13 @@ const specEl = (id) => paragraphsSpec.elements.find((e) => e.id === id).properti
 const spacedProps = specEl('paragraphs-spaced');
 const indentedProps = specEl('paragraphs-indented');
 
-const rule = /#let _paragraphs-rule\(indented, leading: [\d.]+\) = if indented \{([^}]*)\} else \{([^}]*)\}/.exec(typ);
+const rule = /#let _paragraphs-rule\(indented, leading: ([\d.]+), space: (\w+)\) = if indented \{([^}]*)\} else \{([^}]*)\}/
+  .exec(typ);
 if (!rule) {
   fail.push('typeset.typ: _paragraphs-rule was not found in the shape this gate expects — '
     + 'update the gate if the function was deliberately restructured');
 } else {
-  const [, indentedBranch, spacedBranch] = rule;
+  const [, , spaceDefault, indentedBranch, spacedBranch] = rule;
 
   const spacedIndent = /first-line-indent:\s*([^\n,)}]+)/.exec(spacedBranch)?.[1]?.trim();
   if (spacedIndent !== '0pt') {
@@ -2201,10 +2206,27 @@ if (!rule) {
       + `spec.json's paragraphs-spaced.first_line_indent is "${spacedProps.first_line_indent}" (0) `
       + '— every line flush');
   }
+  /* The gap is the ACTIVE scale's, never the module's. _paragraphs-rule is
+     defined 130 lines above _typeset-styles's own `let sp = scale.space`, so
+     a bare `sp` in this branch closes over the module-level 11pt and a
+     document on any other scale silently gets the single-column gap. The
+     branch must therefore name the parameter, and the parameter's default
+     must be the single-column unit for a caller with no scale in hand. */
   const spacedSpacing = /spacing:\s*([^\n,)}]+)/.exec(spacedBranch)?.[1]?.trim();
-  if (spacedSpacing !== 'sp') {
-    fail.push(`typeset.typ: block-spaced's spacing is "${spacedSpacing}", expected the module's `
-      + `own \`sp\` (${spacedProps.space_after}, spec.json's paragraphs-spaced.space_after)`);
+  if (spacedSpacing !== 'space') {
+    fail.push(`typeset.typ: block-spaced's spacing is "${spacedSpacing}", expected the `
+      + '`space` parameter — a module-level constant here cannot follow the scale the '
+      + 'document is actually set in');
+  }
+  if (spaceDefault !== 'sp') {
+    fail.push(`typeset.typ: _paragraphs-rule's space parameter defaults to \`${spaceDefault}\`, `
+      + `expected the module's own \`sp\` (${spacedProps.space_after}, spec.json's `
+      + 'paragraphs-spaced.space_after) — the single-column unit, for a caller with no scale');
+  }
+  if (!/\.\._paragraphs-rule\(indented, leading: scale\.leading, space: scale\.space\)/.test(typ)) {
+    fail.push('typeset.typ: _typeset-styles does not pass both scale.leading and scale.space to '
+      + '_paragraphs-rule — a document on any scale but the single-column one then gets the '
+      + "module's own leading or gap in place of its own");
   }
 
   const indentedAmount = /first-line-indent:\s*\(amount:\s*([^,]+),\s*all:\s*(true|false)\)/.exec(indentedBranch);
@@ -2323,6 +2345,87 @@ try {
   }
 } finally {
   rmSync(paraProbeDir, { recursive: true, force: true });
+}
+
+/* The gap third, and on every scale the file declares. Both checks above are
+   aimed at the INDENT: each fixture they render is block-indented, or is
+   block-spaced at the single-column scale, where the module's own `sp` is
+   coincidentally the right answer. A spaced branch that closed over that
+   module constant passed both of them — and passed a byte-identity check over
+   all three example documents too, because the one template that changes
+   scale, two-column(), sets `indented: true` and never reaches the spaced
+   branch at all. A gate aimed one branch to the left is not a gate.
+
+   So the spaced branch is rendered on each scale, through the two doors that
+   reach it: typeset(scale: ..), which is a public parameter, and
+   block-spaced(), which takes no arguments and has to read the scale itself.
+   On each scale the paragraph advance must be that scale's own line box (its
+   base, because top-edge: 1em / bottom-edge: 0pt) plus that scale's own
+   space — never another scale's. */
+
+const scaleField = (name, field) => {
+  const dict = new RegExp(`#let ${name} = \\(([\\s\\S]*?)\\n\\)`).exec(typ);
+  if (!dict) return null;
+  const m = new RegExp(`\\b${field}:\\s*([\\d.]+)pt`).exec(dict[1]);
+  return m ? Number(m[1]) : null;
+};
+
+const GAP_SCALES = ['scale-single-column', 'scale-two-column'];
+const gapProbeDir = mkdtempSync(join(tmpdir(), 'typeset-para-gap-check-'));
+try {
+  copyFileSync('implementations/typeset.typ', join(gapProbeDir, 'typeset.typ'));
+
+  /* The single-column arm is also the spec's own number: paragraphs-spaced
+     declares an 11pt space_after at an 11pt base, so its expected advance is
+     spec.json's value, not merely typeset.typ's agreeing with itself. */
+  const specGap = parseFloat(spacedProps.space_after) + parseFloat(spacedProps.size);
+
+  for (const scaleName of GAP_SCALES) {
+    const base = scaleField(scaleName, 'base');
+    const space = scaleField(scaleName, 'space');
+    if (base === null || space === null) {
+      fail.push(`typeset.typ: ${scaleName} declares no base/space pair this gate can read — `
+        + 'update the gate if the scale dictionaries were deliberately restructured');
+      continue;
+    }
+    const expected = base + space;
+    if (scaleName === 'scale-single-column' && Math.abs(expected - specGap) > 0.01) {
+      fail.push(`typeset.typ: ${scaleName} gives a spaced advance of ${expected}pt, but `
+        + `spec.json's paragraphs-spaced is ${spacedProps.size} of text and a `
+        + `${spacedProps.space_after} space_after, i.e. ${specGap}pt`);
+    }
+
+    /* Two paragraphs set by typeset()'s own `indented: false` default, and two
+       more inside block-spaced(), which is the call that has no scale in hand. */
+    const source = `#import "typeset.typ": *\n`
+      + `#show: typeset.with(scale: ${scaleName}, running-head: false, folio: false)\n\n`
+      + `Alpha one.\n\nBeta two.\n\n#block-spaced[\n  Gamma three.\n\n  Delta four.\n]\n`;
+    try {
+      const lines = svgTextRuns(compileSvgProbe(gapProbeDir, `gap-${scaleName}`, source));
+      if (lines.length !== 4) {
+        fail.push(`tools/check.mjs: the paragraph-gap probe for ${scaleName} rendered `
+          + `${lines.length} lines, expected exactly 4 — update the probe`);
+        continue;
+      }
+      const arms = [
+        ['typeset(scale: ..)', lines[1].y - lines[0].y],
+        ['block-spaced() inside it', lines[3].y - lines[2].y],
+      ];
+      for (const [label, advance] of arms) {
+        if (Math.abs(advance - expected) > 0.01) {
+          fail.push(`typeset.typ: on ${scaleName}, a spaced paragraph under ${label} advances `
+            + `${advance.toFixed(2)}pt, expected ${expected.toFixed(2)}pt — that scale's own `
+            + `${base}pt line box plus its own ${space}pt space. A gap that follows the module's `
+            + `\`sp\` instead of the scale would advance ${(base + parseFloat(spacedProps.space_after)).toFixed(2)}pt`);
+        }
+      }
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+      fail.push(`typeset.typ: the paragraph-gap probe for ${scaleName} failed to compile:\n${detail}`);
+    }
+  }
+} finally {
+  rmSync(gapProbeDir, { recursive: true, force: true });
 }
 
 /* ---- 12. justified() / ragged-right() — stated alignment, compose, last
