@@ -10,7 +10,7 @@ import { join, resolve } from 'node:path';
 import { buildAll } from './build-site.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
-import { typstBoilerplate, typstDocument } from '../src/boilerplate.mjs';
+import { typstBoilerplate, typstDocument, setsItsOwnPage } from '../src/boilerplate.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
@@ -1320,13 +1320,10 @@ const INTERNAL_SYMBOLS = new Set([
   /* document and template entry points */
   'typeset', 'two-column', 'span',
   /* typeset()'s two halves — the page it sets once per document, and the
-     styles it sets over the body. two-column() calls the first for itself and
-     two-column-body() calls the second, which is what lets the template and a
-     snippet inside a container share one implementation of the body. */
+     styles it sets over the body. Both templates call both: two-column() has
+     to set the page, draw its column rule on it, and only then set the styles,
+     which is an order a single combined call cannot express. */
   '_typeset-page', '_typeset-styles',
-  /* two-column()'s own body composition, and the gutter both it and the
-     column arithmetic read — a number, not a style */
-  'two-column-body', 'gutter-two-column',
   /* two-column's own spanning.always state, read by frontmatter-title-block,
      frontmatter-abstract and frontmatter-colophon — not a style itself */
   'ts-two-column-body',
@@ -2678,21 +2675,34 @@ if (/#set par|#set text/.test(bibliographyDemo)) {
 /* The two-column demo is held to the same standard on a wider front: the
    template chooses the scale, the paragraph shape AND the gutter, so a demo
    that reaches for #set or for #columns() has reimplemented the template
-   beside it and the two can drift. The positive check is the load-bearing
-   one — without it a demo that dropped the columns entirely would satisfy
-   both negatives and gate nothing. */
+   beside it and the two can drift.
+
+   The positive check is the load-bearing one, and it is deliberately the
+   publishing predicate rather than a regex of its own: setsItsOwnPage() is
+   what decides whether the masthead's bare "#show: typeset" is substituted
+   out, so asserting it here asserts the demo is a whole document in the one
+   sense that actually ships, not in a second definition kept beside it.
+   Without this check a demo that dropped the columns entirely would satisfy
+   both negatives and gate nothing.
+
+   Why a whole document and not a hand-composed body: two-column() derives the
+   column from the paper and the margin and refuses a measure below the
+   45-character floor, naming both numbers. A body composed by hand takes
+   neither, so it cannot run that check — and a demo is the thing readers
+   copy onto other papers. */
 const twoColumnDemo = readFileSync('src/demos/two-column.typ', 'utf8');
-if (!/#two-column-body\(/.test(twoColumnDemo)) {
-  fail.push('src/demos/two-column.typ: does not call two-column-body() — the demo has to run '
-    + 'the same composition two-column() does, not a parallel one beside it');
+if (!setsItsOwnPage(twoColumnDemo) || !/#show:\s*two-column\./.test(twoColumnDemo)) {
+  fail.push('src/demos/two-column.typ: does not open with #show: two-column.with(...) — the demo '
+    + 'has to run the real template, which derives the column from the paper and the margin and '
+    + 'refuses one below the floor; a body composed by hand takes neither and cannot');
 }
 if (/#set /.test(twoColumnDemo)) {
-  fail.push('src/demos/two-column.typ: uses #set directly — the point of two-column-body() is '
-    + 'that an author never configures the scale or the paragraph shape by hand');
+  fail.push('src/demos/two-column.typ: uses #set directly — the point of two-column() is that an '
+    + 'author never configures the scale or the paragraph shape by hand');
 }
 if (/#columns\(/.test(twoColumnDemo)) {
-  fail.push('src/demos/two-column.typ: calls #columns() with a gutter of its own — the gutter is '
-    + 'gutter-two-column, and two-column-body() is what applies it');
+  fail.push('src/demos/two-column.typ: calls #columns() with a gutter of its own — 6mm is the '
+    + "template's own number, and two-column() is what applies it");
 }
 
 /* ---- 13. key() must match inline-kbd, bottom edge strictly heavier than
