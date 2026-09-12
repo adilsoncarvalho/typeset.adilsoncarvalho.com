@@ -2675,6 +2675,26 @@ if (/#set par|#set text/.test(bibliographyDemo)) {
     + 'references()/reference() is that an author never has to');
 }
 
+/* The two-column demo is held to the same standard on a wider front: the
+   template chooses the scale, the paragraph shape AND the gutter, so a demo
+   that reaches for #set or for #columns() has reimplemented the template
+   beside it and the two can drift. The positive check is the load-bearing
+   one — without it a demo that dropped the columns entirely would satisfy
+   both negatives and gate nothing. */
+const twoColumnDemo = readFileSync('src/demos/two-column.typ', 'utf8');
+if (!/#two-column-body\(/.test(twoColumnDemo)) {
+  fail.push('src/demos/two-column.typ: does not call two-column-body() — the demo has to run '
+    + 'the same composition two-column() does, not a parallel one beside it');
+}
+if (/#set /.test(twoColumnDemo)) {
+  fail.push('src/demos/two-column.typ: uses #set directly — the point of two-column-body() is '
+    + 'that an author never configures the scale or the paragraph shape by hand');
+}
+if (/#columns\(/.test(twoColumnDemo)) {
+  fail.push('src/demos/two-column.typ: calls #columns() with a gutter of its own — the gutter is '
+    + 'gutter-two-column, and two-column-body() is what applies it');
+}
+
 /* ---- 13. key() must match inline-kbd, bottom edge strictly heavier than
             the other three ------------------------------------------------ */
 
