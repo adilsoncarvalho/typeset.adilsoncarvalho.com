@@ -304,6 +304,31 @@ committed because these items must outlive them.
 
 **Owned by the API group** (rides with the singular rename, before Group 5):
 
+- **Asked for by the owner on 2026-09-11, in his review of the live site. Not
+  delivered in the group that followed, and — until 2026-09-12 — not written
+  down anywhere either.** They lived only in a per-group ledger under
+  `.superpowers/`, which is git-ignored and deleted when its group closes, so
+  nothing in the repo recorded them. That is the failure this section exists to
+  prevent, and it had been used for defects found by implementers while the
+  owner's own requests went to scratch. Listed here so they survive the session
+  that heard them:
+  - **An example for `key`.** `spec.json` carries `inline-kbd` with full
+    properties and the HTML demo shows it; `implementations/typeset.typ` has no
+    function at all and the Typst demo has no example.
+  - **`#references` and `#reference()`.** "I want no manual style configuration
+    for the user." `src/demos/bibliography.typ` is twelve lines of `#set`
+    followed by four hand-formatted strings, so the author owns the citation
+    format instead of the template.
+  - **Named measures rather than literals.** `src/demos/foundation.typ` opens
+    `#block(width: 126mm)`. The CSS side names these `narrow` and `wide`; Typst
+    should too.
+  - **The tab scroll.** Clicking a pane tab jumps the page to the end of the
+    example. `.tabs input` is `position: absolute` with `auto` offsets inside a
+    flex container aligned to `flex-end`, so each hidden radio's static position
+    is the bottom of `.tabs` — which contains the panes.
+
+  All four are planned in `docs/plans/2026-09-12-typst-api.md`.
+
 - **A bibliography heading has no element.** `templates.two-column.spanning.always`
   named one, but the `bibliography` section holds exactly `bibliography-entry`,
   and the entry contradicted `spanning.never`'s "heading 2 and below". Group 4
