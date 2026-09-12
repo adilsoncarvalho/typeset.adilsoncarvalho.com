@@ -519,9 +519,11 @@ git status --short
 
 `GREEN` and an empty status. A modified `index.html` here means the committed page is stale.
 
-- [ ] **Step 2: Confirm the rendered examples never moved**
+- [ ] **Step 2: Account for every demo the group changed**
 
-This group changes panels, adds snippets and adds a boilerplate block. It must not have altered a single demo.
+The amendment above reworks the demos rather than freezing them, so this is no
+longer a "no output" check. List what moved and name the decision behind each
+one:
 
 ```bash
 for f in src/demos/*.html; do
@@ -529,7 +531,10 @@ for f in src/demos/*.html; do
 done
 ```
 
-Expect no output. A changed demo is a defect unless you can name why.
+Every file listed must trace to one of the amendment's five decisions, to a
+defect the group fixed in the demo itself, or to a pane carrying this website's
+furniture into markup a reader copies. A change that traces to none of those is
+a defect.
 
 - [ ] **Step 3: Confirm Group 1's invariants still hold**
 
