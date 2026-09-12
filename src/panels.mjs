@@ -1,5 +1,9 @@
-/* Renders the Spec / CSS / Typst panel for one section, at build time.
-   Ported from the browser code it replaces: same output, no fetch, no runtime. */
+/* Renders the Spec / HTML-or-CSS / Typst panel for one section, at build
+   time. Ported from the browser code it replaces: same output, no fetch,
+   no runtime. The second pane is HTML — the markup that produces the
+   example — for every section except tokens, foundation and page, which
+   state values rather than demonstrate a document and get the CSS that
+   sets those values instead; src/sections.json declares which. */
 
 import { byLang, esc } from './highlight.mjs';
 
@@ -11,8 +15,10 @@ const FOUNDATION_PANELS = {
   page: ['page'],
 };
 
-/* Sections whose Typst values are set globally rather than per element: point
-   at the region that carries them instead of showing an empty tab. */
+/* Sections whose Typst values are set globally rather than per element: the
+   snippet itself still shows the section, but the deep link into the full
+   source points at the region that carries the setting instead of at the
+   section's own name, which typeset.typ never marks. */
 const TYPST_ELSEWHERE = {
   paragraphs: 'foundation',
   justification: 'foundation',
@@ -22,8 +28,8 @@ const TYPST_ELSEWHERE = {
   numerals: 'foundation',
 };
 
-const NO_TYPST = 'No Typst-specific code. This section states rules rather than '
-  + 'settings, or the engine provides the behaviour natively — see spec.json.';
+const NO_TYPST_REGION = 'No dedicated region in typeset.typ — this section reads off Typst’s '
+  + 'own constructs directly, or the engine provides the behaviour natively. See spec.json.';
 
 const label = (k) => k.replace(/_/g, ' ');
 
@@ -140,22 +146,74 @@ export function codePane(source, lang, note) {
   return `<div class="codewrap">${head}${body}${copy}</div>`;
 }
 
-export function renderPanel({ spec, cssMap, typMap, specIds, cssKeys, id }) {
-  const missing = cssKeys.filter((k) => !cssMap.has(k));
+/* Links each of a section's CSS keys to the line its "@s" marker starts at
+   in files/typeset-css.html, which carries an id="L<n>" anchor on every
+   line — so a reader can find the full rule that styles the fragment. */
+function cssRegionNote(cssKeys, cssLines) {
+  const links = cssKeys.map((k) =>
+    `<a href="files/typeset-css.html#L${cssLines.get(k)}">${esc(k)}</a>`).join(', ');
+  return `Full rule${cssKeys.length > 1 ? 's' : ''} in typeset.css — ${links}`;
+}
+
+/* Renders the markup that produces the example beside the panel: each
+   fragment extract.mjs pulled from the section's demo file, preceded by an
+   HTML comment naming it wherever the section shows more than one. */
+function htmlPane(fragments, cssKeys, cssLines) {
+  const source = fragments
+    .map((f) => (f.label ? `<!-- ${f.label} -->\n${f.html}` : f.html))
+    .join('\n\n');
+  const head = `<p class="code-note">${cssRegionNote(cssKeys, cssLines)}</p>`;
+  const body = source ? `<pre>${byLang('html', source)}</pre>` : '';
+  const copy = source ? `<button class="copy" type="button" data-copy>Copy</button>` : '';
+  return `<div class="codewrap">${head}${body}${copy}</div>`;
+}
+
+/* Renders the CSS source for a section that states values rather than
+   demonstrating a document — tokens, foundation and page — where there is
+   no markup for a reader to copy and the values themselves are the thing
+   on show. */
+function cssPane(cssKeys, cssMap) {
+  const source = cssKeys.map((k) => cssMap.get(k)).join('\n\n');
+  return codePane(source, 'css');
+}
+
+/* Links a section's Typst snippet back to the region of typeset.typ it
+   demonstrates, the way cssRegionNote() links the HTML/CSS pane back to
+   typeset.css — except not every section marks its own region there:
+   TYPST_ELSEWHERE covers a value set globally rather than per element, and a
+   section that does neither reads off Typst's own constructs with no
+   dedicated region to point at. */
+function typstRegionNote(id, typLines) {
+  if (typLines.has(id)) {
+    return `Full implementation in typeset.typ — <a href="files/typeset-typ.html#L${typLines.get(id)}">${esc(id)}</a>`;
+  }
+  const via = TYPST_ELSEWHERE[id];
+  if (via && typLines.has(via)) {
+    return `Set globally rather than per element — this is the “${esc(via)}” region of typeset.typ: `
+      + `<a href="files/typeset-typ.html#L${typLines.get(via)}">${esc(via)}</a>`;
+  }
+  return NO_TYPST_REGION;
+}
+
+/* Renders the Typst snippet that produces the example: src/demos/<id>.typ,
+   the fragment a reader would drop into a document that imports typeset.typ
+   — the third tab's counterpart to the HTML/CSS pane above. Every section
+   has one (tools/check.mjs gates it), so unlike the HTML pane there is no
+   empty case to render. */
+function typstPane(typSource, id, typLines) {
+  const head = `<p class="code-note">${typstRegionNote(id, typLines)}</p>`;
+  const body = `<pre>${byLang('typst', typSource)}</pre>`;
+  return `<div class="codewrap">${head}${body}<button class="copy" type="button" data-copy>Copy</button></div>`;
+}
+
+export function renderPanel({
+  spec, cssLines, cssMap, typLines, specIds, cssKeys, id, fragments, typSource, pane,
+}) {
+  const missing = cssKeys.filter((k) => !cssLines.has(k));
   if (missing.length) throw new Error(`typeset.css has no section marker for ${missing.join(', ')}`);
 
-  const cssSource = cssKeys.map((k) => cssMap.get(k)).join('\n\n');
-
-  let typstPane;
-  if (typMap.has(id)) {
-    typstPane = codePane(typMap.get(id), 'typst');
-  } else {
-    const via = TYPST_ELSEWHERE[id];
-    typstPane = (via && typMap.has(via))
-      ? codePane(typMap.get(via), 'typst',
-          `Set globally rather than per element — this is the “${via}” region of typeset.typ.`)
-      : codePane('', 'typst', NO_TYPST);
-  }
+  const secondPane = pane === 'css' ? cssPane(cssKeys, cssMap) : htmlPane(fragments, cssKeys, cssLines);
+  const secondLabel = pane === 'css' ? 'CSS' : 'HTML';
 
   /* Tabs are radio inputs so the panel works with no JavaScript at all. The
      pane shown is selected by sibling position, which is why the three panes
@@ -165,14 +223,14 @@ export function renderPanel({ spec, cssMap, typMap, specIds, cssKeys, id }) {
   <div class="tabs">
     <input type="radio" name="${n}" id="${n}-spec" checked>
     <label for="${n}-spec">Spec</label>
-    <input type="radio" name="${n}" id="${n}-css">
-    <label for="${n}-css">CSS</label>
+    <input type="radio" name="${n}" id="${n}-second">
+    <label for="${n}-second">${secondLabel}</label>
     <input type="radio" name="${n}" id="${n}-typst">
     <label for="${n}-typst">Typst</label>
     <span class="tabs__rule"></span>
     <div class="tabs__pane tabs__pane--spec"><div class="spec">${renderSpec(spec, specIds)}</div></div>
-    <div class="tabs__pane">${codePane(cssSource, 'css')}</div>
-    <div class="tabs__pane">${typstPane}</div>
+    <div class="tabs__pane">${secondPane}</div>
+    <div class="tabs__pane">${typstPane(typSource, id, typLines)}</div>
   </div>
 </div>`;
 }

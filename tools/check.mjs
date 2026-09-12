@@ -3,8 +3,14 @@
    implementation is broken, not the spec.
    Run: node tools/check.mjs */
 
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, writeFileSync, rmSync, mkdtempSync, copyFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { buildAll } from './build-site.mjs';
+import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
+import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
+import { typstBoilerplate, typstDocument } from '../src/boilerplate.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
@@ -14,6 +20,15 @@ const specMd = readFileSync('SPEC.md', 'utf8');
 
 const fail = [];
 const warn = [];
+
+/* Prints every accumulated failure and stops. Used both where a missing demo
+   file would otherwise crash a later step instead of reporting cleanly, and
+   at the end of a clean run. */
+function reportFailuresAndExit() {
+  console.error(`\n${fail.length} conformance failure${fail.length > 1 ? 's' : ''}:`);
+  for (const f of fail) console.error(`  ✗ ${f}`);
+  process.exit(1);
+}
 
 /* ---- 1. Foundation tokens must appear in the CSS with the spec's values --- */
 
@@ -101,20 +116,615 @@ for (const sec of spec.sections) {
 
 /* ---- 3b. Every manifest section must have a demo, and vice versa --------- */
 
+/* Tracked separately from fail[] so the check below can stop before
+   buildAll(): section() there reads every manifest section's demo files
+   unconditionally, and a missing one crashes it with a raw ENOENT instead of
+   the message this gate already produced. */
+let missingDemo = false;
+
 for (const s of manifest) {
   const demo = `src/demos/${s.id}.html`;
-  if (!existsSync(demo)) fail.push(`${demo} is missing`);
+  if (!existsSync(demo)) { fail.push(`${demo} is missing`); missingDemo = true; }
   if (s.fullrow && !existsSync(`src/demos/${s.id}.fullrow.html`)) {
     fail.push(`src/demos/${s.id}.fullrow.html is declared but missing`);
+    missingDemo = true;
   }
 }
 const declared = new Set(manifest.map((s) => s.id));
-for (const f of readdirSync('src/demos')) {
+for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
   const id = f.replace(/\.(fullrow\.)?html$/, '');
   if (!declared.has(id)) warn.push(`src/demos/${f} is not referenced by src/sections.json`);
 }
 
-/* ---- 3c. The generated pages must be current ----------------------------- */
+/* ---- 3g. Every manifest section must have a Typst snippet, and vice versa */
+
+/* src/demos/<id>.typ is the fragment a reader would drop into a document
+   that imports typeset.typ — the third tab's counterpart to the HTML/CSS
+   pane checked above. Keyed on section ids, not filenames: notes.fullrow.html
+   is a second HTML demo for the "notes" section, not a second section, and
+   src/demos now holds both file types side by side. */
+
+for (const s of manifest) {
+  const snippet = `src/demos/${s.id}.typ`;
+  if (!existsSync(snippet)) {
+    fail.push(`${snippet}: no Typst snippet for section "${s.id}"`);
+    missingDemo = true;
+  }
+}
+for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.typ'))) {
+  const id = f.replace(/\.typ$/, '');
+  if (!declared.has(id)) warn.push(`src/demos/${f} is not referenced by src/sections.json`);
+}
+
+/* Stop here, before anything below reaches a missing file: buildAll() (3d)
+   reads every manifest section's demo files unconditionally, so it would
+   crash on the same file this gate just reported missing, with a raw stack
+   trace instead of this gate's own message. */
+if (missingDemo) reportFailuresAndExit();
+
+/* ---- 3h. Every Typst snippet must compile under the PUBLISHED boilerplate  */
+
+/* A snippet is a fragment — no import — the same decision the HTML demos make
+   about publishing markup rather than a full document. What a reader adds
+   above it is the masthead's boilerplate block, and this compiles exactly
+   that: src/boilerplate.mjs composes the document here and renders the block
+   there, so a snippet cannot pass this gate under an import the page never
+   prints. A private harness would only prove that some environment works.
+
+   The compile happens in a system temp directory holding a copy of
+   typeset.typ, because that is a reader's own directory: the import the
+   masthead prints is the relative `typeset.typ`, and it has to resolve to a
+   sibling file for the published text to be literally what is compiled.
+   Nothing is written into the repository, so a run that is interrupted leaves
+   no scratch file behind in a tracked directory. */
+
+function typstAvailable() {
+  try {
+    execFileSync('typst', ['--version'], { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const typstSnippets = readdirSync('src/demos').filter((f) => f.endsWith('.typ'));
+
+if (typstSnippets.length > 0 && !typstAvailable()) {
+  console.error('typst is not on PATH — cannot verify that the Typst snippets compile.');
+  console.error('Install typst (https://typst.app) and re-run node tools/check.mjs.');
+  process.exit(1);
+}
+
+if (typstSnippets.length > 0) {
+  const readerDir = mkdtempSync(join(tmpdir(), 'typeset-check-'));
+  copyFileSync('implementations/typeset.typ', join(readerDir, 'typeset.typ'));
+  const fontPath = resolve('fonts');
+  for (const file of typstSnippets) {
+    const snippetPath = `src/demos/${file}`;
+    const docPath = join(readerDir, `doc-${file}`);
+    writeFileSync(docPath, typstDocument(readFileSync(snippetPath, 'utf8')));
+    try {
+      execFileSync(
+        'typst',
+        ['compile', '--font-path', fontPath, docPath, join(readerDir, `${file}.pdf`)],
+        { stdio: ['ignore', 'pipe', 'pipe'] },
+      );
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message)).trim();
+      fail.push(`${snippetPath} does not compile under the boilerplate the masthead `
+        + `publishes:\n${detail}`);
+    }
+  }
+  rmSync(readerDir, { recursive: true, force: true });
+}
+
+/* Every class name typeset.css defines, comment text excluded. Read once here
+   because two gates need it from opposite directions: the apparatus check in
+   3c holds what is stripped OUT of a pane against it, and 3e holds what is
+   left IN. */
+const cssClassNames = new Set(
+  [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/\.(-?[A-Za-z_][\w-]*)/g)]
+    .map((m) => m[1]));
+
+/* ---- 3c. A demo's document fragment must round-trip losslessly ----------- */
+
+/* src/extract.mjs pulls the document markup out of a demo file's page
+   apparatus. It is correct only if it is invertible: this rebuilds each
+   demo file from what it extracted and diffs the result against the file
+   on disk. Any difference means the extractor lost or altered something —
+   silently, since the panel that will consume this output is generated and
+   always looks plausible.
+
+   The boundary-finder below is written independently of extract.mjs's own
+   (index-of scanning here, a combined regex there), so a bug in how one of
+   them walks the tag stream — an off-by-one, a wrong cursor advance, the
+   classic non-greedy match to the next "</div>" — surfaces as a mismatch
+   instead of being invisible to both. Neither scanner distinguishes markup
+   from text, so the one thing this does not catch is literal "<div"/"</div>"
+   characters inside an element's own text content: both would parse that
+   the same wrong way and agree with each other. */
+
+function findMatchingClose(source, from, tag = 'div') {
+  const openNeedle = `<${tag}`;
+  const closeNeedle = `</${tag}>`;
+  let depth = 1;
+  let i = from;
+  while (i < source.length) {
+    const open = source.indexOf(openNeedle, i);
+    const close = source.indexOf(closeNeedle, i);
+    if (close === -1) return -1;
+    if (open !== -1 && open < close) {
+      depth += 1;
+      i = source.indexOf('>', open) + 1;
+    } else {
+      depth -= 1;
+      if (depth === 0) return close;
+      i = close + closeNeedle.length;
+    }
+  }
+  return -1;
+}
+
+function findMatchingDivClose(source, from) {
+  return findMatchingClose(source, from, 'div');
+}
+
+/* Splits a tag's own class attribute into its space-separated tokens, the
+   same way extract.mjs's classesOf() does — but written again here rather
+   than imported, so a mistake in either one's parsing surfaces as a
+   mismatch instead of being invisible to both. */
+function classTokens(openTag) {
+  const m = openTag.match(/class="([^"]*)"/);
+  return m ? m[1].split(/\s+/).filter(Boolean) : [];
+}
+
+function carriesModifier(openTag) {
+  return classTokens(openTag).some((c) => c !== 'paper' && c !== 'typeset');
+}
+
+const TAG_OPEN_RE = /<([a-z][a-z0-9]*)\b([^>]*)>/g;
+
+/* Walks forward from `from` (bounded by `to`) for the first descendant tag
+   whose class list carries the literal token "typeset" — the same target
+   extract.mjs's own resolveTarget() descends to for two-column and
+   notes.fullrow, found here independently. */
+function findTypesetTag(source, from, to) {
+  TAG_OPEN_RE.lastIndex = from;
+  let m;
+  while ((m = TAG_OPEN_RE.exec(source)) !== null && m.index < to) {
+    if (classTokens(m[0]).includes('typeset')) {
+      return { tag: m[1], openTag: m[0], contentStart: TAG_OPEN_RE.lastIndex };
+    }
+  }
+  return null;
+}
+
+/* Makes the same "which element, and does it carry a modifier" decision
+   extract.mjs's resolveTarget() makes, independently, and reduces it to the
+   span the round trip below needs: "inner", the wrapper's untouched inner
+   markup, or "container", the whole target element — open tag through
+   close tag — that extractDemos() returns with "paper" dropped wherever
+   the element carries a class beyond "paper" and "typeset". */
+function resolveSpan(source, wrapperOpenTag, contentStart, closeIndex) {
+  let el = classTokens(wrapperOpenTag).includes('typeset')
+    ? { tag: 'div', openTag: wrapperOpenTag, contentStart, closeIndex }
+    : null;
+
+  if (!el) {
+    const found = findTypesetTag(source, contentStart, closeIndex);
+    const innerClose = found && findMatchingClose(source, found.contentStart, found.tag);
+    el = (found && innerClose !== -1)
+      ? { tag: found.tag, openTag: found.openTag, contentStart: found.contentStart, closeIndex: innerClose }
+      : { tag: 'div', openTag: wrapperOpenTag, contentStart, closeIndex };
+  }
+
+  if (!carriesModifier(el.openTag)) {
+    return { kind: 'inner', contentStart: el.contentStart, closeIndex: el.closeIndex };
+  }
+  return {
+    kind: 'container',
+    tag: el.tag,
+    hadPaper: classTokens(el.openTag).includes('paper'),
+    openStart: el.contentStart - el.openTag.length,
+    closeIndex: el.closeIndex,
+  };
+}
+
+/* Finds the same label → note → wrapper triples extract.mjs finds, but
+   returns the raw span each fragment must round-trip against instead of
+   processed output, so extractDemos()'s html can be spliced back into an
+   otherwise untouched copy of the file. */
+function locateWrapperContents(source) {
+  const spans = [];
+  let i = 0;
+  while (true) {
+    const labelOpen = source.indexOf('<p class="pair__label"', i);
+    if (labelOpen === -1) break;
+    const labelClose = source.indexOf('</p>', labelOpen) + '</p>'.length;
+
+    let cursor = labelClose;
+    if (/^\s*<p class="demo-note"/.test(source.slice(cursor))) {
+      cursor = source.indexOf('</p>', cursor) + '</p>'.length;
+    }
+
+    const wrapperMatch = source.slice(cursor).match(/^\s*<div\b[^>]*>/);
+    if (!wrapperMatch) { i = labelClose; continue; }
+    const wrapperOpenTag = wrapperMatch[0].replace(/^\s*/, '');
+    const contentStart = cursor + wrapperMatch[0].length;
+
+    const closeIndex = findMatchingDivClose(source, contentStart);
+    if (closeIndex === -1) { i = labelClose; continue; }
+
+    spans.push(resolveSpan(source, wrapperOpenTag, contentStart, closeIndex));
+    i = closeIndex + '</div>'.length;
+  }
+  return spans;
+}
+
+/* Matches extract.mjs's dedent(): a line inside a verbatim region — a <pre>,
+   or an element the stylesheet gives significant whitespace — carries content
+   in its leading whitespace, not markup indentation, so it is excluded from
+   the shared-amount computation the same way dedent() excludes it from the
+   stripping. This is reused from extract.mjs rather than re-derived, because
+   it is not the boundary-finding this file keeps independent — it is the
+   inverse of a specific, deterministic text transform, and a second,
+   separately-maintained copy could only drift from the one it must invert. */
+function commonIndent(text) {
+  const lines = text.split('\n');
+  const verbatim = verbatimLineMask(text);
+  let common = Infinity;
+  for (let i = 0; i < lines.length; i += 1) {
+    if (verbatim[i] || lines[i].trim() === '') continue;
+    common = Math.min(common, lines[i].match(/^ */)[0].length);
+  }
+  return Number.isFinite(common) ? common : 0;
+}
+
+/* The interiors that must survive extraction byte-for-byte: every <pre>, and
+   every element the stylesheet gives significant whitespace. Found here with
+   this file's own tag scanner rather than extract.mjs's region finder, so a
+   bug in that finder surfaces as a failure instead of being agreed with.
+
+   The class is matched by splitting the attribute into whole tokens, the way
+   classTokens() above does and for the same reason src/extract.mjs documents:
+   "\bts-quotes-verse\b" also matches "ts-quotes-verse-x" and
+   "my-ts-quotes-verse", because a hyphen is not a word character. */
+function verbatimInteriors(fragment) {
+  const found = [];
+  const pre = /<pre\b[^>]*>([\s\S]*?)<\/pre>/gi;
+  let m;
+  while ((m = pre.exec(fragment)) !== null) found.push(m[1]);
+
+  const openTag = /<([a-z][a-z0-9]*)\b[^>]*>/gi;
+  while ((m = openTag.exec(fragment)) !== null) {
+    if (!classTokens(m[0]).includes('ts-quotes-verse')) continue;
+    const close = findMatchingClose(fragment, openTag.lastIndex, m[1]);
+    if (close !== -1) found.push(fragment.slice(openTag.lastIndex, close));
+  }
+  return found;
+}
+
+/* Reverses extract.mjs's dedent: pads every non-blank, non-verbatim line
+   back out by the amount it was originally indented, and leaves a verbatim
+   line exactly as extractDemos() returned it. */
+function reindent(fragment, amount) {
+  const pad = ' '.repeat(amount);
+  const lines = fragment.split('\n');
+  const verbatim = verbatimLineMask(fragment);
+  return lines.map((line, i) => (verbatim[i] || line === '' ? line : pad + line)).join('\n');
+}
+
+/* The apparatus the specimen page adds inside a demo's document markup, named
+   here rather than imported from extract.mjs. That duplication is the point:
+   the pane publishes demo.html, which is demo.source with these names taken
+   out, and a gate that read extract.mjs's own list would agree with whatever
+   that list happened to say. Adding a document class to it — ts-callouts-title,
+   say — would then strip real styling out of every published pane and this
+   file would still print "all checks passed".
+
+   Adding apparatus is therefore a two-file change, and the second file is the
+   gate. The check below it holds the same two lists to what apparatus means:
+   furniture this website adds, which typeset.css never defines. */
+const SPECIMEN_ELEMENTS = ['demo-note', 'demo-print-note', 'ts-folio'];
+const SPECIMEN_CLASSES = ['demo-aside', 'ts-toc--demo'];
+
+/* Rebuilds the published fragment from the extracted one: apparatus elements
+   come out whole, apparatus classes come off the elements that keep their
+   place, and a line left holding nothing but its own indent goes with them.
+   Element removal runs first, so a class list naming one of each resolves as
+   the element it is. Boundaries are found with this file's own indexOf
+   scanner, not extract.mjs's regex one. */
+function stripSpecimenApparatus(fragment) {
+  let out = fragment;
+  for (;;) {
+    const openTag = /<([a-z][a-z0-9]*)\b[^>]*>/gi;
+    let cut = null;
+    let m;
+    while ((m = openTag.exec(out)) !== null) {
+      if (!classTokens(m[0]).some((c) => SPECIMEN_ELEMENTS.includes(c))) continue;
+      const close = findMatchingClose(out, openTag.lastIndex, m[1]);
+      if (close === -1) break;
+      cut = [m.index, close + `</${m[1]}>`.length];
+      break;
+    }
+    if (!cut) break;
+    out = out.slice(0, cut[0]) + out.slice(cut[1]);
+  }
+
+  out = out.replace(/(\s*)class="([^"]*)"/g, (whole, space, cls) => {
+    const kept = cls.split(/\s+/).filter(Boolean).filter((c) => !SPECIMEN_CLASSES.includes(c));
+    return kept.length ? `${space}class="${kept.join(' ')}"` : '';
+  });
+
+  return out.split('\n').filter((line) => !/^[ \t]+$/.test(line)).join('\n')
+    .replace(/^\n+/, '').replace(/\n+$/, '');
+}
+
+/* Apparatus is this website's own furniture, so typeset.css — the stylesheet a
+   reader links — must not define it. A name on either list that typeset.css
+   does define is document styling, and stripping it hands the reader markup
+   that renders differently from the example beside it. This is the inverse of
+   3e below, which holds what the pane publishes to the same stylesheet: that
+   one cannot see a removal, and this one cannot see an addition. */
+for (const name of [...APPARATUS_ELEMENTS, ...APPARATUS_CLASSES]) {
+  if (cssClassNames.has(name)) {
+    fail.push(`src/extract.mjs: "${name}" is stripped from every published pane as `
+      + 'apparatus, but typeset.css defines it — it is document styling, and a reader '
+      + 'who copies the pane gets markup that renders differently from the example');
+  }
+}
+
+/* Where two texts first stop agreeing, as a line and column with what each
+   side holds from there. A demo file runs to dozens of lines of dense markup,
+   so "the extractor lost or altered content" on its own leaves a reader
+   diffing by eye for a change that is usually one character. */
+function firstDifference(expected, actual) {
+  let i = 0;
+  while (i < expected.length && i < actual.length && expected[i] === actual[i]) i += 1;
+  const before = expected.slice(0, i);
+  const line = before.split('\n').length;
+  const column = i - (before.lastIndexOf('\n') + 1) + 1;
+  const show = (text) => JSON.stringify(text.slice(i, i + 40)) + (text.length > i + 40 ? '…' : '');
+  return `at line ${line}, column ${column}:\n      file       ${show(expected)}`
+    + `\n      round trip ${show(actual)}`;
+}
+
+for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
+  const demoPath = `src/demos/${file}`;
+  const original = readFileSync(demoPath, 'utf8');
+  const demos = extractDemos(original);
+
+  /* Both boundary-finders above share one model of HTML: neither
+     distinguishes tag context from text or comment context. A wrapper
+     hidden in a comment, a self-closing <div … /> that never returns the
+     depth counter to zero, or a label with no wrapper right after it all
+     make extractDemos() quietly drop that example — and both scanners
+     agree on nothing being there, so the round-trip below stays silent.
+     A literal count of "pair__label" paragraphs needs no tag-matching at
+     all, so it is not subject to that shared blind spot: every demo file
+     here has exactly one example per label, so any shortfall is a bug.
+
+     Everything below reads demo.source, the fragment exactly as the file
+     holds it, except the duplicate check — that one is about what the pane
+     shows, so it reads demo.html, from which the apparatus is gone. */
+  const labelCount = (original.match(/<p class="pair__label"/g) ?? []).length;
+  if (labelCount > 0 && demos.length !== labelCount) {
+    fail.push(`${demoPath}: has ${labelCount} pair__label paragraph(s) but extractDemos() `
+      + `returned ${demos.length} example(s) — it dropped at least one silently`);
+    continue;
+  }
+
+  /* A pane exists to show what a wrapper's own class demonstrates, so two
+     labelled examples in the same file must not extract byte-identical
+     markup — that would mean the wrapper carries nothing that tells them
+     apart, and the pane would show the same fragment under two different
+     labels (see the "justification" demo before this file's own gate). */
+  const seenHtml = new Map();
+  for (const demo of demos) {
+    const label = demo.label ?? '(unlabelled)';
+    const dupeOf = seenHtml.get(demo.html);
+    if (dupeOf !== undefined) {
+      fail.push(`${demoPath}: "${dupeOf}" and "${label}" extract byte-identical markup — `
+        + 'the pane cannot demonstrate a difference that is not there');
+    } else {
+      seenHtml.set(demo.html, label);
+    }
+  }
+
+  /* The pane publishes demo.html, not demo.source, so the round trip below —
+     which reconstructs the file from demo.source — proves nothing about what a
+     reader actually copies. This closes that gap: it rebuilds the published
+     fragment from the extracted one using this file's own apparatus lists, and
+     requires the result to be what extractDemos() returned. Any difference
+     between the two artifacts must therefore be attributable to a name
+     SPECIMEN_ELEMENTS or SPECIMEN_CLASSES declares, and a name only
+     extract.mjs knows about fails here instead of silently thinning the pane. */
+  for (const demo of demos) {
+    const expected = stripSpecimenApparatus(demo.source);
+    if (demo.html !== expected) {
+      fail.push(`${demoPath}: the pane for "${demo.label ?? '(unlabelled)'}" is not the `
+        + 'extracted fragment with the declared apparatus removed — extract.mjs took out '
+        + 'something tools/check.mjs does not know is apparatus, or left something in');
+    }
+  }
+
+  /* The round-trip below and dedent()/reindent() share verbatimLineMask():
+     if the mask ever wrongly marked a verbatim line as ordinary, dedent
+     would strip it, reindent would pad it back by the same amount, and the
+     round-trip would agree with itself — a wrong mask can corrupt a code
+     sample or a stanza and stay invisible, because neither side of that
+     comparison ever consults the source file. This check does: it takes each
+     verbatim interior straight out of the extracted fragment and requires it
+     to occur verbatim in the demo file on disk, with no mask and no inverse
+     in between.
+
+     The two shapes are matched here by a plain tag-pair regex rather than by
+     extract.mjs's own region scanner, so a bug in that scanner surfaces as a
+     failure instead of being agreed with. The second arm keys on the class,
+     not on the tag, so it holds if the verse demo is ever set in a different
+     element; the interior is always the match's last group. */
+  for (const demo of demos) {
+    for (const interior of verbatimInteriors(demo.source)) {
+      if (!original.includes(interior)) {
+        fail.push(`${demoPath}: a verbatim interior in the extracted fragment does not `
+          + 'appear verbatim in the source file — extraction altered preformatted content');
+      }
+    }
+  }
+
+  const spans = locateWrapperContents(original);
+
+  if (demos.length !== spans.length) {
+    fail.push(`${demoPath}: extractDemos() found ${demos.length} example(s), `
+      + `the round-trip scanner found ${spans.length} — they must find the same wrappers`);
+    continue;
+  }
+
+  let rebuilt = '';
+  let cursor = 0;
+  for (let k = 0; k < spans.length; k += 1) {
+    const span = spans[k];
+    if (span.kind === 'inner') {
+      const { contentStart, closeIndex } = span;
+      const originalContent = original.slice(contentStart, closeIndex);
+      const indent = commonIndent(originalContent);
+      const trailing = originalContent.slice(originalContent.lastIndexOf('\n') + 1);
+      rebuilt += original.slice(cursor, contentStart)
+        + `\n${reindent(demos[k].source, indent)}\n${trailing}`;
+      cursor = closeIndex;
+    } else {
+      /* A "container" fragment is the whole target element, with "paper"
+         dropped from its class attribute where it carried that class at
+         all — two-column and notes.fullrow descend to an <article> that
+         never did. Reversing the drop means padding every line back out
+         to the element's true source indentation — found the same way
+         extract.mjs finds it, as the run of spaces and tabs immediately
+         before the tag — and putting "paper" back as the first class
+         token wherever it was there to begin with. */
+      const { tag, hadPaper, openStart, closeIndex } = span;
+      const closeTagEnd = closeIndex + `</${tag}>`.length;
+      let ws = openStart;
+      while (ws > 0 && (original[ws - 1] === ' ' || original[ws - 1] === '\t')) ws -= 1;
+      const indent = commonIndent(original.slice(ws, closeTagEnd));
+      const withPaper = hadPaper
+        ? demos[k].source.replace(/class="([^"]*)"/, (_, cls) => `class="paper ${cls}"`)
+        : demos[k].source;
+      rebuilt += original.slice(cursor, ws) + reindent(withPaper, indent);
+      cursor = closeTagEnd;
+    }
+  }
+  rebuilt += original.slice(cursor);
+
+  if (rebuilt !== original) {
+    fail.push(`${demoPath}: extractDemos() round-trip does not reproduce the file — `
+      + `the extractor lost or altered content ${firstDifference(original, rebuilt)}`);
+  }
+}
+
+/* ---- 3e. A published pane must only name classes typeset.css defines ----- */
+
+/* The HTML pane carries a Copy button, so its markup is a promise: paste this
+   into a document that links typeset.css, and it renders as shown. A class
+   that lives only in specimen.css breaks that promise silently — the pane
+   still looks right on this page, because this page has specimen.css.
+
+   Section 5 below checks the other direction, that every ts-* class in
+   typeset.css has a spec element behind it. Neither implies this one: a class
+   the stylesheet never defines is invisible to both.
+
+   Only sections whose second pane is HTML are checked. tokens, foundation and
+   page publish CSS instead, so their fragments are extracted and round-tripped
+   but never shown, and page's wrapper legitimately carries specimen chrome. */
+
+for (const section of manifest.filter((s) => s.panel.pane === 'html')) {
+  const files = [`src/demos/${section.id}.html`];
+  if (section.fullrow) files.push(`src/demos/${section.id}.fullrow.html`);
+  for (const file of files.filter((f) => existsSync(f))) {
+    for (const demo of extractDemos(readFileSync(file, 'utf8'))) {
+      const seen = new Set();
+      for (const attr of demo.html.matchAll(/class="([^"]*)"/g)) {
+        for (const token of attr[1].split(/\s+/).filter(Boolean)) {
+          if (cssClassNames.has(token) || seen.has(token)) continue;
+          seen.add(token);
+          fail.push(`${file}: the pane for "${demo.label ?? section.id}" publishes `
+            + `class "${token}", which typeset.css does not define — a reader who `
+            + 'copies it gets markup that cannot render as shown');
+        }
+      }
+    }
+  }
+}
+
+/* ---- 3f. The scale demos' labels must be the spec's own values ----------- */
+
+/* Both tokens demos name each size in text beside the sample it stands for —
+   <b>24pt</b> in the HTML, [24pt] in the Typst — so each file reads on its own,
+   without opening a stylesheet or spec.json. That makes every label a second
+   copy of a number spec.json owns, and a second copy can go stale in silence:
+   the sample is set from the step and moves with it, while the text beside it
+   sits still, in the one section whose whole subject is that the page and the
+   implementations cannot disagree.
+
+   The labels stay literal text — templating them would buy drift-safety by
+   making the demos unreadable on their own, which is the property worth
+   keeping. This check is what stops a stale label shipping instead.
+
+   Both directions are checked for each file, so a step that gains a row with
+   the wrong label and a step that loses its row both fail. */
+
+const scaleSteps = spec.foundation.scale.steps;
+
+const SCALE_DEMOS = [
+  {
+    /* A row is bound to its step by the sample's own class: scale-h1 for h1,
+       and no class at all for base, which takes the body size .typeset already
+       sets. Binding on the class rather than on row order means reordering the
+       rows, which is a legitimate edit, cannot silently re-point every label. */
+    file: 'src/demos/tokens.html',
+    re: /<div class="scale-row"><b>([^<]*)<\/b>\s*<span(?: class="([^"]*)")?>/g,
+    step: (m) => (m[2] ?? 'scale-base').replace(/^scale-/, ''),
+    label: (m) => m[1],
+    names: (step) => `--ts-${step}`,
+  },
+  {
+    /* A row names its step directly, as a field of the scale the template
+       supplies. */
+    file: 'src/demos/tokens.typ',
+    re: /\(scale-single-column\.([a-z0-9]+),\s*\[([^\]]*)\]/g,
+    step: (m) => m[1],
+    label: (m) => m[2],
+    names: (step) => `scale-single-column.${step}`,
+  },
+];
+
+for (const demo of SCALE_DEMOS) {
+  const shown = new Set();
+  for (const m of readFileSync(demo.file, 'utf8').matchAll(demo.re)) {
+    const step = demo.step(m);
+    const label = demo.label(m).trim();
+    const expected = scaleSteps[step];
+    if (expected === undefined) {
+      fail.push(`${demo.file}: the scale row labelled "${label}" is bound to `
+        + `"${step}", which spec.foundation.scale.steps does not define`);
+      continue;
+    }
+    shown.add(step);
+    if (label !== expected) {
+      fail.push(`${demo.file}: the scale row for ${demo.names(step)} is labelled `
+        + `"${label}" but spec.json sets that step to "${expected}" — the label `
+        + 'and the sample beside it no longer agree');
+    }
+  }
+
+  for (const step of Object.keys(scaleSteps)) {
+    if (!shown.has(step)) {
+      fail.push(`${demo.file}: spec.foundation.scale.steps defines "${step}" `
+        + 'but the scale demo has no row for it');
+    }
+  }
+}
+
+/* ---- 3d. The generated pages must be current ----------------------------- */
 
 const { output } = buildAll();
 for (const [path, contents] of output) {
@@ -164,7 +774,7 @@ for (const id of cssIds) {
 const noTypst = spec.sections.filter((s) => !typIds.has(s.id)).map((s) => s.id);
 if (noTypst.length) warn.push(`typeset.typ: no marked region for ${noTypst.join(', ')} (the page falls back to a pointer or a note)`);
 
-/* ---- 3d. The iA Writer template ----------------------------------------- */
+/* ---- 3i. The iA Writer template ----------------------------------------- */
 
 /* A template is a packaging of typeset.css, not a second implementation, so what
    is checked here is the page it declares and the modifier it opts into — the
@@ -485,9 +1095,5 @@ const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);
 console.log(`typeset spec ${spec.version} — ${spec.sections.length} sections, ${elements} elements`);
 console.log(`  css markers ${cssIds.size} · typst markers ${typIds.size} · panels ${panelAttrs.length} · generated pages ${output.size}`);
 for (const wn of warn) console.log(`  note: ${wn}`);
-if (fail.length) {
-  console.error(`\n${fail.length} conformance failure${fail.length > 1 ? 's' : ''}:`);
-  for (const f of fail) console.error(`  ✗ ${f}`);
-  process.exit(1);
-}
+if (fail.length) reportFailuresAndExit();
 console.log('\nall checks passed');

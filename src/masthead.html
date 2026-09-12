@@ -41,4 +41,18 @@
       </div>
     </div>
   </div>
+
+  <div class="boilerplate">
+    <p class="boilerplate__label">Running a snippet</p>
+    <div class="boilerplate__pair">
+      <div>
+        <p>Every HTML pane below is a fragment. To run one on its own: link <a href="files/typeset-css.html"><code>typeset.css</code></a>, load the three families from <a href="fonts/"><code>fonts/</code></a>, and wrap the fragment in an element carrying <code>class="typeset"</code> — every rule in the stylesheet is scoped under that class, so nothing outside it is touched. Bind every face, not one per family: the stylesheet asks the sans for 300, 600 and 700 and the serif for its italic and its semibold, and a family declared once with no <code>font-weight</code> and no <code>font-style</code> leaves the browser to slant and smear that single file into all of them. <a href="examples/essay.html">The essay</a> is the same thing as a whole document.</p>
+        <pre class="boilerplate__pre"><code data-boilerplate="html"></code></pre>
+      </div>
+      <div>
+        <p>Every Typst pane below assumes <a href="files/typeset-typ.html"><code>typeset.typ</code></a> sits beside the document and has been imported and shown once, above the snippet. A snippet that opens with its own <code>#show: typeset.with(…)</code> replaces the second line rather than nesting under it — <code>typeset()</code> sets the page, and a page cannot be set inside a container.</p>
+        <pre class="boilerplate__pre"><code data-boilerplate="typst"></code></pre>
+      </div>
+    </div>
+  </div>
 </header>

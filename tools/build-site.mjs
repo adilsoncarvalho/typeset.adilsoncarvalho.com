@@ -10,6 +10,8 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { renderPanel } from '../src/panels.mjs';
 import { byLang, esc } from '../src/highlight.mjs';
+import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
+import { typstBoilerplate } from '../src/boilerplate.mjs';
 
 /* The whole file is highlighted in one pass — a multi-line CSS comment needs
    state that carries between lines — and only then split for numbering. */
@@ -42,10 +44,34 @@ function markers(source, re, group) {
   return found;
 }
 
+/* Full CSS source per "@s" region, for the sections whose panel.pane in
+   sections.json is "css" rather than "html" — they state values rather
+   than demonstrate a document, so there is no markup for a reader to copy
+   and the values themselves are the thing on show. */
 const cssMap = markers(read('typeset.css'),
-  /\/\*!\s*@s\s+([a-z0-9-]+)\s*::\s*(.+?)\s*\*\/([\s\S]*?)\/\*!\s*@e\s*\*\//g, 3);
-const typMap = markers(read('implementations/typeset.typ'),
-  /\/\/\s*@s\s+([a-z0-9-]+)\s*\n([\s\S]*?)\/\/\s*@e/g, 2);
+  /\/\*!\s*@s\s+([a-z0-9-]+)\s*::[^\n]*\*\/\n([\s\S]*?)\/\*!\s*@e\s*\*\//g, 2);
+
+/* The 1-based source line each "@s" marker starts at, for linking a section's
+   HTML pane back to its region in files/typeset-css.html — which anchors
+   every line with id="L<n>" (see lineNumbered() below). Read from the file
+   itself rather than a hand-maintained table, so a line added above any
+   marker cannot leave a stale link behind. */
+function markerLines(source, re) {
+  const found = new Map();
+  let m;
+  while ((m = re.exec(source)) !== null) {
+    found.set(m[1], source.slice(0, m.index).split('\n').length);
+  }
+  return found;
+}
+
+const cssLines = markerLines(read('typeset.css'), /\/\*!\s*@s\s+([a-z0-9-]+)\s*::/g);
+
+/* The same, for typeset.typ's "@s" markers, so a section's Typst pane can
+   link into files/typeset-typ.html the way its HTML pane links into
+   files/typeset-css.html. Not every section marks a region of its own —
+   src/panels.mjs falls back from there. */
+const typLines = markerLines(read('implementations/typeset.typ'), /\/\/\s*@s\s+([a-z0-9-]+)\s*\n/g);
 
 /* ---- Page shell ---------------------------------------------------------- */
 
@@ -89,21 +115,42 @@ function nav() {
     .join('\n\n');
 }
 
+/* Sets a demo file at the depth the page nests it to, without touching a line
+   whose leading whitespace is content rather than markup indentation. A <pre>
+   is the case that matters: src/demos/codeblock.html holds a CSS sample whose
+   own lines are indented two spaces, and prefixing those lines publishes the
+   section about setting code with its own example misindented. Which lines
+   those are is decided by src/extract.mjs's mask, so the demo column and the
+   pane beside it agree about where whitespace is content. */
+function indentMarkup(source, pad) {
+  const text = source.trimEnd();
+  const verbatim = verbatimLineMask(text);
+  return text.split('\n')
+    .map((line, i) => (line && !verbatim[i] ? pad + line : line))
+    .join('\n');
+}
+
 function section(s, index) {
   const num = String(index + 1).padStart(2, '0');
   const prose = s.prose.map((p) => `    ${p}`).join('\n');
   const note = s.note ? `  ${s.note}\n` : '';
-  const demo = read(`src/demos/${s.id}.html`).trimEnd()
-    .split('\n').map((l) => (l ? `      ${l}` : l)).join('\n');
+  const demoSource = read(`src/demos/${s.id}.html`);
+  const demo = indentMarkup(demoSource, '      ');
   const fullrow = s.fullrow
-    ? '\n' + read(`src/demos/${s.id}.fullrow.html`).trimEnd()
-        .split('\n').map((l) => (l ? `  ${l}` : l)).join('\n') + '\n'
+    ? `\n${indentMarkup(read(`src/demos/${s.id}.fullrow.html`), '  ')}\n`
     : '';
+  /* Left at its own indent, not re-indented line by line like demo/fullrow
+     below: the panel's HTML and Typst panes hold <pre> content a reader
+     copies, where whitespace is part of what gets copied, and prefixing
+     every line would corrupt it. */
   const panel = renderPanel({
-    spec, cssMap, typMap, id: s.id,
+    spec, cssLines, cssMap, typLines, id: s.id,
     specIds: s.panel.spec,
+    pane: s.panel.pane,
     cssKeys: (s.panel.css || s.panel.spec).split(',').map((k) => k.trim()),
-  }).split('\n').map((l) => (l ? `      ${l}` : l)).join('\n');
+    fragments: extractDemos(demoSource),
+    typSource: read(`src/demos/${s.id}.typ`).trimEnd(),
+  });
 
   return `<section class="section" id="${s.id}">
   <div class="section__head">
@@ -129,9 +176,90 @@ const counts = (() => {
   return `${spec.sections.length} sections, ${els} elements, ${templates} templates`;
 })();
 
+/* ---- Masthead boilerplate -------------------------------------------------
+   The block every reader needs once, above the sections: what to add around
+   a copied HTML or Typst snippet to make it run. Both halves are read from
+   the files that already own the values they state, so the block can never
+   drift from the fonts fonts/ actually carries or the import shape
+   typeset.typ actually declares. */
+
+/* The weight a face's filename names, where it names it in words. A file whose
+   suffix is numeric carries the weight directly. */
+const WEIGHT_NAMES = {
+  '': 400, Thin: 100, ExtraLight: 200, Light: 300, Regular: 400,
+  Medium: 500, SemiBold: 600, Bold: 700, ExtraBold: 800, Black: 900,
+};
+
+/* The font-weight and font-style descriptors a face file must be bound with,
+   read from the part of its name after the family: "-SemiBoldItalic", "-400",
+   "-300", "-Italic". Returns null for a name this cannot read, which the
+   caller turns into a build failure — a face bound with the wrong descriptors,
+   or with none, is exactly the defect this block exists to prevent. */
+function faceDescriptors(file) {
+  const stem = file.replace(/\.(otf|ttf|woff2?)$/i, '');
+  const suffix = stem.slice(stem.indexOf('-') + 1);
+  const italic = suffix.endsWith('Italic');
+  const token = italic ? suffix.slice(0, -'Italic'.length) : suffix;
+  const weight = /^\d+$/.test(token) ? Number(token) : WEIGHT_NAMES[token];
+  if (weight === undefined) return null;
+  return { weight, style: italic ? 'italic' : 'normal' };
+}
+
+/* Every face the three spec families carry, each bound with the descriptors
+   its own filename declares. A @font-face rule with no font-weight and no
+   font-style tells the browser the file is the family's 400 upright, so it
+   answers a request for 600 or for italic by slanting and smearing that one
+   file — and typeset.css asks for sans 300/600/700 and for serif italic and
+   semibold. Faux bold and faux italic on the front page of a typographic
+   specification is the failure the specification exists to prevent, so the
+   list is derived from fonts/manifest.json rather than hand-kept: a face that
+   is added, renamed or removed moves this block with it. */
+function boilerplateHtml() {
+  const manifest = JSON.parse(read('fonts/manifest.json'));
+  const blocks = ['serif', 'sans', 'mono'].map((role) => {
+    const { family } = spec.foundation.fonts[role];
+    const entry = manifest.families.find((f) => f.family === family && f.role === 'spec');
+    if (!entry) {
+      throw new Error(`fonts/manifest.json has no "spec" entry for ${family}, which `
+        + `spec.foundation.fonts.${role} names — regenerate the manifest`);
+    }
+    return entry.faces.map((face) => {
+      const d = faceDescriptors(face.file);
+      if (!d) {
+        throw new Error(`fonts/manifest.json: cannot read a weight and style out of `
+          + `"${face.file}" — teach faceDescriptors() in tools/build-site.mjs its shape, `
+          + 'or the masthead would bind it with no descriptors and the browser would '
+          + 'synthesise every other weight from it');
+      }
+      return { ...d, src: `${entry.dir}/${face.file}`, family };
+    })
+      .sort((a, b) => (a.style === b.style ? a.weight - b.weight : (a.style === 'normal' ? -1 : 1)))
+      .map((f) => `  @font-face { font-family: "${f.family}"; font-weight: ${f.weight};`
+        + ` font-style: ${f.style}; src: url("${f.src}"); }`)
+      .join('\n');
+  });
+  return esc(`<link rel="stylesheet" href="typeset.css">
+<style>
+${blocks.join('\n\n')}
+</style>
+
+<div class="typeset">
+  <!-- the fragment from any HTML pane goes here -->
+</div>`);
+}
+
+/* The same text tools/check.mjs compiles every snippet under, from the same
+   function — so the block a reader is told to paste above a snippet and the
+   block the gate proves a snippet runs under cannot be two different things. */
+function boilerplateTypst() {
+  return byLang('typst', typstBoilerplate());
+}
+
 const masthead = read('src/masthead.html').trimEnd()
   .replace('<span data-spec-counts>every value</span>', counts)
-  .replace('<span data-spec-version>—</span>', `${spec.version} · ${spec.updated}`);
+  .replace('<span data-spec-version>—</span>', `${spec.version} · ${spec.updated}`)
+  .replace('<code data-boilerplate="html"></code>', `<code data-boilerplate="html">${boilerplateHtml()}</code>`)
+  .replace('<code data-boilerplate="typst"></code>', `<code data-boilerplate="typst">${boilerplateTypst()}</code>`);
 
 output.set('index.html', shell({
   title: 'typeset — a typographic specification',
@@ -196,8 +324,8 @@ ${v.extra ? `  <div class="extra">\n    ${v.extra}\n  </div>\n` : ''}  <p class=
     sections: sections.length,
     navLinks: nav().match(/<li>/g).length,
     viewers: VIEWERS.length,
-    cssMarkers: cssMap.size,
-    typstMarkers: typMap.size,
+    cssMarkers: cssLines.size,
+    typstMarkers: typLines.size,
   } };
 }
 

@@ -2,7 +2,9 @@ name: Deploy
 
 # Every push to master rebuilds the site, the Typst bundle and the iA Writer
 # template, and publishes them all to Pages. A tag additionally attaches a
-# version-stamped copy of each to a release.
+# version-stamped copy of each to a release. A pull request runs the checker
+# only, so a broken conformance check or a Typst snippet that fails to compile
+# blocks the merge instead of the next deploy.
 #
 # None of the bundles is ever committed: each is derived from implementations/
 # and fonts/, so building them here is the only way they cannot drift.
@@ -11,16 +13,17 @@ on:
   push:
     branches: [master]
     tags: ['v*']
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
+# A pull request runs untrusted fork code, so it gets its own cancellable
+# queue rather than sharing "pages" with every push and every other PR.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -32,23 +35,47 @@ jobs:
         with:
           node-version: '22'
 
+      # Pinned to an exact version and checksum: an unpinned or unverified
+      # compiler means a snippet can start failing (or a build can run
+      # untrusted code) because the toolchain moved, not because the snippet
+      # changed. Built for x86_64 Linux, matching this runner.
+      - name: Install typst
+        env:
+          TYPST_VERSION: '0.14.0'
+          TYPST_SHA256: '99816d2982de08d2b091bac56b59b2faa523a10e1378ad3cdd68e35b8eb74b3d'
+        run: |
+          asset="typst-x86_64-unknown-linux-musl"
+          curl -fsSL --retry 3 --retry-all-errors \
+            -o typst.tar.xz \
+            "https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/${asset}.tar.xz"
+          echo "${TYPST_SHA256}  typst.tar.xz" | sha256sum -c -
+          tar -xf typst.tar.xz
+          sudo install -m 755 "${asset}/typst" /usr/local/bin/typst
+          rm -rf typst.tar.xz "${asset}"
+          typst --version
+
       # Gate: the committed pages must match what the sources generate, SPEC.md
-      # must be current, and both implementations must still match spec.json.
-      # A stale commit fails here rather than shipping.
+      # must be current, both implementations must still match spec.json, and
+      # every Typst snippet under src/demos compiles under typeset.typ. A pull
+      # request stops here — every step below skips on a pull request, so a
+      # stale commit or a broken snippet fails before merge rather than shipping.
       - name: Check
         run: node tools/check.mjs
 
       - name: Build the Typst bundle
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: node tools/build-bundle.mjs
 
       - name: Build the iA Writer template
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: node tools/build-iawriter.mjs
 
       # Assembled explicitly rather than uploading the repository root, so the
       # deployed site never contains .git or the workflow itself. Skipped on a
-      # tag, which publishes a release rather than a deployment.
+      # tag, which publishes a release rather than a deployment, and on a pull
+      # request, which only runs the check above.
       - name: Assemble the site
-        if: startsWith(github.ref, 'refs/heads/')
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && startsWith(github.ref, 'refs/heads/')
         run: |
           mkdir -p _site
           rsync -a \
@@ -58,7 +85,7 @@ jobs:
             ./ _site/
 
       - uses: actions/upload-pages-artifact@v3
-        if: startsWith(github.ref, 'refs/heads/')
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && startsWith(github.ref, 'refs/heads/')
         with:
           path: _site
 
@@ -66,9 +93,14 @@ jobs:
     needs: build
     # Branch pushes only. The github-pages environment restricts deployments to
     # the default branch, so running this on a tag fails with "not allowed to
-    # deploy to github-pages due to environment protection rules".
-    if: startsWith(github.ref, 'refs/heads/')
+    # deploy to github-pages due to environment protection rules" — and a pull
+    # request must never reach a deploy at all. Named allowlist rather than
+    # "not a pull request", so a future trigger defaults to no deploy rights.
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && startsWith(github.ref, 'refs/heads/')
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}

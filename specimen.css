@@ -16,6 +16,7 @@
   --ui-border: #e2ddd6;
   --ui-border-strong: #cdc6bd;
   --ui-accent: #7a1f1f;
+  --ui-guide: #d9c48a;      /* annotation marks drawn over a sample, never in it */
   --ui-code-bg: #24211e;
   --ui-code-fg: #e8e3db;
   --ui-code-comment: #8f877c;
@@ -210,6 +211,11 @@ a { color: inherit; }
   margin-bottom: 0.5rem;
 }
 
+/* A section that stacks several examples needs air between them. The first
+   label opens the column and takes no such gap, so the selector carries the
+   rule and no example has to mark itself. */
+.pair__label:not(:first-child) { margin-top: 1.5rem; }
+
 /* The paper. Always light — a print sample that adapts to dark mode is a lie. */
 .paper {
   background: #fffefb;
@@ -240,8 +246,8 @@ a { color: inherit; }
 }
 .note b { color: var(--ui-fg); }
 
-.swatches { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-.swatch { font-size: 0.6875rem; font-family: var(--ui-mono); color: #5a5a5a; }
+.swatches { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; }
+.swatch { font-size: 0.6875rem; font-family: var(--ui-mono); color: var(--ts-ink-muted); }
 .swatch i {
   display: block;
   width: 3.4rem;
@@ -250,6 +256,16 @@ a { color: inherit; }
   border: 1px solid rgb(0 0 0 / 0.1);
   margin-bottom: 0.3rem;
 }
+
+/* A swatch reads its fill from the token it is labelled with. Restating the
+   hex would let the page disagree with the stylesheet it documents: change
+   the token, and the square named after it would still show the old ink. */
+.swatch--ink { background: var(--ts-ink); }
+.swatch--ink-muted { background: var(--ts-ink-muted); }
+.swatch--ink-faint { background: var(--ts-ink-faint); }
+.swatch--rule { background: var(--ts-rule); }
+.swatch--wash { background: var(--ts-wash); }
+.swatch--accent { background: var(--ts-accent); }
 
 .scale-row {
   display: flex;
@@ -262,8 +278,18 @@ a { color: inherit; }
 .scale-row b {
   flex: 0 0 4.5rem;
   font: 400 0.6875rem var(--ui-mono);
-  color: #8a8a8a;
+  color: var(--ts-ink-faint);
 }
+
+/* Each sample is set at the token it stands for, for the same reason the
+   swatches are filled from theirs. The 11pt row needs no rule: the body size
+   is what .typeset already gives it. */
+.scale-h1 { font: 300 var(--ts-h1)/1.1 var(--ts-sans); }
+.scale-h2 { font: 600 var(--ts-h2)/1.15 var(--ts-sans); }
+.scale-h3 { font: 600 var(--ts-h3)/1.2 var(--ts-sans); }
+.scale-h4 { font: 600 var(--ts-h4)/1.2 var(--ts-sans); }
+.scale-sm { font-size: var(--ts-sm); }
+.scale-xs { font-size: var(--ts-xs); }
 
 .footer {
   max-width: 44rem;
@@ -290,7 +316,7 @@ a { color: inherit; }
 
 
 @media print {
-  .nav, .copy, .pair__label, .code, .btnrow, .masthead .meta { display: none; }
+  .nav, .copy, .pair__label, .code, .btnrow, .masthead .meta, .boilerplate { display: none; }
   .shell { grid-template-columns: 1fr; }
   .paper { border: 0; box-shadow: none; padding: 0; }
   .pair { display: block; }
@@ -551,6 +577,49 @@ table.spec-table code {
 }
 .btn--strong:hover { border-color: var(--ui-accent); background: var(--ui-bg-sunken); }
 
+/* ---- Snippet boilerplate, stated once above the sections ----------------- */
+
+.boilerplate {
+  margin-top: 1.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+  border: 1px solid var(--ui-border);
+  border-left: 3px solid var(--ui-accent);
+  border-radius: 3px;
+  background: var(--ui-bg-raised);
+}
+.boilerplate__label {
+  margin: 0 0 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ui-fg-faint);
+}
+.boilerplate__pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.25rem;
+}
+@media (max-width: 48rem) { .boilerplate__pair { grid-template-columns: 1fr; } }
+.boilerplate p { margin: 0 0 0.6rem; font-size: 0.8125rem; color: var(--ui-fg-muted); }
+.boilerplate code { font-family: var(--ui-mono); font-size: 0.85em; }
+.boilerplate__pre {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  background: var(--ui-code-bg);
+  border-radius: 3px;
+  overflow-x: auto;
+}
+.boilerplate__pre code {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--ui-code-fg);
+  white-space: pre;
+}
+
 /* Syntax colours, unscoped: the same palette serves the specimen page's code
    panes and the file viewers. Previously scoped under `.code`, which the build
    refactor renamed — losing every colour silently. */
@@ -571,6 +640,38 @@ table.spec-table code {
 }
 .demo-note b { color: var(--ui-fg); }
 
+/* A paragraph of the document that the specimen sets smaller and muted, so it
+   reads as a caption to the sample above it. The paragraph is document
+   content — src/extract.mjs takes this class off it and keeps the element. */
+.demo-aside { font-size: var(--ts-sm); color: var(--ts-ink-muted); }
+
+/* A note about the sample rather than a part of it: what a printer will do
+   with the links above, which a screen cannot show. Nothing here is document
+   content, so src/extract.mjs takes the whole element out of the fragment. */
+.demo-print-note {
+  font-family: var(--ts-sans);
+  font-size: 9pt;
+  color: var(--ts-ink-muted);
+  border-top: 0.5pt solid var(--ts-rule);
+  padding-top: 0.5em;
+}
+.demo-print-note__url { font-family: var(--ts-mono); font-size: var(--ts-xs); }
+
+/* A sample set past the measure the spec allows, so the return sweep can be
+   felt failing. The guide down its left edge marks it as an annotation: the
+   stylesheet offers no 52em setting, and this must not read as one.
+
+   The override is order-dependent. `max-width` ties `.typeset > *` at one
+   class each, so it wins only because this file is linked after typeset.css.
+   Link them the other way and the sample quietly returns to the 33em measure
+   it exists to contrast with — the section stops making its point, and
+   nothing reports it. */
+.demo-overset {
+  max-width: 52em;
+  border-left: 2px solid var(--ui-guide);
+  padding-left: 0.8em;
+}
+
 /* The table-of-contents demo carries hand-written page numbers so the finished
    shape is visible in a browser. The real rule resolves them after pagination,
    which a browser cannot do — so it is suppressed here to avoid showing both. */
@@ -587,4 +688,79 @@ table.spec-table code {
 
 @media (max-width: 60rem) {
   .mini--wide .mini__sheet { transform: scale(0.62); }
+}
+
+/* ---- Page diagram -------------------------------------------------------- */
+
+/* A picture of a page rather than a document: no element inside it is a
+   document element. It carries `typeset` so the ink and type it is drawn in
+   come from the tokens the page it depicts would be set in. */
+.pagemap {
+  background: var(--ui-bg-sunken);
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+.pagemap__sheet {
+  position: relative;
+  width: 14rem;
+  aspect-ratio: 210 / 297;
+  background: #fffefb;
+  border: 1px solid var(--ui-border-strong);
+  box-shadow: 0 8px 24px -12px rgb(0 0 0 / 0.2);
+}
+.pagemap__margins {
+  position: absolute;
+  inset: 8.4% 10.5%;
+  border: 1px dashed var(--ui-guide);
+}
+.pagemap__runhead {
+  position: absolute;
+  top: 4%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 7px/1 var(--ts-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ts-ink-faint);
+}
+.pagemap__folio {
+  position: absolute;
+  bottom: 3.5%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 8px/1 var(--ts-serif);
+  color: var(--ts-ink-muted);
+}
+.pagemap__lines {
+  position: absolute;
+  left: 10.5%;
+  right: 10.5%;
+  top: 14%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pagemap__line { height: 2px; background: #efece6; }
+.pagemap__line--head { height: 5px; width: 70%; background: #e6e2db; }
+.pagemap__line--short { width: 60%; }
+.pagemap__gauge {
+  position: absolute;
+  left: -2.2rem;
+  top: 8.4%;
+  bottom: 8.4%;
+  display: flex;
+  align-items: center;
+}
+.pagemap__gauge-label { font: 400 8px var(--ts-mono); color: var(--ts-ink-faint); }
+.pagemap__caption {
+  position: absolute;
+  bottom: -1.4rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font: 400 8px var(--ts-mono);
+  color: var(--ts-ink-faint);
 }

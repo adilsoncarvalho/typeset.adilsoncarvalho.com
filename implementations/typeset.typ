@@ -4,11 +4,19 @@
 // this file and the spec disagree, the spec is right.
 //
 // Usage:
-//   #import "typeset.typ": (
-//     typeset, letter-page, quotes-epigraph, quotes-pullquote,
-//     callouts-callout, breaks-asterisks,
-//   )
-//   #show: typeset.with(justified: true, indented: true)
+//   #import "typeset.typ": *
+//   #show: typeset
+//
+// Every name this file defines is a name a document may need, so the import is
+// a star import: a hand-picked list silently denies whichever name the next
+// document reaches for, and the failure reads as "unknown variable" rather than
+// as a missing import.
+//
+// typeset() takes the document's options — justified, indented, numbered,
+// measure and the rest, declared below. A document that sets any of them writes
+// `#show: typeset.with(...)` in place of the bare `#show: typeset` above, never
+// underneath it: typeset() sets the page, and set page() is refused inside a
+// container, which is what a second call would make of the first.
 
 // ── Foundation ──────────────────────────────────────────────────────────────
 
@@ -133,9 +141,7 @@
   // Widow and orphan control: never one line alone at a page edge.
   set block(breakable: true)
 
-  if numbered {
-    set heading(numbering: "1.1  ")
-  }
+  set heading(numbering: if numbered { "1.1  " } else { none })
 
   // ── Headings ──────────────────────────────────────────────────────────────
   // Space above is four times the space below; a heading belongs to what
@@ -580,7 +586,8 @@
 // @s toc
 #let toc() = {
   show outline.entry: set text(font: sans, size: sm)
-  outline(title: none, fill: repeat(gap: 0.4em)[.], indent: 1.5em)
+  set outline.entry(fill: repeat(gap: 0.4em)[.])
+  outline(title: none, indent: 1.5em)
 }
 // @e
 

@@ -227,6 +227,7 @@
 .typeset figure + p,
 .typeset pre + p,
 .typeset table + p,
+.typeset hr + p,
 .typeset .ts-break + p,
 .typeset .ts-callouts-callout + p,
 .typeset > p:first-child {

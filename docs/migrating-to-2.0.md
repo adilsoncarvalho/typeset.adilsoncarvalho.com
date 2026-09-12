@@ -30,6 +30,20 @@ base carries no mark of its own. An unmigrated bare `ts-break` renders as
 **empty white space**, not three asterisks. Add `ts-breaks-asterisks`,
 `ts-breaks-asterism`, `ts-breaks-fleuron` or `ts-breaks-rule` explicitly.
 
+Either element carries the variant. `<div class="ts-break ts-breaks-asterism">`
+is what the codemod leaves behind and stays correct; `<hr class="ts-breaks-asterism">`
+is the form the examples on the site use, because `<hr>` is the element HTML
+already has for a thematic break, and a reader of the markup gets the meaning
+without the class. The four variants render the same either way, as does the
+paragraph that follows one. The single difference is that a browser's own
+stylesheet gives `<hr>` `overflow: hidden`, so a document that also clamps the
+mark's `height` or `line-height` tightly enough for the glyph to spill out of
+its box would see it clipped on the `<hr>` and not on the `<div>`. No variant
+is exposed to it as shipped: three leave the height `auto` so the box grows to
+fit the mark, and `.ts-breaks-rule` does set `height: 0` but renders no mark to
+clip. So this is a reason to be careful when overriding, not a reason to prefer
+one element. There is no need to convert a migrated document.
+
 ### Labels
 
 1.x used one `.ts-label` hook, styled entirely by its ancestor — a table
