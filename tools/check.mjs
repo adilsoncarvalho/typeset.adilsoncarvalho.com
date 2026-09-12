@@ -221,6 +221,64 @@ if (typstSnippets.length > 0) {
   rmSync(readerDir, { recursive: true, force: true });
 }
 
+/* ---- 3k. Every shipped Typst example must compile AS SHIPPED -------------- */
+
+/* Unlike 3h above, these three are not snippets to wrap in the published
+   boilerplate — they are whole documents a reader downloads: the ones
+   README.md links to, the ones tools/build-bundle.mjs zips into the
+   downloadable Typst bundle. Each already carries its own
+   `#import "typeset.typ": *` and page setup, so this compiles them exactly
+   where they sit in implementations/, with no synthetic wrapper and no
+   copy into a reader directory — that is the distinction that let a symbol
+   rename ship silently once already: 3h's snippet harness only ever proves
+   that a fragment renders under the boilerplate this file supplies, and
+   these three supply their own, so nothing above ever asked Typst to
+   resolve a single name in them. A rename that misses one shows up here as
+   a hard compile error, the same way it would in a reader's own terminal.
+
+   The list below is explicit, not `readdirSync('implementations').filter(...)`:
+   a directory listing goes quiet the moment a file is deleted, silently
+   checking two examples instead of three, which is exactly the failure this
+   gate exists to make loud instead. Keep this list in sync with
+   tools/build-bundle.mjs's own explicit zip list and the paths README.md
+   names; existsSync below reports a missing file by name rather than
+   letting the loop just iterate over fewer files. */
+const EXAMPLE_TYP_FILES = [
+  'implementations/example-essay.typ',
+  'implementations/example-letter.typ',
+  'implementations/example-two-column.typ',
+];
+
+if (!typstAvailable()) {
+  console.error('typst is not on PATH — cannot verify that the Typst examples compile.');
+  console.error('Install typst (https://typst.app) and re-run node tools/check.mjs.');
+  process.exit(1);
+}
+
+{
+  const outDir = mkdtempSync(join(tmpdir(), 'typeset-examples-check-'));
+  const fontPath = resolve('fonts');
+  for (const file of EXAMPLE_TYP_FILES) {
+    if (!existsSync(file)) {
+      fail.push(`${file} is missing — README.md and tools/build-bundle.mjs both name it `
+        + 'as one of the three shipped Typst examples');
+      continue;
+    }
+    const outPath = join(outDir, `${file.replace(/[\\/]/g, '_')}.pdf`);
+    try {
+      execFileSync(
+        'typst',
+        ['compile', '--font-path', fontPath, file, outPath],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message)).trim();
+      fail.push(`${file} does not compile as shipped:\n${detail}`);
+    }
+  }
+  rmSync(outDir, { recursive: true, force: true });
+}
+
 /* Every class name typeset.css defines, comment text excluded. Read once here
    because two gates need it from opposite directions: the apparatus check in
    3c holds what is stripped OUT of a pane against it, and 3e holds what is
