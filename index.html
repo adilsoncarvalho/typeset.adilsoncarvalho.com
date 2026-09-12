@@ -510,10 +510,10 @@ and the binding still has somewhere to take its fold.
 The margin is equal on all four sides in the default, symmetric case — <span class="c-val">20mm</span> —
 which is the concession this specification makes to the photocopier and the
 office printer. The classical proportions put more space at the foot than at
-the head, and more at the outer edge than the inner, so the text block sits
-slightly above and toward the spine; it is the better setting, and it is the
-first thing lost when a document is reproduced on equipment that cannot be
-trusted to centre anything.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
+the head, so the text block sits slightly above the optical centre of the
+sheet; it is the better setting, and it is the first thing lost when a
+document is reproduced on equipment that cannot be trusted to centre
+anything.</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
   </div>
 </div>
     </div>
@@ -572,7 +572,7 @@ trusted to centre anything.</pre><button class="copy" type="button" data-copy>Co
               </figure>
               <h2>What the template forbids</h2>
               <p>Sidenotes have nowhere to go: there is no margin left. They become footnotes or endnotes, and an implementation should degrade them visibly rather than positioning them off the page and losing them.</p>
-              <p>A three-line drop cap at 3.05em is 29pt — a quarter of the column width for one letter. The cap is neutralised and the opening words carry the signal in small caps instead.</p>
+              <p>A three-line drop cap at 3.05em is 29pt — 10mm of the column given to one letter. The cap is neutralised and the opening words carry the signal in small caps instead.</p>
               <h3>Spanning</h3>
               <p>An element spans both columns fully or neither. Spanning costs a break in both columns, so it is opt-in per instance and belongs at the top or the bottom of a page.</p>
               <div class="ts-frontmatter-colophon">Set in EB Garamond, 9.5 on 13.3 points, two columns of 82mm with a 6mm gutter.</div>
@@ -630,7 +630,7 @@ trusted to centre anything.</pre><button class="copy" type="button" data-copy>Co
   &lt;/figure&gt;
   &lt;h2&gt;What the template forbids&lt;/h2&gt;
   &lt;p&gt;Sidenotes have nowhere to go: there is no margin left. They become footnotes or endnotes, and an implementation should degrade them visibly rather than positioning them off the page and losing them.&lt;/p&gt;
-  &lt;p&gt;A three-line drop cap at 3.05em is 29pt — a quarter of the column width for one letter. The cap is neutralised and the opening words carry the signal in small caps instead.&lt;/p&gt;
+  &lt;p&gt;A three-line drop cap at 3.05em is 29pt — 10mm of the column given to one letter. The cap is neutralised and the opening words carry the signal in small caps instead.&lt;/p&gt;
   &lt;h3&gt;Spanning&lt;/h3&gt;
   &lt;p&gt;An element spans both columns fully or neither. Spanning costs a break in both columns, so it is opt-in per instance and belongs at the top or the bottom of a page.&lt;/p&gt;
   &lt;div class=&quot;ts-frontmatter-colophon&quot;&gt;Set in EB Garamond, 9.5 on 13.3 points, two columns of 82mm with a 6mm gutter.&lt;/div&gt;
@@ -712,7 +712,7 @@ trusted to centre anything.</pre><button class="copy" type="button" data-copy>Co
     or endnotes, and an implementation should degrade them visibly rather than
     positioning them off the page and losing them.
 
-    A three-line drop cap at <span class="c-val">3.05em</span> is <span class="c-val">29pt</span> — a quarter of the column width for
+    A three-line drop cap at <span class="c-val">3.05em</span> is <span class="c-val">29pt</span> — <span class="c-val">10mm</span> of the column given to
     one letter. The cap is neutralised and the opening words carry the signal in
     small caps instead.
 
@@ -963,7 +963,7 @@ gap is a small invitation to stop reading.
     <p class="section__num">08 — Prose</p>
     <h2>Alignment: ragged or justified</h2>
     <p><b>Ragged right is the default</b>, and it is a choice rather than an absence. Justification buys a clean right edge and pays for it in uneven word spacing; a ragged setting keeps the spacing even and gives up the edge. Neither is more correct — but the cost lands differently depending on who the document is addressed to.</p>
-    <p><b>Ragged right for a letter</b>, a memorandum, a short note: anything addressed to a person rather than to a readership. <b>Justification for continuous prose at a full measure</b>: an essay, a report, a paper. It is mandatory in two columns, where a ragged edge at 47 characters serrates the column.</p>
+    <p><b>Ragged right for a letter</b>, a memorandum, a short note: anything addressed to a person rather than to a readership. <b>Justification for continuous prose at a full measure</b>: an essay, a report, a paper. It is mandatory in two columns, where a ragged edge at 50 characters serrates the column.</p>
     <p>Justification and hyphenation are a single decision. Justified text without hyphenation opens rivers of white space; hyphenation without justification breaks words for no gain. Take both or neither — and hyphenation needs the document language declared, since an English dictionary applied to Portuguese produces confident nonsense.</p>
     <p>Two traps, both learned the hard way on this stylesheet. <code>text-align</code> <b>inherits</b>, so setting it on the document container justifies the subtitle, the byline, the captions and the address blocks too — every block that must stay flush declares its own <code>text-align: left</code> rather than relying on an exception list here. And <code>text-align-last: left</code> has to be explicit: under a paginating engine the fragmented text no longer looks like the end of a paragraph, and every last line gets stretched.</p>
   </div>

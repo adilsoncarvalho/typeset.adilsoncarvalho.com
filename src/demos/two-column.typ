@@ -75,7 +75,7 @@
     or endnotes, and an implementation should degrade them visibly rather than
     positioning them off the page and losing them.
 
-    A three-line drop cap at 3.05em is 29pt — a quarter of the column width for
+    A three-line drop cap at 3.05em is 29pt — 10mm of the column given to
     one letter. The cap is neutralised and the opening words carry the signal in
     small caps instead.
 

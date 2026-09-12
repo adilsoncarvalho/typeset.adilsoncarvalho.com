@@ -56,7 +56,7 @@ and the binding still has somewhere to take its fold.
 The margin is equal on all four sides in the default, symmetric case — 20mm —
 which is the concession this specification makes to the photocopier and the
 office printer. The classical proportions put more space at the foot than at
-the head, and more at the outer edge than the inner, so the text block sits
-slightly above and toward the spine; it is the better setting, and it is the
-first thing lost when a document is reproduced on equipment that cannot be
-trusted to centre anything.
+the head, so the text block sits slightly above the optical centre of the
+sheet; it is the better setting, and it is the first thing lost when a
+document is reproduced on equipment that cannot be trusted to centre
+anything.
