@@ -292,7 +292,7 @@
   // Space above is four times the space below; a heading belongs to what
   // follows it. `sticky` is Typst's break-after: avoid.
 
-// @s headings
+// @s heading
   show heading: set text(font: sans, hyphenate: false)
   show heading: set par(justify: false, first-line-indent: 0pt)
   show heading: it => block(
@@ -318,7 +318,7 @@
 
   // ── Quotations ────────────────────────────────────────────────────────────
 
-// @s quotes
+// @s quote
   show quote.where(block: true): it => block(
     above: sp * 1.25,
     below: sp * 1.25,
@@ -339,7 +339,7 @@
 // @e
   // ── Lists ─────────────────────────────────────────────────────────────────
 
-// @s lists
+// @s list
   set list(marker: ([#text(fill: ink-muted, weight: 700)[·]], [#text(fill: ink-muted)[–]]), indent: 0pt, body-indent: 1.4em, spacing: sp * 0.25)
   set enum(numbering: "1.", indent: 0pt, body-indent: 1.4em, spacing: sp * 0.25, number-align: left)
   show enum: set text(..tabular)
@@ -355,7 +355,7 @@
   // ── Tables ────────────────────────────────────────────────────────────────
   // Rules, not grids: a rule above the header, below the header, below the body.
 
-// @s tables
+// @s table
   set table(
     stroke: (x, y) => (bottom: if y == 0 { 1pt + rule-strong } else { 0.5pt + rule-color }),
     inset: (left: 0pt, right: 0.7em, top: 0.45em, bottom: 0.45em),
@@ -369,7 +369,7 @@
 // @e
   // ── Figures & captions ────────────────────────────────────────────────────
 
-// @s figures
+// @s figure
   show figure: set block(above: sp * 1.5, below: sp * 1.5, breakable: false)
   show figure.caption: it => block(
     width: 100%,
@@ -495,7 +495,7 @@
 // indented.
 //
 // Named for what they do to the reader's block, not for the spec's own
-// paragraphs-spaced/paragraphs-indented element ids: an author reaching for
+// paragraph-spaced/paragraph-indented element ids: an author reaching for
 // one of these is asking "how does this block behave", never "which section
 // of the specification is this" — and a name tied to the element id would
 // also have to change the day that id does.
@@ -512,7 +512,7 @@
 // `context` is what lets these two read the document's scale out of
 // ts-scale: a gap or an indent is the active scale's, and neither function
 // takes an argument that could carry one.
-// @s paragraphs
+// @s paragraph
 #let block-spaced(body) = context {
   let scale = ts-scale.get()
   set par(.._paragraphs-rule(false, leading: scale.leading, space: scale.space, indent: scale.indent))
@@ -598,7 +598,7 @@
 
 // ── Blocks the spec names but no engine provides ────────────────────────────
 
-#let quotes-epigraph(attribution: none, body) = context {
+#let quote-epigraph(attribution: none, body) = context {
   let u = text.size
   block(above: 0pt, below: u * 2, width: 24em, {
     set align(left)
@@ -610,9 +610,9 @@
     }
   })
 }
-#let epigraph-right(attribution: none, body) = align(right, quotes-epigraph(attribution: attribution, body))
+#let epigraph-right(attribution: none, body) = align(right, quote-epigraph(attribution: attribution, body))
 
-#let quotes-pullquote(body) = context {
+#let quote-pullquote(body) = context {
   let u = text.size
   block(
     above: u * 1.5, below: u * 1.5, width: 100%,
@@ -626,7 +626,7 @@
   )
 }
 
-#let quotes-verse(body) = block(
+#let quote-verse(body) = block(
   above: sp * 1.25, below: sp * 1.25,
   inset: (left: sp * 2),
   {
@@ -635,8 +635,8 @@
   },
 )
 
-// @s callouts
-#let callouts-callout(title: none, warning: false, body) = context {
+// @s callout
+#let callout(title: none, warning: false, body) = context {
   let u = text.size
   block(
   above: u * 1.25, below: u * 1.25, width: 100%,
@@ -665,16 +665,16 @@
 // Section breaks. A blank line cannot survive a page break, so the mark is
 // always visible. The spec names four registers, so there are four symbols
 // here — a caller should not have to know a string literal to pick one.
-// @s breaks
+// @s break
 #let _break-mark(mark, size: 10pt, tracking: 0em, color: ink-faint) = block(
   above: sp * 1.5, below: sp * 1.5, sticky: true, width: 100%,
   align(center, box(text(size: size, fill: color, tracking: tracking, mark))),
 )
 
-#let breaks-asterisks() = _break-mark([\* \* \*], tracking: 0.6em)
-#let breaks-asterism() = _break-mark([⁂], size: 14pt)
-#let breaks-fleuron() = _break-mark([❦], size: 12pt, color: accent)
-#let breaks-rule() = block(above: sp * 1.5, below: sp * 1.5, sticky: true, width: 100%,
+#let break-asterisks() = _break-mark([\* \* \*], tracking: 0.6em)
+#let break-asterism() = _break-mark([⁂], size: 14pt)
+#let break-fleuron() = _break-mark([❦], size: 12pt, color: accent)
+#let break-rule() = block(above: sp * 1.5, below: sp * 1.5, sticky: true, width: 100%,
   align(center, line(length: 100%, stroke: 0.5pt + rule-color)))
 // @e
 
@@ -962,7 +962,7 @@
 // hanging indent, and the heading — a real level-2 heading, so it takes the
 // document's own running-head and numbering behaviour, and spans both
 // columns the way frontmatter-title-block and frontmatter-colophon do,
-// because bibliography-heading (unlike headings-h2 itself) is on
+// because bibliography-heading (unlike heading-h2 itself) is on
 // templates.two-column.spanning.always. `reference()` composes one entry —
 // author roman, title italic, the rest in order — so the punctuation between
 // them is this file's business, not the document's.
@@ -1091,10 +1091,10 @@
 }
 // @e
 
-// @s notes
+// @s note
 // Anchored past the text column's right edge. In Typst the column width is
 // explicit (the `measure` argument), so the offset is taken from it directly.
-#let notes-sidenote(body) = place(
+#let note-sidenote(body) = place(
   right,
   dx: 13em,
   dy: -0.3em,
@@ -1108,7 +1108,7 @@
 
 // ── Utilities ───────────────────────────────────────────────────────────────
 
-// @s utilities
-#let utilities-keep-together(body) = block(breakable: false, body)
-#let utilities-tie(body) = box(body)
+// @s utility
+#let utility-keep-together(body) = block(breakable: false, body)
+#let utility-tie(body) = box(body)
 // @e

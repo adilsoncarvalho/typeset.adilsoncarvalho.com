@@ -143,8 +143,8 @@ for (const f of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) {
 
 /* src/demos/<id>.typ is the fragment a reader would drop into a document
    that imports typeset.typ — the third tab's counterpart to the HTML/CSS
-   pane checked above. Keyed on section ids, not filenames: notes.fullrow.html
-   is a second HTML demo for the "notes" section, not a second section, and
+   pane checked above. Keyed on section ids, not filenames: note.fullrow.html
+   is a second HTML demo for the "note" section, not a second section, and
    src/demos now holds both file types side by side. */
 
 for (const s of manifest) {
@@ -290,7 +290,7 @@ const TAG_OPEN_RE = /<([a-z][a-z0-9]*)\b([^>]*)>/g;
 /* Walks forward from `from` (bounded by `to`) for the first descendant tag
    whose class list carries the literal token "typeset" — the same target
    extract.mjs's own resolveTarget() descends to for two-column and
-   notes.fullrow, found here independently. */
+   note.fullrow, found here independently. */
 function findTypesetTag(source, from, to) {
   TAG_OPEN_RE.lastIndex = from;
   let m;
@@ -390,8 +390,8 @@ function commonIndent(text) {
 
    The class is matched by splitting the attribute into whole tokens, the way
    classTokens() above does and for the same reason src/extract.mjs documents:
-   "\bts-quotes-verse\b" also matches "ts-quotes-verse-x" and
-   "my-ts-quotes-verse", because a hyphen is not a word character. */
+   "\bts-quote-verse\b" also matches "ts-quote-verse-x" and
+   "my-ts-quote-verse", because a hyphen is not a word character. */
 function verbatimInteriors(fragment) {
   const found = [];
   const pre = /<pre\b[^>]*>([\s\S]*?)<\/pre>/gi;
@@ -400,7 +400,7 @@ function verbatimInteriors(fragment) {
 
   const openTag = /<([a-z][a-z0-9]*)\b[^>]*>/gi;
   while ((m = openTag.exec(fragment)) !== null) {
-    if (!classTokens(m[0]).includes('ts-quotes-verse')) continue;
+    if (!classTokens(m[0]).includes('ts-quote-verse')) continue;
     const close = findMatchingClose(fragment, openTag.lastIndex, m[1]);
     if (close !== -1) found.push(fragment.slice(openTag.lastIndex, close));
   }
@@ -421,7 +421,7 @@ function reindent(fragment, amount) {
    here rather than imported from extract.mjs. That duplication is the point:
    the pane publishes demo.html, which is demo.source with these names taken
    out, and a gate that read extract.mjs's own list would agree with whatever
-   that list happened to say. Adding a document class to it — ts-callouts-title,
+   that list happened to say. Adding a document class to it — ts-callout-title,
    say — would then strip real styling out of every published pane and this
    file would still print "all checks passed".
 
@@ -598,7 +598,7 @@ for (const file of readdirSync('src/demos').filter((f) => f.endsWith('.html'))) 
     } else {
       /* A "container" fragment is the whole target element, with "paper"
          dropped from its class attribute where it carried that class at
-         all — two-column and notes.fullrow descend to an <article> that
+         all — two-column and note.fullrow descend to an <article> that
          never did. Reversing the drop means padding every line back out
          to the element's true source indentation — found the same way
          extract.mjs finds it, as the run of spaces and tabs immediately
@@ -862,7 +862,7 @@ if (two) {
 }
 for (const id of cssIds) {
   const isFoundation = ['tokens', 'foundation', 'page', 'justification', 'numbering', 'dropcap',
-    'links', 'code-inline', 'utilities'].includes(id);
+    'link', 'code-inline', 'utility'].includes(id);
   const isTemplate = Object.keys(spec.templates).includes(id);
   if (!spec.sections.some((s) => s.id === id) && !isFoundation && !isTemplate) {
     warn.push(`typeset.css: section "${id}" has no counterpart in spec.json`);
@@ -1071,7 +1071,7 @@ const decl = (body, prop) => body.match(new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]
      .pagemap__lines (left/right, the same horizontal inset), .pagemap__gauge
      (top/bottom, the same vertical inset), and .mini__sheet — the scaled
      full-page preview .pagemap does not itself replace, used by
-     src/demos/two-column.html and src/demos/notes.fullrow.html. A margin
+     src/demos/two-column.html and src/demos/note.fullrow.html. A margin
      drawn in one of these and stated in the prose beside it is two statements
      of one number, and only one of them is anybody's job to update. */
   const specimenCss = readFileSync('specimen.css', 'utf8');
@@ -1340,18 +1340,19 @@ const INTERNAL_SYMBOLS = new Set([
 
 /* Symbols named for what they do rather than for the spec element id they
    implement — an author-facing name, not the spec's own taxonomy, and (for
-   block-spaced/block-indented) a name that does not have to change the day
-   paragraphs-* is renamed to paragraph-*. This is NOT the same list as
-   INTERNAL_SYMBOLS: every value here is a real implements-relationship, so a
-   symbol belongs in exactly one of the two lists, never both. Gated below:
+   block-spaced/block-indented) independent of whatever the spec calls the
+   underlying element (paragraph-spaced, paragraph-indented). This is NOT the
+   same list as INTERNAL_SYMBOLS: every value here is a real
+   implements-relationship, so a symbol belongs in exactly one of the two
+   list, never both. Gated below:
    every value must resolve to an id spec.json actually declares, or a typo
    here would silence a real "no symbol" coverage warning forever. */
 const IMPLEMENTS = new Map([
-  ['block-spaced', 'paragraphs-spaced'],
-  ['block-indented', 'paragraphs-indented'],
-  /* ts-table implements element tables-table under its 1.x spelling, which
+  ['block-spaced', 'paragraph-spaced'],
+  ['block-indented', 'paragraph-indented'],
+  /* ts-table implements element table under its 1.x spelling, which
      the migration note discloses. */
-  ['ts-table', 'tables-table'],
+  ['ts-table', 'table'],
   /* key is the author-facing name for inline-kbd — the owner asked for it
      by that name, and an author reaching for a keycap does not know the
      spec's own element id. */
@@ -1391,7 +1392,7 @@ for (const sym of typSymbols) {
    call by name need a symbol; those are the ones carrying a CSS class that is
    not a plain element alias. A missing one is a warning, not a failure — the
    list of styles that must expose a callable Typst symbol is not final, and
-   promoting this direction means settling every one of the notes it prints
+   promoting this direction means settling every one of the note it prints
    first. The reverse direction above is a failure, because an export with no
    name behind it is a decision someone can write down in one line. */
 const implementedIds = new Set(IMPLEMENTS.values());
@@ -1466,7 +1467,7 @@ const inBand = (y, edge) => Math.abs(y - edge) <= VERTICAL_TOLERANCE_PT;
    see the loop just before the render check. */
 const TYPST_EXEMPT_CARRIED_BY_TITLE_BLOCK = ['frontmatter-subtitle', 'frontmatter-byline', 'frontmatter-dateline'];
 const TYPST_RENDER_CHECKED = [
-  'frontmatter-title-block', 'frontmatter-abstract', 'frontmatter-colophon', 'headings-h1',
+  'frontmatter-title-block', 'frontmatter-abstract', 'frontmatter-colophon', 'heading-h1',
   'bibliography-heading',
 ];
 
@@ -1486,7 +1487,7 @@ for (const id of TYPST_RENDER_CHECKED) {
 
 /* CSS: every id on spanning.always is a standalone class (typeset.css's @s
    frontmatter block gives subtitle, byline and dateline their own rules,
-   siblings of the title block's) except headings-h1, styled through the bare
+   siblings of the title block's) except heading-h1, styled through the bare
    `h1` selector rather than a class — handled as its own case below, not
    folded into a count of "how many are classes", which spec.json already
    owns via spanning.always itself. So a document may use any of the class-
@@ -1541,7 +1542,7 @@ for (const rule of cssLeafRules) {
 }
 
 for (const id of spanningAlways) {
-  const selector = id === 'headings-h1' ? '.typeset--two-column > h1' : `.typeset--two-column > .ts-${id}`;
+  const selector = id === 'heading-h1' ? '.typeset--two-column > h1' : `.typeset--two-column > .ts-${id}`;
   const values = columnSpanValuesBySelector.get(selector) || [];
   if (values.length === 0) {
     fail.push(`typeset.css: templates.two-column.spanning.always names "${id}", but no rule declares `
@@ -1743,7 +1744,7 @@ const BIBLIOGRAPHY_HEADING_FILL = '#e10005';
    control rather than silently passing the real check for the wrong reason. */
 const typstProbes = [
   {
-    id: 'headings-h1',
+    id: 'heading-h1',
     source: `${docPreamble}${LEADING_FILLER}\n\n#heading(level: 1)[#${markerRect(HEADING_FILL)}]\n`,
     fill: HEADING_FILL,
     vertical: 'top',
@@ -2210,13 +2211,13 @@ if (!measureEmMatch) {
 /* The literal values first. _paragraphs-rule backs both typeset()'s own
    `indented` option and the two standalone functions, so a hand-copied number
    drifting in any one of the three call sites shows up here as a mismatch
-   against spec.json's own paragraphs-spaced/paragraphs-indented elements —
+   against spec.json's own paragraph-spaced/paragraph-indented elements —
    the elements block-spaced/block-indented implement, per IMPLEMENTS above. */
 
-const paragraphsSpec = spec.sections.find((s) => s.id === 'paragraphs');
+const paragraphsSpec = spec.sections.find((s) => s.id === 'paragraph');
 const specEl = (id) => paragraphsSpec.elements.find((e) => e.id === id).properties;
-const spacedProps = specEl('paragraphs-spaced');
-const indentedProps = specEl('paragraphs-indented');
+const spacedProps = specEl('paragraph-spaced');
+const indentedProps = specEl('paragraph-indented');
 
 /* A scale dictionary's own value for one field, so the two scales can be held
    to spec.json's base element and to the two-column template's override of it
@@ -2239,7 +2240,7 @@ if (!rule) {
   const spacedIndent = /first-line-indent:\s*([^\n,)}]+)/.exec(spacedBranch)?.[1]?.trim();
   if (spacedIndent !== '0pt') {
     fail.push(`typeset.typ: block-spaced's first-line-indent is ${spacedIndent}, but `
-      + `spec.json's paragraphs-spaced.first_line_indent is "${spacedProps.first_line_indent}" (0) `
+      + `spec.json's paragraph-spaced.first_line_indent is "${spacedProps.first_line_indent}" (0) `
       + '— every line flush');
   }
   /* The gap is the ACTIVE scale's, never the module's. _paragraphs-rule is
@@ -2257,7 +2258,7 @@ if (!rule) {
   if (spaceDefault !== 'sp') {
     fail.push(`typeset.typ: _paragraphs-rule's space parameter defaults to \`${spaceDefault}\`, `
       + `expected the module's own \`sp\` (${spacedProps.space_after}, spec.json's `
-      + 'paragraphs-spaced.space_after) — the single-column unit, for a caller with no scale');
+      + 'paragraph-spaced.space_after) — the single-column unit, for a caller with no scale');
   }
   if (!/\.\._paragraphs-rule\(indented, leading: scale\.leading, space: scale\.space, indent: scale\.indent\)/.test(typ)) {
     fail.push('typeset.typ: _typeset-styles does not pass scale.leading, scale.space and '
@@ -2267,7 +2268,7 @@ if (!rule) {
 
   /* And each scale's own indent against the spec statement that owns it. */
   const indentOwners = [
-    ['scale-single-column', indentedProps.first_line_indent, 'paragraphs-indented.first_line_indent'],
+    ['scale-single-column', indentedProps.first_line_indent, 'paragraph-indented.first_line_indent'],
     ['scale-two-column', spec.templates['two-column'].element_overrides.paragraph.first_line_indent,
       'templates.two-column.element_overrides.paragraph.first_line_indent'],
   ];
@@ -2288,7 +2289,7 @@ if (!rule) {
   } else {
     /* The indent is the scale's too, for the same reason the gap is: a
        template states its own. spec.json declares 1.5em on
-       paragraphs-indented and 1.25em on
+       paragraph-indented and 1.25em on
        templates.two-column.element_overrides.paragraph, and while the amount
        was a literal in this branch there was nowhere for the override to
        live — the file's own comment presented that as the point. */
@@ -2299,19 +2300,19 @@ if (!rule) {
     }
     if (indentDefault !== indentedProps.first_line_indent) {
       fail.push(`typeset.typ: _paragraphs-rule's indent parameter defaults to ${indentDefault}, but `
-        + `spec.json's paragraphs-indented.first_line_indent is "${indentedProps.first_line_indent}"`);
+        + `spec.json's paragraph-indented.first_line_indent is "${indentedProps.first_line_indent}"`);
     }
     if (indentedAmount[2] !== 'false') {
       fail.push('typeset.typ: block-indented sets first-line-indent all: true — this applies '
         + "the indent even after a heading, blockquote, figure or break, and to the document's "
-        + 'first paragraph, contradicting the note on spec.json\'s paragraphs-indented element: '
-        + `"${paragraphsSpec.elements.find((e) => e.id === 'paragraphs-indented').notes[0]}"`);
+        + 'first paragraph, contradicting the note on spec.json\'s paragraph-indented element: '
+        + `"${paragraphsSpec.elements.find((e) => e.id === 'paragraph-indented').notes[0]}"`);
     }
   }
   const indentedSpacing = /spacing:\s*([^\n,)}]+)/.exec(indentedBranch)?.[1]?.trim();
   if (!/^leading-for\(/.test(indentedSpacing ?? '')) {
     fail.push(`typeset.typ: block-indented's spacing is "${indentedSpacing}", expected `
-      + `leading-for(..) — spec.json's paragraphs-indented.space_after is "${indentedProps.space_after}" `
+      + `leading-for(..) — spec.json's paragraph-indented.space_after is "${indentedProps.space_after}" `
       + '(no gap beyond the ordinary line leading)');
   }
 }
@@ -2429,7 +2430,7 @@ const gapProbeDir = mkdtempSync(join(tmpdir(), 'typeset-para-gap-check-'));
 try {
   copyFileSync('implementations/typeset.typ', join(gapProbeDir, 'typeset.typ'));
 
-  /* The single-column arm is also the spec's own number: paragraphs-spaced
+  /* The single-column arm is also the spec's own number: paragraph-spaced
      declares an 11pt space_after at an 11pt base, so its expected advance is
      spec.json's value, not merely typeset.typ's agreeing with itself. */
   const specGap = parseFloat(spacedProps.space_after) + parseFloat(spacedProps.size);
@@ -2445,7 +2446,7 @@ try {
     const expected = base + space;
     if (scaleName === 'scale-single-column' && Math.abs(expected - specGap) > 0.01) {
       fail.push(`typeset.typ: ${scaleName} gives a spaced advance of ${expected}pt, but `
-        + `spec.json's paragraphs-spaced is ${spacedProps.size} of text and a `
+        + `spec.json's paragraph-spaced is ${spacedProps.size} of text and a `
         + `${spacedProps.space_after} space_after, i.e. ${specGap}pt`);
     }
 
@@ -3209,7 +3210,7 @@ if (typstAvailable()) {
    measurement) of which 19 are legitimate: these demos are prose *about*
    margins and column arithmetic ("A4 is 210mm wide..."), and forbidding that
    forbids the demos from explaining themselves. Exactly one hit is real:
-   src/demos/figures.typ used to hand-pick 128mm for a diagram's scale, tied
+   src/demos/figure.typ used to hand-pick 128mm for a diagram's scale, tied
    to the measure with nothing saying so.
 
    So this checks a narrower, defensible claim: a millimetre literal is a

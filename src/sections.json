@@ -55,7 +55,7 @@
     }
   },
   {
-    "id": "headings",
+    "id": "heading",
     "group": "Structure",
     "title": "Headings",
     "prose": [
@@ -63,7 +63,7 @@
       "<p>Two non-negotiable rules: the space above is four times the space below, because a heading belongs to what follows it; and a heading must never be the last thing on a page. Whatever the engine calls that — <code>break-after: avoid</code>, <code>sticky</code>, <code>\\needspace</code> — it is mandatory, not a preference.</p>"
     ],
     "panel": {
-      "spec": "headings",
+      "spec": "heading",
       "pane": "html"
     }
   },
@@ -80,7 +80,7 @@
     }
   },
   {
-    "id": "paragraphs",
+    "id": "paragraph",
     "group": "Prose",
     "title": "Paragraphs",
     "prose": [
@@ -88,7 +88,7 @@
       "<p>Orphan and widow control set to 2: never a single line left behind at a page foot, never one carried alone to the next head.</p>"
     ],
     "panel": {
-      "spec": "paragraphs",
+      "spec": "paragraph",
       "pane": "html"
     }
   },
@@ -135,19 +135,19 @@
     }
   },
   {
-    "id": "links",
+    "id": "link",
     "group": "Prose",
     "title": "Links in print",
     "prose": [
       "<p>Paper has no hover and no click. An external link whose URL carries information must have that URL printed after the link text. Internal anchors and <code>mailto:</code> links read fine as they are and are excluded, and any link may opt out where its URL would be noise.</p>"
     ],
     "panel": {
-      "spec": "links",
+      "spec": "link",
       "pane": "html"
     }
   },
   {
-    "id": "numerals",
+    "id": "numeral",
     "group": "Prose",
     "title": "Numerals",
     "prose": [
@@ -155,12 +155,12 @@
       "<p>Getting this wrong is the most visible amateur tell in a set document — and in every engine it is one setting.</p>"
     ],
     "panel": {
-      "spec": "numerals",
+      "spec": "numeral",
       "pane": "html"
     }
   },
   {
-    "id": "quotes",
+    "id": "quote",
     "group": "Blocks",
     "title": "Quotations",
     "prose": [
@@ -168,12 +168,12 @@
       "<p>Attribution always sits outside the quotation, prefixed with an em dash. Putting it inside makes the source part of what was said.</p>"
     ],
     "panel": {
-      "spec": "quotes",
+      "spec": "quote",
       "pane": "html"
     }
   },
   {
-    "id": "lists",
+    "id": "list",
     "group": "Blocks",
     "title": "Lists",
     "prose": [
@@ -181,12 +181,12 @@
       "<p>Definition lists are underused. They are the right shape for a glossary, a set of terms, or the field-and-value blocks in a letter — anywhere a short label governs a paragraph.</p>"
     ],
     "panel": {
-      "spec": "lists",
+      "spec": "list",
       "pane": "html"
     }
   },
   {
-    "id": "tables",
+    "id": "table",
     "group": "Blocks",
     "title": "Tables",
     "prose": [
@@ -195,7 +195,7 @@
       "<p>A table that spans pages repeats its header on every one. Without that, page two of a table is unreadable — this is a requirement, not a nicety.</p>"
     ],
     "panel": {
-      "spec": "tables",
+      "spec": "table",
       "pane": "html"
     }
   },
@@ -214,32 +214,32 @@
     }
   },
   {
-    "id": "figures",
+    "id": "figure",
     "group": "Blocks",
     "title": "Figures &amp; captions",
     "prose": [
       "<p>A caption is not a title. It goes below the figure, sans at 9.5pt, separated by a hair rule, and it carries a small-caps label so a cross-reference in the text has something to point at. A figure and its caption stay on one page — the one place a no-break rule is unambiguously right.</p>"
     ],
     "panel": {
-      "spec": "figures",
+      "spec": "figure",
       "pane": "html"
     },
     "nav": "Figures"
   },
   {
-    "id": "callouts",
+    "id": "callout",
     "group": "Blocks",
     "title": "Callouts",
     "prose": [
       "<p>For a report or a technical note: an aside the reader may skip without losing the argument. If skipping it <em>would</em> lose the argument, it is not a callout, it is a paragraph. Two variants only — neutral and warning — because a document with five callout colours has none.</p>"
     ],
     "panel": {
-      "spec": "callouts",
+      "spec": "callout",
       "pane": "html"
     }
   },
   {
-    "id": "breaks",
+    "id": "break",
     "group": "Blocks",
     "title": "Section breaks",
     "prose": [
@@ -247,21 +247,21 @@
       "<p>Four registers: three asterisks for prose, an asterism for a heavier division, a fleuron for a decorative one, a plain rule for a report.</p>"
     ],
     "panel": {
-      "spec": "breaks",
+      "spec": "break",
       "pane": "html"
     }
   },
   {
-    "id": "notes",
+    "id": "note",
     "group": "Apparatus",
     "title": "Footnotes &amp; sidenotes",
     "prose": [
-      "<p>The honest position: true bottom-of-page footnotes need an engine that can measure the page while laying it out. <b>Typst and LaTeX do this natively. WeasyPrint 53+ and Prince implement the CSS footnote model. No browser does.</b> So the note text lives in the document inside <code>.ts-notes-footnote</code>, and <code>@supports (float: footnote)</code> promotes it to a real footnote where the engine can — degrading to a numbered notes block where it cannot, never to a lost note.</p>",
+      "<p>The honest position: true bottom-of-page footnotes need an engine that can measure the page while laying it out. <b>Typst and LaTeX do this natively. WeasyPrint 53+ and Prince implement the CSS footnote model. No browser does.</b> So the note text lives in the document inside <code>.ts-note-footnote</code>, and <code>@supports (float: footnote)</code> promotes it to a real footnote where the engine can — degrading to a numbered notes block where it cannot, never to a lost note.</p>",
       "<p>There is <b>no heading over the notes</b>. The rule above the block is the only mark it needs; a label over two lines of small print is heavier than the thing it labels.</p>",
       "<p><b>Sidenotes are the better default where the page can afford the margin</b>: no page-break arithmetic, they work in every renderer, and the reader never leaves the sentence they are in. They need the full page width to make sense, so the second example below is a whole A4 sheet at 42% rather than a fragment.</p>"
     ],
     "panel": {
-      "spec": "notes",
+      "spec": "note",
       "pane": "html"
     },
     "fullrow": true
@@ -319,14 +319,14 @@
     }
   },
   {
-    "id": "utilities",
+    "id": "utility",
     "group": "Documents",
     "title": "Pagination utilities",
     "prose": [
       "<p>The small set of overrides reached for while proofing a real document: force a break, forbid one, stop a hyphen, tie two words together. Every one is a manual decision about a specific page, not a style. The last of them tells the output device not to strip backgrounds and rules to save ink.</p>"
     ],
     "panel": {
-      "spec": "utilities",
+      "spec": "utility",
       "pane": "html"
     }
   }

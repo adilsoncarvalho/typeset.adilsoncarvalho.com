@@ -317,10 +317,10 @@ Default: `single-column`
 
 | Property | Value |
 | --- | --- |
-| always | `frontmatter-title-block`, `frontmatter-subtitle`, `frontmatter-byline`, `frontmatter-dateline`, `frontmatter-abstract`, `headings-h1`, `bibliography-heading`, `frontmatter-colophon` |
+| always | `frontmatter-title-block`, `frontmatter-subtitle`, `frontmatter-byline`, `frontmatter-dateline`, `frontmatter-abstract`, `heading-h1`, `bibliography-heading`, `frontmatter-colophon` |
 | optional | `figure`, `table`, `code block`, `pull quote` |
 | never | `paragraph`, `list`, `blockquote`, `callout`, `heading 2 and below`, `endnotes` |
-| note | A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` stay prose because they describe author choice and default flow, which nothing enforces. `bibliography-heading` is on `always` as its own element, distinct from `headings-h2`: `never`'s "heading 2 and below" names the generic heading levels headings-h2 through headings-h6, not a differently-identified element that happens to share their scale — so a bibliography heading may span both columns while an ordinary section heading may not. |
+| note | A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` stay prose because they describe author choice and default flow, which nothing enforces. `bibliography-heading` is on `always` as its own element, distinct from `heading-h2`: `never`'s "heading 2 and below" names the generic heading levels heading-h2 through heading-h6, not a differently-identified element that happens to share their scale — so a bibliography heading may span both columns while an ordinary section heading may not. |
 
 #### forbidden
 
@@ -434,7 +434,7 @@ Default: `single-column`
 
 #### Headings
 
-`headings`
+`heading`
 
 - Sans against the serif body, so hierarchy reads by contrast rather than by size alone.
 - Below level 4 the size stops changing and the register shifts instead — small caps, then italic. Six distinct levels inside a 24pt–11pt range.
@@ -579,7 +579,7 @@ Default: `single-column`
 
 #### Paragraphs
 
-`paragraphs`
+`paragraph`
 
 - Two conventions, one switch. Spaced paragraphs suit documents that get skimmed. Indented paragraphs with no gap suit continuous prose and are the convention of nearly every printed book.
 - The first paragraph after any heading, block or break is flush left: the thing above it has already marked the start.
@@ -815,7 +815,7 @@ Where unsupported: automatic hyphenation, but at the engine's own built-in limit
 
 #### Links in print
 
-`links`
+`link`
 
 - Paper has no hover and no click. A URL that carries information must be printed.
 
@@ -851,7 +851,7 @@ Where unsupported: automatic hyphenation, but at the engine's own built-in limit
 
 #### Numerals
 
-`numerals`
+`numeral`
 
 - Three kinds, three jobs. Getting this wrong is the most visible amateur tell in a set document, and it is one setting.
 - Old-style figures have ascenders and descenders and sit inside the x-height. Lining figures are uniform cap height. Tabular figures share one advance width, which is the only reason a column of numbers can align.
@@ -884,7 +884,7 @@ Where unsupported: automatic hyphenation, but at the engine's own built-in limit
 
 #### Quotations
 
-`quotes`
+`quote`
 
 - Four jobs, four treatments. A block quote is evidence. An epigraph opens a chapter. A pull quote is display type lifted from the body. Verse preserves the poet's line breaks.
 - A pull quote repeats text that already appears in the body, so it MUST NOT be the only place a claim appears — a skimming reader would get the claim without its qualification.
@@ -966,7 +966,7 @@ Where unsupported: automatic hyphenation, but at the engine's own built-in limit
 
 #### Lists
 
-`lists`
+`list`
 
 - The marker's colour, weight and width must be under control. A grey marker with black text reads as one thing; a black marker competes with the first word.
 - Runover lines align to the text, never to the marker.
@@ -1012,7 +1012,7 @@ Where unsupported: automatic hyphenation, but at the engine's own built-in limit
 | --- | --- |
 | marker | `a.` |
 
-##### Tight list (opt-in: `ts-lists-tight`)
+##### Tight list (opt-in: `ts-list-tight`)
 
 | Property | Value |
 | --- | --- |
@@ -1043,7 +1043,7 @@ Where unsupported: automatic hyphenation, but at the engine's own built-in limit
 
 #### Tables
 
-`tables`
+`table`
 
 - Rules, not grids. Vertical rules are almost never needed — the columns already read as columns, and every added line is ink competing with data.
 - Three horizontal rules only: above the header, below the header, below the body.
@@ -1121,7 +1121,7 @@ Where unsupported: automatic hyphenation, but at the engine's own built-in limit
 | --- | --- |
 | break inside | `avoid` |
 
-##### Zebra striping (opt-in: `ts-tables-zebra`)
+##### Zebra striping (opt-in: `ts-table-zebra`)
 
 | Property | Value |
 | --- | --- |
@@ -1162,7 +1162,7 @@ Where unsupported: automatic hyphenation, but at the engine's own built-in limit
 
 #### Figures & captions
 
-`figures`
+`figure`
 
 - A caption is not a title: it goes below the figure.
 - A figure and its caption stay on one page. This is the one place a no-break rule is unambiguously right.
@@ -1202,7 +1202,7 @@ Where unsupported: automatic hyphenation, but at the engine's own built-in limit
 
 #### Callouts
 
-`callouts`
+`callout`
 
 - A callout is an aside the reader may skip without losing the argument. If skipping it would lose the argument, it is a paragraph.
 - Two variants only. A document with five callout colours has none.
@@ -1242,7 +1242,7 @@ Where unsupported: automatic hyphenation, but at the engine's own built-in limit
 
 #### Section breaks
 
-`breaks`
+`break`
 
 - A blank line cannot survive a page break: if the break falls on the gap, the reader never learns the scene changed. Over a long document this is a certainty, not an accident. The mark MUST be visible.
 - Four registers, one per kind of division.
@@ -1297,7 +1297,7 @@ Where unsupported: automatic hyphenation, but at the engine's own built-in limit
 
 #### Footnotes, endnotes & sidenotes
 
-`notes`
+`note`
 
 - Bottom-of-page footnotes require an engine that can measure the page while laying it out. Typst and LaTeX do this natively. WeasyPrint 53+ and Prince implement the CSS footnote model. No browser does.
 - Where footnotes are unavailable the note text MUST still live in the document, degrading to a numbered endnotes block — never to a lost note.
@@ -1411,7 +1411,7 @@ Where unsupported: leaders render, page numbers are omitted
 `bibliography`
 
 - Hanging indent, always. The surname is what is being scanned, so it must be the leftmost thing on the entry.
-- The heading is its own element, not an instance of headings-h2, even though it shares h2's scale and weight: the distinct id is what lets it span both columns in the two-column template while an ordinary section heading — headings-h2 through headings-h6 — cannot.
+- The heading is its own element, not an instance of heading-h2, even though it shares h2's scale and weight: the distinct id is what lets it span both columns in the two-column template while an ordinary section heading — heading-h2 through heading-h6 — cannot.
 
 ##### Heading
 
@@ -1687,7 +1687,7 @@ Where unsupported: a numbered note after the signature, under a rule — which o
 
 #### Pagination utilities
 
-`utilities`
+`utility`
 
 - The small set of overrides reached for while proofing a real document. Every one of them is a manual decision about a specific page, not a style.
 

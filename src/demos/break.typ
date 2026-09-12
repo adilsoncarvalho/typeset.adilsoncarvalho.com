@@ -1,18 +1,18 @@
 …and so the first argument closes, having established rather less than it set
 out to.
 
-#breaks-asterisks()
+#break-asterisks()
 
 The second begins somewhere else entirely.
 
-#breaks-asterism()
+#break-asterism()
 
 An asterism marks a heavier division — a change of part, not of scene.
 
-#breaks-fleuron()
+#break-fleuron()
 
 A fleuron, where the document can afford ornament.
 
-#breaks-rule()
+#break-rule()
 
 And a plain rule, where it cannot.

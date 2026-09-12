@@ -28,17 +28,70 @@ const pairs = Object.entries(map.classes)
 const sectionPairs = Object.entries(map.sections)
   .sort(([a], [b]) => b.length - a.length);
 
-/* The singular map's element rows and section rows are merged into one
-   longest-first list, rather than run as two separate passes like the pairs
-   above: an element id here is always its own section id plus a suffix
-   (quotes-epigraph contains quotes), so the element row must run first or
-   the section row consumes its prefix and leaves quote-epigraph half done.
-   A single sorted list guarantees that ordering without relying on two
-   passes staying in the right sequence relative to each other. */
-const singularPairs = [
-  ...Object.entries(singularMap.elements),
-  ...Object.entries(singularMap.sections),
-].sort(([a], [b]) => b.length - a.length);
+/* Element rows are always their own section id plus a suffix
+   (quotes-epigraph contains quotes), so they are rewritten before any
+   section-level pass runs — a section pass that ran first and somehow
+   touched the prefix would leave quote-epigraph half done. In practice the
+   section pass's own structural guards (below) already keep it off a
+   hyphenated compound, but the ordering costs nothing and removes any
+   dependence on that guard alone. */
+const elementPairs = Object.entries(singularMap.elements)
+  .sort(([a], [b]) => b.length - a.length);
+const sectionPairsSingular = Object.entries(singularMap.sections)
+  .sort(([a], [b]) => b.length - a.length);
+
+/* A bare section id (`notes`, `tables`, `figures`, ...) is also an ordinary
+   English word, and unlike a compound element id (`quotes-epigraph`) it
+   collides constantly with ordinary prose: "a hyphen breaks a word", "Two
+   paragraphs set by...", "the stylesheet a reader links". A blind
+   \b<word>\b replace over a file that mixes identifiers with hand-written
+   comments and JSON prose cannot tell the two apart, and Task 2 of the
+   singular-names plan found this out by hand — 32 corrupted `"notes": [...]`
+   schema keys, 13 corrupted `"numerals": "..."` property keys, and dozens of
+   sentences with broken subject-verb agreement, none of them caught by any
+   gate because nothing reads prose.
+
+   So a bare section id is rewritten only where it appears in one of the
+   handful of STRUCTURED positions it actually occupies as an identifier,
+   never as a free \b-bounded match over the whole file:
+
+     - the sole content of a quoted string ("notes", 'notes') — a JSON
+       "id"/"spec"/"css" value or a bare entry in a JS array literal, never a
+       multi-word value ("Section breaks", "all headings"), because those
+       have more content than just the id between the quotes;
+     - the sole content of a backtick span (`notes`) — an inline-code id
+       citation in a doc comment;
+     - the token right after a "@s " marker (a CSS "bang" comment opening
+       "@s notes :: ...", or a Typst "// @s notes" line comment) —
+       deliberately only that token, so the CSS
+       marker's trailing ":: Label" text is untouched even when the label
+       itself is the plural display name ("Pagination utilities") that is
+       meant to stay plural;
+     - a bare `ts-<id>` token (a CSS class selector or counter name that is
+       exactly the section, not a longer compound already handled by the
+       element pass) — reusing the same --custom-property and
+       no-trailing-hyphen guards the class pass uses, so `--ts-notes` and
+       `ts-notes-marker` are both left alone;
+     - a demo-file-shaped token, `<id>` immediately before `.html`, `.typ` or
+       `.fullrow` — `notes.fullrow.html`, `src/demos/notes.typ`.
+
+   Everything else — a bare word standing in a sentence, a multi-word quoted
+   value, a markdown heading — is prose, and this pass does not touch it. A
+   file that needs a heading like "Footnotes and endnotes" singularised has
+   to have that judged by hand; the ambiguity is the same one that caused
+   the damage above, and no regex resolves it safely. */
+function rewriteBareSectionIds(text, sortedPairs) {
+  let out = text;
+  for (const [from, to] of sortedPairs) {
+    out = out
+      .replace(new RegExp(`(["'])${from}\\1`, 'g'), `$1${to}$1`)
+      .replace(new RegExp('(`)' + from + '\\1', 'g'), `$1${to}$1`)
+      .replace(new RegExp(`(@s\\s+)${from}\\b`, 'g'), `$1${to}`)
+      .replace(new RegExp(`(?<!--)\\bts-${from}\\b(?!-)`, 'g'), `ts-${to}`)
+      .replace(new RegExp(`\\b${from}(?=\\.(?:html|typ|fullrow)\\b)`, 'g'), to);
+  }
+  return out;
+}
 
 export function rewrite(text) {
   let out = text;
@@ -53,11 +106,16 @@ export function rewrite(text) {
        those still need rewriting. */
     out = out.replace(new RegExp(`(?<!--)\\b${from}\\b(?!-)`, 'g'), to);
   }
-  /* A section id is rewritten under the same rules as a class name: longest
-     first, so a shorter id cannot consume a longer one's prefix, and the same
-     two guards, so it is left alone inside a custom property or a longer
-     hyphenated token. */
-  for (const [from, to] of sectionPairs) {
+  /* A frozen 1.x section id is a bare word under the same rules as the
+     singular section pass below — structured positions only, never a free
+     \b-bounded match over prose. tools/rename-map.json's one section row
+     (figures-numeric) happens to be a compound already, but the rule is the
+     same rule either way, not a special case for this map. */
+  out = rewriteBareSectionIds(out, sectionPairs);
+  /* Element rows are blind \b-bounded matches, same as the 1.x classes pass
+     above: every one is a compound id (section id plus a leaf), which does
+     not collide with ordinary prose the way a bare section word does. */
+  for (const [from, to] of elementPairs) {
     out = out.replace(new RegExp(`(?<!--)\\b${from}\\b(?!-)`, 'g'), to);
   }
   /* Chained after the 1.x map above, not merged into it: tools/rename-map.json
@@ -66,9 +124,7 @@ export function rewrite(text) {
      names into current 2.0.0 plural ones. A document already on 2.0.0 plural
      names passes through the two passes above unchanged and is singularised
      here directly — so one run carries either document the rest of the way. */
-  for (const [from, to] of singularPairs) {
-    out = out.replace(new RegExp(`(?<!--)\\b${from}\\b(?!-)`, 'g'), to);
-  }
+  out = rewriteBareSectionIds(out, sectionPairsSingular);
   return out;
 }
 
