@@ -526,6 +526,11 @@
 /* @style list-unordered-nested */
 .typeset ul ul > li::before { content: "–"; font-weight: 400; }
 
+/* The marker is drawn here rather than by the browser, so the colour, weight
+   and column are under control. One consequence is worth knowing before it
+   surprises anyone: `start` and `value` set the browser's own `list-item`
+   counter, which nothing below reads, so a list that must begin at eight
+   resets this counter instead — `<ol style="counter-reset: ts-ol 7">`. */
 /* @style list-ordered */
 .typeset ol {
   list-style: none;

@@ -6,10 +6,17 @@
   - The nested marker is an en dash.
   - Two levels is the limit worth designing for.
 
-#enum(start: 8,
+#enum(
+  [First item.],
+  [Second item.],
+  [Third item.],
+  [Fourth item.],
+  [Fifth item.],
+  [Sixth item.],
+  [Seventh item.],
   [Eighth item.],
   [Ninth item.],
-  [Tenth item — the marker still sits in the same column as the single digits above it.],
+  [Tenth item — the second digit arrives here, and the marker still sits in the column the single digits held.],
   [Eleventh item.],
 )
 
