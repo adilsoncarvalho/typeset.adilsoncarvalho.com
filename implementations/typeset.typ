@@ -112,6 +112,27 @@
   "us-letter": (215.9mm, 279.4mm),
 )
 
+// The measure — one column's ideal line length. Three named widths, matching
+// typeset.css's own three measure classes: standard is the default, narrow
+// and wide are the modifiers a document opts into. All three are em, the
+// axis spec.json states them in and typeset.css already uses; an em measure
+// follows a scale change, where an mm one would not.
+#let measure-standard = 33em
+#let measure-narrow = 27em
+#let measure-wide = 40em
+
+// The fourth width, and the only one with no spec.json literal behind it:
+// the full text block, derived from the default paper and margin above
+// rather than typed. A4 at the standard margin leaves 170mm between the
+// margins.
+#let measure-full = paper-sizes-mm.at("a4").at(0) - 2 * margin-standard.left
+
+// A document reaches for one of the four names instead of a literal width:
+// `#measured[...]` for the default column, `#measured(width:
+// measure-wide)[...]` for a modifier, `#measured(width: measure-full)[...]`
+// for the full text block.
+#let measured(width: measure-standard, body) = block(width: width, body)
+
 // ── Document ────────────────────────────────────────────────────────────────
 
 #let typeset(
@@ -128,12 +149,13 @@
   numbered: false,
   running-head: true,
   folio: true,
-  // The measure, not the text width. A4 at the standard margin leaves 170mm
-  // between its margins; the spec sets the column at 126mm and keeps the
-  // remainder as slack, which is where marginalia live. It is a maximum, so a
-  // page with less than 126mm between its margins keeps its margins. Pass
-  // `none` where the column IS the measure, as in two columns.
-  measure: 126mm,
+  // The measure, not the text width. A4 at the standard margin leaves
+  // measure-full (170mm) between its margins; measure-standard is smaller
+  // and keeps the remainder as slack, which is where marginalia live. It is
+  // a maximum, so a page with less than measure-standard between its
+  // margins keeps its margins. Pass `none` where the column IS the measure,
+  // as in two columns.
+  measure: measure-standard,
   doc,
 ) = {
   let sm = scale.sm

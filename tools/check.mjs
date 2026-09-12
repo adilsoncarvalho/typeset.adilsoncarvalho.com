@@ -86,10 +86,13 @@ if (!typ.includes('top-edge: 1em') || !typ.includes('bottom-edge: 0pt')) {
 }
 
 /* The measure is the rule everything else is downstream of, so both
-   implementations must actually constrain it — not just declare the page. */
-const measureMm = spec.foundation.rhythm.measure_mm;
-if (!typ.includes(`${measureMm}mm`)) {
-  fail.push(`typeset.typ: the measure (${measureMm}mm) is never applied — the flow would fill the full text width`);
+   implementations must actually constrain it — not just declare the page.
+   Gate 9 checks that measure-standard's own value tracks spec.json; this
+   checks that typeset()'s default parameter actually applies that binding,
+   rather than a hand-copied literal a future edit could drift from it. */
+if (!typ.includes('measure: measure-standard,')) {
+  fail.push("typeset.typ: typeset()'s default measure is not measure-standard — "
+    + 'the flow would fill the full text width, or use an untracked literal');
 }
 if (!css.includes('max-width: var(--ts-measure)')) {
   fail.push('typeset.css: the measure is never applied to the text column');
@@ -1303,6 +1306,9 @@ const INTERNAL_SYMBOLS = new Set([
   'margin-narrow', 'margin-standard', 'margin-wide',
   'margin-duplex-narrow', 'margin-duplex-standard', 'margin-duplex-wide',
   'paper-sizes-mm',
+  /* the measure: three named widths, the derived full-text-block width, and
+     the function that applies one */
+  'measure-standard', 'measure-narrow', 'measure-wide', 'measure-full', 'measured',
   /* helpers the styles are built from */
   'leading-for', 'smcp', 'oldstyle', 'lining', 'tabular', '_break-mark',
   /* document and template entry points */
@@ -2021,6 +2027,64 @@ for (const name of marginNames) {
         + 'the bottom of .tabs');
     }
   }
+}
+
+/* ---- 9. The exported measures must equal what spec.json derives --------- */
+
+/* foundation.rhythm states the measure and its two variants directly, in em
+   — measure-standard, measure-narrow and measure-wide restate those same
+   three literals, so a plain string match against spec.json's own text
+   holds them to it. measure-full has no literal counterpart: it is the
+   default paper width less twice the default margin, so it is checked by
+   compiling a probe against the real typeset.typ and reading back the
+   value it actually resolves to, rather than trusting that this file's
+   arithmetic still matches spec.json's. (typst is already required by gate
+   3h above, which exits before this point if it is missing.) */
+
+const measureLiterals = [
+  ['measure-standard', spec.foundation.rhythm.measure],
+  ['measure-narrow', spec.foundation.rhythm.measure_variants.narrow],
+  ['measure-wide', spec.foundation.rhythm.measure_variants.wide],
+];
+for (const [name, expected] of measureLiterals) {
+  const m = new RegExp(`#let ${name}\\s*=\\s*([^\\n]+)`).exec(typ);
+  if (!m) {
+    fail.push(`typeset.typ: #let ${name} was not found`);
+  } else if (m[1].trim() !== expected) {
+    fail.push(`typeset.typ: ${name} is ${m[1].trim()}, but foundation.rhythm's own value is ${expected}`);
+  }
+}
+
+/* sizesMm and symmetricMm are spec.json's own numbers, already declared for
+   the margin/paper gate above — reused here rather than read a second time. */
+const measureFullExpectedMm = sizesMm[spec.foundation.page.size][0]
+  - 2 * symmetricMm[spec.foundation.page.margins.default];
+
+const measureProbeDir = mkdtempSync(join(tmpdir(), 'typeset-measure-check-'));
+try {
+  copyFileSync('implementations/typeset.typ', join(measureProbeDir, 'typeset.typ'));
+  const probePath = join(measureProbeDir, 'measure-full.typ');
+  writeFileSync(probePath, '#import "typeset.typ": measure-full\n\n'
+    + '#context [#metadata(measure-full.to-absolute() / 1mm) <measure-full>]\n');
+  try {
+    const out = execFileSync(
+      'typst',
+      ['query', probePath, '<measure-full>', '--field', 'value', '--one', '--font-path', resolve('fonts')],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+    const actualMm = Number(JSON.parse(out.toString()));
+    if (!mmClose(actualMm, measureFullExpectedMm)) {
+      fail.push(`typeset.typ: measure-full resolves to ${actualMm}mm, but the default paper `
+        + `(${spec.foundation.page.size}, ${sizesMm[spec.foundation.page.size][0]}mm wide) less twice the `
+        + `default margin (${spec.foundation.page.margins.default}, `
+        + `${symmetricMm[spec.foundation.page.margins.default]}mm) is ${measureFullExpectedMm}mm`);
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+    fail.push(`typeset.typ: measure-full could not be resolved:\n${detail}`);
+  }
+} finally {
+  rmSync(measureProbeDir, { recursive: true, force: true });
 }
 
 /* ---- Report ------------------------------------------------------------- */
