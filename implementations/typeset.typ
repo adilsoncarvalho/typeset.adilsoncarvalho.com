@@ -40,16 +40,19 @@
 #let scale-single-column = (
   xs: 8pt, sm: 9.5pt, base: 11pt,
   h4: 12pt, h3: 14pt, h2: 18pt, h1: 24pt,
-  leading: 1.45, space: 11pt,
+  leading: 1.45, space: 11pt, indent: 1.5em,
 )
 
 // Two columns: every step comes down. On A4 at the standard margin an 82mm
 // column carries 42 characters at 11pt — below the 45-character floor — so the
-// base drops to 9.5pt, which gives 49.
+// base drops to 9.5pt, which gives 49. The paragraph indent comes down with
+// them: a column has a quarter of the lines a page does to establish where a
+// paragraph starts, and 1.5em of a 49-character measure is a wider step than
+// the same 1.5em of a 66-character one.
 #let scale-two-column = (
   xs: 7pt, sm: 8.5pt, base: 9.5pt,
   h4: 9.5pt, h3: 11pt, h2: 13pt, h1: 20pt,
-  leading: 1.4, space: 9.5pt,
+  leading: 1.4, space: 9.5pt, indent: 1.25em,
 )
 
 // The scale the document is set in, published by _typeset-styles below and
@@ -81,14 +84,17 @@
 // `indented` option and the two standalone functions below (block-spaced,
 // block-indented) both read this, so the whole-document switch and the
 // per-block override can never drift apart into two different indents.
+// spec.json's templates.two-column.element_overrides.paragraph is what makes
+// the indent a scale field rather than a literal: a template states its own,
+// and there has to be somewhere for it to live.
 //
 // Every number here belongs to the scale in force, never to the module: a
-// document on the two-column scale gets ITS 1.4 leading and ITS 9.5pt gap,
-// and the standalone functions read the same scale out of ts-scale. The
-// defaults are the single-column scale's own, for a caller with no scale in
-// hand at all.
-#let _paragraphs-rule(indented, leading: 1.45, space: sp) = if indented {
-  (spacing: leading-for(leading), first-line-indent: (amount: 1.5em, all: false))
+// document on the two-column scale gets ITS 1.4 leading, ITS 9.5pt gap and
+// ITS 1.25em indent, and the standalone functions read the same scale out of
+// ts-scale. The defaults are the single-column scale's own, for a caller with
+// no scale in hand at all.
+#let _paragraphs-rule(indented, leading: 1.45, space: sp, indent: 1.5em) = if indented {
+  (spacing: leading-for(leading), first-line-indent: (amount: indent, all: false))
 } else {
   (spacing: space, first-line-indent: 0pt)
 }
@@ -260,7 +266,7 @@
 
   set par(
     leading: leading-for(scale.leading),
-    .._paragraphs-rule(indented, leading: scale.leading, space: scale.space),
+    .._paragraphs-rule(indented, leading: scale.leading, space: scale.space, indent: scale.indent),
     justify: justified,
 // @e
     linebreaks: "optimized",
@@ -501,13 +507,13 @@
 // @s paragraphs
 #let block-spaced(body) = context {
   let scale = ts-scale.get()
-  set par(.._paragraphs-rule(false, leading: scale.leading, space: scale.space))
+  set par(.._paragraphs-rule(false, leading: scale.leading, space: scale.space, indent: scale.indent))
   body
 }
 
 #let block-indented(body) = context {
   let scale = ts-scale.get()
-  set par(.._paragraphs-rule(true, leading: scale.leading, space: scale.space))
+  set par(.._paragraphs-rule(true, leading: scale.leading, space: scale.space, indent: scale.indent))
   body
 }
 // @e

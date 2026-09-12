@@ -2218,13 +2218,23 @@ const specEl = (id) => paragraphsSpec.elements.find((e) => e.id === id).properti
 const spacedProps = specEl('paragraphs-spaced');
 const indentedProps = specEl('paragraphs-indented');
 
-const rule = /#let _paragraphs-rule\(indented, leading: ([\d.]+), space: (\w+)\) = if indented \{([^}]*)\} else \{([^}]*)\}/
+/* A scale dictionary's own value for one field, so the two scales can be held
+   to spec.json's base element and to the two-column template's override of it
+   respectively. */
+const scaleDictField = (name, field) => {
+  const dict = new RegExp(`#let ${name} = \\(([\\s\\S]*?)\\n\\)`).exec(typ);
+  if (!dict) return null;
+  const m = new RegExp(`\\b${field}:\\s*([\\d.]+(?:pt|em))`).exec(dict[1]);
+  return m ? m[1] : null;
+};
+
+const rule = /#let _paragraphs-rule\(indented, leading: ([\d.]+), space: (\w+), indent: ([\d.]+em)\) = if indented \{([^}]*)\} else \{([^}]*)\}/
   .exec(typ);
 if (!rule) {
   fail.push('typeset.typ: _paragraphs-rule was not found in the shape this gate expects — '
     + 'update the gate if the function was deliberately restructured');
 } else {
-  const [, , spaceDefault, indentedBranch, spacedBranch] = rule;
+  const [, , spaceDefault, indentDefault, indentedBranch, spacedBranch] = rule;
 
   const spacedIndent = /first-line-indent:\s*([^\n,)}]+)/.exec(spacedBranch)?.[1]?.trim();
   if (spacedIndent !== '0pt') {
@@ -2249,10 +2259,25 @@ if (!rule) {
       + `expected the module's own \`sp\` (${spacedProps.space_after}, spec.json's `
       + 'paragraphs-spaced.space_after) — the single-column unit, for a caller with no scale');
   }
-  if (!/\.\._paragraphs-rule\(indented, leading: scale\.leading, space: scale\.space\)/.test(typ)) {
-    fail.push('typeset.typ: _typeset-styles does not pass both scale.leading and scale.space to '
-      + '_paragraphs-rule — a document on any scale but the single-column one then gets the '
-      + "module's own leading or gap in place of its own");
+  if (!/\.\._paragraphs-rule\(indented, leading: scale\.leading, space: scale\.space, indent: scale\.indent\)/.test(typ)) {
+    fail.push('typeset.typ: _typeset-styles does not pass scale.leading, scale.space and '
+      + 'scale.indent to _paragraphs-rule — a document on any scale but the single-column one then '
+      + "gets the module's own leading, gap or indent in place of its own");
+  }
+
+  /* And each scale's own indent against the spec statement that owns it. */
+  const indentOwners = [
+    ['scale-single-column', indentedProps.first_line_indent, 'paragraphs-indented.first_line_indent'],
+    ['scale-two-column', spec.templates['two-column'].element_overrides.paragraph.first_line_indent,
+      'templates.two-column.element_overrides.paragraph.first_line_indent'],
+  ];
+  for (const [scaleName, expected, where] of indentOwners) {
+    const got = scaleDictField(scaleName, 'indent');
+    if (got !== expected) {
+      fail.push(`typeset.typ: ${scaleName}.indent is ${got ?? 'missing'}, but spec.json's `
+        + `${where} is "${expected}" — typeset.css already honours it `
+        + '(.typeset--two-column { --ts-para-indent })');
+    }
   }
 
   const indentedAmount = /first-line-indent:\s*\(amount:\s*([^,]+),\s*all:\s*(true|false)\)/.exec(indentedBranch);
@@ -2261,10 +2286,20 @@ if (!rule) {
       + '(amount: .., all: ..) dictionary — without `all`, Typst cannot know to withhold the '
       + 'indent after a heading, blockquote, figure or break, or from the document\'s first paragraph');
   } else {
-    if (indentedAmount[1].trim() !== indentedProps.first_line_indent) {
+    /* The indent is the scale's too, for the same reason the gap is: a
+       template states its own. spec.json declares 1.5em on
+       paragraphs-indented and 1.25em on
+       templates.two-column.element_overrides.paragraph, and while the amount
+       was a literal in this branch there was nowhere for the override to
+       live — the file's own comment presented that as the point. */
+    if (indentedAmount[1].trim() !== 'indent') {
       fail.push(`typeset.typ: block-indented's first-line-indent amount is `
-        + `${indentedAmount[1].trim()}, but spec.json's paragraphs-indented.first_line_indent is `
-        + `"${indentedProps.first_line_indent}"`);
+        + `${indentedAmount[1].trim()}, expected the \`indent\` parameter — a literal here has `
+        + "nowhere for a template's own override to live");
+    }
+    if (indentDefault !== indentedProps.first_line_indent) {
+      fail.push(`typeset.typ: _paragraphs-rule's indent parameter defaults to ${indentDefault}, but `
+        + `spec.json's paragraphs-indented.first_line_indent is "${indentedProps.first_line_indent}"`);
     }
     if (indentedAmount[2] !== 'false') {
       fail.push('typeset.typ: block-indented sets first-line-indent all: true — this applies '
@@ -2389,13 +2424,6 @@ try {
    base, because top-edge: 1em / bottom-edge: 0pt) plus that scale's own
    space — never another scale's. */
 
-const scaleField = (name, field) => {
-  const dict = new RegExp(`#let ${name} = \\(([\\s\\S]*?)\\n\\)`).exec(typ);
-  if (!dict) return null;
-  const m = new RegExp(`\\b${field}:\\s*([\\d.]+)pt`).exec(dict[1]);
-  return m ? Number(m[1]) : null;
-};
-
 const GAP_SCALES = ['scale-single-column', 'scale-two-column'];
 const gapProbeDir = mkdtempSync(join(tmpdir(), 'typeset-para-gap-check-'));
 try {
@@ -2407,9 +2435,9 @@ try {
   const specGap = parseFloat(spacedProps.space_after) + parseFloat(spacedProps.size);
 
   for (const scaleName of GAP_SCALES) {
-    const base = scaleField(scaleName, 'base');
-    const space = scaleField(scaleName, 'space');
-    if (base === null || space === null) {
+    const base = parseFloat(scaleDictField(scaleName, 'base'));
+    const space = parseFloat(scaleDictField(scaleName, 'space'));
+    if (!Number.isFinite(base) || !Number.isFinite(space)) {
       fail.push(`typeset.typ: ${scaleName} declares no base/space pair this gate can read — `
         + 'update the gate if the scale dictionaries were deliberately restructured');
       continue;
@@ -2452,6 +2480,48 @@ try {
   }
 } finally {
   rmSync(gapProbeDir, { recursive: true, force: true });
+}
+
+/* And the template's own indent, rendered through the template. The probe
+   above drives typeset() on a scale dictionary; this one drives two-column(),
+   which is where spec.json's element_overrides.paragraph applies and where
+   the divergence lived: the spec and typeset.css both said 1.25em while Typst
+   indented 1.5em, and the refactor that gave _paragraphs-rule both call sites
+   made the override structurally unreachable.
+
+   Line 0 opens the document, where `all: false` withholds the indent, so it
+   states the column's own left edge; line 1 is the first paragraph that
+   actually takes one. */
+
+const tcIndentEm = parseFloat(spec.templates['two-column'].element_overrides.paragraph.first_line_indent);
+const tcBasePt = parseFloat(spec.templates['two-column'].element_overrides.paragraph.size);
+const tcIndentProbeDir = mkdtempSync(join(tmpdir(), 'typeset-tc-indent-check-'));
+try {
+  copyFileSync('implementations/typeset.typ', join(tcIndentProbeDir, 'typeset.typ'));
+  const lines = svgTextRuns(compileSvgProbe(tcIndentProbeDir, 'tc-indent',
+    '#import "typeset.typ": *\n'
+    + '#show: two-column.with(running-head: false, folio: false)\n\n'
+    + 'Alpha one paragraph.\n\nBeta two paragraph.\n'));
+  if (lines.length < 2) {
+    fail.push(`tools/check.mjs: the two-column indent probe rendered ${lines.length} lines, `
+      + 'expected at least 2 — update the probe');
+  } else {
+    const got = lines[1].firstX - lines[0].firstX;
+    const expected = tcIndentEm * tcBasePt;
+    if (Math.abs(got - expected) > 0.05) {
+      fail.push(`typeset.typ: two-column() indents a paragraph ${got.toFixed(2)}pt from the column `
+        + `edge, but spec.json's templates.two-column.element_overrides.paragraph says `
+        + `${spec.templates['two-column'].element_overrides.paragraph.first_line_indent} at `
+        + `${spec.templates['two-column'].element_overrides.paragraph.size}, i.e. `
+        + `${expected.toFixed(2)}pt — the same value typeset.css sets as --ts-para-indent on `
+        + '.typeset--two-column');
+    }
+  }
+} catch (err) {
+  const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+  fail.push(`typeset.typ: the two-column indent probe failed to compile:\n${detail}`);
+} finally {
+  rmSync(tcIndentProbeDir, { recursive: true, force: true });
 }
 
 /* ---- 12. justified() / ragged-right() — stated alignment, compose, last
