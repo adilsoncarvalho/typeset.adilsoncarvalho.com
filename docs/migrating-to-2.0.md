@@ -6,7 +6,41 @@ separate vocabularies — a class could drift from its symbol, or either could
 drift from the spec, with nothing to catch it. `tools/check.mjs` now fails
 when they disagree.
 
-Nothing about the typography changed. This release renames things.
+Renaming is the mechanical change every document needs. The default page
+margin also changed — see below — so a migrated document does not sit on
+quite the same page it did in 1.x.
+
+## Margins
+
+1.x had one page margin, and it was always the mirrored kind: 25mm top and
+bottom, 28mm on the binding edge, 22mm on the outside. 2.0 defaults instead to
+a symmetric margin — `standard`, 20mm on all four sides — and keeps the
+mirrored scheme as an explicit opt-in, now called duplex, for a document that
+will be bound. Duplex `standard` is 23mm inner, 17mm outer: not the same
+numbers 1.x used, because the pair now derives from the symmetric value it
+sits alongside (preserving the total, 40mm, and shifting the gutter by 3mm)
+rather than being chosen on its own.
+
+Neither the class-name codemod nor the Typst rename table below touches this.
+A 1.x document that migrates cleanly on both still reflows onto a different
+page: the text width moves from 160mm to 170mm, a two-column document's
+columns move from 77mm to 82mm, and the running head and folio move with the
+margin that carries them. `narrow` and `wide` exist alongside `standard` for a
+document that wants a different page than the new default. None of the three
+named duplex sizes reproduces the 1.x 28mm/22mm split exactly — each one is
+now derived from its symmetric counterpart rather than chosen on its own — so
+a document that must keep its old 1.x page needs a custom margin override.
+
+A different pair of classes, spelled confusingly close to the margin names
+above, did rename: `.typeset--narrow` and `.typeset--wide` were 1.x's names
+for the measure variants — a narrower or wider text column, an axis with
+nothing to do with the page margin. They are `.typeset--measure-narrow` and
+`.typeset--measure-wide` in 2.0, precisely so `narrow`/`wide` cannot mean two
+different things once a margin can be named that too. Unlike the margin
+classes, this one is a straight rename and the codemod below rewrites both;
+an unmigrated document that still carries the 1.x class keeps a name 2.0
+does not style, and silently falls back to the 33em default measure — no
+error, no visual cue, just the wrong line length.
 
 ## Migrating an HTML or CSS document
 
@@ -103,12 +137,23 @@ It does not touch Typst source. Rename these symbols by hand:
 
 `break-scene` took a `kind:` argument selecting one of four looks; 2.0 gives
 each look its own zero-argument function. `dropcap`, `toc`, `ts-table`,
-`two-column`, `span`, `letter-page` and `epigraph-right` keep their 1.x
-names.
+`two-column`, `span` and `epigraph-right` keep their 1.x names, with no
+change to how they're called.
+
+`letter-page` also keeps its 1.x name, but not its 1.x usage — the name
+surviving is what makes this easy to miss. A letter now opens with
+`#show: letter-page` alone: the function calls `typeset.with()` itself, where
+1.x needed a separate `#show: typeset` line beneath it. That 1.x form now
+hard-errors — `page configuration is not allowed inside of containers`,
+pointing into the library rather than at the line to delete. Delete the
+`#show: typeset` line beneath `#show: letter-page` and the document compiles
+again.
 
 ## The full class table
 
-109 classes change name between 1.x and 2.0. 15 more — `ts-dropcap`,
+111 classes change name between 1.x and 2.0 — 109 named-style classes, plus
+the two measure variants from Margins above, `.typeset--narrow` and
+`.typeset--wide`. 15 more named-style classes — `ts-dropcap`,
 `ts-code-inline`, `ts-toc`, the numerals classes and others — are spelled
 identically in both and are not listed below. `.ts-print-only` and
 `.ts-screen-only` are unchanged in 2.0 as well.
@@ -224,3 +269,5 @@ identically in both and are not listed below. `.ts-print-only` and
 | `.ts-util-no-hyphens` | `.ts-utilities-no-hyphens` |
 | `.ts-util-tie` | `.ts-utilities-tie` |
 | `.ts-verse` | `.ts-quotes-verse` |
+| `.typeset--narrow` | `.typeset--measure-narrow` |
+| `.typeset--wide` | `.typeset--measure-wide` |

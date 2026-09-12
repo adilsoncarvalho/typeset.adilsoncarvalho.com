@@ -42,7 +42,7 @@ Five problems with the site as it stands, in the order they get fixed:
 |---|---|
 | Class naming scheme | Derived mechanically from the `spec.json` element id: `.ts-<element-id>`, with element ids normalised to `<section>-<style>`. The Typst symbol uses the same name. |
 | Migration for old class names | Hard cutover. Major version bump, full old→new table in the release notes, plus a codemod script that rewrites a document. |
-| Document-level modifiers | Out of scope. All 9 of them — `.typeset--justified`, `--indented`, `--numbered`, `--sidenotes`, `--two-column`, `--ragged`, `--narrow`, `--wide`, `--column-rule` — stay as they are. They are document options, not element styles. |
+| Document-level modifiers | Out of scope. All 9 of them — `.typeset--justified`, `--indented`, `--numbered`, `--sidenotes`, `--two-column`, `--ragged`, `--narrow`, `--wide`, `--column-rule` — stay as they are. They are document options, not element styles. (Superseded for two of the nine: Group 4 renamed `--narrow`/`--wide` to `--measure-narrow`/`--measure-wide`, once `--narrow`/`--wide` were also needed for the new margin classes and one word could not name both axes — see `docs/migrating-to-2.0.md`'s Margins section.) |
 | Page layout naming | Two named layouts, `symmetric` and `mirrored`. `symmetric` is the default. |
 | Templates | Split by path inside this repository rather than extracted to a second one. The template builds consume the built bundle rather than raw source, which makes a later extraction a rename. |
 | Typst example snippets | Compile-verified in CI. `typst` joins the deploy workflow. |
@@ -294,3 +294,61 @@ template.
 One branch at a time. Each group opens a draft PR, goes green in CI, is marked
 ready, and is reviewed and merged to `master` before the next branch is cut.
 No parallel branches.
+
+## Carried forward
+
+Found while implementing a group, deliberately not fixed there. Each names the
+group that owns it, so nothing here is homeless. The per-group ledgers under
+`.superpowers/` are scratch and get deleted when a group closes — this list is
+committed because these items must outlive them.
+
+**Owned by the API group** (rides with the singular rename, before Group 5):
+
+- **A bibliography heading has no element.** `templates.two-column.spanning.always`
+  named one, but the `bibliography` section holds exactly `bibliography-entry`,
+  and the entry contradicted `spanning.never`'s "heading 2 and below". Group 4
+  dropped it from the list rather than invent an element inside a page-layouts
+  task. The `#references` block this group is building is the natural owner of a
+  heading, and both implementations should span it once it exists. Until then an
+  author marks it with `.ts-span` / `#span()`, which still works.
+
+**Owned by Group 3** (handholding — an example for every style):
+
+- **Nine spec elements have no Typst implementation.** They pass the CSS side of
+  the conformance check and have nothing to compile on the other. The coverage
+  gate Group 3 builds is what will surface them as a list rather than a
+  recollection.
+
+**Unowned — decide before 2.0.0 ships:**
+
+- **`dropcap()` reads `body.text`**, which holds only when the body is a bare
+  string. Any markup and the cap is taken from the wrong character, silently.
+- **`typeset()` ends in `block(width: measure, doc)`**, and a container is a
+  place where `set page()` cannot take effect. That is what broke the letter
+  page: `#show: letter-page` then `#show: typeset` put the page rules inside the
+  block. The fix is a design question about how `typeset` should assert a
+  measure, not a patch.
+- **`notes-sidenote` is fixed at 13em**, so a sidenote does not follow a clamped
+  measure on A5. Group 4 found it and left it, because sizing a sidenote against
+  the margin it lives in is its own piece of work.
+- **`tools/check.mjs`'s CSS conformance checks assert source text; its Typst
+  checks measure a render.** Three rounds of adversarial review against the
+  two-column spanning gate (Group 4) each found a construction that passed a
+  CSS-side assertion while breaking the feature it was meant to guarantee — a
+  missing combinator, a retargeted ancestor, an unchecked container — and each
+  fix closed that one hole. The Typst side held against the same style of
+  attack, including attempts the reviewers did not name in advance, because it
+  renders the document with `typst compile` and reads the actual output rather
+  than the source that is meant to produce it. This is structural, not an
+  oversight in any one gate: this toolchain has no headless browser, so a CSS
+  assertion can only ever read source text next to the behaviour, and a source
+  read can be walked around by any construction its author did not anticipate.
+  Closing it for CSS the way the Typst side is closed would mean adding a
+  headless-browser dependency to the check (for example Playwright or
+  Puppeteer, driving Paged.js the way the site itself does) and asserting
+  computed layout instead of declared rules. That is a real dependency and
+  maintenance decision, not a task-sized patch, so it is recorded here rather
+  than decided inside a page-layouts task. Whoever owns `tools/check.mjs`
+  should decide whether that dependency is worth paying for before 2.0.0 ships;
+  until it is, expect the CSS arm of any future conformance gate to have the
+  same shape of blind spot the spanning gate did.

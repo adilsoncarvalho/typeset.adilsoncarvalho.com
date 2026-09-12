@@ -12,11 +12,13 @@
 // document reaches for, and the failure reads as "unknown variable" rather than
 // as a missing import.
 //
-// typeset() takes the document's options — justified, indented, numbered,
-// measure and the rest, declared below. A document that sets any of them writes
-// `#show: typeset.with(...)` in place of the bare `#show: typeset` above, never
-// underneath it: typeset() sets the page, and set page() is refused inside a
-// container, which is what a second call would make of the first.
+// typeset() takes the document's options — paper, margin, justified, indented,
+// numbered, measure and the rest, declared below. A document that sets any of
+// them writes `#show: typeset.with(...)` in place of the bare `#show: typeset`
+// above, never underneath it: typeset() sets the page, and set page() is
+// refused inside a container, which is what a second call would make of the
+// first. So a document on another paper, at another margin, opens with
+// `#show: typeset.with(paper: "a5", margin: margin-narrow)` and nothing else.
 
 // ── Foundation ──────────────────────────────────────────────────────────────
 
@@ -41,8 +43,9 @@
   leading: 1.45, space: 11pt,
 )
 
-// Two columns: every step comes down. A 77mm column carries 40 characters at
-// 11pt — below the 45-character floor — so the base drops to 9.5pt for 47.
+// Two columns: every step comes down. On A4 at the standard margin an 82mm
+// column carries 43 characters at 11pt — below the 45-character floor — so the
+// base drops to 9.5pt, which gives 50.
 #let scale-two-column = (
   xs: 7pt, sm: 8.5pt, base: 9.5pt,
   h4: 9.5pt, h3: 11pt, h2: 13pt, h1: 20pt,
@@ -70,9 +73,52 @@
 // @e
 #let smcp = (features: ("smcp", "c2sc"))
 
+// ── Page ────────────────────────────────────────────────────────────────────
+
+// Paper and margin are independent choices. A margin is millimetres, and the
+// same millimetres on every paper, so
+//   #show: typeset.with(paper: "a5", margin: margin-narrow)
+// asks for both without either one knowing about the other.
+//
+// Symmetric is what a document gets unless it asks otherwise: the named size
+// on all four sides. Duplex is the opt-in for a sheet that will be bound — top
+// and bottom keep the symmetric value, and the sides split into an inner
+// (binding) edge and an outer one, which Typst mirrors by page parity. Each
+// duplex pair sums to twice its symmetric value, so a document keeps the same
+// text width, and the same line breaks, whichever of the two it chooses.
+//
+// The prefix names the family, matching typeset.css's `typeset--margin-narrow`.
+// `narrow` and `wide` also name measure variants, which are a different axis:
+// one word must not reach both.
+#let margin-narrow = (top: 10mm, bottom: 10mm, left: 10mm, right: 10mm)
+#let margin-standard = (top: 20mm, bottom: 20mm, left: 20mm, right: 20mm)
+#let margin-wide = (top: 30mm, bottom: 30mm, left: 30mm, right: 30mm)
+
+#let margin-duplex-narrow = (top: 10mm, bottom: 10mm, inside: 13mm, outside: 7mm)
+#let margin-duplex-standard = (top: 20mm, bottom: 20mm, inside: 23mm, outside: 17mm)
+#let margin-duplex-wide = (top: 30mm, bottom: 30mm, inside: 33mm, outside: 27mm)
+
+// The numbers stay reachable behind the names: `margin` takes any length or
+// any Typst margin dictionary, so `margin: 18mm` is there for a printer who
+// needs a measurement rather than a name.
+
+// Every paper this spec is set for, width before height, under the name Typst
+// knows it by — "us-letter" is the spec's Letter. The two-column derivation is
+// arithmetic on this table, so a paper reaches that arithmetic by being added
+// here.
+#let paper-sizes-mm = (
+  "a4": (210mm, 297mm),
+  "a5": (148mm, 210mm),
+  "us-letter": (215.9mm, 279.4mm),
+)
+
 // ── Document ────────────────────────────────────────────────────────────────
 
 #let typeset(
+  // The paper by its Typst name, and the margin by one of the six names above
+  // — or by any length, for a page box the spec does not name.
+  paper: "a4",
+  margin: margin-standard,
   scale: scale-single-column,
   // Ragged right is the default. Justification buys a clean right edge at the
   // cost of uneven word spacing; choose it for continuous prose at a full
@@ -82,10 +128,11 @@
   numbered: false,
   running-head: true,
   folio: true,
-  // The measure, not the text width. The page leaves 160mm between its
-  // margins; the spec sets the column at 126mm and keeps the remainder as
-  // slack, which is where marginalia live. Pass `none` where the column IS
-  // the measure, as in two columns.
+  // The measure, not the text width. A4 at the standard margin leaves 170mm
+  // between its margins; the spec sets the column at 126mm and keeps the
+  // remainder as slack, which is where marginalia live. It is a maximum, so a
+  // page with less than 126mm between its margins keeps its margins. Pass
+  // `none` where the column IS the measure, as in two columns.
   measure: 126mm,
   doc,
 ) = {
@@ -94,8 +141,8 @@
   let sp = scale.space
 // @s page
   set page(
-    paper: "a4",
-    margin: (top: 25mm, bottom: 25mm, inside: 28mm, outside: 22mm),
+    paper: paper,
+    margin: margin,
     header: context {
       // The running head follows the current level-2 heading, and is
       // suppressed on the opening page.
@@ -267,8 +314,15 @@
 // @e
 
   // Running heads and folios still span the full text width; only the flow is
-  // constrained. The block is breakable, so pagination is unaffected.
-  if measure == none { doc } else { block(width: measure, doc) }
+  // constrained. The block is breakable, so pagination is unaffected. The width
+  // is taken against the page actually in force rather than against A4, and the
+  // measure is resolved to absolute units first, because it is as often given
+  // in ems as in millimetres.
+  if measure == none { doc } else {
+    layout(size => context {
+      block(width: calc.min(measure.to-absolute(), size.width), doc)
+    })
+  }
 }
 
 // ── Blocks the spec names but no engine provides ────────────────────────────
@@ -398,7 +452,28 @@
 // Typst's own `page(columns: 2)` fixes the gutter at 4% of the page width
 // (8.4mm on A4). The spec says 6mm, so the body goes through `columns()`
 // instead, which takes an explicit gutter and still breaks across pages.
+
+// Whether the content being laid out right now is the two-column body (inside
+// `columns()`), as opposed to `front` or a single-column template — read by
+// frontmatter-title-block, frontmatter-abstract and frontmatter-colophon to
+// decide whether they need to promote themselves.
+#let ts-two-column-body = state("ts-two-column-body", false)
+
+// Promotes body content to a parent-scoped float spanning both columns. A
+// spanning element costs a break in both, so it is opt-in per instance for
+// spanning.optional content (figure, table, code block, pull quote) and must
+// sit at the top or the bottom of the page — never mid-column, which makes
+// the reader find their place twice.
+#let span(body, at-bottom: false) = place(
+  if at-bottom { bottom } else { top },
+  scope: "parent",
+  float: true,
+  block(width: 100%, body),
+)
+
 #let two-column(
+  paper: "a4",
+  margin: margin-standard,
   front: none,
   column-rule: false,
   justified: true,
@@ -407,10 +482,100 @@
   folio: true,
   doc,
 ) = {
-  // Justification is not optional at a 47-character measure.
-  assert(justified, message: "two-column requires justification: at 47 characters a ragged edge serrates the column")
+  // The gutter is the one number this template chooses. The column, the
+  // character count and the decision to set at all are functions of the paper
+  // and the margin, recomputed here rather than carried as a list of papers
+  // that work.
+  let gutter = 6mm
+  let floor = 45
+  let base = scale-two-column.base
+
+  // The foundation measure is 66 characters in 126mm at 11pt. Characters in a
+  // column follow from it, by the column's width and by the base in use.
+  let chars-in = width => int(calc.round(66 / 126 * (width / 1mm) * (11pt / base)))
+  let mm-of = value => {
+    let n = calc.round(value / 1mm, digits: 2)
+    if n == calc.round(n) { str(int(n)) } else { str(n) }
+  }
+
+  let size = paper-sizes-mm.at(lower(paper), default: none)
+  if size == none {
+    panic("two columns are derived from the paper's width, and \"" + paper
+      + "\" is not a paper this spec is set for: "
+      + paper-sizes-mm.keys().join(", "))
+  }
+
+  // The margin arrives as one of the six names, as a length, or as any Typst
+  // margin dictionary. The column needs the two horizontal sides; the optional
+  // rule needs all four.
+  let sides = if type(margin) == dictionary {
+    let rest = margin.at("rest", default: none)
+    let x = margin.at("x", default: rest)
+    let y = margin.at("y", default: rest)
+    (
+      top: margin.at("top", default: y),
+      bottom: margin.at("bottom", default: y),
+      inner: margin.at("inside", default: margin.at("left", default: x)),
+      outer: margin.at("outside", default: margin.at("right", default: x)),
+    )
+  } else {
+    (top: margin, bottom: margin, inner: margin, outer: margin)
+  }
+  for (side, value) in sides {
+    if type(value) != length {
+      panic("two columns are derived from the margin in millimetres, and `margin` gives "
+        + side + " as " + repr(value))
+    }
+  }
+
+  let text-width = size.at(0) - sides.inner - sides.outer
+  let column = (text-width - gutter) / 2
+  let chars = chars-in(column)
+
+  // Refused, not set badly. A column below the floor is a measure this spec
+  // does not allow, and the numbers that produced it belong in the message:
+  // the paper, the margin, the column, the count, the floor.
+  if chars < floor {
+    let named = (
+      ("narrow", margin-narrow),
+      ("standard", margin-standard),
+      ("wide", margin-wide),
+      ("duplex-narrow", margin-duplex-narrow),
+      ("duplex-standard", margin-duplex-standard),
+      ("duplex-wide", margin-duplex-wide),
+    )
+    let this-margin = "a " + mm-of(sides.inner) + "mm and " + mm-of(sides.outer) + "mm margin"
+    for (name, value) in named {
+      if margin == value { this-margin = "the " + name + " margin" }
+    }
+    // Which margins do reach the floor on this paper. A duplex pair has its
+    // symmetric pair's total, so it reaches exactly where that one does.
+    let reaching = ()
+    for (name, value) in (("narrow", margin-narrow), ("standard", margin-standard), ("wide", margin-wide)) {
+      if chars-in((size.at(0) - value.left - value.right - gutter) / 2) >= floor {
+        reaching.push(name)
+      }
+    }
+    let alternatives = if reaching.len() > 0 {
+      reaching.join(" and ") + " reach it on this paper"
+    } else {
+      "no named margin reaches it — " + upper(paper) + " cannot carry two columns at " + repr(base)
+    }
+    panic("two columns are refused on " + upper(paper) + " at " + this-margin + " — "
+      + mm-of(size.at(0)) + "mm of paper less " + mm-of(sides.inner) + "mm and "
+      + mm-of(sides.outer) + "mm leaves " + mm-of(text-width) + "mm of text, so a column is ("
+      + mm-of(text-width) + " - " + mm-of(gutter) + ") / 2 = " + mm-of(column)
+      + "mm, carrying " + str(chars) + " characters at " + repr(base) + ", below the "
+      + str(floor) + "-character floor; " + alternatives)
+  }
+
+  // Justification is not optional at a column measure.
+  assert(justified, message: "two-column requires justification: at " + str(chars)
+    + " characters a ragged edge serrates the column")
 
   show: typeset.with(
+    paper: paper,
+    margin: margin,
     scale: scale-two-column,
     measure: none,        // the column is the measure
     justified: true,
@@ -420,45 +585,48 @@
     folio: folio,
   )
 
+  // A hairline where the columns need separating. Most journals omit it — the
+  // gutter is already doing the work. `columns()` has no rule of its own, so it
+  // is drawn on the page behind the text, at the centre of the gutter. The
+  // offset flips with page parity because a duplex margin puts the inner edge
+  // on the left of an odd page and on the right of an even one.
+  //
+  // The set rule is unconditional, with the condition inside its argument, and
+  // it comes before any content: a set rule inside an `if` block applies only
+  // within that block, which holds no content, and a page set rule that follows
+  // content starts a new page.
+  set page(background: if column-rule {
+    context {
+      let left-margin = if calc.odd(here().page()) { sides.inner } else { sides.outer }
+      place(
+        top + left,
+        dx: left-margin + column + gutter / 2,
+        dy: sides.top,
+        line(
+          angle: 90deg,
+          length: size.at(1) - sides.top - sides.bottom,
+          stroke: 0.5pt + rule-color,
+        ),
+      )
+    }
+  })
+
   if front != none {
     front
     v(scale-two-column.space, weak: true)
   }
 
-  // A hairline where the columns need separating. Most journals omit it — the
-  // gutter is already doing the work. `columns()` has no rule of its own, so it
-  // is drawn on the page behind the text, at the centre of the gutter. The
-  // offset flips with page parity because the margins mirror for duplex.
-  if column-rule {
-    set page(background: context {
-      let inner = if calc.odd(here().page()) { 28mm } else { 22mm }
-      place(
-        top + left,
-        dx: inner + 77mm + 3mm,
-        dy: 25mm,
-        line(angle: 90deg, length: 247mm, stroke: 0.5pt + rule-color),
-      )
-    })
-  }
-
-  columns(2, gutter: 6mm, doc)
+  // templates.two-column.spanning.always spans without a mark from here on:
+  // frontmatter-title-block, frontmatter-abstract and frontmatter-colophon
+  // read ts-two-column-body themselves (it carries subtitle, byline and
+  // dateline too — they are that block's own parameters, not standalone
+  // functions), and a body-level level-1 heading is promoted by the show rule
+  // below. Both are scoped to `doc`; `front` above renders before the columns
+  // begin, so it is already full width and never needs the wrap.
+  ts-two-column-body.update(true)
+  show heading.where(level: 1): it => span(it)
+  columns(2, gutter: gutter, doc)
 }
-
-// A level-1 heading spans both columns, which in Typst means it must be a
-// parent-scoped float. That works in `front`, before the columns begin. A
-// level-1 heading in the BODY has to be wrapped in `span()` explicitly —
-// Typst cannot promote it out of the column flow on its own. In a paper the
-// body's section headings are level 2 anyway; level 1 is the title.
-//
-// Spans both columns. A spanning element costs a break in both, so it is opt-in
-// per instance and must sit at the top or the bottom of the page — never
-// mid-column, which makes the reader find their place twice.
-#let span(body, at-bottom: false) = place(
-  if at-bottom { bottom } else { top },
-  scope: "parent",
-  float: true,
-  block(width: 100%, body),
-)
 // @e
 
 // ── Front matter ────────────────────────────────────────────────────────────
@@ -466,7 +634,7 @@
 // @s frontmatter
 #let frontmatter-title-block(title: none, subtitle: none, author: none, place-date: none) = context {
   let u = text.size
-  block(
+  let content = block(
     below: u * 3, width: 100%,
     inset: (bottom: u),
     stroke: (bottom: 0.5pt + rule-color),
@@ -482,22 +650,24 @@
       }
     },
   )
+  if ts-two-column-body.get() { span(content) } else { content }
 }
 // @e
 
 #let frontmatter-abstract(width: 30em, body) = context {
   let u = text.size
-  block(below: u * 2, width: width, {
+  let content = block(below: u * 2, width: width, {
     set text(size: u * 0.91, fill: ink-muted)
     set par(justify: false, leading: leading-for(1.45), first-line-indent: 0pt)
     block(below: 0.3em, text(font: sans, size: u * 0.73, weight: 700, tracking: 0.1em, fill: ink-faint)[ABSTRACT])
     body
   })
+  if ts-two-column-body.get() { span(content) } else { content }
 }
 
 #let frontmatter-colophon(body) = context {
   let u = text.size
-  block(
+  let content = block(
     above: u * 3, width: 26em,
     inset: (top: u),
     stroke: (top: 0.5pt + rule-color),
@@ -507,16 +677,28 @@
       body
     },
   )
+  if ts-two-column-body.get() { span(content, at-bottom: true) } else { content }
 }
 
 // ── Letter ──────────────────────────────────────────────────────────────────
 
 // @s letter
-#let letter-page(doc) = {
-  set page(
-    margin: (top: 32mm, bottom: 28mm, x: 25mm),
-    header: none,
-    footer: none,
+// A letter's page, and the letter's document setup: a deeper top margin than
+// foot or sides, so the sender block sits where an envelope window expects it,
+// and no running head or folio. A letter opens with this in place of
+// `#show: typeset` — the two cannot be stacked, because typeset() sets the page
+// and a page configuration underneath it sits inside a container, where Typst
+// refuses one.
+#let letter-page(
+  paper: "a4",
+  margin: (top: 32mm, bottom: 28mm, left: 25mm, right: 25mm),
+  doc,
+) = {
+  show: typeset.with(
+    paper: paper,
+    margin: margin,
+    running-head: false,
+    folio: false,
   )
   doc
 }

@@ -2,8 +2,7 @@
 // no folio, and a real footnote at the foot of the page.
 #import "typeset.typ": *
 
-#show: letter-page
-#show: typeset          // justified: false — a letter is set ragged right
+#show: letter-page      // ragged right, no running head, no folio
 
 #letter-sender[
   Adilson Carvalho \

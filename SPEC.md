@@ -24,14 +24,26 @@ A normative typographic specification for printed documents — essays, letters,
 | Property | Value |
 | --- | --- |
 | size | `A4` |
-| size mm | `210`, `297` |
-| alternate size | `Letter` |
-| margin top mm | `25` |
-| margin bottom mm | `25` |
-| margin outer mm | `22` |
-| margin inner mm | `28` |
-| duplex | Margins mirror: the inner (binding) margin is 28mm on both left and right pages, so the gutter stays put when printed double-sided. |
-| text width mm | `160` |
+| sizes note | Every paper this spec is set for, width before height. `size` names the one a document gets by default; the others are chosen per document. A paper is added here and nowhere else — every page box, text width and column width in this spec is derived from this table and from `margins`. |
+| text width | Not a stated constant: the paper width minus the left and right margins — twice the symmetric value, or inner plus outer for a duplex pair. The two are equal for any one size, by the rule above. |
+
+#### sizes mm
+
+| Property | Value |
+| --- | --- |
+| A4 | `210`, `297` |
+| A5 | `148`, `210` |
+| Letter | `215.9`, `279.4` |
+
+#### margins
+
+| Property | Value |
+| --- | --- |
+| default | `standard` |
+| symmetric mm | narrow: `10`; standard: `20`; wide: `30` |
+| duplex inner mm | narrow: `13`; standard: `23`; wide: `33` |
+| duplex outer mm | narrow: `7`; standard: `17`; wide: `27` |
+| note | Symmetric is what a document gets unless it asks otherwise: the named size applies to all four sides. Duplex is the explicit opt-in, for a sheet that will be bound — top and bottom stay at the symmetric value, and left and right split into an inner (binding) edge and an outer edge. A duplex pair preserves its symmetric pair's total, inner plus outer equal to twice the symmetric value, and shifts the gutter by 3mm: 20+20=40 becomes 23+17. A document keeps the same text width whichever it chooses, so switching between symmetric and duplex never reflows it. |
 
 #### running head
 
@@ -227,39 +239,38 @@ Default: `single-column`
 
 | Property | Value |
 | --- | --- |
-| text width mm | `160` |
+| derived for | The paper named in foundation.page.size, at the margin named in foundation.page.margins.default. No copy of either is kept here: every number below is a function of those two and of the gutter. |
 | column gap mm | `6` |
-| column width mm | `77` |
+| column width mm | `82` |
 | floor | `45` |
-| conclusion | A 77mm column carries 40 characters at the 11pt base — below the 45-character floor this spec sets for a line of prose. The base size therefore DROPS to 9.5pt, which restores 47. This is arithmetic, not preference: an implementation that keeps 11pt in two columns violates the measure rule, which is the rule everything else in this spec is downstream of. |
-| recompute when | The page size, the margins or the gutter change. Characters per line = 0.524 x column_mm x (11 / base_pt). |
+| margins supported | `narrow`, `standard` |
+| conclusion | An 82mm column carries 43 characters at the 11pt base — below the 45-character floor this spec sets for a line of prose. The base size therefore DROPS to 9.5pt, which gives 50. 10.5pt reaches 45 exactly, and a floor is not a target: 9.5pt is the first step with room above it. This is arithmetic, not preference: an implementation that keeps 11pt in two columns violates the measure rule, which is the rule everything else in this spec is downstream of. |
+| refusal | Two columns are refused, not set badly, on any paper and margin whose column falls below the floor. That is a computed rule rather than a list of papers: margins_supported names the margins that reach the floor on the paper in foundation.page.size, and tools/check.mjs recomputes it. The checker fails when this declaration disagrees with the arithmetic, when the default margin cannot reach the floor, or when no named margin on the paper can. |
+| recompute when | The paper in foundation.page.size, the default margin, or the gutter. Characters per line = (foundation.rhythm.measure_chars / measure_mm) x column_mm x (11 / base_pt), rounded; column_mm = (paper width - twice the margin - the gutter) / 2. tools/check.mjs recomputes every number here from foundation.page, so a margin cannot move without these following it or the checker going red. |
 
 **characters per line**
 
 | Property | Value |
 | --- | --- |
-| 11pt | `40` |
-| 10.5pt | `42` |
-| 10pt | `44` |
-| 9.5pt | `47` |
-| 9pt | `49` |
+| 11pt | `43` |
+| 10.5pt | `45` |
+| 10pt | `47` |
+| 9.5pt | `50` |
+| 9pt | `52` |
 
 #### page
 
 | Property | Value |
 | --- | --- |
-| size | `A4` |
-| margin top mm | `25` |
-| margin bottom mm | `25` |
-| margin outer mm | `22` |
-| margin inner mm | `28` |
+| size | `as foundation.page.size` |
+| margins | as foundation.page.margins, at the default size — symmetric unless the sheet is bound, duplex if it is. A duplex pair leaves the text width unchanged, so a two-column document does not reflow between them. |
 | columns | `2` |
 | column widths | equal — the two columns are the same width, always |
 | column gap mm | `6` |
-| column width mm | `77` |
+| column width mm | `82` |
 | column rule | none by default; an optional 0.5pt hairline in `rule` where the columns need separating |
 | column balance | the final page balances its columns to equal height |
-| lines per column | `52` |
+| lines per column | `54` |
 | running head | as foundation.page — spans the full text width, not a column |
 | folio | `as foundation.page` |
 
@@ -269,7 +280,7 @@ Default: `single-column`
 | --- | --- |
 | ratio | `1.2` |
 | base | `9.5pt` |
-| note | Every step comes down. A 24pt heading inside a 77mm column takes three lines to say two words; 18pt takes two. The h1 keeps display size because it spans both columns. |
+| note | Every step comes down. A 24pt heading inside an 82mm column takes three lines to say two words; 18pt takes two. The h1 keeps display size because it spans both columns. |
 
 **steps**
 
@@ -290,13 +301,13 @@ Default: `single-column`
 | line height | `1.4` |
 | baseline advance | `13.3pt` |
 | space | `9.5pt` |
-| measure | the column — 77mm, not a character count |
-| measure chars | `47` |
+| measure | the column — 82mm, not a character count |
+| measure chars | `50` |
 | note | Leading tightens with the measure: a shorter line needs less vertical separation to keep the return sweep unambiguous. |
 
 #### requirements
 
-- Justification with hyphenation is MANDATORY, not optional. At 47 characters a ragged right edge produces a visibly serrated column and word gaps wide enough to read as rivers. This is the one place the spec removes a choice it otherwise offers.
+- Justification with hyphenation is MANDATORY, not optional. At 50 characters a ragged right edge produces a visibly serrated column and word gaps wide enough to read as rivers. This is the one place the spec removes a choice it otherwise offers.
 - The last line of a paragraph is still flush left. Two columns make a stretched last line more visible, not less.
 - Balance the columns on the final page. A last page with one full column and one empty third reads as a printing error.
 - A spanning element must span BOTH columns fully or neither. An element that spans one and a half columns has no correct reading order.
@@ -306,17 +317,17 @@ Default: `single-column`
 
 | Property | Value |
 | --- | --- |
-| always | `title block`, `subtitle`, `byline`, `dateline`, `abstract`, `heading 1`, `colophon`, `bibliography heading` |
+| always | `frontmatter-title-block`, `frontmatter-subtitle`, `frontmatter-byline`, `frontmatter-dateline`, `frontmatter-abstract`, `headings-h1`, `frontmatter-colophon` |
 | optional | `figure`, `table`, `code block`, `pull quote` |
 | never | `paragraph`, `list`, `blockquote`, `callout`, `heading 2 and below`, `endnotes` |
-| note | A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. |
+| note | A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` stay prose because they describe author choice and default flow, which nothing enforces. A bibliography heading is not on `always`: no bibliography heading element exists anywhere in this spec, and the bibliography section's own element list carries none either. |
 
 #### forbidden
 
 | Property | Value |
 | --- | --- |
 | sidenote | There is no margin to put it in. Use a footnote or an endnote. |
-| dropcap | A three-line cap at 3.05em is 29pt in a 77mm column — a quarter of the column width for one letter. Open with small caps instead. |
+| dropcap | A three-line cap at 3.05em is 29pt in an 82mm column — 10mm of the column given to one letter. Open with small caps instead. |
 | measure variants | narrow and wide are meaningless: the column is the measure. |
 
 #### element overrides
@@ -606,7 +617,7 @@ Default: `single-column`
 
 - Ragged right is the DEFAULT, and it is a choice rather than an absence — a document states it. Justification buys a clean right edge at the cost of uneven word spacing; a ragged setting keeps the spacing even and gives up the edge. Neither is more correct, but the cost lands differently by document.
 - Choose ragged right for a letter, a memorandum, a short note — anything addressed to a person rather than to a readership. Justification reads as institutional, and its even edge is the visual signature of print that was set for strangers.
-- Choose justification for continuous prose at a full measure: an essay, a report, a paper. It is mandatory in two columns, where a ragged edge at 47 characters serrates the column.
+- Choose justification for continuous prose at a full measure: an essay, a report, a paper. It is mandatory in two columns, where a ragged edge at 50 characters serrates the column.
 - These are a single decision. Justification without hyphenation opens rivers of white space; hyphenation without justification breaks words for no gain. Take both or neither.
 - Hyphenation is per-language and requires the document language to be declared. An English dictionary applied to Portuguese produces confident nonsense.
 - The last line of a paragraph is NEVER stretched. State this explicitly — a paginating engine fragments the text, so the visual last line stops looking like the end of a paragraph and gets justified. It does not reproduce in an unpaginated preview.

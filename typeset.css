@@ -53,15 +53,19 @@
   max-width: var(--ts-measure);
 }
 
-.typeset--wide { --ts-measure: 40em; }
-.typeset--narrow { --ts-measure: 27em; }
+.typeset--measure-wide { --ts-measure: 40em; }
+.typeset--measure-narrow { --ts-measure: 27em; }
 /*! @e */
 
 /*! @s page :: Page setup */
-/* @style letter-page — the page setup every document renders through; the letter's own margins, running head, and folio are not set anywhere in this stylesheet. */
+/* Symmetric is what a document gets unless it asks for binding: the named
+   size applies to all four sides. `standard` is the default size, set here on
+   the unqualified page — every named page below is a page-name override of
+   just its margins, and everything else on this rule (size, running head,
+   folio, first-page suppression) still cascades onto it. */
 @page {
   size: A4;                        /* or: Letter */
-  margin: 25mm 22mm 25mm 22mm;
+  margin: 20mm;                    /* foundation.page.margins.symmetric_mm.standard */
 
   /* Margin boxes need a paged-media engine: Paged.js, WeasyPrint, Prince.
      Chrome's own print dialog ignores them. */
@@ -86,12 +90,39 @@
   @bottom-center { content: none; }
 }
 
-/* Duplex binding: mirror the inner margin so the gutter stays put. */
-@page :left  { margin-left: 22mm; margin-right: 28mm; }
-@page :right { margin-left: 28mm; margin-right: 22mm; }
-
 /* The running head follows the current section. */
 .typeset h2 { string-set: ts-running-head content(text); }
+
+/* The three symmetric sizes, the same value on every side. `standard` names
+   the default set above; the class exists so a document can ask for it back
+   explicitly, the same as narrow and wide. */
+.typeset--margin-narrow   { page: ts-margin-narrow; }
+.typeset--margin-standard { page: ts-margin-standard; }
+.typeset--margin-wide     { page: ts-margin-wide; }
+
+@page ts-margin-narrow   { margin: 10mm; }
+@page ts-margin-standard { margin: 20mm; }
+@page ts-margin-wide     { margin: 30mm; }
+
+/* Duplex: the explicit opt-in for a sheet that will be bound. Top and bottom
+   stay at the symmetric value; left and right split into an inner (binding)
+   edge and an outer edge, mirrored by page side so the gutter stays on the
+   spine rather than swapping sides every other sheet. */
+.typeset--margin-duplex-narrow   { page: ts-margin-duplex-narrow; }
+.typeset--margin-duplex-standard { page: ts-margin-duplex-standard; }
+.typeset--margin-duplex-wide     { page: ts-margin-duplex-wide; }
+
+@page ts-margin-duplex-narrow { margin-top: 10mm; margin-bottom: 10mm; }
+@page ts-margin-duplex-narrow:right { margin-left: 13mm; margin-right: 7mm; }
+@page ts-margin-duplex-narrow:left  { margin-left: 7mm;  margin-right: 13mm; }
+
+@page ts-margin-duplex-standard { margin-top: 20mm; margin-bottom: 20mm; }
+@page ts-margin-duplex-standard:right { margin-left: 23mm; margin-right: 17mm; }
+@page ts-margin-duplex-standard:left  { margin-left: 17mm; margin-right: 23mm; }
+
+@page ts-margin-duplex-wide { margin-top: 30mm; margin-bottom: 30mm; }
+@page ts-margin-duplex-wide:right { margin-left: 33mm; margin-right: 27mm; }
+@page ts-margin-duplex-wide:left  { margin-left: 27mm; margin-right: 33mm; }
 /*! @e */
 
 /*! @s headings :: Headings */
@@ -913,6 +944,16 @@
 /*! @e */
 
 /*! @s letter :: Letter */
+/* @style letter-page — a letter's own page: no running head, no folio, and a
+   deeper top margin than foot or sides so the sender block sits where an
+   envelope window expects it. */
+.typeset--letter { page: ts-letter; }
+@page ts-letter {
+  margin: 32mm 25mm 28mm;
+  @top-center { content: none; }
+  @bottom-center { content: none; }
+}
+
 /* The sender block is address data, not a masthead: one style throughout, at
    body size, in the reading face. A personal letter does not announce itself —
    the recipient knows who writes to them. Nothing here is bold, and nothing is
@@ -1004,12 +1045,12 @@
    and referenced as much as read.
 
    The base size drops to 9.5pt here, and that is arithmetic rather than taste:
-   a 77mm column carries 40 characters at 11pt, below the 45-character floor
-   this stylesheet sets for a line of prose. 9.5pt restores 47. An
+   an 82mm column carries 43 characters at 11pt, below the 45-character floor
+   this stylesheet sets for a line of prose. 9.5pt restores 50. An
    implementation that keeps 11pt in two columns breaks the measure rule, which
    is the rule everything else is downstream of. */
 .typeset--two-column {
-  /* Every step comes down. A 24pt heading in a 77mm column spends three lines
+  /* Every step comes down. A 24pt heading in an 82mm column spends three lines
      saying two words. */
   --ts-xs: 7pt;
   --ts-sm: 8.5pt;
@@ -1039,7 +1080,7 @@
   column-fill: balance;   /* the final page balances its columns */
 
   /* Justification with hyphenation is MANDATORY at this measure, not optional:
-     at 47 characters a ragged edge serrates the column and the word gaps read
+     at 50 characters a ragged edge serrates the column and the word gaps read
      as rivers. This is the one place the stylesheet removes a choice. */
   text-align: justify;
   text-align-last: left;
@@ -1048,9 +1089,13 @@
   hyphenate-limit-lines: 2;
 }
 
-/* Spans both columns, always. Each is a direct child of the multicol container,
+/* Spans both columns, always — templates.two-column.spanning.always in
+   spec.json, unmarked. Each is a direct child of the multicol container,
    which is what column-span requires. */
 .typeset--two-column > .ts-frontmatter-title-block,
+.typeset--two-column > .ts-frontmatter-subtitle,
+.typeset--two-column > .ts-frontmatter-byline,
+.typeset--two-column > .ts-frontmatter-dateline,
 .typeset--two-column > .ts-frontmatter-abstract,
 .typeset--two-column > h1,
 .typeset--two-column > .ts-frontmatter-colophon,
@@ -1084,7 +1129,7 @@
   text-indent: 0;
 }
 
-/* A three-line cap at 3.05em is 29pt — a quarter of the column width for one
+/* A three-line cap at 3.05em is 29pt — 10mm of the column given to one
    letter. The opening small caps carry the signal instead. */
 .typeset--two-column .ts-dropcap::first-letter {
   float: none;

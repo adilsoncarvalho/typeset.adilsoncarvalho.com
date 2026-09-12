@@ -146,18 +146,43 @@ them: a template does not get its own typography.
 | Template | Base | Measure | Opt-in |
 |---|---|---|---|
 | Single column (default) | 11pt / 1.45 | 33em ≈ 66 characters | — |
-| Two column, equal | 9.5pt / 1.4 | 77mm ≈ 47 characters | `typeset--two-column` |
+| Two column, equal | 9.5pt / 1.4 | 82mm ≈ 50 characters | `typeset--two-column` |
 
-**The two-column base is derived, not chosen.** A4 less the 28mm inner and 22mm
-outer margin leaves 160mm; a 6mm gutter divides it into two 77mm columns. At 11pt
-that carries 40 characters — below the 45-character floor the spec sets for
-prose. 9.5pt restores 47. `tools/check.mjs` recomputes this and fails if the
-stated numbers stop agreeing, so changing the page size or the gutter cannot
-silently break the measure.
+**The two-column base is derived, not chosen.** A4 less the standard 20mm margin
+on each side leaves 170mm; a 6mm gutter divides it into two 82mm columns. At 11pt
+that carries 43 characters — below the 45-character floor the spec sets for
+prose. 9.5pt restores 50. `tools/check.mjs` recomputes this and fails if the
+stated numbers stop agreeing, so changing the page size, the default margin or
+the gutter cannot silently break the measure.
 
 Two columns also change what is allowed: **justification stops being optional**
-(at 47 characters a ragged edge serrates the column), and **sidenotes are
+(at 50 characters a ragged edge serrates the column), and **sidenotes are
 forbidden** (there is no margin left, so they degrade to an inline aside).
+
+### Margins
+
+Either template also takes one of six named margins, on `foundation.page.margins`
+in `spec.json`:
+
+| Name | Symmetric | Duplex (inner / outer) |
+|---|---|---|
+| `narrow` | 10mm | 13mm / 7mm |
+| `standard` (default) | 20mm | 23mm / 17mm |
+| `wide` | 30mm | 33mm / 27mm |
+
+Symmetric is the same value on all four sides. Duplex is the explicit opt-in
+for a document that will be bound: top and bottom stay at the symmetric
+value, left and right split into an inner (binding) edge and an outer one,
+mirrored by page parity — the pair always sums to twice the symmetric value,
+so a document keeps the same text width and the same line breaks whichever
+of the two it chooses.
+
+In CSS, ask for one with a `typeset--margin-<name>` class, for example
+`typeset--margin-duplex-standard`. In Typst, pass the matching `margin-<name>`
+value to `margin:`, for example `margin-duplex-standard` — or pass any
+length or Typst margin dictionary directly, for a page box the spec does not
+name. `tools/check.mjs` holds both implementations' six named values, and
+`paper-sizes-mm`/`sizes_mm`, to `spec.json`.
 
 ## Changing the spec
 

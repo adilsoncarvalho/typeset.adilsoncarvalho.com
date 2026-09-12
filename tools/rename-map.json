@@ -224,6 +224,8 @@
     "ts-util-keep-together": "ts-utilities-keep-together",
     "ts-util-no-hyphens": "ts-utilities-no-hyphens",
     "ts-util-tie": "ts-utilities-tie",
-    "ts-util-color-adjust": "ts-utilities-color-adjust"
+    "ts-util-color-adjust": "ts-utilities-color-adjust",
+    "typeset--narrow": "typeset--measure-narrow",
+    "typeset--wide": "typeset--measure-wide"
   }
 }
