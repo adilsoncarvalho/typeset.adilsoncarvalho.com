@@ -1,5 +1,22 @@
-<p class="pair__label">Notes at the end — the fallback</p>
-<p class="demo-note">A rule, then the numbered notes. On a one-page document this <em>is</em> the page foot, so it reads as a footnote area without needing to be one.</p>
+<p class="pair__label" data-element="note-marker">1 · Reference mark</p>
+<p class="demo-note">Raised, without brackets, and without opening up the line's own leading — the mark must not stretch the line it sits in.</p>
+<div class="paper typeset">
+  <p>Bringhurst puts the ideal measure between 45 and 75 characters,<a class="ts-note-marker" href="#n1"></a> a range narrow enough to be useful and wide enough to survive a change of typeface.</p>
+</div>
+
+<p class="pair__label" data-element="note-footnote">2 · Footnote</p>
+<p class="demo-note">The note text lives in the document, marked <code>.ts-note-footnote</code>. Where the engine implements the CSS footnote model, that promotes it to the foot of the page carrying the mark; no browser does, so what a screen shows is the fallback below — the same numbered block either way.</p>
+<div class="paper typeset">
+  <p>The lower bound matters more in a two-column layout, where the column is the measure and there is no slack to give away.<a class="ts-note-marker" href="#n1"></a></p>
+  <div class="ts-note-endnotes">
+    <ol>
+      <li class="ts-note-footnote" id="n1">Below about 40 characters, hyphenation stops being optional.</li>
+    </ol>
+  </div>
+</div>
+
+<p class="pair__label" data-element="note-endnotes">3 · Endnotes block</p>
+<p class="demo-note">No heading. The rule above the list and the numbered items already read as a notes area, and a label over two lines of small print is heavier than the thing it labels.</p>
 <div class="paper typeset">
   <p>Bringhurst puts the ideal measure between 45 and 75 characters,<a class="ts-note-marker" href="#n1"></a> a range narrow enough to be useful and wide enough to survive a change of typeface. The lower bound matters more in a two-column layout.<a class="ts-note-marker" href="#n2"></a></p>
   <div class="ts-note-endnotes">
