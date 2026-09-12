@@ -1689,6 +1689,13 @@ for (const id of specIds) {
    implementations to; `optional` and `never` stay prose describing author
    choice and default flow, which nothing enforces.
 
+   Which arm a list belongs to used to be readable off its entries: an id was
+   a compound (`figures-figure`), prose was a bare word. Singular ids collapse
+   that difference — `figure`, `table`, `list` and `callout` are ids now — so
+   the distinction is asserted here instead. An entry that matches an id is
+   either a prose line that has become ambiguous, or an id filed under an arm
+   nothing enforces; both read to the next author as a list this gate covers.
+
    This gate asserts the whole property per element — left edge at the page
    margin, width equal to the full text width, and vertical position at the
    top or the bottom of the page, never mid-column, which templates.two-column.requirements
@@ -1699,6 +1706,18 @@ for (const id of specIds) {
    one-axis assertions can always be walked around one axis at a time; this
    gate does not leave an axis unchecked to walk around. */
 const spanningAlways = spec.templates['two-column'].spanning.always;
+
+const spanningSectionIds = new Set(spec.sections.map((sec) => sec.id));
+for (const arm of ['optional', 'never']) {
+  for (const entry of spec.templates['two-column'].spanning[arm]) {
+    if (specIds.has(entry) || spanningSectionIds.has(entry)) {
+      fail.push(`spec.json: templates.two-column.spanning.${arm} names "${entry}", which is a `
+        + 'live id — that arm is prose describing author choice, and nothing holds an '
+        + 'implementation to it, so an entry that reads as an id claims coverage this '
+        + 'checker does not provide');
+    }
+  }
+}
 
 for (const id of spanningAlways) {
   if (!specIds.has(id)) {

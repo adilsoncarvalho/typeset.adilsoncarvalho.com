@@ -318,9 +318,9 @@ Default: `single-column`
 | Property | Value |
 | --- | --- |
 | always | `frontmatter-title-block`, `frontmatter-subtitle`, `frontmatter-byline`, `frontmatter-dateline`, `frontmatter-abstract`, `heading-h1`, `bibliography-heading`, `frontmatter-colophon` |
-| optional | `figure`, `table`, `code block`, `pull quote` |
-| never | `paragraph`, `list`, `blockquote`, `callout`, `heading 2 and below`, `endnotes` |
-| note | A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` stay prose because they describe author choice and default flow, which nothing enforces. `bibliography-heading` is on `always` as its own element, distinct from `heading-h2`: `never`'s "heading 2 and below" names the generic heading levels heading-h2 through heading-h6, not a differently-identified element that happens to share their scale — so a bibliography heading may span both columns while an ordinary section heading may not. |
+| optional | `a figure`, `a table`, `a code block`, `a pull quote` |
+| never | `a paragraph`, `a list`, `a block quote`, `a callout`, `heading 2 and below`, `a block of endnotes` |
+| note | A wide figure or table opts in per instance. The default is column-width, because a spanning element costs a break in both columns. `always` is element ids, so tools/check.mjs can hold both implementations to it; `optional` and `never` are prose, because they describe author choice and default flow rather than a property either implementation can be held to. Each of those entries is written so that it cannot be read as an id — tools/check.mjs fails if one ever matches an element or section id, which is what keeps the two arms distinguishable by shape now that `figure`, `table`, `list` and `callout` are ids in their own right. `bibliography-heading` is on `always` as its own element, distinct from `heading-h2`: `never`'s "heading 2 and below" names the generic heading levels heading-h2 through heading-h6, not a differently-identified element that happens to share their scale — so a bibliography heading may span both columns while an ordinary section heading may not. |
 
 #### forbidden
 
