@@ -3899,6 +3899,32 @@ const EXEMPTIONS = new Map([
   ['frontmatter-abstract-label', 'a caption belonging to frontmatter-abstract, '
     + 'not a style of its own — the same relationship quote-attribution has to '
     + 'quote-blockquote'],
+  /* Starts the next element on a new page — the mirror of utility-break-before,
+     with the same "nothing to show on a screen" reasoning. */
+  ['utility-break-after', 'changes pagination — there is a page boundary to show '
+    + 'in print and nothing at all to show on a screen, the same reasoning as '
+    + 'utility-break-before'],
+  /* break-inside: avoid only has an effect at a page boundary a screen-rendered
+     ".paper" div never reaches — the same reasoning again, one level down at a
+     single element rather than the flow between two. */
+  ['utility-keep-together', 'never lets a page break fall inside this element — '
+    + 'there is no page boundary inside a screen-rendered ".paper" div for that '
+    + 'to show, the same reasoning as utility-break-before'],
+  /* Only fires inside @media print, forcing a background or rule to survive
+     the print dialog's own ink-saving pass — a screen render never enters that
+     mode, so there is nothing to show it against. */
+  ['utility-color-adjust', 'only takes effect inside the print dialog\'s own '
+    + 'ink-saving pass — a screen render never enters that mode, so there is '
+    + 'nothing on screen for it to change'],
+  /* table-row's only declared property is break-inside: avoid — the exact
+     same page-boundary effect as utility-keep-together, just scoped to a
+     table row rather than an arbitrary element. A <tr> carries no class of
+     its own for this (typeset.css applies it to every "tr", not to a
+     data-element target), so there is neither a visible difference nor a
+     stylable hook to bind a pane to. */
+  ['table-row', 'break-inside: avoid on every row — a page-boundary effect '
+    + 'with nothing to show inside a screen-rendered ".paper" div, the same '
+    + 'reasoning as utility-break-before'],
 ]);
 
 for (const [id, reason] of EXEMPTIONS) {
