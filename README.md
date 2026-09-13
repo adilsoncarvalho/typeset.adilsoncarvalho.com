@@ -14,7 +14,7 @@ spec disagree, **the spec is right and the implementation is broken.**
 
 | File | What it is |
 |---|---|
-| `spec.json` | **Normative.** Every length absolute. Section and element counts are generated onto the masthead by `tools/build-site.mjs`, not hand-maintained here. |
+| `spec.json` | **Normative.** Every length absolute. |
 | `SPEC.md` | The spec as prose, generated from `spec.json`. For pasting into a model's context. |
 | `llms.txt` | What a machine should read first, and in what order. |
 | `index.html` | **Generated.** The specimen page. Do not edit — edit `src/` and rebuild. |

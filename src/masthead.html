@@ -3,15 +3,6 @@
   <p>A <b>typographic specification</b> for printed documents — essays, letters, reports. Anything destined for paper or a PDF.</p>
   <p>Each section below shows what an element must look like, the normative values it must hit, and the same values expressed in two engines. <b>The specification is the source of truth</b>; CSS and Typst are conformant implementations of it, not the definition. Point an engine — or an AI wiring one up — at this page and the output should match.</p>
 
-  <div class="feeds">
-    <p class="feeds__label">For a machine</p>
-    <ul>
-      <li><a href="spec.json"><code>spec.json</code></a> — the normative source. <span data-spec-counts>every value</span>, every length absolute.</li>
-      <li><a href="SPEC.md"><code>SPEC.md</code></a> — the same thing as prose, generated from <code>spec.json</code>. Paste this into a model's context.</li>
-      <li><a href="llms.txt"><code>llms.txt</code></a> — what to read first, and in what order.</li>
-    </ul>
-  </div>
-
   <div class="meta">
     <span><b>Serif</b> EB Garamond</span>
     <span><b>Sans</b> Source Sans 3</span>
@@ -21,6 +12,10 @@
     <span><b>Spec</b> <span data-spec-version>—</span></span>
   </div>
   <div class="btngroups">
+    <!-- Grouped by document, not by type — the one row where that's right:
+         choosing between an essay and a letter is choosing a document, not
+         a technology. The three groups below it group by type instead;
+         both are deliberate, not an inconsistency. -->
     <div class="btngroup">
       <p class="btngroup__label">Live examples</p>
       <div class="btnrow">
@@ -31,17 +26,25 @@
       </div>
     </div>
     <div class="btngroup">
-      <p class="btngroup__label">Typst examples, rendered</p>
-      <div class="btnrow" data-typst-examples></div>
-    </div>
-    <div class="btngroup">
-      <p class="btngroup__label">Downloadable materials</p>
+      <p class="btngroup__label">The specification</p>
       <div class="btnrow">
         <a class="btn" href="files/spec-json.html">spec.json</a>
         <a class="btn" href="files/spec-md.html">SPEC.md</a>
+        <a class="btn" href="llms.txt">llms.txt</a>
+      </div>
+    </div>
+    <div class="btngroup">
+      <p class="btngroup__label">CSS</p>
+      <div class="btnrow">
         <a class="btn" href="files/typeset-css.html">typeset.css</a>
-        <a class="btn btn--strong" href="files/typeset-typ.html">typeset.typ + fonts</a>
-        <a class="btn btn--strong" href="files/iawriter-css.html">iA Writer template</a>
+        <a class="btn btn--strong" href="files/iawriter-css.html">iawriter.css</a>
+      </div>
+    </div>
+    <div class="btngroup">
+      <p class="btngroup__label">Typst</p>
+      <div class="btnrow">
+        <a class="btn btn--strong" href="files/typeset-typ.html">typeset.typ</a>
+        <span data-typst-examples></span>
       </div>
     </div>
   </div>
