@@ -1913,6 +1913,19 @@ const INTERNAL_SYMBOLS = new Set([
   /* the page's own text block, published by _typeset-styles and read by
      measured() to resolve measure-full — not a style itself */
   'ts-text-width',
+  /* typeset(sidenotes: true)'s own derived constants — spec.json's
+     note-sidenote.properties.measure_when_active/reserved_margin/width, and
+     the "2em" in its properties.position — and the state that gates
+     note-sidenote() on the opt-in actually having been used. Not styles
+     themselves; note-sidenote is (it names the spec element id directly). */
+  'measure-sidenote', 'sidenote-reserved-margin', 'sidenote-note-width', 'sidenote-gap',
+  'ts-sidenotes-active',
+  /* letter-page's own derived margin — spec.json's letter-page.derivation
+     names letterhead_band_mm, and letter-margin composes it with
+     margin-standard into the dict letter-page actually passes to typeset().
+     Not styles themselves; letter-page is (it names the spec element id
+     directly). */
+  'letterhead-band', 'letter-margin',
 ]);
 
 /* Engine element functions this file re-publishes under a second name. Not
@@ -2698,6 +2711,174 @@ for (const name of marginNames) {
   }
 }
 
+/* ---- 24. The letter's page derives from margin-standard plus a named
+            letterhead band, in both implementations, held by gate 7's own
+            mechanism rather than a parallel one ------------------------- */
+
+/* Exactly the shape gate 7 above already found for the six named margins, on
+   the letter's own page: spec.json's letter-page element states three plain
+   millimetre numbers, and until this gate nothing compared either
+   implementation's copy of them to spec.json, or spec.json's own numbers to
+   each other. letter-page.derivation now names the one number that is not
+   the symmetric default — letterhead_band_mm, added to the top alone — so
+   the three properties below are recomputed from it and from
+   foundation.page.margins.symmetric_mm.standard, not trusted as written.
+
+   The CSS half stays a source check, the same as gate 7's: @page ts-letter's
+   margin shorthand is a plain declaration, uncomplicated by anything else on
+   the page, so reading it back and comparing the numbers is as strong a
+   proof as rendering it. The Typst half cannot stay a source check —
+   letter-margin is now an expression (margin-standard.top + letterhead-band),
+   not a literal dict gate 7's regex could read a number out of — so this
+   renders a real letter-page() document and reads the numbers back off it,
+   the same lesson gate 22 already drew for the measure: a derivation that
+   only looks right in the source is exactly what a regression could leave
+   standing. Two of the three edges are straightforward to read off a render
+   (the first marker in the flow lands at the top margin exactly; the
+   available height a #layout() sees there is the page height less top and
+   bottom), but the sides cancel out of any measurement taken from ordinary
+   flow content, because foundation.rhythm.measure_position (gate 22) centres
+   that content inside the text area independently of how wide the text area
+   is — a wider or narrower side margin shows up as a wider or narrower gap
+   either side of the SAME centred block, never as a different one. The
+   escape is ts-text-width, the state typeset() itself sets to the text
+   area's true width before the measure ever clamps anything — reading it
+   back is exactly what measured(width: measure-full) already relies on
+   (gate 9's own probe), so this uses the same state rather than a new one. */
+
+{
+  const letterPageEl = spec.sections.find((s) => s.id === 'letter')
+    ?.elements.find((el) => el.id === 'letter-page');
+  if (!letterPageEl) {
+    fail.push('spec.json declares no "letter-page" element — gate 24 cannot check the letter\'s '
+      + 'page against it');
+  } else if (!letterPageEl.derivation || typeof letterPageEl.derivation.letterhead_band_mm !== 'number') {
+    fail.push('spec.json: letter-page has no derivation.letterhead_band_mm — the letterhead band '
+      + 'this gate holds both implementations to must be a named number, not implied by the top '
+      + 'margin alone');
+  } else {
+    const standardMm = symmetricMm.standard;
+    const bandMm = letterPageEl.derivation.letterhead_band_mm;
+    const expectedTopMm = standardMm + bandMm;
+    const expectedBottomMm = standardMm;
+    const expectedSidesMm = standardMm;
+
+    /* spec.json's own three numbers must be exactly what the derivation
+       above says — the "duplex total = 2x symmetric" check gate 7 runs
+       against its own note, on a different element. */
+    const { margin_top_mm: topMm, margin_bottom_mm: bottomMm, margin_sides_mm: sidesMm } = letterPageEl.properties;
+    if (!mmClose(topMm, expectedTopMm)) {
+      fail.push(`spec.json: letter-page.properties.margin_top_mm is ${topMm}, but `
+        + `foundation.page.margins.symmetric_mm.standard (${standardMm}) + `
+        + `letter-page.derivation.letterhead_band_mm (${bandMm}) is ${expectedTopMm}`);
+    }
+    if (!mmClose(bottomMm, expectedBottomMm)) {
+      fail.push(`spec.json: letter-page.properties.margin_bottom_mm is ${bottomMm}, but `
+        + `foundation.page.margins.symmetric_mm.standard is ${expectedBottomMm} and letter-page's own `
+        + 'notes say the foot carries no reason to differ from it');
+    }
+    if (!mmClose(sidesMm, expectedSidesMm)) {
+      fail.push(`spec.json: letter-page.properties.margin_sides_mm is ${sidesMm}, but `
+        + `foundation.page.margins.symmetric_mm.standard is ${expectedSidesMm} and letter-page's own `
+        + 'notes say the sides carry no reason to differ from it');
+    }
+
+    /* CSS: @page ts-letter's margin shorthand, top | sides | bottom (the
+       3-value form — sides and bottom are equal today but that is this
+       gate's conclusion, not a CSS shorthand rule, so the 3-value form is
+       parsed rather than assumed collapsible to 2).
+
+       @page ts-letter's body nests its own @top-center/@bottom-center
+       at-rules (to suppress the running head and folio), so its body
+       contains a "{" and extractCssLeafRules treats it as a wrapper, not a
+       leaf — cssPageDecls (gate 7's own helper) finds nothing here, the same
+       as it would for @page or @media. Read straight off the CSS text
+       instead, the same way this file's own note on the letter page (above,
+       under the iA Writer template check) already does for a plain @page
+       margin. */
+    const letterPageMatch = /@page\s+ts-letter\s*\{\s*margin:\s*([^;]+);/.exec(cssNoComments);
+    if (!letterPageMatch) {
+      fail.push('typeset.css: @page ts-letter was not found, or does not open with a plain '
+        + '"margin: ...;" declaration this check can compare to spec.json');
+    } else {
+      const value = letterPageMatch[1].trim();
+      const parts = value.split(/\s+/);
+      const mmToken = (t) => (/^[\d.]+mm$/.test(t) ? parseFloat(t) : null);
+      if (parts.length !== 3 || parts.some((p) => mmToken(p) === null)) {
+        fail.push(`typeset.css: @page ts-letter's margin ("${value}") is not the plain 3-value `
+          + '"<top> <sides> <bottom>" mm shorthand this check can compare to spec.json');
+      } else {
+        const [cssTop, cssSides, cssBottom] = parts.map(mmToken);
+        if (!mmClose(cssTop, topMm)) {
+          fail.push(`typeset.css: @page ts-letter declares margin: ${value}, whose top (${cssTop}mm) `
+            + `does not match letter-page.properties.margin_top_mm (${topMm}mm)`);
+        }
+        if (!mmClose(cssSides, sidesMm)) {
+          fail.push(`typeset.css: @page ts-letter declares margin: ${value}, whose sides (${cssSides}mm) `
+            + `does not match letter-page.properties.margin_sides_mm (${sidesMm}mm)`);
+        }
+        if (!mmClose(cssBottom, bottomMm)) {
+          fail.push(`typeset.css: @page ts-letter declares margin: ${value}, whose bottom `
+            + `(${cssBottom}mm) does not match letter-page.properties.margin_bottom_mm (${bottomMm}mm)`);
+        }
+      }
+    }
+
+    /* Typst: render letter-page() at its own default paper ("a4") and read
+       the three edges back off the page it actually produced. */
+    const letterPaperSpecName = PAPER_NAME_TO_SPEC.a4;
+    const [letterPaperWidthMm, letterPaperHeightMm] = sizesMm[letterPaperSpecName];
+    const LETTER_TOLERANCE_MM = 0.05;
+    const mmCloseRendered = (a, b) => Math.abs(a - b) < LETTER_TOLERANCE_MM;
+    const letterProbeDir = mkdtempSync(join(tmpdir(), 'typeset-letter-margin-check-'));
+    try {
+      copyFileSync('implementations/typeset.typ', join(letterProbeDir, 'typeset.typ'));
+      const probePath = join(letterProbeDir, 'letter-margin.typ');
+      writeFileSync(probePath, '#import "typeset.typ": *\n'
+        + '#show: letter-page.with(paper: "a4")\n\n'
+        + '#context [#metadata(here().position().y / 1mm) <ts-letter-top>]\n'
+        + '#context [#metadata(ts-text-width.get() / 1mm) <ts-letter-full>]\n'
+        + '#layout(size => [#metadata(size.height / 1mm) <ts-letter-height>])\n\n'
+        + 'Filler so the page has real content to flow around, rather than an empty box with '
+        + 'nothing to measure against.\n');
+      const queryOne = (tag) => Number(JSON.parse(execFileSync(
+        'typst',
+        ['query', '--font-path', resolve('fonts'), probePath, `<${tag}>`, '--field', 'value', '--one'],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      ).toString()));
+      try {
+        const renderedTopMm = queryOne('ts-letter-top');
+        const fullWidthMm = queryOne('ts-letter-full');
+        const availableHeightMm = queryOne('ts-letter-height');
+        const renderedSidesMm = (letterPaperWidthMm - fullWidthMm) / 2;
+        const renderedBottomMm = letterPaperHeightMm - renderedTopMm - availableHeightMm;
+
+        if (!mmCloseRendered(renderedTopMm, topMm)) {
+          fail.push(`implementations/typeset.typ: letter-page() renders a top margin of `
+            + `${renderedTopMm.toFixed(2)}mm on a4, but letter-page.properties.margin_top_mm is `
+            + `${topMm}mm`);
+        }
+        if (!mmCloseRendered(renderedSidesMm, sidesMm)) {
+          fail.push(`implementations/typeset.typ: letter-page() renders a text area ${fullWidthMm.toFixed(2)}mm `
+            + `wide on a4 (${letterPaperWidthMm}mm paper), i.e. ${renderedSidesMm.toFixed(2)}mm of side `
+            + `margin, but letter-page.properties.margin_sides_mm is ${sidesMm}mm`);
+        }
+        if (!mmCloseRendered(renderedBottomMm, bottomMm)) {
+          fail.push(`implementations/typeset.typ: letter-page() renders a bottom margin of `
+            + `${renderedBottomMm.toFixed(2)}mm on a4 (page ${letterPaperHeightMm}mm, top `
+            + `${renderedTopMm.toFixed(2)}mm, available height ${availableHeightMm.toFixed(2)}mm), but `
+            + `letter-page.properties.margin_bottom_mm is ${bottomMm}mm`);
+        }
+      } catch (err) {
+        const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+        fail.push(`implementations/typeset.typ: could not render the letter margin probe:\n${detail}`);
+      }
+    } finally {
+      rmSync(letterProbeDir, { recursive: true, force: true });
+    }
+  }
+}
+
 /* ---- 8. A .tabs input positioned absolute must be pinned inside .tabs ---- */
 
 /* An absolutely positioned element with no offset of its own falls back to
@@ -2737,6 +2918,280 @@ for (const name of marginNames) {
         + `top and left (top: ${hasTop ? 'yes' : 'missing'}, left: ${hasLeft ? 'yes' : 'missing'}) `
         + '— without explicit offsets it falls back to its flex-derived static position at '
         + 'the bottom of .tabs');
+    }
+  }
+}
+
+/* ---- 22. The measure sits centred in the text area, not flush to one edge
+            (foundation.rhythm.measure_position) --------------------------- */
+
+/* The finding this task fixes: `block(width: measure, doc)` reads correctly
+   and rendered lopsided, because Typst's default block alignment is left and
+   nothing said otherwise. That is exactly what no source check can see — the
+   code that produced the lopsided page was syntactically fine, and would
+   still parse as fine today if the fix regressed back to a flush-left block.
+   So this renders a real document, at the paper and margin foundation.page
+   names as its defaults, and reads back where the measure block's own left
+   and right edges actually landed — two markers in the real flow,
+   `here().position()` for the left edge and `layout()` for the width, the
+   same technique gate 9 below already uses to read measure-full back off a
+   render rather than off the source. `#h(1fr)` between two metadata markers
+   was the first thing tried here and does not work: a line with no other
+   content collapses the fractional space to zero, and both markers land on
+   top of each other. */
+
+const symmetryPaperTypKey = Object.entries(PAPER_NAME_TO_SPEC)
+  .find(([, specName]) => specName === spec.foundation.page.size)?.[0];
+const symmetryMarginName = spec.foundation.page.margins.default;
+const symmetryPaperWidthMm = sizesMm[spec.foundation.page.size][0];
+const symmetryMarginMm = symmetricMm[symmetryMarginName];
+const SYMMETRY_TOLERANCE_MM = 0.01;
+
+if (!symmetryPaperTypKey) {
+  fail.push(`tools/check.mjs: foundation.page.size is "${spec.foundation.page.size}", which `
+    + 'PAPER_NAME_TO_SPEC has no Typst key for — gate 22 cannot build its probe');
+} else {
+  const symmetryProbeDir = mkdtempSync(join(tmpdir(), 'typeset-symmetry-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(symmetryProbeDir, 'typeset.typ'));
+    const probePath = join(symmetryProbeDir, 'symmetry.typ');
+    writeFileSync(probePath, '#import "typeset.typ": *\n'
+      + `#show: typeset.with(paper: "${symmetryPaperTypKey}", margin: margin-${symmetryMarginName})\n\n`
+      + 'Filler so the measure has a real paragraph to hold — a bare document with no content at '
+      + 'all is not the shape any real document takes.\n\n'
+      + '#context [#metadata(here().position().x / 1mm) <ts-symmetry-left>]\n'
+      + '#layout(size => [#metadata(size.width / 1mm) <ts-symmetry-width>])\n');
+    try {
+      const leftOut = execFileSync(
+        'typst',
+        ['query', '--font-path', resolve('fonts'), probePath, '<ts-symmetry-left>', '--field', 'value', '--one'],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+      const widthOut = execFileSync(
+        'typst',
+        ['query', '--font-path', resolve('fonts'), probePath, '<ts-symmetry-width>', '--field', 'value', '--one'],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+      const leftMm = Number(JSON.parse(leftOut.toString()));
+      const widthMm = Number(JSON.parse(widthOut.toString()));
+      const rightMm = leftMm + widthMm;
+      const textAreaLeftMm = symmetryMarginMm;
+      const textAreaRightMm = symmetryPaperWidthMm - symmetryMarginMm;
+      const leftGapMm = leftMm - textAreaLeftMm;
+      const rightGapMm = textAreaRightMm - rightMm;
+      if (Math.abs(leftGapMm - rightGapMm) > SYMMETRY_TOLERANCE_MM) {
+        fail.push('implementations/typeset.typ: the measure block is not centred in the text area — '
+          + `on ${spec.foundation.page.size} at the ${symmetryMarginName} margin it sits `
+          + `${leftGapMm.toFixed(2)}mm from the left edge of the text area and ${rightGapMm.toFixed(2)}mm `
+          + `from the right, but foundation.rhythm.measure_position says the surplus between the `
+          + 'measure and the text width must split evenly. A block that is centred correctly has '
+          + 'these equal within 0.01mm; a block flush to one edge (the original defect) has one of '
+          + 'them at 0mm and the other at the full surplus.');
+      }
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+      fail.push(`implementations/typeset.typ: could not render the symmetry probe:\n${detail}`);
+    }
+  } finally {
+    rmSync(symmetryProbeDir, { recursive: true, force: true });
+  }
+}
+
+/* CSS has no headless renderer on this checker's PATH (gate 21's own note,
+   above), so the rendered proof above is Typst-only. What is checked here
+   instead is the one CSS mechanism the render depends on: `margin-inline:
+   auto` is not a heuristic the way "does this read like it centres things"
+   would be — the CSS box model guarantees an auto-margined block with a
+   narrower-than-container width centres exactly, on any conformant engine,
+   so declaring it is as strong a proof as rendering it. `.typeset--sidenotes`
+   is checked to still override it back to flush-left: the measure narrows
+   there to free a reserved margin for `.ts-note-sidenote`, entirely on the
+   right, and centring would split that reservation instead of keeping it
+   whole — see the rule's own comment in typeset.css. */
+{
+  const measureRule = cssLeafRules.find((r) => normalizeSelector(r.selectors) === '.typeset > *');
+  if (!measureRule) {
+    fail.push('typeset.css: no rule selects exactly ".typeset > *" — the measure/centring rule was not found');
+  } else {
+    const decls = parseDeclarations(measureRule.decls);
+    const marginInline = decls.get('margin-inline');
+    const centred = marginInline === 'auto'
+      || (decls.get('margin-left') === 'auto' && decls.get('margin-right') === 'auto');
+    if (!centred) {
+      fail.push('typeset.css: ".typeset > *" does not declare `margin-inline: auto` (or `margin-left`/'
+        + '`margin-right: auto`), so a measure narrower than the text area sits flush left instead of '
+        + 'centred — foundation.rhythm.measure_position');
+    }
+  }
+
+  const sidenotesRule = cssLeafRules.find((r) => normalizeSelector(r.selectors) === '.typeset--sidenotes > *');
+  if (!sidenotesRule) {
+    fail.push('typeset.css: no rule selects exactly ".typeset--sidenotes > *" — the exemption that keeps '
+      + 'the reserved sidenote margin flush right was not found');
+  } else {
+    const decls = parseDeclarations(sidenotesRule.decls);
+    const flushLeft = decls.get('margin-inline') === '0'
+      || (decls.get('margin-left') === '0' && decls.get('margin-right') === '0');
+    if (!flushLeft) {
+      fail.push('typeset.css: ".typeset--sidenotes > *" does not reset `margin-inline` back to `0`, so '
+        + 'the general centring rule would split the sidenote-reserved margin instead of leaving it '
+        + 'whole on the right');
+    }
+  }
+}
+
+/* ---- 23. Sidenotes: the opt-in reserves spec.json's own numbers, in both
+            implementations, and refuses to place a note without it -------- */
+
+/* note-sidenote's four numbers — measure_when_active, reserved_margin, width,
+   and the "2em" gap named in its own position prose — were hand-copied into
+   typeset.typ (measure-sidenote, sidenote-reserved-margin, sidenote-note-width,
+   sidenote-gap) and into typeset.css (.typeset--sidenotes's --ts-measure and
+   padding-right), and nothing before this gate compared either copy to
+   spec.json — the exact shape gate 7 above already found for the six named
+   margins, on a different element. */
+
+const sidenoteEl = spec.sections.flatMap((s) => s.elements).find((e) => e.id === 'note-sidenote');
+if (!sidenoteEl) {
+  fail.push('spec.json: no element with id "note-sidenote" — gate 23 cannot check the sidenotes opt-in '
+    + 'against it');
+} else {
+  const props = sidenoteEl.properties;
+  const measureWhenActiveEm = /^([\d.]+)em$/.exec(props.measure_when_active ?? '')?.[1];
+  const reservedMarginEm = /^([\d.]+)em\b/.exec(props.reserved_margin ?? '')?.[1];
+  const widthEm = /^([\d.]+)em$/.exec(props.width ?? '')?.[1];
+  const gapEm = /(\d+(?:\.\d+)?)em past/.exec(props.position ?? '')?.[1];
+
+  if (!measureWhenActiveEm) {
+    fail.push(`spec.json: note-sidenote.properties.measure_when_active ("${props.measure_when_active}") `
+      + 'is not a plain em value this gate can parse');
+  }
+  if (!reservedMarginEm) {
+    fail.push(`spec.json: note-sidenote.properties.reserved_margin ("${props.reserved_margin}") does not `
+      + 'start with a plain em value this gate can parse');
+  }
+  if (!widthEm) {
+    fail.push(`spec.json: note-sidenote.properties.width ("${props.width}") is not a plain em value`);
+  }
+  if (!gapEm) {
+    fail.push(`spec.json: note-sidenote.properties.position ("${props.position}") does not name an `
+      + '"Nem past" this gate can parse for the gap');
+  }
+
+  /* typeset.typ: the four #let constants. */
+  const typLetEm = (name) => new RegExp(`#let ${name} = ([\\d.]+)em\\b`).exec(typ)?.[1];
+  const typChecks = [
+    ['measure-sidenote', measureWhenActiveEm, 'measure_when_active', props.measure_when_active],
+    ['sidenote-reserved-margin', reservedMarginEm, 'reserved_margin', props.reserved_margin],
+    ['sidenote-note-width', widthEm, 'width', props.width],
+    ['sidenote-gap', gapEm, "position's \"Nem past\"", props.position],
+  ];
+  for (const [letName, expectedEm, specField, specValue] of typChecks) {
+    if (expectedEm === undefined) continue; // already reported above
+    const actual = typLetEm(letName);
+    if (actual === undefined) {
+      fail.push(`typeset.typ: #let ${letName} was not found, or is not a plain em value`);
+    } else if (actual !== expectedEm) {
+      fail.push(`typeset.typ: ${letName} is ${actual}em, but note-sidenote.${specField} `
+        + `("${specValue}") is ${expectedEm}em`);
+    }
+  }
+
+  /* typeset.css: .typeset--sidenotes's --ts-measure and padding-right. */
+  const sidenotesContainerRule = cssLeafRules.find((r) => normalizeSelector(r.selectors) === '.typeset--sidenotes');
+  if (!sidenotesContainerRule) {
+    fail.push('typeset.css: no rule selects exactly ".typeset--sidenotes" — cannot check its measure/padding '
+      + 'against spec.json');
+  } else {
+    const decls = parseDeclarations(sidenotesContainerRule.decls);
+    const cssMeasure = decls.get('--ts-measure');
+    const cssMeasureEm = /^([\d.]+)em$/.exec(cssMeasure ?? '')?.[1];
+    if (cssMeasureEm === undefined) {
+      fail.push(`typeset.css: .typeset--sidenotes's --ts-measure ("${cssMeasure}") is not a plain em value`);
+    } else if (measureWhenActiveEm !== undefined && cssMeasureEm !== measureWhenActiveEm) {
+      fail.push(`typeset.css: .typeset--sidenotes declares --ts-measure: ${cssMeasure}, but `
+        + `note-sidenote.measure_when_active is ${props.measure_when_active}`);
+    }
+
+    const cssPadding = decls.get('padding-right');
+    const cssPaddingEm = /^([\d.]+)em$/.exec(cssPadding ?? '')?.[1];
+    if (cssPaddingEm === undefined) {
+      fail.push(`typeset.css: .typeset--sidenotes's padding-right ("${cssPadding}") is not a plain em value`);
+    } else if (reservedMarginEm !== undefined && cssPaddingEm !== reservedMarginEm) {
+      fail.push(`typeset.css: .typeset--sidenotes declares padding-right: ${cssPadding}, but `
+        + `note-sidenote.reserved_margin ("${props.reserved_margin}") is ${reservedMarginEm}em`);
+    }
+  }
+}
+
+/* Rendered proof, both directions — the same lesson as gate 22: a source
+   check cannot see whether note-sidenote() actually refuses, only whether
+   the code that might refuse is present. */
+{
+  const sidenoteProbeDir = mkdtempSync(join(tmpdir(), 'typeset-sidenote-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(sidenoteProbeDir, 'typeset.typ'));
+
+    const okPath = join(sidenoteProbeDir, 'ok.typ');
+    writeFileSync(okPath, '#import "typeset.typ": *\n#show: typeset.with(sidenotes: true)\n'
+      + 'Body text long enough to hold a note.#note-sidenote[A note.]\n');
+    try {
+      execFileSync(
+        'typst',
+        ['compile', '--font-path', resolve('fonts'), okPath, join(sidenoteProbeDir, 'ok.pdf')],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+      fail.push(`typeset.typ: note-sidenote() under typeset(sidenotes: true) does not compile:\n${detail}`);
+    }
+
+    const refusedPath = join(sidenoteProbeDir, 'refused.typ');
+    writeFileSync(refusedPath, '#import "typeset.typ": *\n#show: typeset\n'
+      + 'Body text without the opt-in.#note-sidenote[A note.]\n');
+    let refused = false;
+    let refusalDetail = '';
+    try {
+      execFileSync(
+        'typst',
+        ['compile', '--font-path', resolve('fonts'), refusedPath, join(sidenoteProbeDir, 'refused.pdf')],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+    } catch (err) {
+      refused = true;
+      refusalDetail = err.stderr ? err.stderr.toString() : String(err.message || err);
+    }
+    if (!refused) {
+      fail.push('typeset.typ: note-sidenote() compiled without typeset(sidenotes: true) — it should refuse, '
+        + 'the same way a note landed with nothing reserving its margin is the failure this task fixed, '
+        + 'with a different cause');
+    } else if (!/sidenotes: true/.test(refusalDetail)) {
+      fail.push('typeset.typ: note-sidenote() refused without typeset(sidenotes: true) as expected, but not '
+        + `with a message naming the fix — got:\n${refusalDetail.trim()}`);
+    }
+  } finally {
+    rmSync(sidenoteProbeDir, { recursive: true, force: true });
+  }
+}
+
+/* CSS cannot refuse to compile the way Typst can panic, so the nearest
+   available gate is source-level: nowhere this repo ships may
+   "ts-note-sidenote" appear without either "typeset--sidenotes" (which
+   reserves its margin) or "typeset--two-column" (which has its own,
+   deliberate degrade to an inline aside, .typeset--two-column
+   .ts-note-sidenote in typeset.css — templates.two-column.forbidden.sidenote
+   is "no margin to put it in", not "no sidenote markup allowed") in the same
+   file. Without either, the note has nothing reserving its margin and lands
+   wherever the ambient measure's slack happens to be, unmeasured and
+   unguarded. */
+for (const dir of ['src/demos', 'examples']) {
+  for (const file of readdirSync(dir).filter((f) => f.endsWith('.html'))) {
+    const contents = readFileSync(`${dir}/${file}`, 'utf8');
+    if (contents.includes('ts-note-sidenote') && !contents.includes('typeset--sidenotes')
+      && !contents.includes('typeset--two-column')) {
+      fail.push(`${dir}/${file}: uses "ts-note-sidenote" without "typeset--sidenotes" or `
+        + '"typeset--two-column" anywhere in the file — the note has nothing reserving its margin, '
+        + 'and no degrade path either');
     }
   }
 }

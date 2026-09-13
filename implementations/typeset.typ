@@ -152,11 +152,32 @@
 #let measure-narrow = 27em
 #let measure-wide = 40em
 
+// The measure typeset(sidenotes: true) narrows to — spec.json's
+// note-sidenote.properties.measure_when_active, tools/check.mjs gate 22
+// holds it to that value. Its own name rather than a reuse of measure-narrow:
+// the two happen to agree today, but they state different things (a column
+// narrowed to taste, against the exact width sidenotes need freed), and a
+// future edit to either must not silently move the other.
+#let measure-sidenote = 27em
+
+// The margin typeset(sidenotes: true) reserves on the right, unsplit, for
+// note-sidenote() to place into — spec.json's
+// note-sidenote.properties.reserved_margin ("14em — the gap plus the note,
+// with an em to spare"), gated the same way as measure-sidenote above.
+#let sidenote-reserved-margin = 14em
+
 // The page's own text block, published by _typeset-styles — which is where a
 // layout() at the top of the document measures it directly, so nothing here
 // has to do arithmetic over the several shapes a margin can take, and a
 // duplex margin's two different sides come out right on both parities.
 #let ts-text-width = state("ts-text-width", none)
+
+// Whether the current document opted into typeset(sidenotes: true).
+// note-sidenote() reads this and refuses to place a note where nothing
+// reserved it room — see note-sidenote's own comment, near its definition,
+// for why a silent placement is the same failure centring was fixing,
+// with a different cause.
+#let ts-sidenotes-active = state("ts-sidenotes-active", false)
 
 // The fourth width, and the only one that is not a number: the full text
 // block. A length here could only ever be ONE paper's — A4 at the standard
@@ -183,13 +204,40 @@
 // Where no template has published one (a bare document, or inside two
 // columns, where the column is the measure), the enclosing block is the only
 // text block there is and measure-full is that.
+//
+// Every branch centres its block, per foundation.rhythm.measure_position: a
+// width narrower than the ambient container sits in the middle of it, not
+// flush left, the same rule _typeset-styles applies to the document's own
+// measure above. Because that ambient container is itself centred in the
+// page's text width, a width WIDER than it — measure-full's whole point — ends
+// up centred in the page too, sharing one axis rather than compounding two
+// different left edges.
+//
+// Centring is `pad()`, on purpose, not `align(center, ..)`: align sets the
+// ambient alignment, and a paragraph's ragged side reads that same ambient
+// state to decide where ITS OWN slack goes — align(center) on the block
+// would have every line of ragged-right prose centre individually, each by
+// half of ITS OWN shortfall, which is a document set at `justified: false`
+// quietly rendered as centred text instead. `pad()` moves the box without
+// touching that state: a negative inset is what lets a wider escape
+// (measure-full, inside a narrower ambient) push past its container
+// symmetrically, which a plain `block()` positioned by alignment cannot do
+// at all.
 #let measured(width: measure-standard, body) = if width != auto {
-  block(width: width, body)
+  layout(size => {
+    let inset = (size.width - width) / 2
+    pad(left: inset, right: inset, block(width: width, body))
+  })
 } else {
   context {
     let full = ts-text-width.get()
     if full == none { layout(size => block(width: size.width, body)) }
-    else { block(width: full, body) }
+    else {
+      layout(size => {
+        let inset = (size.width - full) / 2
+        pad(left: inset, right: inset, block(width: full, body))
+      })
+    }
   }
 }
 
@@ -252,6 +300,7 @@
   indented: false,
   numbered: false,
   measure: measure-standard,
+  sidenotes: false,
   doc,
 ) = {
   let sm = scale.sm
@@ -417,11 +466,42 @@
   // measure is resolved to absolute units first, because it is as often given
   // in ems as in millimetres — except measure-full, which is `auto` and IS the
   // page, so it is the width this layout() just measured.
+  //
+  // Centred, per foundation.rhythm.measure_position: where the measure is
+  // narrower than the page's own text width, the surplus splits evenly on
+  // both sides rather than landing on the right alone. Two columns take the
+  // `measure == none` branch above and never reach this pad — the column IS
+  // the measure there, with no surplus to split.
+  //
+  // `pad()`, not `align(center, ..)`: align sets the ambient alignment a
+  // paragraph's ragged side reads to place its own slack, so aligning the
+  // whole block would centre every line of ragged-right prose individually
+  // instead of moving the block — see measured()'s own note on the same
+  // trap, just above.
+  //
+  // Sidenotes are the one exception to measure_position, and the spec names
+  // it as one: `sidenotes: true` narrows the measure to measure-sidenote and
+  // reserves sidenote-reserved-margin after it, unsplit — that band is the
+  // note's, not slack to centre away, the same reasoning typeset.css's own
+  // `.typeset--sidenotes` exemption states. ts-text-width is updated to the
+  // space left AFTER the reservation, so a #measured(width: measure-full)
+  // escape inside a sidenotes document respects the same margin
+  // note-sidenote() places into, instead of running text underneath it.
+  ts-sidenotes-active.update(sidenotes)
+  let measure = if sidenotes { measure-sidenote } else { measure }
   if measure == none { doc } else {
     layout(size => context {
-      ts-text-width.update(size.width)
-      block(width: if measure == auto { size.width }
-        else { calc.min(measure.to-absolute(), size.width) }, doc)
+      if sidenotes {
+        let available = size.width - sidenote-reserved-margin.to-absolute()
+        ts-text-width.update(available)
+        block(width: calc.min(measure.to-absolute(), available), doc)
+      } else {
+        ts-text-width.update(size.width)
+        let clamped = if measure == auto { size.width }
+          else { calc.min(measure.to-absolute(), size.width) }
+        let inset = (size.width - clamped) / 2
+        pad(left: inset, right: inset, block(width: clamped, doc))
+      }
     })
   }
 }
@@ -447,6 +527,13 @@
   // `measure-full` where the text block IS the measure, whatever the paper,
   // and `none` where the column is, as in two columns.
   measure: measure-standard,
+  // spec.json's note-sidenote.opt_in, this file's counterpart to
+  // typeset.css's `.typeset--sidenotes`: overrides `measure` to
+  // measure-sidenote and reserves sidenote-reserved-margin on the right,
+  // flush, for #note-sidenote() to place into. Forbidden in two-column,
+  // which has no `sidenotes` parameter to reach for — there is no margin
+  // to give (templates.two-column.forbidden.sidenote).
+  sidenotes: false,
   doc,
 ) = _typeset-page(
   paper: paper,
@@ -460,6 +547,7 @@
     indented: indented,
     numbered: numbered,
     measure: measure,
+    sidenotes: sidenotes,
     doc,
   ),
 )
@@ -1053,15 +1141,25 @@
 // ── Letter ──────────────────────────────────────────────────────────────────
 
 // @s letter
-// A letter's page, and the letter's document setup: a deeper top margin than
-// foot or sides, so the sender block sits where an envelope window expects it,
-// and no running head or folio. A letter opens with this in place of
-// `#show: typeset` — the two cannot be stacked, because typeset() sets the page
-// and a page configuration underneath it sits inside a container, where Typst
-// refuses one.
+// A letter's page is the symmetric default (margin-standard) with one edge
+// deepened: letterhead-band, added to the top alone, is the room an envelope
+// window expects above the sender block. The bottom and sides carry no
+// comparable reason — spec.json's letter-page.notes says why — so they stay
+// margin-standard's own rather than a bespoke number of their own. A letter
+// opens with this in place of `#show: typeset` — the two cannot be stacked,
+// because typeset() sets the page and a page configuration underneath it
+// sits inside a container, where Typst refuses one.
+#let letterhead-band = 12mm
+#let letter-margin = (
+  top: margin-standard.top + letterhead-band,
+  bottom: margin-standard.bottom,
+  left: margin-standard.left,
+  right: margin-standard.right,
+)
+
 #let letter-page(
   paper: "a4",
-  margin: (top: 32mm, bottom: 28mm, left: 25mm, right: 25mm),
+  margin: letter-margin,
   doc,
 ) = {
   show: typeset.with(
@@ -1144,18 +1242,45 @@
 // @e
 
 // @s note
-// Anchored past the text column's right edge. In Typst the column width is
-// explicit (the `measure` argument), so the offset is taken from it directly.
-#let note-sidenote(body) = place(
-  right,
-  dx: 13em,
-  dy: -0.3em,
-  block(width: 11em, {
-    set text(font: sans, size: xs, fill: ink-muted)
-    set par(justify: false, leading: leading-for(1.4), first-line-indent: 0pt)
-    body
-  }),
-)
+// The note's own width and its gap from the column's right edge — spec.json's
+// note-sidenote.properties.width and the "2em" in its properties.position,
+// gated the same way as measure-sidenote and sidenote-reserved-margin above.
+#let sidenote-note-width = 11em
+#let sidenote-gap = 2em
+
+// Anchored past the text column's right edge, per spec.json's own words for
+// note-sidenote's position ("2em past the text column's own right edge"), NOT
+// past the measure: `measure` is a maximum, so where the reserved margin is
+// the binding constraint the column is narrower than it, and an offset taken
+// from the measure would land on top of the text — the same trap the spec's
+// own note names.
+//
+// Requires typeset(sidenotes: true): that option is what reserves
+// sidenote-reserved-margin for this note to land in. Without it, dx: 13em
+// places the note wherever the ambient measure's own right edge happens to
+// be, which nothing has set aside — on top of following text, off the page,
+// or (worse) just barely inside it, indistinguishable from correct until
+// someone measures the margin. A silent, ungoverned placement is exactly the
+// failure centring the measure was fixing, with a different cause, so this
+// refuses instead.
+#let note-sidenote(body) = context {
+  assert(
+    ts-sidenotes-active.get(),
+    message: "note-sidenote() was called without typeset(sidenotes: true) — sidenotes reserve "
+      + repr(sidenote-reserved-margin) + " of margin for this note to land in "
+      + "(spec.json's note-sidenote.reserved_margin), and nothing reserves it without the opt-in",
+  )
+  place(
+    right,
+    dx: sidenote-gap + sidenote-note-width,
+    dy: -0.3em,
+    block(width: sidenote-note-width, {
+      set text(font: sans, size: xs, fill: ink-muted)
+      set par(justify: false, leading: leading-for(1.4), first-line-indent: 0pt)
+      body
+    }),
+  )
+}
 // @e
 
 // ── Utilities ───────────────────────────────────────────────────────────────

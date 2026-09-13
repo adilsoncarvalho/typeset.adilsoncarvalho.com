@@ -3,10 +3,13 @@
 // the CSS example degrades to the numbered endnote block the spec names as the
 // fallback, and its sidenotes are shown as a separate full-page example.
 //
-// Sidenotes are paid for out of the measure, so the whole document narrows to
-// 27em rather than one block inside it: the notes sit in the margin the
-// narrowing frees, which is a property of the page, not of a container.
-#show: typeset.with(measure: 27em)
+// Sidenotes are paid for out of the measure, so the whole document narrows
+// rather than one block inside it: the notes sit in the margin the narrowing
+// frees, which is a property of the page, not of a container. `sidenotes:
+// true` is what reserves that margin — note-sidenote() below refuses to
+// place a note without it, rather than land one wherever the ambient measure
+// happens to end.
+#show: typeset.with(sidenotes: true)
 
 Bringhurst puts the ideal measure between 45 and 75
 characters,#footnote[Robert Bringhurst, _The Elements of Typographic Style_,

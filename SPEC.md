@@ -145,6 +145,7 @@ A normative typographic specification for printed documents — essays, letters,
 | measure mm | `128` |
 | measure chars | `66` |
 | measure note | The single largest legibility lever. Past about 75 characters the return sweep fails and readers re-read lines without noticing; below 45 the eye fixates too often. `measure` is canonical — an em measure follows a type-scale change, where a millimetre one does not. `measure_mm` is derived from it, 33 × the 11pt base, and is kept only as a millimetre convenience for readers who think in paper dimensions; tools/check.mjs asserts the two agree. |
+| measure position | Centred, not flush to one edge. The measure is a maximum column width; where foundation.page's text_width (the paper less its margins) is wider than it, the surplus splits evenly between the two sides of the column, so the column sits in the middle of the text area. A template whose measure IS the column, with no surplus to split, is exempt — templates.two-column names its own exemption. |
 
 #### measure variants
 
@@ -303,6 +304,7 @@ Default: `single-column`
 | space | `9.5pt` |
 | measure | the column — 82mm, not a character count |
 | measure chars | `49` |
+| measure position | exempt from foundation.rhythm.measure_position — the column has no surplus to split, because the column IS the measure. Centring would have nothing to act on. |
 | note | Leading tightens with the measure: a shorter line needs less vertical separation to keep the return sweep unambiguous. |
 
 #### requirements
@@ -1556,12 +1558,12 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | Property | Value |
 | --- | --- |
 | margin top mm | `32` |
-| margin bottom mm | `28` |
-| margin sides mm | `25` |
+| margin bottom mm | `20` |
+| margin sides mm | `20` |
 | running head | `none` |
 | folio | `none` |
 
-> The deeper top margin puts the letterhead where an envelope window expects it.
+> The deeper top margin puts the letterhead where an envelope window expects it — the symmetric default plus derivation.letterhead_band_mm. The bottom and sides carry no comparable reason: this section's own principles say nothing about margins at all, so they are the symmetric default, undecorated, rather than a bespoke number wearing a name.
 
 ##### Sender block
 

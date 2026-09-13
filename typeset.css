@@ -48,9 +48,16 @@
   font-feature-settings: "liga" 1, "kern" 1;
 }
 
-/* Measure is a property of the text column, not the page. */
+/* Measure is a property of the text column, not the page. Centred, not flush
+   to one edge: foundation.rhythm.measure_position — where the measure is
+   narrower than the page's own text width, the surplus splits evenly on
+   both sides. `margin-inline: auto` is inert wherever there is no surplus
+   (measure: none in two columns, or any block already at 100%), so it needs
+   no opt-out for those; `.typeset--sidenotes` is the one case that DOES
+   carry a surplus and still wants it flush, and it resets this back below. */
 .typeset > * {
   max-width: var(--ts-measure);
+  margin-inline: auto;
 }
 
 .typeset--measure-wide { --ts-measure: 40em; }
@@ -750,6 +757,11 @@
 /* The reserved margin must be wide enough for the gap plus the note: 2em + 11em
    here, with an em to spare. */
 .typeset--sidenotes { --ts-measure: 27em; padding-right: 14em; }
+/* Exempt from foundation.rhythm.measure_position: the narrowed measure here
+   is not a column asking to sit in the middle of the page, it is the price
+   of the reserved margin above, and that margin has to stay wholly on the
+   right, where .ts-note-sidenote's own offset (below) expects to find it. */
+.typeset--sidenotes > * { margin-inline: 0; }
 .typeset--sidenotes p { position: relative; }
 .typeset .ts-note-sidenote {
   position: absolute;
@@ -969,12 +981,15 @@
 /*! @e */
 
 /*! @s letter :: Letter */
-/* @style letter-page — a letter's own page: no running head, no folio, and a
-   deeper top margin than foot or sides so the sender block sits where an
-   envelope window expects it. */
+/* @style letter-page — a letter's own page: no running head, no folio, and
+   the symmetric default (foundation.page.margins.symmetric_mm.standard, 20mm)
+   on every edge, deepened on top alone by letter-page.derivation.letterhead_band_mm
+   (12mm) so the sender block sits where an envelope window expects it. The
+   bottom and sides carry no comparable reason — letter-page's own notes say
+   why — and stay the default, undecorated. */
 .typeset--letter { page: ts-letter; }
 @page ts-letter {
-  margin: 32mm 25mm 28mm;
+  margin: 32mm 20mm 20mm;   /* top: 20mm standard + 12mm letterhead_band_mm; sides/bottom: 20mm standard */
   @top-center { content: none; }
   @bottom-center { content: none; }
 }
