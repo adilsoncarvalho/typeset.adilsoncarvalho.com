@@ -1913,6 +1913,13 @@ const INTERNAL_SYMBOLS = new Set([
   /* the page's own text block, published by _typeset-styles and read by
      measured() to resolve measure-full — not a style itself */
   'ts-text-width',
+  /* typeset(sidenotes: true)'s own derived constants — spec.json's
+     note-sidenote.properties.measure_when_active/reserved_margin/width, and
+     the "2em" in its properties.position — and the state that gates
+     note-sidenote() on the opt-in actually having been used. Not styles
+     themselves; note-sidenote is (it names the spec element id directly). */
+  'measure-sidenote', 'sidenote-reserved-margin', 'sidenote-note-width', 'sidenote-gap',
+  'ts-sidenotes-active',
 ]);
 
 /* Engine element functions this file re-publishes under a second name. Not
@@ -2855,6 +2862,162 @@ if (!symmetryPaperTypKey) {
       fail.push('typeset.css: ".typeset--sidenotes > *" does not reset `margin-inline` back to `0`, so '
         + 'the general centring rule would split the sidenote-reserved margin instead of leaving it '
         + 'whole on the right');
+    }
+  }
+}
+
+/* ---- 23. Sidenotes: the opt-in reserves spec.json's own numbers, in both
+            implementations, and refuses to place a note without it -------- */
+
+/* note-sidenote's four numbers — measure_when_active, reserved_margin, width,
+   and the "2em" gap named in its own position prose — were hand-copied into
+   typeset.typ (measure-sidenote, sidenote-reserved-margin, sidenote-note-width,
+   sidenote-gap) and into typeset.css (.typeset--sidenotes's --ts-measure and
+   padding-right), and nothing before this gate compared either copy to
+   spec.json — the exact shape gate 7 above already found for the six named
+   margins, on a different element. */
+
+const sidenoteEl = spec.sections.flatMap((s) => s.elements).find((e) => e.id === 'note-sidenote');
+if (!sidenoteEl) {
+  fail.push('spec.json: no element with id "note-sidenote" — gate 23 cannot check the sidenotes opt-in '
+    + 'against it');
+} else {
+  const props = sidenoteEl.properties;
+  const measureWhenActiveEm = /^([\d.]+)em$/.exec(props.measure_when_active ?? '')?.[1];
+  const reservedMarginEm = /^([\d.]+)em\b/.exec(props.reserved_margin ?? '')?.[1];
+  const widthEm = /^([\d.]+)em$/.exec(props.width ?? '')?.[1];
+  const gapEm = /(\d+(?:\.\d+)?)em past/.exec(props.position ?? '')?.[1];
+
+  if (!measureWhenActiveEm) {
+    fail.push(`spec.json: note-sidenote.properties.measure_when_active ("${props.measure_when_active}") `
+      + 'is not a plain em value this gate can parse');
+  }
+  if (!reservedMarginEm) {
+    fail.push(`spec.json: note-sidenote.properties.reserved_margin ("${props.reserved_margin}") does not `
+      + 'start with a plain em value this gate can parse');
+  }
+  if (!widthEm) {
+    fail.push(`spec.json: note-sidenote.properties.width ("${props.width}") is not a plain em value`);
+  }
+  if (!gapEm) {
+    fail.push(`spec.json: note-sidenote.properties.position ("${props.position}") does not name an `
+      + '"Nem past" this gate can parse for the gap');
+  }
+
+  /* typeset.typ: the four #let constants. */
+  const typLetEm = (name) => new RegExp(`#let ${name} = ([\\d.]+)em\\b`).exec(typ)?.[1];
+  const typChecks = [
+    ['measure-sidenote', measureWhenActiveEm, 'measure_when_active', props.measure_when_active],
+    ['sidenote-reserved-margin', reservedMarginEm, 'reserved_margin', props.reserved_margin],
+    ['sidenote-note-width', widthEm, 'width', props.width],
+    ['sidenote-gap', gapEm, "position's \"Nem past\"", props.position],
+  ];
+  for (const [letName, expectedEm, specField, specValue] of typChecks) {
+    if (expectedEm === undefined) continue; // already reported above
+    const actual = typLetEm(letName);
+    if (actual === undefined) {
+      fail.push(`typeset.typ: #let ${letName} was not found, or is not a plain em value`);
+    } else if (actual !== expectedEm) {
+      fail.push(`typeset.typ: ${letName} is ${actual}em, but note-sidenote.${specField} `
+        + `("${specValue}") is ${expectedEm}em`);
+    }
+  }
+
+  /* typeset.css: .typeset--sidenotes's --ts-measure and padding-right. */
+  const sidenotesContainerRule = cssLeafRules.find((r) => normalizeSelector(r.selectors) === '.typeset--sidenotes');
+  if (!sidenotesContainerRule) {
+    fail.push('typeset.css: no rule selects exactly ".typeset--sidenotes" — cannot check its measure/padding '
+      + 'against spec.json');
+  } else {
+    const decls = parseDeclarations(sidenotesContainerRule.decls);
+    const cssMeasure = decls.get('--ts-measure');
+    const cssMeasureEm = /^([\d.]+)em$/.exec(cssMeasure ?? '')?.[1];
+    if (cssMeasureEm === undefined) {
+      fail.push(`typeset.css: .typeset--sidenotes's --ts-measure ("${cssMeasure}") is not a plain em value`);
+    } else if (measureWhenActiveEm !== undefined && cssMeasureEm !== measureWhenActiveEm) {
+      fail.push(`typeset.css: .typeset--sidenotes declares --ts-measure: ${cssMeasure}, but `
+        + `note-sidenote.measure_when_active is ${props.measure_when_active}`);
+    }
+
+    const cssPadding = decls.get('padding-right');
+    const cssPaddingEm = /^([\d.]+)em$/.exec(cssPadding ?? '')?.[1];
+    if (cssPaddingEm === undefined) {
+      fail.push(`typeset.css: .typeset--sidenotes's padding-right ("${cssPadding}") is not a plain em value`);
+    } else if (reservedMarginEm !== undefined && cssPaddingEm !== reservedMarginEm) {
+      fail.push(`typeset.css: .typeset--sidenotes declares padding-right: ${cssPadding}, but `
+        + `note-sidenote.reserved_margin ("${props.reserved_margin}") is ${reservedMarginEm}em`);
+    }
+  }
+}
+
+/* Rendered proof, both directions — the same lesson as gate 22: a source
+   check cannot see whether note-sidenote() actually refuses, only whether
+   the code that might refuse is present. */
+{
+  const sidenoteProbeDir = mkdtempSync(join(tmpdir(), 'typeset-sidenote-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(sidenoteProbeDir, 'typeset.typ'));
+
+    const okPath = join(sidenoteProbeDir, 'ok.typ');
+    writeFileSync(okPath, '#import "typeset.typ": *\n#show: typeset.with(sidenotes: true)\n'
+      + 'Body text long enough to hold a note.#note-sidenote[A note.]\n');
+    try {
+      execFileSync(
+        'typst',
+        ['compile', '--font-path', resolve('fonts'), okPath, join(sidenoteProbeDir, 'ok.pdf')],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+      fail.push(`typeset.typ: note-sidenote() under typeset(sidenotes: true) does not compile:\n${detail}`);
+    }
+
+    const refusedPath = join(sidenoteProbeDir, 'refused.typ');
+    writeFileSync(refusedPath, '#import "typeset.typ": *\n#show: typeset\n'
+      + 'Body text without the opt-in.#note-sidenote[A note.]\n');
+    let refused = false;
+    let refusalDetail = '';
+    try {
+      execFileSync(
+        'typst',
+        ['compile', '--font-path', resolve('fonts'), refusedPath, join(sidenoteProbeDir, 'refused.pdf')],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+    } catch (err) {
+      refused = true;
+      refusalDetail = err.stderr ? err.stderr.toString() : String(err.message || err);
+    }
+    if (!refused) {
+      fail.push('typeset.typ: note-sidenote() compiled without typeset(sidenotes: true) — it should refuse, '
+        + 'the same way a note landed with nothing reserving its margin is the failure this task fixed, '
+        + 'with a different cause');
+    } else if (!/sidenotes: true/.test(refusalDetail)) {
+      fail.push('typeset.typ: note-sidenote() refused without typeset(sidenotes: true) as expected, but not '
+        + `with a message naming the fix — got:\n${refusalDetail.trim()}`);
+    }
+  } finally {
+    rmSync(sidenoteProbeDir, { recursive: true, force: true });
+  }
+}
+
+/* CSS cannot refuse to compile the way Typst can panic, so the nearest
+   available gate is source-level: nowhere this repo ships may
+   "ts-note-sidenote" appear without either "typeset--sidenotes" (which
+   reserves its margin) or "typeset--two-column" (which has its own,
+   deliberate degrade to an inline aside, .typeset--two-column
+   .ts-note-sidenote in typeset.css — templates.two-column.forbidden.sidenote
+   is "no margin to put it in", not "no sidenote markup allowed") in the same
+   file. Without either, the note has nothing reserving its margin and lands
+   wherever the ambient measure's slack happens to be, unmeasured and
+   unguarded. */
+for (const dir of ['src/demos', 'examples']) {
+  for (const file of readdirSync(dir).filter((f) => f.endsWith('.html'))) {
+    const contents = readFileSync(`${dir}/${file}`, 'utf8');
+    if (contents.includes('ts-note-sidenote') && !contents.includes('typeset--sidenotes')
+      && !contents.includes('typeset--two-column')) {
+      fail.push(`${dir}/${file}: uses "ts-note-sidenote" without "typeset--sidenotes" or `
+        + '"typeset--two-column" anywhere in the file — the note has nothing reserving its margin, '
+        + 'and no degrade path either');
     }
   }
 }
