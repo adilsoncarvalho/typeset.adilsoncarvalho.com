@@ -34,7 +34,7 @@ export const SNAPSHOT = 'tools/legacy-urls.json';
    tools/, src/ and docs/ are deliberately absent: they ship, but nothing
    publishes a URL into them, and a file renamed there is ordinary churn
    rather than a broken inbound link. */
-const PAGE_DIRS = ['.', 'files', 'examples', 'proofs', 'spec', 'templates'];
+export const PAGE_DIRS = ['.', 'files', 'examples', 'proofs', 'spec', 'templates'];
 
 /* Line-number anchors on a viewer page — files/typeset-css.html carries one
    per line of the stylesheet. The ones a panel actually links to arrive
@@ -64,7 +64,9 @@ export function derivedPaths() {
     .filter((f) => f.endsWith('.mjs') && f !== 'legacy-urls.mjs')
     .map((f) => read(`tools/${f}`))
     .join('\n');
-  for (const m of tools.matchAll(/['"`]([\w.-]+\.(?:zip|iatemplate\.zip))['"`]/g)) {
+  /* A basename, so the leading-dot form in an endsWith('.iatemplate.zip')
+     test is not read as a file downloads/ will contain. */
+  for (const m of tools.matchAll(/['"`]([\w-][\w.-]*\.(?:zip|iatemplate\.zip))['"`]/g)) {
     paths.add(`downloads/${m[1]}`);
   }
   for (const m of tools.matchAll(/downloads\/([\w.-]+)/g)) paths.add(`downloads/${m[1]}`);
@@ -144,7 +146,7 @@ export function siteUrl(fromPage, href) {
   return out.join('/') + (joined.endsWith('/') ? '/' : '');
 }
 
-function pages() {
+export function pages() {
   const found = [];
   for (const dir of PAGE_DIRS) {
     if (!existsSync(dir)) continue;

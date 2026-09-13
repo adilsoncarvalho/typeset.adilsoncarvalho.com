@@ -25,7 +25,7 @@
     "lang": "css",
     "description": "The CSS implementation. Everything is scoped to .typeset, so it cannot leak into surrounding markup. Drop it in and add the class.",
     "lede": "The CSS implementation. Everything is scoped to <code>.typeset</code>, so it cannot leak into surrounding markup. Drop it in and add the class.",
-    "extra": "<b>Fonts are not included.</b> The page must load EB Garamond, Source Sans 3 and\n    IBM Plex Mono itself. For a document you send, self-host and embed them rather\n    than fetching from a CDN at print time — and note that Google's build of EB\n    Garamond has no real small caps, so the browser synthesises them.\n    <a class=\"vbtn\" href=\"../fonts/\" >Browse the font files →</a>"
+    "extra": "<b>Fonts are not included.</b> The page must load EB Garamond, Source Sans 3 and\n    IBM Plex Mono itself. For a document you send, self-host and embed them rather\n    than fetching from a CDN at print time — and note that Google's build of EB\n    Garamond has no real small caps, so the browser synthesises them.\n    <a class=\"vbtn\" href=\"../downloads/typeset-css.zip\" download>Download this stylesheet with the three families and their licences →</a>"
   },
   {
     "slug": "typeset-typ",

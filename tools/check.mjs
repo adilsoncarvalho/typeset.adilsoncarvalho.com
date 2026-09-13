@@ -15,7 +15,7 @@ import { typstBoilerplate, typstDocument, setsItsOwnPage } from '../src/boilerpl
 import { TYPST_ELSEWHERE } from '../src/panels.mjs';
 import { rewrite } from './codemod-names.mjs';
 import { EXAMPLES } from '../src/examples.mjs';
-import { resolveUrl, derivedPaths, siteUrl } from './legacy-urls.mjs';
+import { resolveUrl, derivedPaths, siteUrl, pages } from './legacy-urls.mjs';
 import { resolveFontDir } from '../src/fonts.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
@@ -4932,6 +4932,22 @@ for (const f of iawriterFaces) {
   }
 }
 
+/* Paths a page may link even though they do not resolve, one entry per path,
+   each carrying the reason. It is empty, and that is the point: this replaced
+   a blanket skip of every path the snapshot recorded as already dead, which
+   excused a link by the shape of its URL rather than by anyone deciding it
+   should be excused — a 404 to fonts/ survived five groups of restructuring
+   under it, on two pages, reported green throughout.
+
+   An entry here must name a path nothing can fix. It is held to still being
+   needed in both directions: an entry nothing links any more, and an entry
+   whose path has started resolving, each fail. Excusing a link is the last
+   resort; both of the links this list would have carried were fixed instead,
+   by pointing them at downloads/typeset-css.zip — which is the stylesheet with
+   the three families and their licences, and is exactly what each of them was
+   reaching into fonts/ for. */
+const EXCUSED_LINKS = new Map([]);
+
 /* ---- 29. Every URL that resolved before the split must still resolve ----- */
 
 /* The specification moved to /spec/ and / became a router between it and
@@ -4956,13 +4972,9 @@ for (const f of iawriterFaces) {
 {
   const snapshot = JSON.parse(readFileSync('tools/legacy-urls.json', 'utf8'));
   const derived = derivedPaths();
-  const alreadyDead = new Set();
 
   for (const [url, was] of Object.entries(snapshot.urls)) {
-    if (was === 'missing' || was === 'no-anchor') {
-      alreadyDead.add(url.split('#')[0]);
-      continue;
-    }
+    if (was === 'missing' || was === 'no-anchor') continue;
     const now = resolveUrl(url, derived);
     if (!now.ok) {
       fail.push(`${url || '/'} resolved before the split (${was}) and does not now (${now.how}) — `
@@ -4971,14 +4983,26 @@ for (const f of iawriterFaces) {
     }
   }
 
-  /* The other half of the same question, asked of the new pages rather than
+  /* The other half of the same question, asked of the pages rather than of
      the old URLs: a link that relocate() missed when the specification moved
      into /spec/ points one directory too high and 404s, and nothing above
      would see it — the old URLs all still resolve, and the page renders. Only
      the path is checked; a fragment is a question about one page's ids, and
-     the demo above answers it with links to chapters it invents. */
-  const links = [...output].flatMap(([page, contents]) =>
-    [...contents.matchAll(/(?:href|src)="([^"]+)"/g)].map((m) => [page, m[1]]));
+     the table-of-contents demo answers it with links to chapters it invents.
+
+     Every deployed page, not only the generated ones: tools/build-site.mjs
+     emits eleven of the fifteen, and examples/*.html and proofs/*.html are
+     hand-written and just as able to point at a file that has moved. A
+     generated page is read from `output` rather than from disk so the check
+     runs against what the build would write, and a hand-written one is read
+     from the tree. PAGE_DIRS is tools/legacy-urls.mjs's own list of the
+     directories a reader can hold a URL into, so the two halves of this
+     section cannot disagree about which pages count. */
+  const links = [];
+  for (const page of pages()) {
+    const contents = output.get(page) ?? readFileSync(page, 'utf8');
+    for (const m of contents.matchAll(/(?:href|src)="([^"]+)"/g)) links.push([page, m[1]]);
+  }
 
   /* llms.txt and README.md are hand-written and name this site by absolute
      URL, so nothing above would see a link rotting in either — and llms.txt
@@ -4990,13 +5014,25 @@ for (const f of iawriterFaces) {
     }
   }
 
+  const seen = new Set();
   for (const [page, href] of links) {
     const url = siteUrl(page, href);
     if (url === null) continue;
     const path = url.split('#')[0];
-    if (alreadyDead.has(path)) continue;
+    if (EXCUSED_LINKS.has(path)) { seen.add(path); continue; }
     if (!resolveUrl(path, derived).ok) {
-      fail.push(`${page}: links "${href}", which resolves to "${path}" — no such file`);
+      fail.push(`${page}: links "${href}", which resolves to "${path}" — no such file. Fix the `
+        + 'link, or add the path to EXCUSED_LINKS above with the reason it cannot be fixed');
+    }
+  }
+
+  for (const [path, why] of EXCUSED_LINKS) {
+    if (!seen.has(path)) {
+      fail.push(`tools/check.mjs: "${path}" is in EXCUSED_LINKS ("${why}") and no page links it `
+        + 'any more — delete the entry rather than leave it standing');
+    } else if (resolveUrl(path, derived).ok) {
+      fail.push(`tools/check.mjs: "${path}" is in EXCUSED_LINKS ("${why}") and now resolves — `
+        + 'delete the entry, so the next dead link is reported instead of excused');
     }
   }
 }
