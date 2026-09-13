@@ -16,8 +16,9 @@
    `pages` is how many previews/<id>-<n>.svg files tools/build-previews.mjs
    renders for this example. tools/build-site.mjs has no compiler on PATH and
    cannot count them itself, so it trusts this number to know how many <img>
-   tags a viewer page needs; tools/build-previews.mjs asserts, right after
-   compiling, that what Typst actually produced still matches it. */
+   tags a viewer page needs; tools/check.mjs gate 3k compiles the example and
+   holds this number to what Typst actually lays out, so an example that
+   repaginates fails before a merge rather than after one. */
 export const EXAMPLES = [
   {
     id: 'essay',

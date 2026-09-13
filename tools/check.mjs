@@ -271,25 +271,57 @@ if (!typstAvailable()) {
   process.exit(1);
 }
 
+/* The page count is checked here too, on the same compile, because this is the
+   only place on the pull-request path that runs Typst over a whole example.
+   tools/build-site.mjs emits one <img> per page into the committed HTML from
+   src/examples.mjs's `pages` field and has no compiler to count with, so that
+   number is the one thing in the example pipeline a human maintains by hand.
+   Left to tools/build-previews.mjs — a push-only step — an example that
+   repaginates passes every gate, merges, and then fails the master deploy,
+   against what .github/workflows/deploy.yml says a pull request is for.
+
+   Two compiles per example: the PDF is what a reader runs and what "compiles
+   as shipped" means, and the SVG is what can be counted, because --format svg
+   with a "{n}" output path writes one file per page. Both together cost about
+   half a second. */
+
 {
   const outDir = mkdtempSync(join(tmpdir(), 'typeset-examples-check-'));
   const fontPath = resolve('fonts');
-  for (const file of EXAMPLE_TYP_FILES) {
+  const compile = (file, out, format) => execFileSync(
+    'typst',
+    ['compile', '--font-path', fontPath, ...(format ? ['--format', format] : []), file, out],
+    { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+  );
+  const detailOf = (err) => (err.stderr ? err.stderr.toString() : String(err.message)).trim();
+
+  for (const { id, file, pages } of EXAMPLES) {
     if (!existsSync(file)) {
       fail.push(`${file} is missing — src/examples.mjs names it as one of the three shipped `
         + 'Typst examples');
       continue;
     }
-    const outPath = join(outDir, `${file.replace(/[\\/]/g, '_')}.pdf`);
     try {
-      execFileSync(
-        'typst',
-        ['compile', '--font-path', fontPath, file, outPath],
-        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
-      );
+      compile(file, join(outDir, `${file.replace(/[\\/]/g, '_')}.pdf`));
     } catch (err) {
-      const detail = (err.stderr ? err.stderr.toString() : String(err.message)).trim();
-      fail.push(`${file} does not compile as shipped:\n${detail}`);
+      fail.push(`${file} does not compile as shipped:\n${detailOf(err)}`);
+      continue;
+    }
+    try {
+      compile(file, join(outDir, `${id}-{n}.svg`), 'svg');
+    } catch (err) {
+      fail.push(`${file} compiles to PDF but not to SVG, so its page count cannot be `
+        + `checked:\n${detailOf(err)}`);
+      continue;
+    }
+    /* Anchored rather than a startsWith: two ids where one is a prefix of the
+       other would otherwise count each other's pages. */
+    const perPage = new RegExp(`^${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-\\d+\\.svg$`);
+    const produced = readdirSync(outDir).filter((f) => perPage.test(f)).length;
+    if (produced !== pages) {
+      fail.push(`${file} lays out to ${produced} page(s), but src/examples.mjs declares `
+        + `pages: ${pages} for "${id}" — files/example-${id}.html ships ${pages} <img> tag(s), `
+        + 'so update that field and re-run node tools/build-site.mjs');
     }
   }
   rmSync(outDir, { recursive: true, force: true });
