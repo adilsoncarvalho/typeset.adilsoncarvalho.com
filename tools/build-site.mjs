@@ -427,11 +427,19 @@ const TEMPLATE_BUNDLE = `downloads/${bundleZip(letterTemplate)}`;
 
 /* What each conformant engine can express, published so a reader can tell
    which template to reach for before downloading one — and, sometimes, that
-   the honest answer is "not this one". docs/specs/2026-09-11-NT-typeset-
-   restructure-design.md carries the four rows this publishes; a "no" states
-   why in the same breath, and every claim points at where the repository
-   already proves it rather than asserting it fresh:
+   the honest answer is "not this one". A "no" states why in the same breath,
+   and every cell points at where this repository already proves it rather
+   than asserting it fresh. tools/check.mjs section 28 holds every cell to
+   that rule, because the one shape it forbids — a bare word — reads as
+   perfectly plausible and nothing else here looks at a cell at all:
 
+   - "Every element expressible" counts spec.json's elements and its
+     `fallback` fields: a fallback prefixed "in Typst:" names a property that
+     engine cannot honour, and section 3m of tools/check.mjs holds the two of
+     them to what Typst actually renders. Counted rather than asserted because
+     spec.json, llms.txt and README.md's engine-capability table each already
+     answer this, and a fourth answer written by hand here would be the one
+     nothing checks.
    - The footnote row quotes spec.json's own "note" section — its principles
      explain which engines can place a footnote at the page foot, and its
      note-footnote element's `fallback` names what a note degrades to where
