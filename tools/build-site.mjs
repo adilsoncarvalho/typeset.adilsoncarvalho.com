@@ -448,7 +448,8 @@ output.set(TEMPLATES_PAGE, relocate(shell({
   <p class="feeds__label">Building one of your own</p>
   <ul>
     <li><a href="files/typeset-css.html"><code>typeset.css</code></a> — link it, add
-      <code>class="typeset"</code>, bind every face. The CSS bundle below carries both.</li>
+      <code>class="typeset"</code>, bind every face. The
+      <a href="downloads/typeset-css.zip" download>CSS bundle</a> carries both.</li>
     <li><a href="files/typeset-typ.html"><code>typeset.typ</code></a> — for anything paginated:
       page-foot footnotes, running heads, table-of-contents page numbers, two columns.</li>
     <li><a href="spec.json"><code>spec.json</code></a> — the values themselves, if you are
