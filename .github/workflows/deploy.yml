@@ -8,9 +8,12 @@ name: Deploy
 # so a broken conformance check or a Typst snippet that fails to compile
 # blocks the merge instead of the next deploy.
 #
-# None of the bundles or previews is ever committed: each is derived from
-# implementations/ and fonts/, so building them here is the only way they
-# cannot drift.
+# None of the bundles or previews is ever committed: each is derived from what
+# is in the repository — the Typst bundle and the previews from
+# implementations/ and fonts/, the CSS bundle from typeset.css and fonts/, and
+# the iA Writer template from implementations/iawriter/, fonts/ and the CSS
+# bundle built one step earlier. Building them here is the only way they cannot
+# drift.
 
 on:
   push:

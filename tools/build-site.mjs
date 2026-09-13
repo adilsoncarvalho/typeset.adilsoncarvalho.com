@@ -202,7 +202,7 @@ ${lines.join('\n').replace(/,$/, '')}
 `;
 }
 
-/* ---- index.html --------------------------------------------------------- */
+/* ---- What /spec/ is assembled from: its nav, its sections, its masthead -- */
 
 function nav() {
   const groups = [...new Set(sections.map((s) => s.group))];

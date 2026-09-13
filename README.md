@@ -32,6 +32,8 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `specimen.css`, `specimen.js` | Chrome for the pages themselves. Never shipped in a document. |
 | `files/*.html` | **Generated.** One viewer page per downloadable file, including one per shipped Typst example with its rendered preview above the source. |
 | `src/examples.mjs` | The three shipped Typst example documents — the one list `tools/build-bundle.mjs`, `tools/build-previews.mjs`, `tools/check.mjs` and `tools/build-site.mjs` all read. |
+| `src/templates.mjs` | The templates this repository ships, and the bundle filename each one is published under — the one list `tools/build-iawriter.mjs`, `tools/build-site.mjs` and `tools/legacy-urls.mjs` all read. |
+| `src/fonts.mjs` | Which side of the CSS bundle a font family is read from — the one expression that decides it, called by `tools/build-iawriter.mjs` and asserted by `tools/check.mjs`. |
 | `src/sections.json` | The section manifest: order, group, title, prose, which panel to render. |
 | `src/demos/<id>.html` | The rendered example for each section. The HTML pane is extracted from it, so the two cannot disagree. |
 | `src/demos/<id>.typ` | The Typst snippet for each section — hand-written, and compiled by the checker under the boilerplate the page publishes. |
@@ -43,7 +45,8 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `downloads/` | **Build output, gitignored.** The Typst bundle, the CSS bundle and the iA Writer letter template. |
 | `previews/` | **Build output, gitignored.** One SVG per page of each shipped Typst example — what the example viewer pages under `files/` show. |
 | `tools/build-bundle.mjs` | Builds the Typst bundle from `implementations/` and `fonts/`. |
-| `tools/build-iawriter.mjs` | Builds the iA Writer letter template bundle from `implementations/iawriter/`, `typeset.css` and `fonts/`. |
+| `tools/build-css-bundle.mjs` | Builds the CSS bundle — `typeset.css` and the three spec families with their licences — from `typeset.css` and `fonts/`. |
+| `tools/build-iawriter.mjs` | Builds the iA Writer letter template bundle from `implementations/iawriter/`, the CSS bundle it consumes `typeset.css` and the spec fonts from, and `fonts/Cormorant-Garamond/`, the letter's own face. |
 | `tools/build-previews.mjs` | Renders each shipped Typst example to `previews/<id>-<n>.svg`. Needs Typst on `PATH`; not run by `tools/build-site.mjs`, which must not need one. |
 | `.github/workflows/deploy.yml` | Checks, builds every bundle, deploys Pages; on a tag, publishes the release assets. |
 | `proofs/font-proof.html` | Six body-face candidates, one per A4 page, for printing. |
@@ -279,26 +282,43 @@ gaps: writing 25 of them against 25 HTML examples is the most systematic
 comparison of two implementations this project has run, and it found three live
 bugs in `typeset.typ` that compiling three example documents never could.
 
-## The Typst bundle is built, not committed
+## The bundles are built, not committed
 
 Typst has no equivalent of a CSS font URL: a font is either in the project or it
 is silently substituted. So the implementation is distributed as a zip carrying
 the three font families the spec names — verified by extracting it and compiling
 all three example documents with `--font-path fonts` and nothing else present.
+The CSS bundle is the same idea for the other implementation: `typeset.css` beside
+those three families and their licences. `typeset.css` declares no `@font-face` of
+its own, so a page that links it has to load the faces itself, and the bundle is
+what a document you send — or a template — binds them from.
 
-**It is derived from the repository, so it is not committed** — the same argument
+**Each is derived from the repository, so none is committed** — the same argument
 that makes the pages generated. `downloads/` is gitignored:
 
 ```sh
 node tools/build-bundle.mjs      # ~1.7 MB, 24 files
+node tools/build-css-bundle.mjs  # ~1.7 MB, 21 files
+node tools/build-iawriter.mjs    # ~2.1 MB, 34 files — needs the CSS bundle above
 ```
 
-Two published forms, both from `.github/workflows/deploy.yml`:
+The published forms, all from `.github/workflows/deploy.yml`:
 
 | | URL | Versioning |
 |---|---|---|
 | Pages deploy, every push to `master` | `typeset.adilsoncarvalho.com/downloads/typeset-typst.zip` | always current |
 | Release asset, on a `v*` tag | `github.com/…/releases/download/v1.0.0/typeset-typst-1.0.0.zip` | immutable, named for the spec version |
+| Pages deploy, every push to `master` | `typeset.adilsoncarvalho.com/downloads/typeset-letter.iatemplate.zip` | always current |
+| Release asset, on a `v*` tag | `github.com/…/releases/download/v1.0.0/typeset-letter-1.0.0.iatemplate.zip` | immutable, named for the spec version |
+| Pages deploy, every push to `master` | `typeset.adilsoncarvalho.com/downloads/typeset-css.zip` | always current |
+
+**The CSS bundle is a site asset, not a release asset.** A release pins an
+immutable copy of an implementation; the CSS bundle is the live stylesheet with
+its fonts, which a template consumes at build time and a reader self-hosts from.
+Version-stamping it would publish a second, frozen `typeset.css` next to the one
+`/typeset.css` serves, and the two would disagree the first time the stylesheet
+changed without a tag. `tools/build-css-bundle.mjs` prints the versioned name it
+*would* use, for parity with the other two builders, and nothing attaches it.
 
 The workflow runs `tools/check.mjs` first, so a commit whose generated pages are
 stale fails before it can deploy.

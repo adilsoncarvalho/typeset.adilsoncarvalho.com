@@ -12,10 +12,16 @@
    bundle tools/build-css-bundle.mjs publishes — not from this repository's own
    typeset.css or fonts/. Reading the spec's files directly here would give the
    template its own drifting copy of exactly what the CSS bundle exists to be the
-   one copy of. Everything the template owns rather than consumes — iawriter.css,
-   letter/page.css, Info.plist, example.md, and Cormorant Garamond, the letter's
-   own display-quote and letterhead face — still comes from this repository, under
-   implementations/iawriter/.
+   one copy of.
+
+   The boundary is the role in fonts/manifest.json, not the directory a file sits
+   in: a family the manifest marks role "spec" is read from the unpacked bundle,
+   and a family of any other role is read from fonts/. src/fonts.mjs holds that
+   one decision, and tools/check.mjs section 26 asserts where each path lands.
+   Everything the template owns rather than consumes is read from this repository
+   — iawriter.css, letter/page.css, Info.plist and example.md from
+   implementations/iawriter/, and Cormorant Garamond, the letter's own
+   display-quote and letterhead face, from fonts/Cormorant-Garamond/.
 
    `downloads/` is gitignored; run node tools/build-css-bundle.mjs, then this, to
    get the bundles locally.

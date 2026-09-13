@@ -1094,7 +1094,7 @@ if (missingViewerTarget) reportFailuresAndExit();
 /* ---- 20. Every rendered page is reachable, and no raw .typ stands in for one */
 
 /* A page nothing links to is unreachable, and nothing above checks that.
-   Reads `html` — the BUILT index.html, loaded at the top of this file — not
+   Reads `specPageHtml` — the BUILT spec/index.html, loaded at the top of this file — not
    src/masthead.html or src/nav-bottom.html: the example buttons and the
    Conformance rows are both injected at build time from src/examples.mjs, so
    a check against the source templates would report every one of them as a
@@ -1210,7 +1210,7 @@ for (const id of templateIds) {
   if (id === spec.templates.default) continue;
   if (!cssIds.has(id)) fail.push(`typeset.css: no section marker for template "${id}"`);
   if (!typIds.has(id)) fail.push(`typeset.typ: no marked region for template "${id}"`);
-  if (!panelIds.has(id)) fail.push(`index.html: no panel for template "${id}"`);
+  if (!panelIds.has(id)) fail.push(`${SPEC_PAGE}: no panel for template "${id}"`);
 }
 
 /* The two-column derivation is arithmetic, so recompute it — from foundation.page,
@@ -4510,7 +4510,7 @@ for (const id of ['link', 'table', 'figure', 'callout']) {
    a section and also the key holding an element's notes array — and the
    bare-section-id pass sees both as a quoted token. Getting that wrong
    corrupts the file every other gate in this run reads as normative, and the
-   damage reports as "index.html is stale". Compared as key sets rather than
+   damage reports as "spec/index.html is stale". Compared as key sets rather than
    as text, because an "id" VALUE is exactly what the pass is supposed to
    rewrite; only the keys must not move. */
 const jsonKeys = (value, into = new Set()) => {
