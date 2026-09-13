@@ -171,7 +171,8 @@
       "measure_variants": {
         "narrow": "27em",
         "wide": "40em"
-      }
+      },
+      "measure_position": "Centred, not flush to one edge. The measure is a maximum column width; where foundation.page's text_width (the paper less its margins) is wider than it, the surplus splits evenly between the two sides of the column, so the column sits in the middle of the text area. A template whose measure IS the column, with no surplus to split, is exempt — templates.two-column names its own exemption."
     },
     "color": {
       "ink": {
@@ -1846,6 +1847,7 @@
         "space": "9.5pt",
         "measure": "the column — 82mm, not a character count",
         "measure_chars": 49,
+        "measure_position": "exempt from foundation.rhythm.measure_position — the column has no surplus to split, because the column IS the measure. Centring would have nothing to act on.",
         "note": "Leading tightens with the measure: a shorter line needs less vertical separation to keep the return sweep unambiguous."
       },
       "requirements": [

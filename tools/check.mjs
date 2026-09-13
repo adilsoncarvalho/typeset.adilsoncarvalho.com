@@ -2741,6 +2741,124 @@ for (const name of marginNames) {
   }
 }
 
+/* ---- 22. The measure sits centred in the text area, not flush to one edge
+            (foundation.rhythm.measure_position) --------------------------- */
+
+/* The finding this task fixes: `block(width: measure, doc)` reads correctly
+   and rendered lopsided, because Typst's default block alignment is left and
+   nothing said otherwise. That is exactly what no source check can see — the
+   code that produced the lopsided page was syntactically fine, and would
+   still parse as fine today if the fix regressed back to a flush-left block.
+   So this renders a real document, at the paper and margin foundation.page
+   names as its defaults, and reads back where the measure block's own left
+   and right edges actually landed — two markers in the real flow,
+   `here().position()` for the left edge and `layout()` for the width, the
+   same technique gate 9 below already uses to read measure-full back off a
+   render rather than off the source. `#h(1fr)` between two metadata markers
+   was the first thing tried here and does not work: a line with no other
+   content collapses the fractional space to zero, and both markers land on
+   top of each other. */
+
+const symmetryPaperTypKey = Object.entries(PAPER_NAME_TO_SPEC)
+  .find(([, specName]) => specName === spec.foundation.page.size)?.[0];
+const symmetryMarginName = spec.foundation.page.margins.default;
+const symmetryPaperWidthMm = sizesMm[spec.foundation.page.size][0];
+const symmetryMarginMm = symmetricMm[symmetryMarginName];
+const SYMMETRY_TOLERANCE_MM = 0.01;
+
+if (!symmetryPaperTypKey) {
+  fail.push(`tools/check.mjs: foundation.page.size is "${spec.foundation.page.size}", which `
+    + 'PAPER_NAME_TO_SPEC has no Typst key for — gate 22 cannot build its probe');
+} else {
+  const symmetryProbeDir = mkdtempSync(join(tmpdir(), 'typeset-symmetry-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(symmetryProbeDir, 'typeset.typ'));
+    const probePath = join(symmetryProbeDir, 'symmetry.typ');
+    writeFileSync(probePath, '#import "typeset.typ": *\n'
+      + `#show: typeset.with(paper: "${symmetryPaperTypKey}", margin: margin-${symmetryMarginName})\n\n`
+      + 'Filler so the measure has a real paragraph to hold — a bare document with no content at '
+      + 'all is not the shape any real document takes.\n\n'
+      + '#context [#metadata(here().position().x / 1mm) <ts-symmetry-left>]\n'
+      + '#layout(size => [#metadata(size.width / 1mm) <ts-symmetry-width>])\n');
+    try {
+      const leftOut = execFileSync(
+        'typst',
+        ['query', '--font-path', resolve('fonts'), probePath, '<ts-symmetry-left>', '--field', 'value', '--one'],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+      const widthOut = execFileSync(
+        'typst',
+        ['query', '--font-path', resolve('fonts'), probePath, '<ts-symmetry-width>', '--field', 'value', '--one'],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      );
+      const leftMm = Number(JSON.parse(leftOut.toString()));
+      const widthMm = Number(JSON.parse(widthOut.toString()));
+      const rightMm = leftMm + widthMm;
+      const textAreaLeftMm = symmetryMarginMm;
+      const textAreaRightMm = symmetryPaperWidthMm - symmetryMarginMm;
+      const leftGapMm = leftMm - textAreaLeftMm;
+      const rightGapMm = textAreaRightMm - rightMm;
+      if (Math.abs(leftGapMm - rightGapMm) > SYMMETRY_TOLERANCE_MM) {
+        fail.push('implementations/typeset.typ: the measure block is not centred in the text area — '
+          + `on ${spec.foundation.page.size} at the ${symmetryMarginName} margin it sits `
+          + `${leftGapMm.toFixed(2)}mm from the left edge of the text area and ${rightGapMm.toFixed(2)}mm `
+          + `from the right, but foundation.rhythm.measure_position says the surplus between the `
+          + 'measure and the text width must split evenly. A block that is centred correctly has '
+          + 'these equal within 0.01mm; a block flush to one edge (the original defect) has one of '
+          + 'them at 0mm and the other at the full surplus.');
+      }
+    } catch (err) {
+      const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+      fail.push(`implementations/typeset.typ: could not render the symmetry probe:\n${detail}`);
+    }
+  } finally {
+    rmSync(symmetryProbeDir, { recursive: true, force: true });
+  }
+}
+
+/* CSS has no headless renderer on this checker's PATH (gate 21's own note,
+   above), so the rendered proof above is Typst-only. What is checked here
+   instead is the one CSS mechanism the render depends on: `margin-inline:
+   auto` is not a heuristic the way "does this read like it centres things"
+   would be — the CSS box model guarantees an auto-margined block with a
+   narrower-than-container width centres exactly, on any conformant engine,
+   so declaring it is as strong a proof as rendering it. `.typeset--sidenotes`
+   is checked to still override it back to flush-left: the measure narrows
+   there to free a reserved margin for `.ts-note-sidenote`, entirely on the
+   right, and centring would split that reservation instead of keeping it
+   whole — see the rule's own comment in typeset.css. */
+{
+  const measureRule = cssLeafRules.find((r) => normalizeSelector(r.selectors) === '.typeset > *');
+  if (!measureRule) {
+    fail.push('typeset.css: no rule selects exactly ".typeset > *" — the measure/centring rule was not found');
+  } else {
+    const decls = parseDeclarations(measureRule.decls);
+    const marginInline = decls.get('margin-inline');
+    const centred = marginInline === 'auto'
+      || (decls.get('margin-left') === 'auto' && decls.get('margin-right') === 'auto');
+    if (!centred) {
+      fail.push('typeset.css: ".typeset > *" does not declare `margin-inline: auto` (or `margin-left`/'
+        + '`margin-right: auto`), so a measure narrower than the text area sits flush left instead of '
+        + 'centred — foundation.rhythm.measure_position');
+    }
+  }
+
+  const sidenotesRule = cssLeafRules.find((r) => normalizeSelector(r.selectors) === '.typeset--sidenotes > *');
+  if (!sidenotesRule) {
+    fail.push('typeset.css: no rule selects exactly ".typeset--sidenotes > *" — the exemption that keeps '
+      + 'the reserved sidenote margin flush right was not found');
+  } else {
+    const decls = parseDeclarations(sidenotesRule.decls);
+    const flushLeft = decls.get('margin-inline') === '0'
+      || (decls.get('margin-left') === '0' && decls.get('margin-right') === '0');
+    if (!flushLeft) {
+      fail.push('typeset.css: ".typeset--sidenotes > *" does not reset `margin-inline` back to `0`, so '
+        + 'the general centring rule would split the sidenote-reserved margin instead of leaving it '
+        + 'whole on the right');
+    }
+  }
+}
+
 /* ---- 9. The exported measures must equal what spec.json derives --------- */
 
 /* foundation.rhythm states the measure and its two variants directly, in em

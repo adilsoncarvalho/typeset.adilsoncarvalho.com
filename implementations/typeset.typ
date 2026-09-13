@@ -183,13 +183,40 @@
 // Where no template has published one (a bare document, or inside two
 // columns, where the column is the measure), the enclosing block is the only
 // text block there is and measure-full is that.
+//
+// Every branch centres its block, per foundation.rhythm.measure_position: a
+// width narrower than the ambient container sits in the middle of it, not
+// flush left, the same rule _typeset-styles applies to the document's own
+// measure above. Because that ambient container is itself centred in the
+// page's text width, a width WIDER than it — measure-full's whole point — ends
+// up centred in the page too, sharing one axis rather than compounding two
+// different left edges.
+//
+// Centring is `pad()`, on purpose, not `align(center, ..)`: align sets the
+// ambient alignment, and a paragraph's ragged side reads that same ambient
+// state to decide where ITS OWN slack goes — align(center) on the block
+// would have every line of ragged-right prose centre individually, each by
+// half of ITS OWN shortfall, which is a document set at `justified: false`
+// quietly rendered as centred text instead. `pad()` moves the box without
+// touching that state: a negative inset is what lets a wider escape
+// (measure-full, inside a narrower ambient) push past its container
+// symmetrically, which a plain `block()` positioned by alignment cannot do
+// at all.
 #let measured(width: measure-standard, body) = if width != auto {
-  block(width: width, body)
+  layout(size => {
+    let inset = (size.width - width) / 2
+    pad(left: inset, right: inset, block(width: width, body))
+  })
 } else {
   context {
     let full = ts-text-width.get()
     if full == none { layout(size => block(width: size.width, body)) }
-    else { block(width: full, body) }
+    else {
+      layout(size => {
+        let inset = (size.width - full) / 2
+        pad(left: inset, right: inset, block(width: full, body))
+      })
+    }
   }
 }
 
@@ -417,11 +444,25 @@
   // measure is resolved to absolute units first, because it is as often given
   // in ems as in millimetres — except measure-full, which is `auto` and IS the
   // page, so it is the width this layout() just measured.
+  //
+  // Centred, per foundation.rhythm.measure_position: where the measure is
+  // narrower than the page's own text width, the surplus splits evenly on
+  // both sides rather than landing on the right alone. Two columns take the
+  // `measure == none` branch above and never reach this pad — the column IS
+  // the measure there, with no surplus to split.
+  //
+  // `pad()`, not `align(center, ..)`: align sets the ambient alignment a
+  // paragraph's ragged side reads to place its own slack, so aligning the
+  // whole block would centre every line of ragged-right prose individually
+  // instead of moving the block — see measured()'s own note on the same
+  // trap, just above.
   if measure == none { doc } else {
     layout(size => context {
       ts-text-width.update(size.width)
-      block(width: if measure == auto { size.width }
-        else { calc.min(measure.to-absolute(), size.width) }, doc)
+      let clamped = if measure == auto { size.width }
+        else { calc.min(measure.to-absolute(), size.width) }
+      let inset = (size.width - clamped) / 2
+      pad(left: inset, right: inset, block(width: clamped, doc))
     })
   }
 }
