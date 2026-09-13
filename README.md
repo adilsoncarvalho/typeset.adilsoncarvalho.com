@@ -28,7 +28,8 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `implementations/iawriter/` | The iA Writer templates — one bundle for the letter, one for two columns. |
 | `implementations/iawriter/iawriter.css` | The layer between iA Writer's Markdown output and `typeset.css`. |
 | `specimen.css`, `specimen.js` | Chrome for the specimen page. Never shipped in a document. |
-| `files/*.html` | **Generated.** One viewer page per downloadable file. |
+| `files/*.html` | **Generated.** One viewer page per downloadable file, including one per shipped Typst example with its rendered preview above the source. |
+| `src/examples.mjs` | The three shipped Typst example documents — the one list `tools/build-bundle.mjs`, `tools/build-previews.mjs`, `tools/check.mjs` and `tools/build-site.mjs` all read. |
 | `src/sections.json` | The section manifest: order, group, title, prose, which panel to render. |
 | `src/demos/<id>.html` | The rendered example for each section. The HTML pane is extracted from it, so the two cannot disagree. |
 | `src/demos/<id>.typ` | The Typst snippet for each section — hand-written, and compiled by the checker under the boilerplate the page publishes. |
@@ -38,8 +39,10 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `src/masthead.html`, `src/footer.html`, `src/nav-*.html`, `src/viewers.json` | Page furniture. |
 | `tools/build-site.mjs` | Generates `index.html` and `files/*.html` from all of the above. |
 | `downloads/` | **Build output, gitignored.** The Typst bundle and the two iA Writer templates. |
+| `previews/` | **Build output, gitignored.** One SVG per page of each shipped Typst example — what the example viewer pages under `files/` show. |
 | `tools/build-bundle.mjs` | Builds the Typst bundle from `implementations/` and `fonts/`. |
 | `tools/build-iawriter.mjs` | Builds the two iA Writer template bundles from `implementations/iawriter/`, `typeset.css` and `fonts/`. |
+| `tools/build-previews.mjs` | Renders each shipped Typst example to `previews/<id>-<n>.svg`. Needs Typst on `PATH`; not run by `tools/build-site.mjs`, which must not need one. |
 | `.github/workflows/deploy.yml` | Checks, builds every bundle, deploys Pages; on a tag, publishes the release assets. |
 | `proofs/font-proof.html` | Six body-face candidates, one per A4 page, for printing. |
 | `examples/preview-bar.js` | The back bar for example documents. See the Paged.js notes below. |
@@ -75,15 +78,18 @@ node tools/check.mjs        # fails if anything is stale or inconsistent
 
 Everything is resolved at build time: the spec tables, both code panels, and the
 syntax highlighting are plain markup in the published page, and the Spec /
-HTML / Typst tabs are radio inputs driven by CSS. **The page renders completely with
-JavaScript disabled**, and opens straight from the filesystem — the two scripts
-that remain (about 1.8 KB together) exist only for the copy buttons.
+HTML / Typst tabs are radio inputs driven by CSS. **`index.html` renders completely
+with JavaScript disabled**, and opens straight from the filesystem. `specimen.js`
+exists only for its copy buttons; `viewer.js`, shared by every page under `files/`,
+does the same for theirs, and on the Typst example pages also swaps in a message
+when `previews/` has not been built, since a page there ships every preview `<img>`
+unconditionally and cannot know at build time whether it will resolve.
 
 What this bought, concretely: the 30% of `index.html` that was repeated scaffold
 is gone; the nav is derived from the section list so it cannot drift; section
 numbers come from position rather than being typed (which immediately surfaced a
-duplicate `09` that had been sitting in the page); and the four viewer pages come
-from one template instead of four near-identical files.
+duplicate `09` that had been sitting in the page); and every viewer page under
+`files/` is generated from one shared template rather than hand-written.
 
 To add a section: add an entry to `src/sections.json`, write
 `src/demos/<id>.html` and `src/demos/<id>.typ`, add the `@s` marker pairs in
