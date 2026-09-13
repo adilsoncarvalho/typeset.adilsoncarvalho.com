@@ -1159,6 +1159,26 @@ for (const e of EXAMPLES) {
   }
 }
 
+/* ---- 20a. Every nav fragment link resolves to an id on the page ---------- */
+
+/* specimen.js's scrollspy reads its targets from these same "#id" links, so a
+   link this gate cannot resolve is a section the nav would highlight that the
+   observer can never find. Checked against every id="" on the page, not just
+   .section ids — #top names <main id="top">, not a section. */
+{
+  const navRegion = specPageHtml.match(/<nav class="nav">[\s\S]*?<\/nav>/);
+  if (!navRegion) {
+    fail.push(`${SPEC_PAGE}: no <nav class="nav"> found — this gate cannot read the sidebar`);
+  } else {
+    const pageIds = new Set([...specPageHtml.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]));
+    for (const m of navRegion[0].matchAll(/href="#([^"]+)"/g)) {
+      if (!pageIds.has(m[1])) {
+        fail.push(`${SPEC_PAGE}: nav links "#${m[1]}", which has no matching id="${m[1]}" on the page`);
+      }
+    }
+  }
+}
+
 /* ---- 21. `hidden` must actually hide the preview on a viewer page -------- */
 
 /* files/viewer.js hides .preview__pages by setting its `hidden` property when

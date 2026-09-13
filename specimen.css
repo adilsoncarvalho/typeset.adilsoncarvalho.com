@@ -127,6 +127,18 @@ a { color: inherit; }
 }
 .nav li a:hover { background: var(--ui-bg-sunken); color: var(--ui-fg); }
 
+/* The scrollspy's mark for the section in view, set as aria-current rather
+   than a class so the state and its accessible name are the same attribute.
+   Colour plus weight plus a rule, not any one alone, so it reads as distinct
+   from :hover — which only ever changes background and ink. */
+.nav li a[aria-current="location"] {
+  background: var(--ui-bg-sunken);
+  color: var(--ui-accent);
+  font-weight: 600;
+  border-left: 2px solid var(--ui-accent);
+}
+.nav li a[aria-current="location"]:hover { color: var(--ui-accent); }
+
 /* ---- Main --------------------------------------------------------------- */
 
 .main { padding: 3rem 2.5rem 8rem; min-width: 0; }
