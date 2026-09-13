@@ -1,13 +1,16 @@
 name: Deploy
 
-# Every push to master rebuilds the site, the Typst bundle and the iA Writer
-# template, and publishes them all to Pages. A tag additionally attaches a
-# version-stamped copy of each to a release. A pull request runs the checker
-# only, so a broken conformance check or a Typst snippet that fails to compile
-# blocks the merge instead of the next deploy.
+# Every push to master rebuilds the site, the Typst bundle, the iA Writer
+# template and the example previews, and publishes them all to Pages. A tag
+# additionally attaches a version-stamped copy of the bundle and the template
+# to a release — the previews are a site asset, not a release artifact. A
+# pull request runs the checker only, so a broken conformance check or a
+# Typst snippet that fails to compile blocks the merge instead of the next
+# deploy.
 #
-# None of the bundles is ever committed: each is derived from implementations/
-# and fonts/, so building them here is the only way they cannot drift.
+# None of the bundles or previews is ever committed: each is derived from
+# implementations/ and fonts/, so building them here is the only way they
+# cannot drift.
 
 on:
   push:
@@ -69,6 +72,13 @@ jobs:
       - name: Build the iA Writer template
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: node tools/build-iawriter.mjs
+
+      # Same condition as "Assemble the site" below, because that is the only
+      # step that consumes them: on a tag the site is never assembled, so
+      # rendering the previews there is work thrown away.
+      - name: Build the example previews
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && startsWith(github.ref, 'refs/heads/')
+        run: node tools/build-previews.mjs
 
       # Assembled explicitly rather than uploading the repository root, so the
       # deployed site never contains .git or the workflow itself. Skipped on a

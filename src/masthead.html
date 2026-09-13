@@ -4,7 +4,7 @@
   <p>Each section below shows what an element must look like, the normative values it must hit, and the same values expressed in two engines. <b>The specification is the source of truth</b>; CSS and Typst are conformant implementations of it, not the definition. Point an engine — or an AI wiring one up — at this page and the output should match.</p>
 
   <div class="feeds">
-    <p class="feeds__label">For a machine</p>
+    <p class="feeds__label">Raw files, for a machine</p>
     <ul>
       <li><a href="spec.json"><code>spec.json</code></a> — the normative source. <span data-spec-counts>every value</span>, every length absolute.</li>
       <li><a href="SPEC.md"><code>SPEC.md</code></a> — the same thing as prose, generated from <code>spec.json</code>. Paste this into a model's context.</li>
@@ -21,23 +21,37 @@
     <span><b>Spec</b> <span data-spec-version>—</span></span>
   </div>
   <div class="btngroups">
+    <!-- One lane: by type. Every button opens a page that renders what it
+         names, and the three example documents sit under the engine that
+         renders them — so "Essay" under CSS and "Essay" under Typst are told
+         apart by the group they are in, which is the only thing about them
+         that differs. The raw files are the box above, under its own label. -->
     <div class="btngroup">
-      <p class="btngroup__label">Live examples</p>
-      <div class="btnrow">
-        <a class="btn" href="examples/essay.html">Essay</a>
-        <a class="btn" href="examples/letter.html">Letter</a>
-        <a class="btn" href="examples/two-column.html">Two column</a>
-        <a class="btn" href="proofs/font-proof.html">Font proof</a>
-      </div>
-    </div>
-    <div class="btngroup">
-      <p class="btngroup__label">Downloadable materials</p>
+      <p class="btngroup__label">The specification</p>
       <div class="btnrow">
         <a class="btn" href="files/spec-json.html">spec.json</a>
         <a class="btn" href="files/spec-md.html">SPEC.md</a>
+      </div>
+    </div>
+    <div class="btngroup">
+      <p class="btngroup__label">CSS</p>
+      <div class="btnrow">
         <a class="btn" href="files/typeset-css.html">typeset.css</a>
-        <a class="btn btn--strong" href="files/typeset-typ.html">typeset.typ + fonts</a>
-        <a class="btn btn--strong" href="files/iawriter-css.html">iA Writer template</a>
+        <a class="btn" href="files/iawriter-css.html">iawriter.css</a>
+        <span data-css-examples></span>
+      </div>
+    </div>
+    <div class="btngroup">
+      <p class="btngroup__label">Typst</p>
+      <div class="btnrow">
+        <a class="btn" href="files/typeset-typ.html">typeset.typ</a>
+        <span data-typst-examples></span>
+      </div>
+    </div>
+    <div class="btngroup">
+      <p class="btngroup__label">Fonts</p>
+      <div class="btnrow">
+        <a class="btn" href="proofs/font-proof.html">Font proof</a>
       </div>
     </div>
   </div>

@@ -1,5 +1,12 @@
 /* Chrome for a single-file view. Colour tokens come from ../specimen.css. */
 
+/* An element this file gives a `display` to — .preview__pages below is one —
+   ignores the `hidden` attribute without this rule: the [hidden] declaration
+   that would suppress it is user-agent origin, and any author declaration
+   beats that whatever the specificity. viewer.js hides the preview that way,
+   so this line is what makes it move. */
+[hidden] { display: none !important; }
+
 body { margin: 0; background: var(--ui-bg); color: var(--ui-fg); font-family: var(--ui-sans); }
 
 .vbar {
@@ -45,6 +52,33 @@ main h1 {
 }
 .lede { margin: 0 0 1.5rem; max-width: 44rem; color: var(--ui-fg-muted); font-size: 0.9375rem; }
 .lede code { font-family: var(--ui-mono); font-size: 0.85em; background: var(--ui-bg-sunken); padding: 0.1em 0.3em; border-radius: 3px; }
+
+.preview { margin: 0 0 1.75rem; }
+.preview__pages { display: flex; flex-direction: column; gap: 1.25rem; }
+.preview__pages img {
+  /* Matches .paper in ../specimen.css: always light, because a rendered page
+     that adapted to dark mode would be showing something other than the page. */
+  display: block;
+  width: 100%;
+  max-width: 56rem;
+  height: auto;
+  background: #fffefb;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px -12px rgb(0 0 0 / 0.12);
+}
+.preview__missing {
+  margin: 0;
+  max-width: 44rem;
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--ui-border-strong);
+  border-radius: 3px;
+  background: var(--ui-bg-raised);
+  color: var(--ui-fg-muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+.preview__missing code { font-family: var(--ui-mono); font-size: 0.85em; background: var(--ui-bg-sunken); padding: 0.1em 0.3em; border-radius: 3px; }
 
 .extra {
   margin: 0 0 1.75rem;

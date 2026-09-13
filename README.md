@@ -25,10 +25,11 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `examples/essay.html`, `examples/letter.html` | The same documents in CSS, paginated with Paged.js. |
 | `examples/two-column.html` | The two-column template in CSS. Prints from the browser — see below. |
 | `implementations/example-two-column.typ` | The two-column template in Typst. |
-| `implementations/iawriter/` | The iA Writer templates — one bundle for the letter, one for two columns. |
+| `implementations/iawriter/` | The iA Writer template — one bundle, for the letter. |
 | `implementations/iawriter/iawriter.css` | The layer between iA Writer's Markdown output and `typeset.css`. |
 | `specimen.css`, `specimen.js` | Chrome for the specimen page. Never shipped in a document. |
-| `files/*.html` | **Generated.** One viewer page per downloadable file. |
+| `files/*.html` | **Generated.** One viewer page per downloadable file, including one per shipped Typst example with its rendered preview above the source. |
+| `src/examples.mjs` | The three shipped Typst example documents — the one list `tools/build-bundle.mjs`, `tools/build-previews.mjs`, `tools/check.mjs` and `tools/build-site.mjs` all read. |
 | `src/sections.json` | The section manifest: order, group, title, prose, which panel to render. |
 | `src/demos/<id>.html` | The rendered example for each section. The HTML pane is extracted from it, so the two cannot disagree. |
 | `src/demos/<id>.typ` | The Typst snippet for each section — hand-written, and compiled by the checker under the boilerplate the page publishes. |
@@ -37,9 +38,11 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `src/panels.mjs`, `src/highlight.mjs` | Build-time panel rendering and syntax highlighting. |
 | `src/masthead.html`, `src/footer.html`, `src/nav-*.html`, `src/viewers.json` | Page furniture. |
 | `tools/build-site.mjs` | Generates `index.html` and `files/*.html` from all of the above. |
-| `downloads/` | **Build output, gitignored.** The Typst bundle and the two iA Writer templates. |
+| `downloads/` | **Build output, gitignored.** The Typst bundle and the iA Writer letter template. |
+| `previews/` | **Build output, gitignored.** One SVG per page of each shipped Typst example — what the example viewer pages under `files/` show. |
 | `tools/build-bundle.mjs` | Builds the Typst bundle from `implementations/` and `fonts/`. |
-| `tools/build-iawriter.mjs` | Builds the two iA Writer template bundles from `implementations/iawriter/`, `typeset.css` and `fonts/`. |
+| `tools/build-iawriter.mjs` | Builds the iA Writer letter template bundle from `implementations/iawriter/`, `typeset.css` and `fonts/`. |
+| `tools/build-previews.mjs` | Renders each shipped Typst example to `previews/<id>-<n>.svg`. Needs Typst on `PATH`; not run by `tools/build-site.mjs`, which must not need one. |
 | `.github/workflows/deploy.yml` | Checks, builds every bundle, deploys Pages; on a tag, publishes the release assets. |
 | `proofs/font-proof.html` | Six body-face candidates, one per A4 page, for printing. |
 | `examples/preview-bar.js` | The back bar for example documents. See the Paged.js notes below. |
@@ -75,15 +78,18 @@ node tools/check.mjs        # fails if anything is stale or inconsistent
 
 Everything is resolved at build time: the spec tables, both code panels, and the
 syntax highlighting are plain markup in the published page, and the Spec /
-HTML / Typst tabs are radio inputs driven by CSS. **The page renders completely with
-JavaScript disabled**, and opens straight from the filesystem — the two scripts
-that remain (about 1.8 KB together) exist only for the copy buttons.
+HTML / Typst tabs are radio inputs driven by CSS. **`index.html` renders completely
+with JavaScript disabled**, and opens straight from the filesystem. `specimen.js`
+exists only for its copy buttons; `viewer.js`, shared by every page under `files/`,
+does the same for theirs, and on the Typst example pages also swaps in a message
+when `previews/` has not been built, since a page there ships every preview `<img>`
+unconditionally and cannot know at build time whether it will resolve.
 
 What this bought, concretely: the 30% of `index.html` that was repeated scaffold
 is gone; the nav is derived from the section list so it cannot drift; section
 numbers come from position rather than being typed (which immediately surfaced a
-duplicate `09` that had been sitting in the page); and the four viewer pages come
-from one template instead of four near-identical files.
+duplicate `09` that had been sitting in the page); and every viewer page under
+`files/` is generated from one shared template rather than hand-written.
 
 To add a section: add an entry to `src/sections.json`, write
 `src/demos/<id>.html` and `src/demos/<id>.typ`, add the `@s` marker pairs in
@@ -107,10 +113,11 @@ Otherwise Node and nothing else: there is no `package.json` and nothing to
 install. `.github/workflows/deploy.yml` names the version CI runs.
 
 ```sh
-node tools/build-spec.mjs   # regenerate SPEC.md after editing spec.json
-node tools/build-site.mjs   # regenerate index.html and files/*.html from src/
-node tools/check.mjs        # verify everything, including that the pages are current
-python3 -m http.server      # optional — the pages also open straight from disk
+node tools/build-spec.mjs      # regenerate SPEC.md after editing spec.json
+node tools/build-site.mjs      # regenerate index.html and files/*.html from src/
+node tools/build-previews.mjs  # render previews/ — the pages files/example-*.html show
+node tools/check.mjs           # verify everything, including that the pages are current
+python3 -m http.server         # optional — the pages also open straight from disk
 ```
 
 `check.mjs` fails when a token in `typeset.css` no longer matches `spec.json`,
@@ -151,6 +158,14 @@ produce:
   against `spec.json`, the same way the page section's diagram is.
 - `SPEC.md` is regenerated from `spec.json` and compared byte for byte, so a
   stale property table fails rather than passing on a matching version line.
+- Every downloadable a reader is pointed at can actually be reached: each
+  `src/viewers.json` entry resolves, each `src/examples.mjs` entry has both of
+  its rendered pages, `index.html` links every one of them, and neither the
+  masthead nor the sidebar offers a raw `.typ` where a viewer page renders it.
+  Each example's `pages` count is held to what Typst lays out, and
+  `files/viewer.css` is held to suppressing `hidden`, without which a checkout
+  with no `previews/` shows the "not available" message with the broken images
+  still beside it.
 - The migration path is held to the release it describes: one run of
   `tools/codemod-names.mjs` carries `tools/fixtures/1.x-migration-sample.html`
   from 1.x class names to 2.0 ones and lands every class on a name this

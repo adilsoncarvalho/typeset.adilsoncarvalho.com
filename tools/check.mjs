@@ -14,12 +14,15 @@ import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
 import { typstBoilerplate, typstDocument, setsItsOwnPage } from '../src/boilerplate.mjs';
 import { TYPST_ELSEWHERE } from '../src/panels.mjs';
 import { rewrite } from './codemod-names.mjs';
+import { EXAMPLES } from '../src/examples.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
 const typ = readFileSync('implementations/typeset.typ', 'utf8');
 const html = readFileSync('index.html', 'utf8');
 const specMd = readFileSync('SPEC.md', 'utf8');
+const readmeMd = readFileSync('README.md', 'utf8');
+const VIEWERS = JSON.parse(readFileSync('src/viewers.json', 'utf8'));
 
 const fail = [];
 const warn = [];
@@ -228,8 +231,8 @@ if (typstSnippets.length > 0) {
 
 /* Unlike 3h above, these three are not snippets to wrap in the published
    boilerplate — they are whole documents a reader downloads: the ones
-   README.md links to, the ones tools/build-bundle.mjs zips into the
-   downloadable Typst bundle. Each already carries its own
+   README.md's file table names, the ones tools/build-bundle.mjs zips into
+   the downloadable Typst bundle. Each already carries its own
    `#import "typeset.typ": *` and page setup, so this compiles them exactly
    where they sit in implementations/, with no synthetic wrapper and no
    copy into a reader directory — that is the distinction that let a symbol
@@ -239,18 +242,28 @@ if (typstSnippets.length > 0) {
    resolve a single name in them. A rename that misses one shows up here as
    a hard compile error, the same way it would in a reader's own terminal.
 
-   The list below is explicit, not `readdirSync('implementations').filter(...)`:
-   a directory listing goes quiet the moment a file is deleted, silently
-   checking two examples instead of three, which is exactly the failure this
-   gate exists to make loud instead. Keep this list in sync with
-   tools/build-bundle.mjs's own explicit zip list and the paths README.md
-   names; existsSync below reports a missing file by name rather than
-   letting the loop just iterate over fewer files. */
-const EXAMPLE_TYP_FILES = [
-  'implementations/example-essay.typ',
-  'implementations/example-letter.typ',
-  'implementations/example-two-column.typ',
-];
+   The list comes from src/examples.mjs, not
+   `readdirSync('implementations').filter(...)`: a directory listing goes
+   quiet the moment a file is deleted, silently checking two examples
+   instead of three, which is exactly the failure this gate exists to make
+   loud instead. tools/build-bundle.mjs and tools/build-previews.mjs read
+   that same array, so a fourth example, or a rename, cannot appear in one
+   of those and not here; existsSync below reports a missing file by name
+   rather than letting the loop just iterate over fewer files. */
+const EXAMPLE_TYP_FILES = EXAMPLES.map((e) => e.file);
+
+/* README.md is the one consumer that cannot import src/examples.mjs — it
+   stays hand-written prose — so its claim to name "the three shipped Typst
+   examples" is checked here rather than trusted. Same relationship gate
+   16d below holds docs/migrating-to-2.0.md's class table to the rename
+   maps it describes: the derived list is normative, and the prose is read
+   back against it. */
+for (const file of EXAMPLE_TYP_FILES) {
+  if (!readmeMd.includes(`\`${file}\``)) {
+    fail.push(`README.md: does not name ${file} — src/examples.mjs names it as one of the `
+      + 'three shipped Typst examples, and the file table must too');
+  }
+}
 
 if (!typstAvailable()) {
   console.error('typst is not on PATH — cannot verify that the Typst examples compile.');
@@ -258,25 +271,57 @@ if (!typstAvailable()) {
   process.exit(1);
 }
 
+/* The page count is checked here too, on the same compile, because this is the
+   only place on the pull-request path that runs Typst over a whole example.
+   tools/build-site.mjs emits one <img> per page into the committed HTML from
+   src/examples.mjs's `pages` field and has no compiler to count with, so that
+   number is the one thing in the example pipeline a human maintains by hand.
+   Left to tools/build-previews.mjs — a push-only step — an example that
+   repaginates passes every gate, merges, and then fails the master deploy,
+   against what .github/workflows/deploy.yml says a pull request is for.
+
+   Two compiles per example: the PDF is what a reader runs and what "compiles
+   as shipped" means, and the SVG is what can be counted, because --format svg
+   with a "{n}" output path writes one file per page. Both together cost about
+   half a second. */
+
 {
   const outDir = mkdtempSync(join(tmpdir(), 'typeset-examples-check-'));
   const fontPath = resolve('fonts');
-  for (const file of EXAMPLE_TYP_FILES) {
+  const compile = (file, out, format) => execFileSync(
+    'typst',
+    ['compile', '--font-path', fontPath, ...(format ? ['--format', format] : []), file, out],
+    { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+  );
+  const detailOf = (err) => (err.stderr ? err.stderr.toString() : String(err.message)).trim();
+
+  for (const { id, file, pages } of EXAMPLES) {
     if (!existsSync(file)) {
-      fail.push(`${file} is missing — README.md and tools/build-bundle.mjs both name it `
-        + 'as one of the three shipped Typst examples');
+      fail.push(`${file} is missing — src/examples.mjs names it as one of the three shipped `
+        + 'Typst examples');
       continue;
     }
-    const outPath = join(outDir, `${file.replace(/[\\/]/g, '_')}.pdf`);
     try {
-      execFileSync(
-        'typst',
-        ['compile', '--font-path', fontPath, file, outPath],
-        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
-      );
+      compile(file, join(outDir, `${file.replace(/[\\/]/g, '_')}.pdf`));
     } catch (err) {
-      const detail = (err.stderr ? err.stderr.toString() : String(err.message)).trim();
-      fail.push(`${file} does not compile as shipped:\n${detail}`);
+      fail.push(`${file} does not compile as shipped:\n${detailOf(err)}`);
+      continue;
+    }
+    try {
+      compile(file, join(outDir, `${id}-{n}.svg`), 'svg');
+    } catch (err) {
+      fail.push(`${file} compiles to PDF but not to SVG, so its page count cannot be `
+        + `checked:\n${detailOf(err)}`);
+      continue;
+    }
+    /* Anchored rather than a startsWith: two ids where one is a prefix of the
+       other would otherwise count each other's pages. */
+    const perPage = new RegExp(`^${id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-\\d+\\.svg$`);
+    const produced = readdirSync(outDir).filter((f) => perPage.test(f)).length;
+    if (produced !== pages) {
+      fail.push(`${file} lays out to ${produced} page(s), but src/examples.mjs declares `
+        + `pages: ${pages} for "${id}" — files/example-${id}.html ships ${pages} <img> tag(s), `
+        + 'so update that field and re-run node tools/build-site.mjs');
     }
   }
   rmSync(outDir, { recursive: true, force: true });
@@ -982,6 +1027,160 @@ for (const demo of SCALE_DEMOS) {
       fail.push(`${demo.file}: spec.foundation.scale.steps defines "${step}" `
         + 'but the scale demo has no row for it');
     }
+  }
+}
+
+/* ---- 18. Every src/viewers.json entry resolves ---------------------------- */
+
+/* Five hand-written rows — nothing derives source or href, so a typo in
+   either is the one way this file can still drift. Tracked separately from
+   fail[] so this can stop before buildAll() (3d, below) reaches the same
+   files: buildAll() reads v.source unconditionally to build each viewer
+   page's own content, and a missing one would crash it with a raw ENOENT
+   instead of the message below. href is never read by buildAll() — it is
+   only printed as a link's destination — so it carries no such risk, but a
+   broken one is exactly as dead as a missing source and is checked here for
+   the same reason. */
+
+let missingViewerTarget = false;
+
+for (const v of VIEWERS) {
+  if (!existsSync(v.source)) {
+    fail.push(`src/viewers.json: "${v.slug}" names source "${v.source}", which does not exist`);
+    missingViewerTarget = true;
+  }
+  const hrefTarget = join('files', v.href);
+  if (!existsSync(hrefTarget)) {
+    fail.push(`src/viewers.json: "${v.slug}" has href "${v.href}", which resolves to `
+      + `"${hrefTarget}" — no such file`);
+  }
+}
+
+/* ---- 19. Every example is rendered by both engines ------------------------ */
+
+/* An example is one document set twice, which is what makes the three
+   conformance samples rather than demos, so each id names a page per engine.
+   The Typst half is derived by tools/build-site.mjs and is true by
+   construction until someone adds a fourth example and forgets to re-run it;
+   the CSS half is hand-written, so nothing but this makes it exist. Checked
+   here, before buildAll() (3d), for the same reason as above: 3d's own
+   comparison loop reads the Typst path and would crash on it rather than
+   report it. */
+
+for (const e of EXAMPLES) {
+  if (!existsSync(`files/example-${e.id}.html`)) {
+    fail.push(`src/examples.mjs: "${e.id}" has no files/example-${e.id}.html — `
+      + 'run node tools/build-site.mjs');
+    missingViewerTarget = true;
+  }
+  if (!existsSync(`examples/${e.id}.html`)) {
+    fail.push(`src/examples.mjs: "${e.id}" has no examples/${e.id}.html — each example is `
+      + 'the same document in both engines, and that is the CSS one');
+  }
+}
+
+if (missingViewerTarget) reportFailuresAndExit();
+
+/* ---- 20. Every rendered page is reachable, and no raw .typ stands in for one */
+
+/* A page nothing links to is unreachable, and nothing above checks that.
+   Reads `html` — the BUILT index.html, loaded at the top of this file — not
+   src/masthead.html or src/nav-bottom.html: the example buttons and the
+   Conformance rows are both injected at build time from src/examples.mjs, so
+   a check against the source templates would report every one of them as a
+   false positive.
+
+   This gate read only the masthead once, which is why the sidebar group
+   literally called "Conformance" could go a whole branch pointing its Typst
+   rows at raw .typ files, one line below CSS rows that opened a rendered
+   page, while every gate stayed green. So the second half below asks the
+   opposite question of the same page: not only that each rendered page is
+   linked, but that no raw .typ is offered where one of them exists. */
+
+for (const v of VIEWERS) {
+  const href = `files/${v.slug}.html`;
+  if (!html.includes(`href="${href}"`)) {
+    fail.push(`index.html: no link to ${href} — src/viewers.json names "${v.slug}" but `
+      + 'nothing on the page points at its viewer page');
+  }
+}
+
+/* Both of each example's renderings, not just the Typst one: a list that
+   reaches one engine and not the other is how the sidebar came to offer
+   "Essay, in Typst" with no "Letter, in Typst" beside it. Gate 19 above has
+   already established that both pages exist. */
+for (const e of EXAMPLES) {
+  for (const href of [`examples/${e.id}.html`, `files/example-${e.id}.html`]) {
+    if (!html.includes(`href="${href}"`)) {
+      fail.push(`index.html: no link to ${href} — src/examples.mjs names "${e.id}" but `
+        + 'nothing on the page points at that rendering');
+    }
+  }
+}
+
+/* The masthead and the sidebar are where a reader is offered a file. A raw
+   .typ offered there downloads, or dumps as unstyled plain text, where the
+   viewer page beside it renders the document and offers Copy and Download —
+   so wherever both exist, the offer must be the page. The footer is excluded
+   deliberately: it cites implementations/typeset.typ as the file the Typst
+   panels are read out of, which is a citation, not an offer. */
+{
+  const regions = [
+    ['index.html nav', /<nav class="nav">[\s\S]*?<\/nav>/],
+    ['index.html masthead', /<header class="masthead">[\s\S]*?<\/header>/],
+  ];
+  const rendered = new Map([
+    ...VIEWERS.map((v) => [v.source, `files/${v.slug}.html`]),
+    ...EXAMPLES.map((e) => [e.file, `files/example-${e.id}.html`]),
+  ]);
+  for (const [name, pattern] of regions) {
+    const region = html.match(pattern);
+    if (!region) {
+      fail.push(`${name}: not found in index.html — this gate cannot read it, so update the `
+        + 'pattern rather than leaving it matching nothing');
+      continue;
+    }
+    for (const [source, page] of rendered) {
+      if (source.endsWith('.typ') && region[0].includes(`href="${source}"`)) {
+        fail.push(`${name}: links the raw ${source}, which a browser downloads or dumps as `
+          + `plain text — ${page} renders it, and is what should be offered here`);
+      }
+    }
+  }
+}
+
+/* ---- 21. `hidden` must actually hide the preview on a viewer page -------- */
+
+/* files/viewer.js hides .preview__pages by setting its `hidden` property when
+   the first rendered page fails to load, and shows the message that names the
+   build command instead. viewer.css gives .preview__pages a `display`, which
+   is author origin; the [hidden] declaration that would suppress it is
+   user-agent origin and loses to any author one whatever the specificity — and
+   a bare `[hidden]` author rule has the same specificity as `.preview__pages`,
+   so it only wins by carrying `!important` or by naming the class itself.
+   Without one of those two shapes the message and both broken images show
+   together, which is the one state this whole mechanism exists to avoid.
+
+   Checked as text because nothing here renders HTML: the gates that observe
+   behaviour rather than source all run Typst, and there is no browser on the
+   PATH this checker is allowed to assume. */
+
+{
+  const viewerCss = readFileSync('files/viewer.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const suppressed = [...viewerCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)].some(([, selectors, body]) => {
+    if (!/display\s*:\s*none/.test(body)) return false;
+    return selectors.split(',').some((sel) => {
+      const s = sel.trim();
+      if (/^\[hidden\]$/.test(s)) return /display\s*:\s*none\s*!important/.test(body);
+      return /^(\.preview__pages\[hidden\]|\[hidden\]\.preview__pages)$/.test(s);
+    });
+  });
+  if (!suppressed) {
+    fail.push('files/viewer.css: nothing here makes the `hidden` attribute suppress '
+      + '.preview__pages, so files/viewer.js cannot hide the rendered pages when they are '
+      + 'missing — the "not available" message would show with both broken images beside '
+      + 'it. Declare either `[hidden] { display: none !important; }` or '
+      + '`.preview__pages[hidden] { display: none; }`');
   }
 }
 

@@ -26,10 +26,10 @@ const SRC = 'implementations/iawriter';
 const OUT = 'downloads';
 
 /* Which families a bundle carries is derived from the @font-face rules in the
-   stylesheets it actually links, not from a list kept here. The letter binds two
-   Cormorant faces for its letterhead that the two-column template has no use
-   for, and a hand-maintained list would either ship them to both or go stale the
-   first time one moves. fonts/candidates/ stays out for free: nothing binds it. */
+   stylesheets it actually links, not from a list kept here: the letter binds two
+   Cormorant faces for its letterhead that nothing else in this repository uses,
+   and a hand-maintained list would go stale the first time one moves.
+   fonts/candidates/ stays out for free: nothing binds it. */
 function familyDirs(sheets) {
   const dirs = new Set();
   for (const css of sheets) {
@@ -47,8 +47,8 @@ const TEMPLATES = [
     notes: `The display quote
   A \`>\` quote is set centred in Cormorant Garamond Light Italic at 1.3x the
   body size, with no rule and no indent. Markdown has only one quoting
-  construct, so in a letter it does the job a pull quote does. This is
-  letter-only: the two-column template keeps the standard block quotation.
+  construct, so in a letter it does the job a pull quote does. It is the
+  template's own choice, not something spec.json declares.
 
 The letterhead
   Indent a block by a tab or four spaces and it becomes your address, set in

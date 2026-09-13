@@ -322,6 +322,17 @@ so all five are gone from here.
 
 **Unowned — decide before 2.0.0 ships:**
 
+- **`fonts/` 404s on the live site, and two links point at it.** Verified against
+  the deployed site: there is no `fonts/index.html` and `.nojekyll` is set, so
+  directory listing is off. The two live links — the masthead's boilerplate prose
+  and the "Browse the font files →" button on `files/typeset-css.html` — both
+  predate the conformance work, which found them by trying to add a third.
+  A generated `fonts/index.html` from `fonts/manifest.json` would fix both and
+  would also unblock a whole-page link check in `tools/check.mjs`, which nobody
+  has because it would fail on these two today. That check is the more valuable
+  half: no gate in this repo currently catches a dead internal link, which is how
+  these survived.
+
 - **`#pagebreak()` cannot be called in a `typeset()` document at the default
   measure.** The measure is applied as a `block()`, and a page break cannot be
   taken inside a container — so `utility-break-before` and `utility-break-after`

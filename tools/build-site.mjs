@@ -1,15 +1,21 @@
 /* Builds index.html and files/*.html from src/ plus spec.json and the two
    implementations. Everything the pages show is resolved here, at build time:
-   the published site fetches nothing and needs no JavaScript to render.
+   the published site fetches nothing to render its content. The Typst example
+   viewer pages are the one place that still reaches for JavaScript at load
+   time — to swap in a message when previews/ has not been built, since this
+   script has no compiler on PATH and so cannot tell at build time whether it
+   has (see tools/build-previews.mjs).
 
    Run: node tools/build-site.mjs
    Verify: node tools/check.mjs
 */
 
 import { readFileSync, writeFileSync } from 'node:fs';
+import { basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { renderPanel } from '../src/panels.mjs';
 import { byLang, esc } from '../src/highlight.mjs';
+import { EXAMPLES } from '../src/examples.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { typstBoilerplate } from '../src/boilerplate.mjs';
 
@@ -111,8 +117,17 @@ function nav() {
       .map((s) => `    <li><a href="#${s.id}">${s.nav || s.title}</a></li>`).join('\n');
     return `  <p class="nav__group">${g}</p>\n  <ol>\n${items}\n  </ol>`;
   });
-  return [read('src/nav-top.html').trimEnd(), ...blocks, read('src/nav-bottom.html').trimEnd()]
-    .join('\n\n');
+  /* The Conformance group names the same three documents twice, once per
+     engine, and every row opens a page that renders one. Derived from
+     src/examples.mjs rather than hand-typed here: while it was hand-typed the
+     list lost "Letter, in Typst" entirely, ran the two engines interleaved,
+     and pointed its Typst rows at raw .typ files a browser downloads. */
+  const conformance = read('src/nav-bottom.html').trimEnd()
+    .replace(/ *<li data-nav-examples="(css|typst)"><\/li>/g, (_, engine) =>
+      EXAMPLES.map((e) => `    <li><a href="${EXAMPLE_PAGE[engine](e.id)}">`
+        + `${exampleLabel(e.id)}, in ${engine === 'css' ? 'CSS' : 'Typst'} →</a></li>`).join('\n'));
+
+  return [read('src/nav-top.html').trimEnd(), ...blocks, conformance].join('\n\n');
 }
 
 /* Sets a demo file at the depth the page nests it to, without touching a line
@@ -255,9 +270,33 @@ function boilerplateTypst() {
   return byLang('typst', typstBoilerplate());
 }
 
+/* "two-column" → "Two column". */
+function exampleLabel(id) {
+  return id.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase());
+}
+
+/* Where each engine renders a given example document. The three documents
+   exist in both, which is what makes them conformance samples rather than
+   demos, so one id names a page in each. */
+const EXAMPLE_PAGE = {
+  css: (id) => `examples/${id}.html`,
+  typst: (id) => `files/example-${id}.html`,
+};
+
+/* One button per shipped example, in src/examples.mjs's own order, under the
+   engine that renders it — the same source the viewer pages below come from,
+   so an example added, renamed or reordered there moves here with it rather
+   than needing a second, hand-kept button list. */
+function exampleButtons(engine) {
+  return EXAMPLES.map((e) => `<a class="btn" href="${EXAMPLE_PAGE[engine](e.id)}">`
+    + `${exampleLabel(e.id)}</a>`).join('\n        ');
+}
+
 const masthead = read('src/masthead.html').trimEnd()
   .replace('<span data-spec-counts>every value</span>', counts)
   .replace('<span data-spec-version>—</span>', `${spec.version} · ${spec.updated}`)
+  .replace('<span data-css-examples></span>', exampleButtons('css'))
+  .replace('<span data-typst-examples></span>', exampleButtons('typst'))
   .replace('<code data-boilerplate="html"></code>', `<code data-boilerplate="html">${boilerplateHtml()}</code>`)
   .replace('<code data-boilerplate="typst"></code>', `<code data-boilerplate="typst">${boilerplateTypst()}</code>`);
 
@@ -288,34 +327,81 @@ ${read('src/footer.html').trimEnd()}
   scripts: '<script src="specimen.js" defer></script>\n',
 }));
 
-/* ---- files/*.html — one viewer per downloadable ------------------------- */
+/* ---- files/*.html — one viewer per downloadable, plus one per shipped
+   Typst example with its rendered preview above the source ---------------- */
 
-const VIEWERS = JSON.parse(read('src/viewers.json'));
-
-for (const v of VIEWERS) {
-  const source = read(v.source);
+/* The sticky bar, source pane and (when given) preview block every viewer
+   page shares — src/viewers.json's five entries and src/examples.mjs's three
+   examples are different kinds of row, but they render through the one
+   function, so they cannot drift into two different page shapes. */
+function viewerBody({ name, href, lede, extra, source, lang, preview = '' }) {
   const lines = source.replace(/\n$/, '').split('\n').length;
   const kb = (Buffer.byteLength(source, 'utf8') / 1024).toFixed(1);
-
-  output.set(`files/${v.slug}.html`, shell({
-    title: `${v.name} — typeset`,
-    description: v.description,
-    head: `<link rel="stylesheet" href="../specimen.css">\n<link rel="stylesheet" href="viewer.css">\n`,
-    body: `<div class="vbar">
+  return `<div class="vbar">
   <a class="back" href="../index.html">← typeset</a>
-  <span class="name">${v.name}</span>
+  <span class="name">${name}</span>
   <span class="actions">
     <button class="vbtn" type="button" data-copy>Copy</button>
-    <a class="vbtn" href="${v.href}" download>Download</a>
+    <a class="vbtn" href="${href}" download>Download</a>
   </span>
 </div>
 
 <main>
-  <h1>${v.name}</h1>
-  <p class="lede">${v.lede}</p>
-${v.extra ? `  <div class="extra">\n    ${v.extra}\n  </div>\n` : ''}  <p class="meta">${lines} lines · ${kb} KB</p>
-  <div class="filebody">${lineNumbered(source, v.lang)}</div>
-</main>`,
+  <h1>${name}</h1>
+  <p class="lede">${lede}</p>
+${preview}${extra ? `  <div class="extra">\n    ${extra}\n  </div>\n` : ''}  <p class="meta">${lines} lines · ${kb} KB</p>
+  <div class="filebody">${lineNumbered(source, lang)}</div>
+</main>`;
+}
+
+const VIEWERS = JSON.parse(read('src/viewers.json'));
+
+for (const v of VIEWERS) {
+  output.set(`files/${v.slug}.html`, shell({
+    title: `${v.name} — typeset`,
+    description: v.description,
+    head: `<link rel="stylesheet" href="../specimen.css">\n<link rel="stylesheet" href="viewer.css">\n`,
+    body: viewerBody({
+      name: v.name, href: v.href, lede: v.lede, extra: v.extra,
+      source: read(v.source), lang: v.lang,
+    }),
+    scripts: '<script src="viewer.js" defer></script>\n',
+  }));
+}
+
+/* One page per shipped Typst example, derived from src/examples.mjs.
+
+   The rendered preview goes first, above the source: previews/<id>-<n>.svg is
+   built separately, by tools/build-previews.mjs, because it needs Typst and
+   this script must not. So every <img> ships unconditionally — regenerating
+   this page never depends on whether previews/ happens to exist on the
+   machine running it — and viewer.js swaps in the "not built" message only if
+   the first page actually fails to load. */
+for (const e of EXAMPLES) {
+  const name = basename(e.file);
+  const lede = `A conformance sample for the Typst implementation — ${e.description}. Rendered `
+    + `below from <a href="typeset-typ.html">typeset.typ</a>; the checker compiles it fresh on `
+    + 'every commit.';
+  const pages = Array.from({ length: e.pages }, (_, i) => i + 1)
+    .map((n) => `      <img src="../previews/${e.id}-${n}.svg" alt="${e.id}, page ${n}"`
+      + `${n > 1 ? ' loading="lazy"' : ''}>`)
+    .join('\n');
+  const preview = `  <section class="preview" data-preview>
+    <p class="preview__missing" hidden>The rendered pages are not available here — the
+      source is below. To build them in a checkout, run
+      <code>node tools/build-previews.mjs</code> with Typst on <code>PATH</code>.</p>
+    <div class="preview__pages">
+${pages}
+    </div>
+  </section>
+`;
+
+  output.set(`files/example-${e.id}.html`, shell({
+    title: `${name} — typeset`,
+    description: `A Typst conformance sample: ${e.description}. One of the three example `
+      + 'documents typeset.typ ships with.',
+    head: `<link rel="stylesheet" href="../specimen.css">\n<link rel="stylesheet" href="viewer.css">\n`,
+    body: viewerBody({ name, href: `../${e.file}`, lede, source: read(e.file), lang: 'typst', preview }),
     scripts: '<script src="viewer.js" defer></script>\n',
   }));
 }
@@ -323,7 +409,7 @@ ${v.extra ? `  <div class="extra">\n    ${v.extra}\n  </div>\n` : ''}  <p class=
   return { output, stats: {
     sections: sections.length,
     navLinks: nav().match(/<li>/g).length,
-    viewers: VIEWERS.length,
+    viewers: VIEWERS.length + EXAMPLES.length,
     cssMarkers: cssLines.size,
     typstMarkers: typLines.size,
   } };
