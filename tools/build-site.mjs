@@ -16,6 +16,7 @@ import { pathToFileURL } from 'node:url';
 import { renderPanel } from '../src/panels.mjs';
 import { byLang, esc } from '../src/highlight.mjs';
 import { EXAMPLES } from '../src/examples.mjs';
+import { TEMPLATES, bundleZip } from '../src/templates.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { typstBoilerplate } from '../src/boilerplate.mjs';
 
@@ -411,8 +412,110 @@ output.set(SPEC_PAGE, relocate(specPage, '../'));
    files/iawriter-css.html, built from src/viewers.json below — carries the
    full account of what Markdown can and cannot express and what the bundle
    contains; this page names the template, offers the download, and sends a
-   reader there rather than keeping a second copy of that prose. */
-const TEMPLATE_BUNDLE = 'downloads/typeset-letter.iatemplate.zip';
+   reader there rather than keeping a second copy of that prose.
+
+   The bundle filename itself comes from src/templates.mjs, the one place
+   that names it — see that file's own comment for the other readers. */
+const letterTemplate = TEMPLATES.find((t) => t.dir === 'letter');
+const TEMPLATE_BUNDLE = `downloads/${bundleZip(letterTemplate)}`;
+
+/* ---- The capability matrix ----------------------------------------------- */
+
+/* What each conformant engine can express, published so a reader can tell
+   which template to reach for before downloading one — and, sometimes, that
+   the honest answer is "not this one". docs/specs/2026-09-11-NT-typeset-
+   restructure-design.md carries the four rows this publishes; a "no" states
+   why in the same breath, and every claim points at where the repository
+   already proves it rather than asserting it fresh:
+
+   - The footnote row quotes spec.json's own "note" section — its principles
+     explain which engines can place a footnote at the page foot, and its
+     note-footnote element's `fallback` names what a note degrades to where
+     they can't. Both are read here, not retyped.
+   - "Paginated two columns" and "Running head and folio" link straight into
+     the marked @s region of typeset.css or typeset.typ that implements the
+     row — the same cssLines/typLines markers section() uses above — so the
+     claim points at the working code instead of a description of it.
+   - Every iA Writer cell links to files/iawriter-css.html, whose own prose
+     (src/viewers.json) and README.md's "Engine capability" section already
+     carry the WebKit and margin-reservation reasons in full; this table
+     states the same facts at table length, not a second, drifting account
+     of them. */
+function capabilityMatrix() {
+  const noteSection = spec.sections.find((s) => s.id === 'note');
+  const footnoteWhy = noteSection.principles[0];
+  const footnoteFallback = noteSection.elements.find((e) => e.id === 'note-footnote').fallback;
+  const cssAt = (id) => `files/typeset-css.html#L${cssLines.get(id)}`;
+  const typAt = (id) => `files/typeset-typ.html#L${typLines.get(id)}`;
+  const IAW = 'files/iawriter-css.html';
+
+  const rows = [
+    {
+      feature: 'Full spec vocabulary',
+      css: 'yes',
+      typst: 'yes',
+      iawriter: `<a href="${IAW}">Markdown subset only</a> — headings, body text, bold, `
+        + `italic, tables and footnotes; not the ${elementCount} elements the specification `
+        + 'names, and not signature blocks, callouts, sidenotes or drop caps, which Markdown '
+        + 'has no markup for.',
+    },
+    {
+      feature: 'Paginated two columns',
+      css: `<a href="${cssAt('two-column')}">no</a> — Paged.js paginates by moving content `
+        + 'between page boxes and cannot fragment a column flow; '
+        + '<a href="examples/two-column.html">the two-column example</a> drops Paged.js '
+        + "entirely and lets the browser's own print produce the columns instead.",
+      typst: `<a href="${typAt('two-column')}">yes, natively</a>`,
+      iawriter: `<a href="${IAW}">no</a> — WebKit's print path ignores every CSS `
+        + 'multi-column property, so a two-column template previews correctly on screen '
+        + 'and exports as a single column.',
+    },
+    {
+      feature: 'Running head and folio',
+      css: `<a href="${cssAt('page')}">yes, via CSS Paged Media</a> — Chrome's own print `
+        + 'dialog ignores the margin boxes a running head and folio need; only a '
+        + 'paged-media engine (Paged.js, WeasyPrint, Prince) renders them.',
+      typst: `<a href="${typAt('page')}">yes, natively</a>`,
+      iawriter: `<a href="${IAW}">no</a> — iA Writer reserves the top and bottom bands `
+        + "itself, by setting the page margins directly; a template's own @page margin "
+        + 'would replace that reservation rather than add to it.',
+    },
+    {
+      feature: 'True page-foot footnotes',
+      css: `<a href="${cssAt('note')}">WeasyPrint and Prince only</a> — per spec.json: `
+        + `“${esc(footnoteWhy)}”`,
+      typst: `<a href="${typAt('note')}">yes, natively</a>`,
+      iawriter: `<a href="${IAW}">no</a> — Markdown has no page-position construct for a `
+        + `note, so it degrades to ${esc(footnoteFallback)}.`,
+    },
+  ];
+
+  const body = rows.map((r) => `      <tr>
+        <th scope="row">${r.feature}</th>
+        <td>${r.css}</td>
+        <td>${r.typst}</td>
+        <td>${r.iawriter}</td>
+      </tr>`).join('\n');
+
+  return `<section class="matrix-section">
+  <p class="card__label">Capability matrix</p>
+  <h2>What each technology can express</h2>
+  <p>The specification is one vocabulary; three engines implement it, each to a different
+    depth. This is how far each one reaches, and where a "no" says why — so you can tell
+    which template to reach for before you download one.</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead>
+        <tr><th scope="col"></th><th scope="col">CSS + Paged.js</th><th scope="col">Typst</th>
+          <th scope="col">iA Writer</th></tr>
+      </thead>
+      <tbody>
+${body}
+      </tbody>
+    </table>
+  </div>
+</section>`;
+}
 
 output.set(TEMPLATES_PAGE, relocate(shell({
   title: 'Templates — typeset',
@@ -429,6 +532,8 @@ output.set(TEMPLATES_PAGE, relocate(shell({
     contract it keeps: a template sets the page and the scale and nothing else, and takes its
     typography from the published stylesheet rather than carrying a second copy of it.</p>
 </header>
+
+${capabilityMatrix()}
 
 <section class="card">
   <p class="card__label">iA Writer</p>
@@ -581,13 +686,20 @@ ${preview}${extra ? `  <div class="extra">\n    ${extra}\n  </div>\n` : ''}  <p 
 
 const VIEWERS = JSON.parse(read('src/viewers.json'));
 
+/* src/viewers.json's "extra" prose names the iA Writer bundle by a
+   {{TEMPLATE_BUNDLE}} token rather than the path itself, so the filename
+   src/templates.mjs owns has one fewer place to go stale in — files/ pages
+   sit one level below the site root, hence the "../" this substitution adds
+   and TEMPLATE_BUNDLE (root-relative, used on templates/index.html and
+   index.html) does not carry itself. */
 for (const v of VIEWERS) {
   output.set(`files/${v.slug}.html`, shell({
     title: `${v.name} — typeset`,
     description: v.description,
     head: `<link rel="stylesheet" href="../specimen.css">\n<link rel="stylesheet" href="viewer.css">\n`,
     body: viewerBody({
-      name: v.name, href: v.href, lede: v.lede, extra: v.extra,
+      name: v.name, href: v.href, lede: v.lede,
+      extra: (v.extra || '').replaceAll('{{TEMPLATE_BUNDLE}}', `../${TEMPLATE_BUNDLE}`),
       source: read(v.source), lang: v.lang,
     }),
     scripts: '<script src="viewer.js" defer></script>\n',

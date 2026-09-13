@@ -23,6 +23,48 @@
     typography from the published stylesheet rather than carrying a second copy of it.</p>
 </header>
 
+<section class="matrix-section">
+  <p class="card__label">Capability matrix</p>
+  <h2>What each technology can express</h2>
+  <p>The specification is one vocabulary; three engines implement it, each to a different
+    depth. This is how far each one reaches, and where a "no" says why — so you can tell
+    which template to reach for before you download one.</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead>
+        <tr><th scope="col"></th><th scope="col">CSS + Paged.js</th><th scope="col">Typst</th>
+          <th scope="col">iA Writer</th></tr>
+      </thead>
+      <tbody>
+      <tr>
+        <th scope="row">Full spec vocabulary</th>
+        <td>yes</td>
+        <td>yes</td>
+        <td><a href="../files/iawriter-css.html">Markdown subset only</a> — headings, body text, bold, italic, tables and footnotes; not the 103 elements the specification names, and not signature blocks, callouts, sidenotes or drop caps, which Markdown has no markup for.</td>
+      </tr>
+      <tr>
+        <th scope="row">Paginated two columns</th>
+        <td><a href="../files/typeset-css.html#L1083">no</a> — Paged.js paginates by moving content between page boxes and cannot fragment a column flow; <a href="../examples/two-column.html">the two-column example</a> drops Paged.js entirely and lets the browser's own print produce the columns instead.</td>
+        <td><a href="../files/typeset-typ.html#L849">yes, natively</a></td>
+        <td><a href="../files/iawriter-css.html">no</a> — WebKit's print path ignores every CSS multi-column property, so a two-column template previews correctly on screen and exports as a single column.</td>
+      </tr>
+      <tr>
+        <th scope="row">Running head and folio</th>
+        <td><a href="../files/typeset-css.html#L67">yes, via CSS Paged Media</a> — Chrome's own print dialog ignores the margin boxes a running head and folio need; only a paged-media engine (Paged.js, WeasyPrint, Prince) renders them.</td>
+        <td><a href="../files/typeset-typ.html#L263">yes, natively</a></td>
+        <td><a href="../files/iawriter-css.html">no</a> — iA Writer reserves the top and bottom bands itself, by setting the page margins directly; a template's own @page margin would replace that reservation rather than add to it.</td>
+      </tr>
+      <tr>
+        <th scope="row">True page-foot footnotes</th>
+        <td><a href="../files/typeset-css.html#L712">WeasyPrint and Prince only</a> — per spec.json: “Bottom-of-page footnotes require an engine that can measure the page while laying it out. Typst and LaTeX do this natively. WeasyPrint 53+ and Prince implement the CSS footnote model. No browser does.”</td>
+        <td><a href="../files/typeset-typ.html#L1244">yes, natively</a></td>
+        <td><a href="../files/iawriter-css.html">no</a> — Markdown has no page-position construct for a note, so it degrades to an endnotes block at the end of the document.</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
 <section class="card">
   <p class="card__label">iA Writer</p>
   <h2>The letter</h2>

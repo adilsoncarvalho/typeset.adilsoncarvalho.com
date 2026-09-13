@@ -397,6 +397,42 @@ a { color: inherit; }
   border-radius: 3px;
 }
 
+/* ---- Capability matrix --------------------------------------------------- */
+
+.matrix-section { margin-bottom: 3.5rem; }
+.matrix-section h2 { font: 300 1.75rem/1.15 var(--ui-sans); margin: 0.35rem 0 0.9rem; }
+.matrix-section > p { margin: 0 0 1.25rem; color: var(--ui-fg-muted); font-size: 0.9375rem; }
+.matrix-wrap { overflow-x: auto; border: 1px solid var(--ui-border); border-radius: 6px; }
+.matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  background: var(--ui-bg-raised);
+}
+.matrix th, .matrix td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--ui-border);
+}
+.matrix thead th {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ui-fg-faint);
+  background: var(--ui-bg-sunken);
+  white-space: nowrap;
+}
+.matrix tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.matrix tbody tr:last-child th, .matrix tbody tr:last-child td { border-bottom: 0; }
+.matrix td { color: var(--ui-fg-muted); line-height: 1.5; }
+.matrix td a { color: var(--ui-fg); text-decoration: none; border-bottom: 1px solid var(--ui-border-strong); }
+.matrix td a:hover { color: var(--ui-accent); }
+
 /* ---- Tabbed panel ------------------------------------------------------- */
 
 .panel { min-width: 0; }

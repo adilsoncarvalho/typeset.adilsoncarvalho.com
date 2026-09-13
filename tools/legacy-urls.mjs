@@ -26,6 +26,7 @@
 import { readFileSync, existsSync, readdirSync, writeFileSync, statSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { EXAMPLES } from '../src/examples.mjs';
+import { TEMPLATES, bundleZip } from '../src/templates.mjs';
 
 export const SNAPSHOT = 'tools/legacy-urls.json';
 
@@ -49,13 +50,16 @@ const read = (p) => readFileSync(p, 'utf8');
    .github/workflows/deploy.yml), so on a pull request — where this gate runs —
    the filesystem cannot answer for them. The builder that emits each one is
    asked instead: previews/ from the example list tools/build-previews.mjs
-   itself derives its filenames from, downloads/ from the tools that name the
-   archive they write. */
+   itself derives its filenames from, template bundles from src/templates.mjs
+   (the one place that names one — tools/build-iawriter.mjs's filename no
+   longer appears as a literal in tools/*.mjs for the regex sweep below to
+   find), and every other downloads/ archive from the tools that name it. */
 export function derivedPaths() {
   const paths = new Set();
   for (const e of EXAMPLES) {
     for (let n = 1; n <= e.pages; n += 1) paths.add(`previews/${e.id}-${n}.svg`);
   }
+  for (const t of TEMPLATES) paths.add(`downloads/${bundleZip(t)}`);
   const tools = readdirSync('tools')
     .filter((f) => f.endsWith('.mjs') && f !== 'legacy-urls.mjs')
     .map((f) => read(`tools/${f}`))

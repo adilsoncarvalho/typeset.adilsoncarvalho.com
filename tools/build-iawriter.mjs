@@ -29,6 +29,7 @@ import {
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
+import { TEMPLATES, bundleZip } from '../src/templates.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const fontManifest = JSON.parse(readFileSync('fonts/manifest.json', 'utf8'));
@@ -64,37 +65,6 @@ function familyDirs(sheets) {
   }
   return [...dirs].sort();
 }
-
-const TEMPLATES = [
-  {
-    dir: 'letter',
-    bundle: 'typeset-letter.iatemplate',
-    summary: 'A letter on A4 at 20mm on all four sides. EB Garamond at 11pt, ragged right,\n'
-      + 'filling the page the margins leave.',
-    notes: `The display quote
-  A \`>\` quote is set centred in Cormorant Garamond Light Italic at 1.3x the
-  body size, with no rule and no indent. Markdown has only one quoting
-  construct, so in a letter it does the job a pull quote does. It is the
-  template's own choice, not something spec.json declares.
-
-The letterhead
-  Indent a block by a tab or four spaces and it becomes your address, set in
-  Cormorant Garamond Light at 11pt — the same family as the quote, upright
-  rather than italic. Markdown calls that construct a code block;
-  the letter template strips every mark of code off it — the wash, the rule and
-  the monospaced face — because it is the only construct Markdown has that keeps
-  your line breaks without a paragraph's indent and justification rules.
-
-      # Adilson Carvalho
-
-          10 Wentworth Avenue
-          Surry Hills NSW 2010
-
-  It follows that an indented block anywhere else in the letter is set as an
-  address too — there is no second indented construct to tell them apart.
-`,
-  },
-];
 
 /* ---- Guards -------------------------------------------------------------- */
 
@@ -263,7 +233,7 @@ spec is right.
   /* -X drops extra file attributes, which keeps the archive a little more
      comparable between machines. Timestamps still vary, so the zip is not
      bit-reproducible — its contents are, which is what matters. */
-  const zip = `${t.bundle}.zip`;
+  const zip = bundleZip(t);
   rmSync(`${OUT}/${zip}`, { force: true });
   execFileSync('zip', ['-qrX', zip, t.bundle, '-x', '.*', '-x', '*/.*'], { cwd: OUT, stdio: 'inherit' });
   rmSync(stage, { recursive: true, force: true });
