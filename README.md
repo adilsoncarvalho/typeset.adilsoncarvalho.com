@@ -220,9 +220,15 @@ If the element genuinely cannot be shown, add it to `EXEMPTIONS` in
 own: `src/demos/page.html` draws a page on screen, and `src/demos/link.html`
 says in place what a printer will do with the sample above it.
 
-## Templates
+## Page templates
 
-A template sets the page and the scale. Everything else — the palette, the rule
+The word carries two senses in this repository, and they are kept apart. A **page
+template** is what `spec.json`'s `templates` key holds — a page and a scale, and
+nothing else — and that is what this section is about. A **template** on
+`/templates/` is a document you write in, set to the specification: the iA Writer
+letter is the one that ships.
+
+A page template sets the page and the scale. Everything else — the palette, the rule
 weights, the numeral conventions, the pagination rules — is identical across
 them: a template does not get its own typography.
 

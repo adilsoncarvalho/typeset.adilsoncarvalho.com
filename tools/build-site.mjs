@@ -282,10 +282,14 @@ ${fullrow}</section>`;
 
 const elementCount = spec.sections.reduce((n, s) => n + s.elements.length, 0);
 
+/* "Page templates", not "templates": /templates/ uses the word for a document
+   you write in, and this counts spec.json's page layouts — single-column and
+   two-column. A reader who starts at the specification meets the number here
+   and the route there, and nothing else on either page separates the two. */
 const counts = (() => {
   const templates = Object.keys(spec.templates)
     .filter((k) => k !== 'default' && k !== 'note').length;
-  return `${spec.sections.length} sections, ${elementCount} elements, ${templates} templates`;
+  return `${spec.sections.length} sections, ${elementCount} elements, ${templates} page templates`;
 })();
 
 /* ---- Masthead boilerplate -------------------------------------------------

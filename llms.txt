@@ -31,6 +31,13 @@ Read in this order:
    `/templates/`, and every anchor `/index.html` used to carry still works from
    there.
 
+## Templates
+
+- [/templates/](https://typeset.adilsoncarvalho.com/templates/): documents already set
+  to this specification, to write in rather than to implement — the iA Writer letter
+  today — beside a capability matrix of what CSS, Typst and iA Writer can each express,
+  and what a "no" costs. Read it before choosing which one to hand a writer.
+
 ## Reference implementations
 
 - [typeset.css](https://typeset.adilsoncarvalho.com/typeset.css): CSS. Complete except for footnotes, running heads and TOC page numbers, which need a paged-media engine.

@@ -33,7 +33,7 @@
     <li><a href="#page">Page setup</a></li>
   </ol>
 
-  <p class="nav__group">Templates</p>
+  <p class="nav__group">Page templates</p>
   <ol>
     <li><a href="#two-column">Two column, equal</a></li>
   </ol>
@@ -91,6 +91,11 @@
     <li><a href="../files/example-letter.html">Letter, in Typst →</a></li>
     <li><a href="../files/example-two-column.html">Two column, in Typst →</a></li>
   </ol>
+
+  <p class="nav__group">Templates</p>
+  <ol>
+    <li><a href="../templates/index.html">What you can write in →</a></li>
+  </ol>
 </nav>
 
 <main class="main" id="top">
@@ -103,7 +108,7 @@
   <div class="feeds">
     <p class="feeds__label">Raw files, for a machine</p>
     <ul>
-      <li><a href="../spec.json"><code>spec.json</code></a> — the normative source. 22 sections, 103 elements, 2 templates, every length absolute.</li>
+      <li><a href="../spec.json"><code>spec.json</code></a> — the normative source. 22 sections, 103 elements, 2 page templates, every length absolute.</li>
       <li><a href="../SPEC.md"><code>SPEC.md</code></a> — the same thing as prose, generated from <code>spec.json</code>. Paste this into a model's context.</li>
       <li><a href="../llms.txt"><code>llms.txt</code></a> — what to read first, and in what order.</li>
     </ul>
@@ -551,7 +556,7 @@ anything.</pre><button class="copy" type="button" data-copy>Copy</button></div><
 
 <section class="section" id="two-column">
   <div class="section__head">
-    <p class="section__num">04 — Templates</p>
+    <p class="section__num">04 — Page templates</p>
     <h2>Two column, equal</h2>
     <p>For papers, journal articles, newsletters and technical notes — documents scanned and referenced as much as read. A template sets the page and the scale; it does not get its own typography, so everything else on this page still applies unchanged.</p>
     <p><b>The base size drops to 9.5pt here, and that is arithmetic rather than taste.</b> A4 less the standard 20mm margin on each side leaves 170mm; a 6mm gutter divides it into two 82mm columns. At 11pt an 82mm column carries 42 characters — below the 45-character floor this spec sets for prose. 10.5pt still falls short, at 44. 9.5pt restores 49, and every other step comes down with it.</p>

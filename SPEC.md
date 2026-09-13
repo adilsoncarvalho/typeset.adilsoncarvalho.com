@@ -206,7 +206,7 @@ A normative typographic specification for printed documents — essays, letters,
 | role | drop caps, note markers, fleurons |
 | note | Oxblood. Chosen to read as a dark grey when printed in greyscale. |
 
-## Templates
+## Page templates
 
 A template sets the page and the scale. Everything under `foundation` and `sections` still applies; a template states only what it overrides, and what it forbids.
 
