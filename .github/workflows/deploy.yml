@@ -158,6 +158,7 @@ jobs:
           version=$(node -p "require('./spec.json').version")
           cp downloads/typeset-typst.zip "downloads/typeset-typst-${version}.zip"
           cp downloads/typeset-letter.iatemplate.zip "downloads/typeset-letter-${version}.iatemplate.zip"
+          cp downloads/typeset-css.zip "downloads/typeset-css-${version}.zip"
           echo "VERSION=$version" >> "$GITHUB_ENV"
 
       - name: Publish the release assets
@@ -167,11 +168,13 @@ jobs:
           assets=(
             "downloads/typeset-typst-${VERSION}.zip"
             "downloads/typeset-letter-${VERSION}.iatemplate.zip"
+            "downloads/typeset-css-${VERSION}.zip"
           )
           gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
             --title "typeset $GITHUB_REF_NAME" \
             --notes "Implementations of typeset spec $VERSION, each carrying every font file.
 
           - \`typeset-typst-${VERSION}.zip\` — Typst. Compile with \`typst compile --font-path fonts implementations/example-essay.typ out.pdf\`.
-          - \`typeset-letter-${VERSION}.iatemplate.zip\` — iA Writer, letter. Ragged right at the 11pt base." \
+          - \`typeset-letter-${VERSION}.iatemplate.zip\` — iA Writer, letter. Ragged right at the 11pt base.
+          - \`typeset-css-${VERSION}.zip\` — CSS. The stylesheet and the three families it binds; what a template consumes." \
           || gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
