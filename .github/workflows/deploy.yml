@@ -138,6 +138,12 @@ jobs:
       - name: Build the Typst bundle
         run: node tools/build-bundle.mjs
 
+      # Not a release asset — see the top-of-file note — but the iA Writer
+      # template below consumes typeset.css and the spec fonts from this bundle
+      # rather than from the repository root, so it has to exist first.
+      - name: Build the CSS bundle
+        run: node tools/build-css-bundle.mjs
+
       - name: Build the iA Writer template
         run: node tools/build-iawriter.mjs
 

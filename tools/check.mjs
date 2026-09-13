@@ -7,7 +7,7 @@ import { readFileSync, existsSync, readdirSync, writeFileSync, rmSync, mkdtempSy
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { buildAll } from './build-site.mjs';
+import { buildAll, faceDescriptors } from './build-site.mjs';
 import { buildSpecMd } from './build-spec.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
@@ -4743,6 +4743,97 @@ for (const [role, font] of Object.entries(spec.foundation.fonts)) {
   }
   if (!existsSync(`${entry.dir}/OFL.txt`)) {
     fail.push(`${entry.dir}/OFL.txt is missing — the CSS bundle cannot ship "${font.family}" without its licence`);
+  }
+}
+
+/* ---- 26. tools/build-iawriter.mjs must consume the spec through the CSS ---*/
+/*          bundle, never read typeset.css or a spec font family directly --- */
+
+/* tools/build-iawriter.mjs only runs on a push or a manual dispatch (see
+   .github/workflows/deploy.yml), so a regression here would not fail until the
+   next deploy — the same gap section 25 above closes for the CSS bundle
+   itself. A template that reads typeset.css or a spec family's directory
+   straight out of the repository root is a template carrying a second,
+   silently drifting copy of exactly what the CSS bundle exists to be the one
+   copy of, which is the failure this whole group of changes exists to
+   prevent. Checked by grepping the builder's own source for the literal
+   root-relative reads a shortcut would reach for, rather than by running it —
+   running it proves only today's behaviour, and says nothing about a future
+   edit that puts the direct read back. Cormorant Garamond is not a spec
+   family (fonts/manifest.json has no "spec" entry for it), so it is exempt:
+   it is the template's own, and reads from fonts/ directly by design. */
+const buildIawriterSrc = readFileSync('tools/build-iawriter.mjs', 'utf8');
+
+if (/readFileSync\(\s*['"`]typeset\.css['"`]/.test(buildIawriterSrc)) {
+  fail.push('tools/build-iawriter.mjs reads the repository root\'s typeset.css directly — '
+    + 'it must read the CSS bundle (downloads/typeset-css.zip) instead');
+}
+if (!buildIawriterSrc.includes('typeset-css.zip')) {
+  fail.push('tools/build-iawriter.mjs no longer names downloads/typeset-css.zip — it must '
+    + 'source typeset.css and the spec fonts from the CSS bundle, not the repository root');
+}
+for (const font of Object.values(spec.foundation.fonts)) {
+  if (!font.family) continue;
+  const entry = fontManifest.families.find((f) => f.family === font.family && f.role === 'spec');
+  if (!entry) continue; // reported by section 25 above
+  if (buildIawriterSrc.includes(`'${entry.dir}'`) || buildIawriterSrc.includes(`"${entry.dir}"`)) {
+    fail.push(`tools/build-iawriter.mjs names "${entry.dir}" literally — a spec family's `
+      + 'directory must be reached through the CSS bundle, never hardcoded as a repository-root path');
+  }
+}
+
+/* ---- 27. iawriter.css's hand-written @font-face block must still agree ----*/
+/*          with fonts/manifest.json's "spec" entries, face for face -------- */
+
+/* Unlike every list this group of changes derives from spec.json or the
+   manifest, iawriter.css's @font-face block is not a list of paths — it is CSS
+   that must agree with one, hand-written because a template is a static local
+   page with no build step of its own once installed. Nothing had ever checked
+   that agreement, which is why it could drift silently. This reads the same
+   filename → weight/style derivation tools/build-site.mjs already uses for the
+   masthead's own font-face block, walks the same manifest, and requires
+   iawriter.css to bind exactly those faces: none missing, none left over, none
+   at the wrong weight or style. */
+const specFontEntries = Object.values(spec.foundation.fonts)
+  .filter((font) => font.family)
+  .map((font) => fontManifest.families.find((f) => f.family === font.family && f.role === 'spec'))
+  .filter(Boolean);
+
+const expectedFaces = specFontEntries.flatMap((entry) => entry.faces.map((face) => {
+  const d = faceDescriptors(face.file);
+  if (!d) {
+    fail.push(`fonts/manifest.json: cannot read a weight and style out of "${face.file}" — `
+      + 'teach faceDescriptors() in tools/build-site.mjs its shape');
+    return null;
+  }
+  return { family: entry.family, weight: String(d.weight), style: d.style, src: `${entry.dir}/${face.file}` };
+})).filter(Boolean);
+
+const iawriterCss = readFileSync('implementations/iawriter/iawriter.css', 'utf8');
+const iawriterFaces = blocks(iawriterCss)
+  .filter((b) => b.selector.endsWith('@font-face'))
+  .map((b) => ({
+    family: decl(b.body, 'font-family')?.replace(/["']/g, ''),
+    weight: decl(b.body, 'font-weight') ?? '400',
+    style: decl(b.body, 'font-style') ?? 'normal',
+    src: decl(b.body, 'src')?.match(/url\("([^"]+)"\)/)?.[1],
+  }));
+
+const faceKey = (f) => `${f.family}|${f.weight}|${f.style}|${f.src}`;
+const expectedFaceKeys = new Set(expectedFaces.map(faceKey));
+const iawriterFaceKeys = new Set(iawriterFaces.map(faceKey));
+
+for (const f of expectedFaces) {
+  if (!iawriterFaceKeys.has(faceKey(f))) {
+    fail.push(`implementations/iawriter/iawriter.css: no @font-face binds ${f.family} `
+      + `${f.weight} ${f.style} from ${f.src} — fonts/manifest.json says the CSS bundle carries it`);
+  }
+}
+for (const f of iawriterFaces) {
+  if (f.family && !expectedFaceKeys.has(faceKey(f))) {
+    fail.push(`implementations/iawriter/iawriter.css: @font-face binds ${f.family} ${f.weight} `
+      + `${f.style} from ${f.src}, which fonts/manifest.json's "spec" entries do not carry — `
+      + 'the hand-written block has drifted from the manifest');
   }
 }
 

@@ -7,23 +7,50 @@
    both paths under test but not in iA Writer itself. Two columns belong to an
    engine that can paginate them — Typst does it natively.
 
-   A bundle is assembled rather than committed as a zip, for the same reason the
-   Typst bundle is: it carries a copy of typeset.css and of every font file, and
-   a copy that is committed is a copy that drifts. Assembling it here means the
-   template can only ever ship the stylesheet that is in this repository.
+   A template CONSUMES the spec, it does not carry a second copy of it: typeset.css
+   and the three spec font families come from downloads/typeset-css.zip — the
+   bundle tools/build-css-bundle.mjs publishes — not from this repository's own
+   typeset.css or fonts/. Reading the spec's files directly here would give the
+   template its own drifting copy of exactly what the CSS bundle exists to be the
+   one copy of. Everything the template owns rather than consumes — iawriter.css,
+   letter/page.css, Info.plist, example.md, and Cormorant Garamond, the letter's
+   own display-quote and letterhead face — still comes from this repository, under
+   implementations/iawriter/.
 
-   `downloads/` is gitignored; run this to get the bundles locally.
+   `downloads/` is gitignored; run node tools/build-css-bundle.mjs, then this, to
+   get the bundles locally.
 
    Run: node tools/build-iawriter.mjs
 */
 
-import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, statSync, readdirSync } from 'node:fs';
+import {
+  readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, cpSync, existsSync, statSync, readdirSync,
+} from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { basename } from 'node:path';
+import { tmpdir } from 'node:os';
+import { basename, join } from 'node:path';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
+const fontManifest = JSON.parse(readFileSync('fonts/manifest.json', 'utf8'));
 const SRC = 'implementations/iawriter';
 const OUT = 'downloads';
+const BUNDLE = `${OUT}/typeset-css.zip`;
+
+const fail = (msg) => { throw new Error(msg); };
+
+/* The one door from the repository's own fonts/ into the bundle: a directory
+   is "spec" if fonts/manifest.json says so, and only a spec directory is
+   allowed to come from the CSS bundle rather than from this repository. Every
+   other role — "letter", today just Cormorant Garamond — is the template's
+   own, and is read from fonts/ directly, same as iawriter.css and page.css are. */
+function resolveFontDir(dir, bundleDir) {
+  const entry = fontManifest.families.find((f) => f.dir === dir);
+  if (!entry) {
+    fail(`${dir} is not listed in fonts/manifest.json — cannot tell whether it ships from `
+      + "the CSS bundle or the template's own fonts/");
+  }
+  return entry.role === 'spec' ? join(bundleDir, dir) : dir;
+}
 
 /* Which families a bundle carries is derived from the @font-face rules in the
    stylesheets it actually links, not from a list kept here: the letter binds two
@@ -71,15 +98,24 @@ The letterhead
 
 /* ---- Guards -------------------------------------------------------------- */
 
-const fail = (msg) => { throw new Error(msg); };
+if (!existsSync(BUNDLE)) {
+  fail(`${BUNDLE} is missing — run node tools/build-css-bundle.mjs first`);
+}
 
-const css = readFileSync('typeset.css', 'utf8');
+/* Unzipped once, into a scratch directory that stands in for "the CSS bundle",
+   so every read below resolves against what the bundle actually shipped rather
+   than against this repository's own typeset.css and fonts/ — the two could
+   silently disagree, and only the bundle is what a template's own users get. */
+const bundleDir = mkdtempSync(join(tmpdir(), 'typeset-iawriter-'));
+execFileSync('unzip', ['-oq', BUNDLE, '-d', bundleDir], { stdio: 'inherit' });
+
+const css = readFileSync(join(bundleDir, 'typeset.css'), 'utf8');
 const adapter = readFileSync(`${SRC}/iawriter.css`, 'utf8');
 
 for (const family of Object.values(spec.foundation.fonts)) {
   if (!family.family) continue;
   if (!css.includes(`"${family.family}"`)) {
-    fail(`typeset.css no longer names "${family.family}" — the bundle's font list is out of date`);
+    fail(`the CSS bundle's typeset.css no longer names "${family.family}" — the bundle's font list is out of date`);
   }
 }
 if (!adapter.includes('@font-face')) {
@@ -156,10 +192,11 @@ for (const t of TEMPLATES) {
     cpSync(source, `${res}/${basename(js)}`);
   }
   for (const sheet of wanted) {
-    /* Template-local first, then the shared layer, then the stylesheet itself:
-       page.css is per template because the two do not share a page, while
-       iawriter.css is one file for both. */
-    const source = [`${from}/${sheet}`, `${SRC}/${sheet}`, sheet]
+    /* Template-local first, then the shared layer, then the CSS bundle:
+       page.css is per template because the two do not share a page, iawriter.css
+       is one file for both, and typeset.css is neither — it is the spec's, and
+       reaches this template only through the bundle it ships in. */
+    const source = [`${from}/${sheet}`, `${SRC}/${sheet}`, join(bundleDir, sheet)]
       .find((candidate) => existsSync(candidate));
     if (!source) fail(`${from} links ${sheet}, which does not exist`);
     cpSync(source, `${res}/${basename(sheet)}`);
@@ -169,16 +206,24 @@ for (const t of TEMPLATES) {
      whole failure a bundle exists to prevent — so a broken `src` is caught here
      rather than discovered in a PDF. */
   const sheets = [...wanted].map((sheet) =>
-    readFileSync([`${from}/${sheet}`, `${SRC}/${sheet}`, sheet].find((c) => existsSync(c)), 'utf8'));
+    readFileSync([`${from}/${sheet}`, `${SRC}/${sheet}`, join(bundleDir, sheet)].find((c) => existsSync(c)), 'utf8'));
   const faces = sheets.flatMap((c) => [...c.matchAll(/url\("(fonts\/[^"]+)"\)/g)].map((m) => m[1]));
   if (!faces.length) fail(`${from} links no @font-face at all — every family would fall back`);
   for (const f of faces) {
-    if (!existsSync(f)) fail(`${from} binds ${f}, which does not exist`);
+    const dir = f.slice(0, f.lastIndexOf('/'));
+    const resolved = join(resolveFontDir(dir, bundleDir), basename(f));
+    if (!existsSync(resolved)) fail(`${from} binds ${f}, which does not exist (looked in ${resolved})`);
   }
 
   for (const dir of familyDirs(sheets)) {
-    if (!existsSync(`${dir}/OFL.txt`)) fail(`${dir}/OFL.txt is missing; the licence must ship with the fonts`);
-    cpSync(dir, `${res}/fonts/${basename(dir)}`, { recursive: true });
+    const source = resolveFontDir(dir, bundleDir);
+    if (!existsSync(source)) {
+      fail(dir === source
+        ? `${source} is missing — cannot build the bundle`
+        : `${source} is missing from the CSS bundle — run node tools/build-css-bundle.mjs first`);
+    }
+    if (!existsSync(`${source}/OFL.txt`)) fail(`${source}/OFL.txt is missing; the licence must ship with the fonts`);
+    cpSync(source, `${res}/fonts/${basename(dir)}`, { recursive: true });
   }
 
   writeFileSync(`${res}/README.txt`, `typeset — iA Writer template ${spec.version}
@@ -229,6 +274,8 @@ spec is right.
   built.push({ zip, files, mb });
   console.log(`${OUT}/${zip} — ${files} files, ${mb} MB, spec ${spec.version}`);
 }
+
+rmSync(bundleDir, { recursive: true, force: true });
 
 /* The versioned names the release assets use. */
 for (const b of built) {

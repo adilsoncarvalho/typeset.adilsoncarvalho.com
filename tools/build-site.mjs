@@ -31,6 +31,30 @@ function lineNumbered(source, lang) {
 
 const read = (p) => readFileSync(p, 'utf8');
 
+/* The weight a face's filename names, where it names it in words. A file whose
+   suffix is numeric carries the weight directly. */
+const WEIGHT_NAMES = {
+  '': 400, Thin: 100, ExtraLight: 200, Light: 300, Regular: 400,
+  Medium: 500, SemiBold: 600, Bold: 700, ExtraBold: 800, Black: 900,
+};
+
+/* The font-weight and font-style descriptors a face file must be bound with,
+   read from the part of its name after the family: "-SemiBoldItalic", "-400",
+   "-300", "-Italic". Returns null for a name this cannot read, which the
+   caller turns into a build failure — a face bound with the wrong descriptors,
+   or with none, is exactly the defect this block exists to prevent. Exported
+   for tools/check.mjs, which holds implementations/iawriter/iawriter.css's
+   hand-written @font-face block to the same derivation. */
+export function faceDescriptors(file) {
+  const stem = file.replace(/\.(otf|ttf|woff2?)$/i, '');
+  const suffix = stem.slice(stem.indexOf('-') + 1);
+  const italic = suffix.endsWith('Italic');
+  const token = italic ? suffix.slice(0, -'Italic'.length) : suffix;
+  const weight = /^\d+$/.test(token) ? Number(token) : WEIGHT_NAMES[token];
+  if (weight === undefined) return null;
+  return { weight, style: italic ? 'italic' : 'normal' };
+}
+
 /* Returns every generated file as path -> contents. Nothing is written here, so
    tools/check.mjs can rebuild in memory and compare against what is committed —
    which makes a stale generated page a build failure rather than a surprise. */
@@ -197,28 +221,6 @@ const counts = (() => {
    the files that already own the values they state, so the block can never
    drift from the fonts fonts/ actually carries or the import shape
    typeset.typ actually declares. */
-
-/* The weight a face's filename names, where it names it in words. A file whose
-   suffix is numeric carries the weight directly. */
-const WEIGHT_NAMES = {
-  '': 400, Thin: 100, ExtraLight: 200, Light: 300, Regular: 400,
-  Medium: 500, SemiBold: 600, Bold: 700, ExtraBold: 800, Black: 900,
-};
-
-/* The font-weight and font-style descriptors a face file must be bound with,
-   read from the part of its name after the family: "-SemiBoldItalic", "-400",
-   "-300", "-Italic". Returns null for a name this cannot read, which the
-   caller turns into a build failure — a face bound with the wrong descriptors,
-   or with none, is exactly the defect this block exists to prevent. */
-function faceDescriptors(file) {
-  const stem = file.replace(/\.(otf|ttf|woff2?)$/i, '');
-  const suffix = stem.slice(stem.indexOf('-') + 1);
-  const italic = suffix.endsWith('Italic');
-  const token = italic ? suffix.slice(0, -'Italic'.length) : suffix;
-  const weight = /^\d+$/.test(token) ? Number(token) : WEIGHT_NAMES[token];
-  if (weight === undefined) return null;
-  return { weight, style: italic ? 'italic' : 'normal' };
-}
 
 /* Every face the three spec families carry, each bound with the descriptors
    its own filename declares. A @font-face rule with no font-weight and no
