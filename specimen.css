@@ -327,6 +327,34 @@ a { color: inherit; }
 .paper.typeset > :first-child,
 .paper .typeset > :first-child { margin-top: 0; }
 
+/* ---- Machine-readable pointers in the masthead --------------------------- */
+
+.feeds {
+  margin: 1.75rem 0 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--ui-border);
+  border-left: 3px solid var(--ui-accent);
+  border-radius: 3px;
+  background: var(--ui-bg-raised);
+}
+.feeds__label {
+  margin: 0 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ui-fg-faint);
+}
+.feeds ul { margin: 0; padding-left: 1.1rem; font-size: 0.875rem; }
+.feeds li { margin-bottom: 0.3rem; color: var(--ui-fg-muted); }
+.feeds code {
+  font-family: var(--ui-mono);
+  font-size: 0.85em;
+  background: var(--ui-bg-sunken);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
 /* ---- Tabbed panel ------------------------------------------------------- */
 
 .panel { min-width: 0; }
@@ -505,7 +533,7 @@ table.spec-table code {
 .spec-fallback b { color: var(--ui-fg); }
 
 @media print {
-  .tabs { display: none; }
+  .tabs, .feeds { display: none; }
 }
 
 /* ---- Scaled page preview ------------------------------------------------- */

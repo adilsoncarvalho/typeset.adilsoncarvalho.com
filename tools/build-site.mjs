@@ -175,6 +175,13 @@ ${panel}
 ${fullrow}</section>`;
 }
 
+const counts = (() => {
+  const els = spec.sections.reduce((n, s) => n + s.elements.length, 0);
+  const templates = Object.keys(spec.templates)
+    .filter((k) => k !== 'default' && k !== 'note').length;
+  return `${spec.sections.length} sections, ${els} elements, ${templates} templates`;
+})();
+
 /* ---- Masthead boilerplate -------------------------------------------------
    The block every reader needs once, above the sections: what to add around
    a copied HTML or Typst snippet to make it run. Both halves are read from
@@ -266,6 +273,7 @@ function typstExampleButtons() {
 }
 
 const masthead = read('src/masthead.html').trimEnd()
+  .replace('<span data-spec-counts>every value</span>', counts)
   .replace('<span data-spec-version>—</span>', `${spec.version} · ${spec.updated}`)
   .replace('<span data-typst-examples></span>', typstExampleButtons())
   .replace('<code data-boilerplate="html"></code>', `<code data-boilerplate="html">${boilerplateHtml()}</code>`)
