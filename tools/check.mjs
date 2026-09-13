@@ -22,6 +22,7 @@ const typ = readFileSync('implementations/typeset.typ', 'utf8');
 const html = readFileSync('index.html', 'utf8');
 const specMd = readFileSync('SPEC.md', 'utf8');
 const readmeMd = readFileSync('README.md', 'utf8');
+const VIEWERS = JSON.parse(readFileSync('src/viewers.json', 'utf8'));
 
 const fail = [];
 const warn = [];
@@ -994,6 +995,75 @@ for (const demo of SCALE_DEMOS) {
       fail.push(`${demo.file}: spec.foundation.scale.steps defines "${step}" `
         + 'but the scale demo has no row for it');
     }
+  }
+}
+
+/* ---- 18. Every src/viewers.json entry resolves ---------------------------- */
+
+/* Five hand-written rows — nothing derives source or href, so a typo in
+   either is the one way this file can still drift. Tracked separately from
+   fail[] so this can stop before buildAll() (3d, below) reaches the same
+   files: buildAll() reads v.source unconditionally to build each viewer
+   page's own content, and a missing one would crash it with a raw ENOENT
+   instead of the message below. href is never read by buildAll() — it is
+   only printed as a link's destination — so it carries no such risk, but a
+   broken one is exactly as dead as a missing source and is checked here for
+   the same reason. */
+
+let missingViewerTarget = false;
+
+for (const v of VIEWERS) {
+  if (!existsSync(v.source)) {
+    fail.push(`src/viewers.json: "${v.slug}" names source "${v.source}", which does not exist`);
+    missingViewerTarget = true;
+  }
+  const hrefTarget = join('files', v.href);
+  if (!existsSync(hrefTarget)) {
+    fail.push(`src/viewers.json: "${v.slug}" has href "${v.href}", which resolves to `
+      + `"${hrefTarget}" — no such file`);
+  }
+}
+
+/* ---- 19. Every entry in src/examples.mjs has a viewer page ---------------- */
+
+/* tools/build-site.mjs derives one files/example-<id>.html per entry, so this
+   is true today by construction — the gate is what keeps it true the day
+   someone adds a fourth example and forgets to re-run
+   node tools/build-site.mjs. Checked here, before buildAll() (3d), for the
+   same reason as above: 3d's own comparison loop reads this exact path and
+   would crash on it rather than report it. */
+
+for (const e of EXAMPLES) {
+  const page = `files/example-${e.id}.html`;
+  if (!existsSync(page)) {
+    fail.push(`src/examples.mjs: "${e.id}" has no ${page} — run node tools/build-site.mjs`);
+    missingViewerTarget = true;
+  }
+}
+
+if (missingViewerTarget) reportFailuresAndExit();
+
+/* ---- 20. Every viewer page is reachable from the masthead ----------------- */
+
+/* A page nothing links to is unreachable, and nothing above checks that.
+   Reads `html` — the BUILT index.html, loaded at the top of this file — not
+   src/masthead.html: the three example buttons are injected at build time
+   from src/examples.mjs via a data-typst-examples placeholder, so a check
+   against the source template would report all three as false positives. */
+
+for (const v of VIEWERS) {
+  const href = `files/${v.slug}.html`;
+  if (!html.includes(`href="${href}"`)) {
+    fail.push(`index.html: no link to ${href} — src/viewers.json names "${v.slug}" but the `
+      + 'masthead does not point at its viewer page');
+  }
+}
+
+for (const e of EXAMPLES) {
+  const href = `files/example-${e.id}.html`;
+  if (!html.includes(`href="${href}"`)) {
+    fail.push(`index.html: no link to ${href} — src/examples.mjs names "${e.id}" but the `
+      + 'masthead does not point at its viewer page');
   }
 }
 
