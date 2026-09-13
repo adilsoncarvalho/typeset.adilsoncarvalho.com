@@ -30,7 +30,7 @@
     bar.setAttribute('style', BAR);
 
     const back = document.createElement('a');
-    back.href = '../spec/';
+    back.href = '../spec/index.html';
     back.textContent = '← typeset';
     back.setAttribute('style', LINK);
 

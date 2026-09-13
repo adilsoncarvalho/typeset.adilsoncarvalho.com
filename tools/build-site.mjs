@@ -139,8 +139,12 @@ ${scripts}</body>
    tools/check.mjs's reachability gates match against, and the form that stays
    correct if a page is ever served from somewhere else again. This is the one
    place that knows where a page was emitted. */
-const SPEC_DIR = 'spec/';
-const TEMPLATES_DIR = 'templates/';
+/* Named down to the index file rather than left as a directory: a bare
+   "spec/" is served as the page by GitHub Pages but opens as a directory
+   listing over file://, and this repository's pages are meant to open straight
+   from a checkout. A reader who types /spec/ still gets the page. */
+const SPEC_PAGE = 'spec/index.html';
+const TEMPLATES_PAGE = 'templates/index.html';
 
 /* Rewrites every site-internal href and src on a finished page so it resolves
    from a page nested `prefix` deep instead of from the site root. Left alone:
@@ -399,7 +403,7 @@ ${read('src/footer.html').trimEnd()}
   scripts: '<script src="specimen.js" defer></script>\n',
 });
 
-output.set(`${SPEC_DIR}index.html`, relocate(specPage, '../'));
+output.set(SPEC_PAGE, relocate(specPage, '../'));
 
 /* ---- /templates/ — what you can write in ------------------------------- */
 
@@ -410,7 +414,7 @@ output.set(`${SPEC_DIR}index.html`, relocate(specPage, '../'));
    reader there rather than keeping a second copy of that prose. */
 const TEMPLATE_BUNDLE = 'downloads/typeset-letter.iatemplate.zip';
 
-output.set(`${TEMPLATES_DIR}index.html`, relocate(shell({
+output.set(TEMPLATES_PAGE, relocate(shell({
   title: 'Templates — typeset',
   description: 'Ready-made documents set to the typeset specification: the iA Writer '
     + 'letter template, and what each technology can and cannot express.',
@@ -421,7 +425,7 @@ output.set(`${TEMPLATES_DIR}index.html`, relocate(shell({
 <header class="masthead">
   <p class="crumb"><a href="index.html">typeset</a></p>
   <h1>Templates</h1>
-  <p>A template is a document you write in. <a href="${SPEC_DIR}">The specification</a> is the
+  <p>A template is a document you write in. <a href="${SPEC_PAGE}">The specification</a> is the
     contract it keeps: a template sets the page and the scale and nothing else, and takes its
     typography from the published stylesheet rather than carrying a second copy of it.</p>
 </header>
@@ -485,7 +489,7 @@ output.set('index.html', shell({
   description: "Adilson Carvalho's typographic specification for printed documents: "
     + 'essays, letters, reports. The specification, and templates set to it.',
   head: `<link rel="stylesheet" href="specimen.css">\n`,
-  preamble: fragmentForwarder(specPage, SPEC_DIR),
+  preamble: fragmentForwarder(specPage, SPEC_PAGE),
   body: `<div class="page">
 <main class="main">
 
@@ -502,14 +506,14 @@ output.set('index.html', shell({
 </header>
 
 <div class="routes">
-  <a class="route" href="${SPEC_DIR}">
+  <a class="route" href="${SPEC_PAGE}">
     <p class="route__label">The specification</p>
     <p>${spec.sections.length} sections, ${elementCount} elements. Every value an engine must
       hit, each beside a rendered specimen and the same value expressed in CSS and in Typst.
       Read this if you are implementing.</p>
     <p class="route__go">Read the specification →</p>
   </a>
-  <a class="route" href="${TEMPLATES_DIR}">
+  <a class="route" href="${TEMPLATES_PAGE}">
     <p class="route__label">Templates</p>
     <p>Documents already set to the specification, to write in rather than to implement.
       One today: the iA Writer letter.</p>
@@ -558,7 +562,7 @@ function viewerBody({ name, href, lede, extra, source, lang, preview = '' }) {
   const lines = source.replace(/\n$/, '').split('\n').length;
   const kb = (Buffer.byteLength(source, 'utf8') / 1024).toFixed(1);
   return `<div class="vbar">
-  <a class="back" href="../${SPEC_DIR}">← typeset</a>
+  <a class="back" href="../${SPEC_PAGE}">← typeset</a>
   <span class="name">${name}</span>
   <span class="actions">
     <button class="vbtn" type="button" data-copy>Copy</button>
