@@ -53,7 +53,7 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `examples/preview-bar.js` | The back bar for example documents. See the Paged.js notes below. |
 | `tools/build-spec.mjs` | Generates `SPEC.md` from `spec.json`. |
 | `tools/check.mjs` | Verifies the implementations still match the spec. |
-| `tools/legacy-urls.mjs`, `tools/legacy-urls.json` | Every URL the site published before the specification moved to `/spec/`, and the resolver `tools/check.mjs` holds each one to. |
+| `tools/legacy-urls.mjs`, `tools/legacy-urls.json` | Every URL the site published before the specification moved to `/spec/`, and the resolver `tools/check.mjs` holds each one to — the same resolver it sweeps every deployed page's links with. |
 
 Each section's panel carries three tabs beside the rendered example.
 
