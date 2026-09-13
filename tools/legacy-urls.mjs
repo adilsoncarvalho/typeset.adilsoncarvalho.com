@@ -183,6 +183,21 @@ export function harvest() {
     }
   }
 
+  /* The licence for every family this repository redistributes in a bundle.
+     No page links one, so nothing above would find them, and they are here
+     for a different reason from everything else: OFL-1.1 requires the licence
+     to travel with the fonts, and whoever checks that a bundle honours it
+     reads the copy on the site. An obligation outlives a restructure, so the
+     path a third party can hold is held to still resolving. Derived from
+     fonts/manifest.json, which is the one place a family directory is named.
+     fonts/candidates/ is excluded: it ships with the site for the printed
+     font proof, and no bundle redistributes it. */
+  const families = JSON.parse(read('fonts/manifest.json')).families;
+  for (const f of families) {
+    if (f.role === 'candidate') continue;
+    if (existsSync(`${f.dir}/OFL.txt`)) urls.add(`${f.dir}/OFL.txt`);
+  }
+
   return [...urls].sort();
 }
 

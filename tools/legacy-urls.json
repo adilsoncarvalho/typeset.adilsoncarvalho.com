@@ -13,7 +13,11 @@
     "directory listing off. Those are held to no-worse-than-dead, not to fixed.",
     "",
     "Add a URL here when a release or an external document publishes one. Never remove",
-    "one: removing one is exactly the regression this file exists to catch."
+    "one: removing one is exactly the regression this file exists to catch.",
+    "",
+    "The four fonts/*/OFL.txt paths carry no inbound link. They are recorded because",
+    "OFL-1.1 requires the licence to travel with the fonts this repository bundles, and",
+    "the copy on the site is what anyone checking that reads."
   ],
   "urls": {
     "": "file",
@@ -84,6 +88,10 @@
     "files/viewer.css": "file",
     "files/viewer.js": "file",
     "fonts/": "missing",
+    "fonts/Cormorant-Garamond/OFL.txt": "file",
+    "fonts/EB-Garamond/OFL.txt": "file",
+    "fonts/IBM-Plex-Mono/OFL.txt": "file",
+    "fonts/Source-Sans-3/OFL.txt": "file",
     "implementations/example-essay.typ": "file",
     "implementations/example-letter.typ": "file",
     "implementations/example-two-column.typ": "file",
