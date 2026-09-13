@@ -54,7 +54,15 @@ const read = (p) => readFileSync(p, 'utf8');
    itself derives its filenames from, template bundles from src/templates.mjs
    (the one place that names one — tools/build-iawriter.mjs's filename no
    longer appears as a literal in tools/*.mjs for the regex sweep below to
-   find), and every other downloads/ archive from the tools that name it. */
+   find), the CSS bundle from src/fonts.mjs (likewise: CSS_BUNDLE is the one
+   place its path is written, so it is asked directly), and every other
+   downloads/ archive from the tools that name it.
+
+   The sweep answers for a path a tool NAMES, which is not the same as a path
+   a tool SHIPS: a file staged in downloads/ during a build and deleted before
+   the run ends would be registered here as resolving, and a link to it would
+   pass. Both bundle builders therefore stage their BUNDLE.txt outside
+   downloads/. */
 export function derivedPaths() {
   const paths = new Set();
   for (const e of EXAMPLES) {
