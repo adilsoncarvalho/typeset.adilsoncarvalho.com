@@ -581,11 +581,6 @@ table.spec-table code {
   color: var(--ui-fg-faint);
 }
 .btngroup .btnrow { margin-top: 0; }
-.btn--strong {
-  border-color: var(--ui-accent);
-  color: var(--ui-accent);
-}
-.btn--strong:hover { border-color: var(--ui-accent); background: var(--ui-bg-sunken); }
 
 /* ---- Snippet boilerplate, stated once above the sections ----------------- */
 

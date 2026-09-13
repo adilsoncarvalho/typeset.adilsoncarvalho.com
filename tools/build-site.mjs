@@ -117,8 +117,17 @@ function nav() {
       .map((s) => `    <li><a href="#${s.id}">${s.nav || s.title}</a></li>`).join('\n');
     return `  <p class="nav__group">${g}</p>\n  <ol>\n${items}\n  </ol>`;
   });
-  return [read('src/nav-top.html').trimEnd(), ...blocks, read('src/nav-bottom.html').trimEnd()]
-    .join('\n\n');
+  /* The Conformance group names the same three documents twice, once per
+     engine, and every row opens a page that renders one. Derived from
+     src/examples.mjs rather than hand-typed here: while it was hand-typed the
+     list lost "Letter, in Typst" entirely, ran the two engines interleaved,
+     and pointed its Typst rows at raw .typ files a browser downloads. */
+  const conformance = read('src/nav-bottom.html').trimEnd()
+    .replace(/ *<li data-nav-examples="(css|typst)"><\/li>/g, (_, engine) =>
+      EXAMPLES.map((e) => `    <li><a href="${EXAMPLE_PAGE[engine](e.id)}">`
+        + `${exampleLabel(e.id)}, in ${engine === 'css' ? 'CSS' : 'Typst'} →</a></li>`).join('\n'));
+
+  return [read('src/nav-top.html').trimEnd(), ...blocks, conformance].join('\n\n');
 }
 
 /* Sets a demo file at the depth the page nests it to, without touching a line
@@ -261,21 +270,33 @@ function boilerplateTypst() {
   return byLang('typst', typstBoilerplate());
 }
 
-/* One button per shipped Typst example, in src/examples.mjs's own order —
-   the same source the viewer pages below come from, so an example added,
-   renamed or reordered there moves here with it rather than needing a
-   second, hand-kept button list. */
-function typstExampleButtons() {
-  return EXAMPLES.map((e) => {
-    const label = e.id.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase());
-    return `<a class="btn" href="files/example-${e.id}.html">${label}</a>`;
-  }).join('\n        ');
+/* "two-column" → "Two column". */
+function exampleLabel(id) {
+  return id.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase());
+}
+
+/* Where each engine renders a given example document. The three documents
+   exist in both, which is what makes them conformance samples rather than
+   demos, so one id names a page in each. */
+const EXAMPLE_PAGE = {
+  css: (id) => `examples/${id}.html`,
+  typst: (id) => `files/example-${id}.html`,
+};
+
+/* One button per shipped example, in src/examples.mjs's own order, under the
+   engine that renders it — the same source the viewer pages below come from,
+   so an example added, renamed or reordered there moves here with it rather
+   than needing a second, hand-kept button list. */
+function exampleButtons(engine) {
+  return EXAMPLES.map((e) => `<a class="btn" href="${EXAMPLE_PAGE[engine](e.id)}">`
+    + `${exampleLabel(e.id)}</a>`).join('\n        ');
 }
 
 const masthead = read('src/masthead.html').trimEnd()
   .replace('<span data-spec-counts>every value</span>', counts)
   .replace('<span data-spec-version>—</span>', `${spec.version} · ${spec.updated}`)
-  .replace('<span data-typst-examples></span>', typstExampleButtons())
+  .replace('<span data-css-examples></span>', exampleButtons('css'))
+  .replace('<span data-typst-examples></span>', exampleButtons('typst'))
   .replace('<code data-boilerplate="html"></code>', `<code data-boilerplate="html">${boilerplateHtml()}</code>`)
   .replace('<code data-boilerplate="typst"></code>', `<code data-boilerplate="typst">${boilerplateTypst()}</code>`);
 

@@ -82,12 +82,14 @@
 
   <p class="nav__group">Conformance</p>
   <ol>
+    <li><a href="files/typeset-css.html">typeset.css →</a></li>
     <li><a href="examples/essay.html">Essay, in CSS →</a></li>
     <li><a href="examples/letter.html">Letter, in CSS →</a></li>
-    <li><a href="implementations/typeset.typ">typeset.typ →</a></li>
-    <li><a href="implementations/example-essay.typ">Essay, in Typst →</a></li>
     <li><a href="examples/two-column.html">Two column, in CSS →</a></li>
-    <li><a href="implementations/example-two-column.typ">Two column, in Typst →</a></li>
+    <li><a href="files/typeset-typ.html">typeset.typ →</a></li>
+    <li><a href="files/example-essay.html">Essay, in Typst →</a></li>
+    <li><a href="files/example-letter.html">Letter, in Typst →</a></li>
+    <li><a href="files/example-two-column.html">Two column, in Typst →</a></li>
   </ol>
 </nav>
 
@@ -103,6 +105,7 @@
     <ul>
       <li><a href="spec.json"><code>spec.json</code></a> — the normative source. 22 sections, 103 elements, 2 templates, every length absolute.</li>
       <li><a href="SPEC.md"><code>SPEC.md</code></a> — the same thing as prose, generated from <code>spec.json</code>. Paste this into a model's context.</li>
+      <li><a href="llms.txt"><code>llms.txt</code></a> — what to read first, and in what order.</li>
     </ul>
   </div>
 
@@ -115,41 +118,42 @@
     <span><b>Spec</b> 2.0.0 · 2026-09-13</span>
   </div>
   <div class="btngroups">
-    <!-- Grouped by document, not by type — the one row where that's right:
-         choosing between an essay and a letter is choosing a document, not
-         a technology. The three groups below it group by type instead;
-         both are deliberate, not an inconsistency. -->
-    <div class="btngroup">
-      <p class="btngroup__label">Live examples</p>
-      <div class="btnrow">
-        <a class="btn" href="examples/essay.html">Essay</a>
-        <a class="btn" href="examples/letter.html">Letter</a>
-        <a class="btn" href="examples/two-column.html">Two column</a>
-        <a class="btn" href="proofs/font-proof.html">Font proof</a>
-      </div>
-    </div>
+    <!-- One lane: by type. Every button opens a page that renders what it
+         names, and the three example documents sit under the engine that
+         renders them — so "Essay" under CSS and "Essay" under Typst are told
+         apart by the group they are in, which is the only thing about them
+         that differs. The raw files are the box above, under its own label. -->
     <div class="btngroup">
       <p class="btngroup__label">The specification</p>
       <div class="btnrow">
         <a class="btn" href="files/spec-json.html">spec.json</a>
         <a class="btn" href="files/spec-md.html">SPEC.md</a>
-        <a class="btn" href="llms.txt">llms.txt</a>
       </div>
     </div>
     <div class="btngroup">
       <p class="btngroup__label">CSS</p>
       <div class="btnrow">
         <a class="btn" href="files/typeset-css.html">typeset.css</a>
-        <a class="btn btn--strong" href="files/iawriter-css.html">iawriter.css</a>
+        <a class="btn" href="files/iawriter-css.html">iawriter.css</a>
+        <a class="btn" href="examples/essay.html">Essay</a>
+        <a class="btn" href="examples/letter.html">Letter</a>
+        <a class="btn" href="examples/two-column.html">Two column</a>
       </div>
     </div>
     <div class="btngroup">
       <p class="btngroup__label">Typst</p>
       <div class="btnrow">
-        <a class="btn btn--strong" href="files/typeset-typ.html">typeset.typ</a>
+        <a class="btn" href="files/typeset-typ.html">typeset.typ</a>
         <a class="btn" href="files/example-essay.html">Essay</a>
         <a class="btn" href="files/example-letter.html">Letter</a>
         <a class="btn" href="files/example-two-column.html">Two column</a>
+      </div>
+    </div>
+    <div class="btngroup">
+      <p class="btngroup__label">Fonts</p>
+      <div class="btnrow">
+        <a class="btn" href="proofs/font-proof.html">Font proof</a>
+        <a class="btn" href="fonts/">Font files</a>
       </div>
     </div>
   </div>
