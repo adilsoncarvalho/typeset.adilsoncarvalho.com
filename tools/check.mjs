@@ -1075,27 +1075,76 @@ for (const e of EXAMPLES) {
 
 if (missingViewerTarget) reportFailuresAndExit();
 
-/* ---- 20. Every viewer page is reachable from the masthead ----------------- */
+/* ---- 20. Every rendered page is reachable, and no raw .typ stands in for one */
 
 /* A page nothing links to is unreachable, and nothing above checks that.
    Reads `html` — the BUILT index.html, loaded at the top of this file — not
-   src/masthead.html: the three example buttons are injected at build time
-   from src/examples.mjs via a data-typst-examples placeholder, so a check
-   against the source template would report all three as false positives. */
+   src/masthead.html or src/nav-bottom.html: the example buttons and the
+   Conformance rows are both injected at build time from src/examples.mjs, so
+   a check against the source templates would report every one of them as a
+   false positive.
+
+   This gate read only the masthead once, which is why the sidebar group
+   literally called "Conformance" could go a whole branch pointing its Typst
+   rows at raw .typ files, one line below CSS rows that opened a rendered
+   page, while every gate stayed green. So the second half below asks the
+   opposite question of the same page: not only that each rendered page is
+   linked, but that no raw .typ is offered where one of them exists. */
 
 for (const v of VIEWERS) {
   const href = `files/${v.slug}.html`;
   if (!html.includes(`href="${href}"`)) {
-    fail.push(`index.html: no link to ${href} — src/viewers.json names "${v.slug}" but the `
-      + 'masthead does not point at its viewer page');
+    fail.push(`index.html: no link to ${href} — src/viewers.json names "${v.slug}" but `
+      + 'nothing on the page points at its viewer page');
   }
 }
 
+/* Each example is one document rendered by both engines — that is what makes
+   the three conformance samples rather than demos — so each has two pages, and
+   the page must reach both. A missing CSS counterpart is how the sidebar came
+   to offer "Essay, in Typst" with no "Letter, in Typst" beside it. */
 for (const e of EXAMPLES) {
-  const href = `files/example-${e.id}.html`;
-  if (!html.includes(`href="${href}"`)) {
-    fail.push(`index.html: no link to ${href} — src/examples.mjs names "${e.id}" but the `
-      + 'masthead does not point at its viewer page');
+  for (const href of [`examples/${e.id}.html`, `files/example-${e.id}.html`]) {
+    if (!existsSync(href)) {
+      fail.push(`${href} does not exist — src/examples.mjs names "${e.id}", and each example `
+        + 'is rendered by both engines');
+      continue;
+    }
+    if (!html.includes(`href="${href}"`)) {
+      fail.push(`index.html: no link to ${href} — src/examples.mjs names "${e.id}" but `
+        + 'nothing on the page points at that rendering');
+    }
+  }
+}
+
+/* The masthead and the sidebar are where a reader is offered a file. A raw
+   .typ offered there downloads, or dumps as unstyled plain text, where the
+   viewer page beside it renders the document and offers Copy and Download —
+   so wherever both exist, the offer must be the page. The footer is excluded
+   deliberately: it cites implementations/typeset.typ as the file the Typst
+   panels are read out of, which is a citation, not an offer. */
+{
+  const regions = [
+    ['index.html nav', /<nav class="nav">[\s\S]*?<\/nav>/],
+    ['index.html masthead', /<header class="masthead">[\s\S]*?<\/header>/],
+  ];
+  const rendered = new Map([
+    ...VIEWERS.map((v) => [v.source, `files/${v.slug}.html`]),
+    ...EXAMPLES.map((e) => [e.file, `files/example-${e.id}.html`]),
+  ]);
+  for (const [name, pattern] of regions) {
+    const region = html.match(pattern);
+    if (!region) {
+      fail.push(`${name}: not found in index.html — this gate cannot read it, so update the `
+        + 'pattern rather than leaving it matching nothing');
+      continue;
+    }
+    for (const [source, page] of rendered) {
+      if (source.endsWith('.typ') && region[0].includes(`href="${source}"`)) {
+        fail.push(`${name}: links the raw ${source}, which a browser downloads or dumps as `
+          + `plain text — ${page} renders it, and is what should be offered here`);
+      }
+    }
   }
 }
 
