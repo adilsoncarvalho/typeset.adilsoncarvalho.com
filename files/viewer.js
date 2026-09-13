@@ -20,4 +20,27 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => { btn.textContent = 'Copy'; delete btn.dataset.done; }, 1800);
     });
   }
+
+  /* A Typst example page (tools/build-site.mjs) ships every preview <img>
+     unconditionally, because that script has no compiler on PATH and cannot
+     tell at build time whether tools/build-previews.mjs has been run on this
+     checkout. previews/ is rebuilt wholesale on every run, so the first
+     page's load result stands for all of them: if it fails, show the message
+     that names the command instead of leaving a broken image on the page. */
+  const preview = document.querySelector('.preview[data-preview]');
+  if (preview) {
+    const pages = preview.querySelector('.preview__pages');
+    const missing = preview.querySelector('.preview__missing');
+    const first = pages.querySelector('img');
+    const showMissing = () => { pages.hidden = true; missing.hidden = false; };
+    /* The image may already have resolved (loaded or failed) by the time this
+       deferred script runs — a cached image in particular can beat it — so a
+       failure already past is read back from .complete/.naturalWidth rather
+       than relying on an "error" event that already fired. */
+    if (first.complete) {
+      if (first.naturalWidth === 0) showMissing();
+    } else {
+      first.addEventListener('error', showMissing, { once: true });
+    }
+  }
 });
