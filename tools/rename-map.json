@@ -1,5 +1,5 @@
 {
-  "note": "Frozen at the 1.x -> 2.0.0 rename: it describes spec 1.0.0 ids, which spec.json does not carry, so it cannot be derived from the current spec and is maintained by hand — a row that rewrites a document onto a selector the stylesheet does not carry is a defect to correct here. The naming rules it was derived from are in docs/plans/2026-09-11-named-styles.md, and tools/check.mjs enforces them on the current spec.",
+  "note": "Frozen at the 1.x -> 2.0.0 rename: it describes spec 1.0.0 ids, which spec.json does not carry, so it cannot be derived from the current spec and is maintained by hand — a row that rewrites a document onto a selector the stylesheet does not carry is a defect to correct here. The naming rules it was derived from are in README.md's 'Adding an element' section, and tools/check.mjs enforces them on the current spec.",
   "sections": {
     "figures-numeric": "numerals"
   },
