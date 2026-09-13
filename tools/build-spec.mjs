@@ -63,7 +63,7 @@ for (const [group, data] of Object.entries(spec.foundation)) {
   }
 }
 
-w('## Templates');
+w('## Page templates');
 w();
 w(spec.templates.note);
 w();

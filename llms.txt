@@ -26,8 +26,17 @@ Read in this order:
    disagrees with this file, your output is wrong.
 2. `/SPEC.md` — the same content as prose, generated from `spec.json`. Use this
    when you want the whole spec in context at once.
-3. `/index.html` — rendered examples beside the spec values, for checking what a
-   conformant result actually looks like.
+3. `/spec/` — rendered examples beside the spec values, for checking what a
+   conformant result actually looks like. `/` is a router between that and
+   `/templates/`, and every anchor `/index.html` used to carry still works from
+   there.
+
+## Templates
+
+- [/templates/](https://typeset.adilsoncarvalho.com/templates/): documents already set
+  to this specification, to write in rather than to implement — the iA Writer letter
+  today — beside a capability matrix of what CSS, Typst and iA Writer can each express,
+  and what a "no" costs. Read it before choosing which one to hand a writer.
 
 ## Reference implementations
 
@@ -39,6 +48,7 @@ Read in this order:
 - [typeset-typst.zip](https://typeset.adilsoncarvalho.com/downloads/typeset-typst.zip): the Typst implementation with every font file. Typst cannot fetch a font from a URL, so a bundle is the only way to hand it over complete.
 - [iawriter.css](https://typeset.adilsoncarvalho.com/implementations/iawriter/iawriter.css): the layer between iA Writer's Markdown output and typeset.css. iA Writer is Markdown only, so the template covers headings, body text, bold, italic, tables and footnotes — and nothing that Markdown cannot write.
 - [typeset-letter.iatemplate.zip](https://typeset.adilsoncarvalho.com/downloads/typeset-letter.iatemplate.zip): the iA Writer letter template, carrying typeset.css and every font face it binds. There is no two-column iA Writer template: WebKit's print path ignores every CSS multi-column property, so it previews in two columns and exports in one. Use Typst for two columns.
+- [typeset-css.zip](https://typeset.adilsoncarvalho.com/downloads/typeset-css.zip): typeset.css with the three spec families and their licences. This is what a template consumes, and what to self-host for a document you send.
 - [two-column.html](https://typeset.adilsoncarvalho.com/examples/two-column.html): the two-column template in CSS. Note: it does NOT use Paged.js — Paged.js cannot fragment a CSS column flow and silently produces zero pages.
 - [essay.html](https://typeset.adilsoncarvalho.com/examples/essay.html), [letter.html](https://typeset.adilsoncarvalho.com/examples/letter.html): the same documents in CSS, paginated with Paged.js.
 

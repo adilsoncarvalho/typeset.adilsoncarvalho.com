@@ -101,7 +101,7 @@ whose OTFs carry 33 features including `smcp`, `c2sc`, `onum`, `lnum`, `pnum`,
 old-style figures by default, lining figures on demand, tabular figures that
 align, diagonal fractions, and full Portuguese diacritics.
 
-**Consequence for the web pages.** `index.html` and the CSS examples still load
+**Consequence for the web pages.** `spec/index.html` and the CSS examples still load
 Google's build from the Google Fonts CDN, so their small caps are synthesised
 rather than real. Self-hosting from this directory would fix that — see the
 Fonts section of the root README.

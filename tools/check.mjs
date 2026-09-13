@@ -7,7 +7,7 @@ import { readFileSync, existsSync, readdirSync, writeFileSync, rmSync, mkdtempSy
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { buildAll } from './build-site.mjs';
+import { buildAll, faceDescriptors, SPEC_PAGE, TEMPLATES_PAGE } from './build-site.mjs';
 import { buildSpecMd } from './build-spec.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
@@ -15,14 +15,24 @@ import { typstBoilerplate, typstDocument, setsItsOwnPage } from '../src/boilerpl
 import { TYPST_ELSEWHERE } from '../src/panels.mjs';
 import { rewrite } from './codemod-names.mjs';
 import { EXAMPLES } from '../src/examples.mjs';
+import { resolveUrl, derivedPaths, siteUrl, pages } from './legacy-urls.mjs';
+import { resolveFontDir } from '../src/fonts.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
 const typ = readFileSync('implementations/typeset.typ', 'utf8');
-const html = readFileSync('index.html', 'utf8');
+/* The specification page. It is served from /spec/, so every site-internal
+   link on it is written one level up — see relocate() in tools/build-site.mjs.
+   linksTo() takes the href as the site root spells it and asks the page in its
+   own terms, so the gates below read the way src/ is written. SPEC_PAGE and
+   TEMPLATES_PAGE come from tools/build-site.mjs, which is the one place that
+   decides where a page is emitted. */
+const specPageHtml = readFileSync(SPEC_PAGE, 'utf8');
+const linksTo = (href) => specPageHtml.includes(`href="../${href}"`);
 const specMd = readFileSync('SPEC.md', 'utf8');
 const readmeMd = readFileSync('README.md', 'utf8');
 const VIEWERS = JSON.parse(readFileSync('src/viewers.json', 'utf8'));
+const fontManifest = JSON.parse(readFileSync('fonts/manifest.json', 'utf8'));
 
 const fail = [];
 const warn = [];
@@ -1084,7 +1094,7 @@ if (missingViewerTarget) reportFailuresAndExit();
 /* ---- 20. Every rendered page is reachable, and no raw .typ stands in for one */
 
 /* A page nothing links to is unreachable, and nothing above checks that.
-   Reads `html` — the BUILT index.html, loaded at the top of this file — not
+   Reads `specPageHtml` — the BUILT spec/index.html, loaded at the top of this file — not
    src/masthead.html or src/nav-bottom.html: the example buttons and the
    Conformance rows are both injected at build time from src/examples.mjs, so
    a check against the source templates would report every one of them as a
@@ -1099,8 +1109,8 @@ if (missingViewerTarget) reportFailuresAndExit();
 
 for (const v of VIEWERS) {
   const href = `files/${v.slug}.html`;
-  if (!html.includes(`href="${href}"`)) {
-    fail.push(`index.html: no link to ${href} — src/viewers.json names "${v.slug}" but `
+  if (!linksTo(href)) {
+    fail.push(`${SPEC_PAGE}: no link to ${href} — src/viewers.json names "${v.slug}" but `
       + 'nothing on the page points at its viewer page');
   }
 }
@@ -1111,8 +1121,8 @@ for (const v of VIEWERS) {
    already established that both pages exist. */
 for (const e of EXAMPLES) {
   for (const href of [`examples/${e.id}.html`, `files/example-${e.id}.html`]) {
-    if (!html.includes(`href="${href}"`)) {
-      fail.push(`index.html: no link to ${href} — src/examples.mjs names "${e.id}" but `
+    if (!linksTo(href)) {
+      fail.push(`${SPEC_PAGE}: no link to ${href} — src/examples.mjs names "${e.id}" but `
         + 'nothing on the page points at that rendering');
     }
   }
@@ -1126,22 +1136,22 @@ for (const e of EXAMPLES) {
    panels are read out of, which is a citation, not an offer. */
 {
   const regions = [
-    ['index.html nav', /<nav class="nav">[\s\S]*?<\/nav>/],
-    ['index.html masthead', /<header class="masthead">[\s\S]*?<\/header>/],
+    [`${SPEC_PAGE} nav`, /<nav class="nav">[\s\S]*?<\/nav>/],
+    [`${SPEC_PAGE} masthead`, /<header class="masthead">[\s\S]*?<\/header>/],
   ];
   const rendered = new Map([
     ...VIEWERS.map((v) => [v.source, `files/${v.slug}.html`]),
     ...EXAMPLES.map((e) => [e.file, `files/example-${e.id}.html`]),
   ]);
   for (const [name, pattern] of regions) {
-    const region = html.match(pattern);
+    const region = specPageHtml.match(pattern);
     if (!region) {
-      fail.push(`${name}: not found in index.html — this gate cannot read it, so update the `
+      fail.push(`${name}: not found — this gate cannot read it, so update the `
         + 'pattern rather than leaving it matching nothing');
       continue;
     }
     for (const [source, page] of rendered) {
-      if (source.endsWith('.typ') && region[0].includes(`href="${source}"`)) {
+      if (source.endsWith('.typ') && region[0].includes(`href="../${source}"`)) {
         fail.push(`${name}: links the raw ${source}, which a browser downloads or dumps as `
           + `plain text — ${page} renders it, and is what should be offered here`);
       }
@@ -1200,7 +1210,7 @@ for (const id of templateIds) {
   if (id === spec.templates.default) continue;
   if (!cssIds.has(id)) fail.push(`typeset.css: no section marker for template "${id}"`);
   if (!typIds.has(id)) fail.push(`typeset.typ: no marked region for template "${id}"`);
-  if (!panelIds.has(id)) fail.push(`index.html: no panel for template "${id}"`);
+  if (!panelIds.has(id)) fail.push(`${SPEC_PAGE}: no panel for template "${id}"`);
 }
 
 /* The two-column derivation is arithmetic, so recompute it — from foundation.page,
@@ -4500,7 +4510,7 @@ for (const id of ['link', 'table', 'figure', 'callout']) {
    a section and also the key holding an element's notes array — and the
    bare-section-id pass sees both as a quoted token. Getting that wrong
    corrupts the file every other gate in this run reads as normative, and the
-   damage reports as "index.html is stale". Compared as key sets rather than
+   damage reports as "spec/index.html is stale". Compared as key sets rather than
    as text, because an "id" VALUE is exactly what the pass is supposed to
    rewrite; only the keys must not move. */
 const jsonKeys = (value, into = new Set()) => {
@@ -4715,6 +4725,315 @@ for (const sec of spec.sections) {
     } else if (bindings.length > 1) {
       const where = bindings.map((b) => `${b.file} ("${b.label ?? '(unlabelled)'}")`).join(', ');
       fail.push(`"${el.id}" is bound to ${bindings.length} panes, not exactly one: ${where}`);
+    }
+  }
+}
+
+/* ---- 25. The CSS bundle carries every spec family, each with its licence - */
+
+/* tools/build-css-bundle.mjs ships typeset.css beside the three families
+   spec.foundation.fonts names, each with fonts/manifest.json's "spec" entry
+   for it and that entry's directory's OFL.txt — and refuses to build if any
+   of that is missing. But that script only runs on a push or a manual
+   dispatch (see .github/workflows/deploy.yml); a pull request never runs it,
+   so a family dropped from the manifest, or a licence file deleted from a
+   font directory, would not fail until the next deploy. Checked here against
+   the same manifest entries the builder reads, so a pull request catches it
+   first — the same reason section 1 above already checks that typeset.css
+   and typeset.typ still name every family, before either implementation ever
+   gets packaged. */
+for (const [role, font] of Object.entries(spec.foundation.fonts)) {
+  if (role === 'embedding') continue;
+  const entry = fontManifest.families.find((f) => f.family === font.family && f.role === 'spec');
+  if (!entry) {
+    fail.push(`fonts/manifest.json has no "spec" entry for "${font.family}", which `
+      + `spec.foundation.fonts.${role} names — the CSS bundle cannot ship that family`);
+    continue;
+  }
+  if (!existsSync(`${entry.dir}/OFL.txt`)) {
+    fail.push(`${entry.dir}/OFL.txt is missing — the CSS bundle cannot ship "${font.family}" without its licence`);
+  }
+}
+
+/* ---- 26. tools/build-iawriter.mjs must consume the spec through the CSS ---*/
+/*          bundle, never read typeset.css or a spec font family directly --- */
+
+/* tools/build-iawriter.mjs only runs on a push or a manual dispatch (see
+   .github/workflows/deploy.yml), so a regression here would not fail until the
+   next deploy — the same gap section 25 above closes for the CSS bundle
+   itself. A template that reads typeset.css or a spec family's directory
+   straight out of the repository root is a template carrying a second,
+   silently drifting copy of exactly what the CSS bundle exists to be the one
+   copy of, which is the failure this whole group of changes exists to prevent.
+
+   A template can reach the repository root two ways, and only one of them is
+   visible in the builder's text:
+
+   - By naming a root path outright — readFileSync('typeset.css'), or a spec
+     family's directory as a string literal. That is a new literal, and the
+     greps below see it.
+   - By resolving a family to the wrong side of the boundary. Which side a
+     family sits on is one expression, src/fonts.mjs's resolveFontDir(): delete
+     its condition and every spec family reads from fonts/ instead of from the
+     unpacked bundle. Nothing about the builder's text changes — the directory
+     comes from fonts/manifest.json at run time, so there is no literal to
+     grep for, and a text check stays green while the template ships the
+     repository's own font files.
+
+   So the second is checked by calling resolveFontDir() and looking at where
+   the path lands, against a bundle directory that exists only for this check:
+   a spec family must resolve inside it, and a family of any other role must
+   not. Cormorant Garamond is the letter's own display-quote and letterhead
+   face, so it resolves to fonts/ by design, and that is asserted here rather
+   than left as an exemption — the boundary is a rule about both sides. */
+const buildIawriterSrc = readFileSync('tools/build-iawriter.mjs', 'utf8');
+
+if (/readFileSync\(\s*['"`]typeset\.css['"`]/.test(buildIawriterSrc)) {
+  fail.push('tools/build-iawriter.mjs reads the repository root\'s typeset.css directly — '
+    + 'it must read the CSS bundle (downloads/typeset-css.zip) instead');
+}
+if (!/import \{[^}]*\bCSS_BUNDLE\b[^}]*\} from '\.\.\/src\/fonts\.mjs'/.test(buildIawriterSrc)) {
+  fail.push("tools/build-iawriter.mjs no longer imports CSS_BUNDLE from src/fonts.mjs — the "
+    + 'bundle it consumes must be the one tools/build-css-bundle.mjs writes, named in one '
+    + 'place, not a downloads/ path each of them spells out for itself');
+}
+for (const font of Object.values(spec.foundation.fonts)) {
+  if (!font.family) continue;
+  const entry = fontManifest.families.find((f) => f.family === font.family && f.role === 'spec');
+  if (!entry) continue; // reported by section 25 above
+  if (buildIawriterSrc.includes(`'${entry.dir}'`) || buildIawriterSrc.includes(`"${entry.dir}"`)) {
+    fail.push(`tools/build-iawriter.mjs names "${entry.dir}" literally — a spec family's `
+      + 'directory must be reached through the CSS bundle, never hardcoded as a repository-root path');
+  }
+}
+
+{
+  const BUNDLE_DIR = '/typeset-css-bundle-probe';
+  const inBundle = (path) => path === BUNDLE_DIR || path.startsWith(`${BUNDLE_DIR}/`);
+  for (const entry of fontManifest.families) {
+    let landed;
+    try {
+      landed = resolveFontDir(entry.dir, BUNDLE_DIR, fontManifest);
+    } catch (err) {
+      fail.push(`src/fonts.mjs: resolveFontDir("${entry.dir}") throws for a family `
+        + `fonts/manifest.json itself lists: ${err.message}`);
+      continue;
+    }
+    if (entry.role === 'spec' && !inBundle(landed)) {
+      fail.push(`src/fonts.mjs: "${entry.dir}" is a "spec" family and resolveFontDir() reads it `
+        + `from ${landed}, outside the CSS bundle — the template would ship this repository's `
+        + 'own copy of a family the bundle exists to be the one copy of');
+    }
+    if (entry.role !== 'spec' && inBundle(landed)) {
+      fail.push(`src/fonts.mjs: "${entry.dir}" has role "${entry.role}" and resolveFontDir() `
+        + `reads it from ${landed}, inside the CSS bundle — only a "spec" family ships there, `
+        + 'and the bundle carries no other role to read');
+    }
+  }
+  /* The assertions above hold the resolver; this holds the builder to using it.
+     Dropping the calls IS a change in the builder's own text — the paths go
+     back to being written out at the call site — so a grep is the instrument
+     that fits, the same way it fits the two root-path literals above. */
+  if (!/resolveFontDir\(/.test(buildIawriterSrc)) {
+    fail.push('tools/build-iawriter.mjs no longer calls resolveFontDir() — every font directory '
+      + 'it reads must go through src/fonts.mjs, which is the only place that decides whether a '
+      + 'family comes from the CSS bundle or from this repository');
+  }
+}
+
+/* ---- 27. iawriter.css's hand-written @font-face block must still agree ----*/
+/*          with fonts/manifest.json's "spec" entries, face for face -------- */
+
+/* Unlike every list this group of changes derives from spec.json or the
+   manifest, iawriter.css's @font-face block is not a list of paths — it is CSS
+   that must agree with one, hand-written because a template is a static local
+   page with no build step of its own once installed. Nothing had ever checked
+   that agreement, which is why it could drift silently. This reads the same
+   filename → weight/style derivation tools/build-site.mjs already uses for the
+   masthead's own font-face block, walks the same manifest, and requires
+   iawriter.css to bind exactly those faces: none missing, none left over, none
+   at the wrong weight or style. */
+const specFontEntries = Object.values(spec.foundation.fonts)
+  .filter((font) => font.family)
+  .map((font) => fontManifest.families.find((f) => f.family === font.family && f.role === 'spec'))
+  .filter(Boolean);
+
+const expectedFaces = specFontEntries.flatMap((entry) => entry.faces.map((face) => {
+  const d = faceDescriptors(face.file);
+  if (!d) {
+    fail.push(`fonts/manifest.json: cannot read a weight and style out of "${face.file}" — `
+      + 'teach faceDescriptors() in tools/build-site.mjs its shape');
+    return null;
+  }
+  return { family: entry.family, weight: String(d.weight), style: d.style, src: `${entry.dir}/${face.file}` };
+})).filter(Boolean);
+
+const iawriterCss = readFileSync('implementations/iawriter/iawriter.css', 'utf8');
+const iawriterFaces = blocks(iawriterCss)
+  .filter((b) => b.selector.endsWith('@font-face'))
+  .map((b) => ({
+    family: decl(b.body, 'font-family')?.replace(/["']/g, ''),
+    weight: decl(b.body, 'font-weight') ?? '400',
+    style: decl(b.body, 'font-style') ?? 'normal',
+    src: decl(b.body, 'src')?.match(/url\("([^"]+)"\)/)?.[1],
+  }));
+
+const faceKey = (f) => `${f.family}|${f.weight}|${f.style}|${f.src}`;
+const expectedFaceKeys = new Set(expectedFaces.map(faceKey));
+const iawriterFaceKeys = new Set(iawriterFaces.map(faceKey));
+
+for (const f of expectedFaces) {
+  if (!iawriterFaceKeys.has(faceKey(f))) {
+    fail.push(`implementations/iawriter/iawriter.css: no @font-face binds ${f.family} `
+      + `${f.weight} ${f.style} from ${f.src} — fonts/manifest.json says the CSS bundle carries it`);
+  }
+}
+for (const f of iawriterFaces) {
+  if (f.family && !expectedFaceKeys.has(faceKey(f))) {
+    fail.push(`implementations/iawriter/iawriter.css: @font-face binds ${f.family} ${f.weight} `
+      + `${f.style} from ${f.src}, which fonts/manifest.json's "spec" entries do not carry — `
+      + 'the hand-written block has drifted from the manifest');
+  }
+}
+
+/* ---- 28. No capability-matrix cell may assert without pointing at proof -- */
+
+/* The matrix's own rule, from tools/build-site.mjs: every claim points at
+   where this repository already proves it, rather than asserting it fresh.
+   A cell holding a bare word is the one shape that breaks it, and it is
+   invisible from the inside — the table renders, the row reads plausibly,
+   and nothing else here reads the cell at all. It shipped once: "Full spec
+   vocabulary — CSS yes, Typst yes", which spec.json's fallback fields,
+   llms.txt, README.md's engine-capability table and section 3m above each
+   answer differently.
+
+   Read off the built page rather than the generator's source, so a cell
+   assembled from any number of pieces is judged on what a reader receives.
+   A link into typeset.css, typeset.typ, a viewer page or spec.json is proof;
+   so is a quotation from spec.json, which the footnote row uses where
+   spec.json states the reason in its own words. */
+{
+  const matrix = output.get(TEMPLATES_PAGE)?.match(/<table class="matrix">[\s\S]*?<\/table>/)?.[0];
+  if (!matrix) {
+    fail.push(`${TEMPLATES_PAGE}: no capability matrix — tools/build-site.mjs publishes one, `
+      + 'and section 28 of this file holds every cell in it to naming its evidence');
+  } else {
+    const rows = [...matrix.matchAll(/<tr>\s*<th scope="row">([\s\S]*?)<\/th>([\s\S]*?)<\/tr>/g)];
+    if (!rows.length) fail.push(`${TEMPLATES_PAGE}: the capability matrix has no body rows`);
+    for (const [, feature, body] of rows) {
+      const cells = [...body.matchAll(/<td>([\s\S]*?)<\/td>/g)].map((m) => m[1]);
+      for (const [i, cell] of cells.entries()) {
+        if (!/<a href="/.test(cell) && !cell.includes('\u201c')) {
+          fail.push(`${TEMPLATES_PAGE}: capability matrix row "${feature.trim()}", column `
+            + `${i + 1}, asserts "${cell.replace(/<[^>]+>/g, '').trim()}" and points at nothing — `
+            + 'a cell must link into the code or the spec that proves it, or quote spec.json');
+        }
+      }
+    }
+  }
+}
+
+/* Paths a page may link even though they do not resolve, one entry per path,
+   each carrying the reason. It is empty, and that is the point: this replaced
+   a blanket skip of every path the snapshot recorded as already dead, which
+   excused a link by the shape of its URL rather than by anyone deciding it
+   should be excused — a 404 to fonts/ survived five groups of restructuring
+   under it, on two pages, reported green throughout.
+
+   An entry here must name a path nothing can fix. It is held to still being
+   needed in both directions: an entry nothing links any more, and an entry
+   whose path has started resolving, each fail. Excusing a link is the last
+   resort; both of the links this list would have carried were fixed instead,
+   by pointing them at downloads/typeset-css.zip — which is the stylesheet with
+   the three families and their licences, and is exactly what each of them was
+   reaching into fonts/ for. */
+const EXCUSED_LINKS = new Map([]);
+
+/* ---- 29. Every URL that resolved before the split must still resolve ----- */
+
+/* The specification moved to /spec/ and / became a router between it and
+   /templates/. This site is linked from llms.txt — the file it publishes for
+   machines, which hard-codes absolute URLs — and from a GitHub release, so a
+   reader or an agent can be holding any URL the site has ever published. A
+   path that stops resolving is a regression whatever it tidies, and it is
+   invisible from the inside: the split looks finished the moment the new
+   pages exist and everything anyone happens to click works.
+
+   tools/legacy-urls.json is the snapshot, derived from the tree at the commit
+   before the split rather than recalled, and it records the status each URL
+   had at the time — so the two shapes that were ALREADY dead (fonts/ has no
+   index and .nojekyll turns directory listing off; the nine anchors the
+   table-of-contents demo points at are specimen content naming chapters that
+   do not exist) are held to no-worse-than-they-were rather than to fixed.
+
+   resolveUrl() is the same function that built the snapshot, so the gate and
+   the record cannot disagree about what "resolves" means. It follows a page's
+   fragment forwarder too, which is how an anchor that moved to /spec/ is
+   counted as resolving. */
+{
+  const snapshot = JSON.parse(readFileSync('tools/legacy-urls.json', 'utf8'));
+  const derived = derivedPaths();
+
+  for (const [url, was] of Object.entries(snapshot.urls)) {
+    if (was === 'missing' || was === 'no-anchor') continue;
+    const now = resolveUrl(url, derived);
+    if (!now.ok) {
+      fail.push(`${url || '/'} resolved before the split (${was}) and does not now (${now.how}) — `
+        + 'it is in tools/legacy-urls.json because something published it. Give it a redirect, '
+        + 'or put the file back');
+    }
+  }
+
+  /* The other half of the same question, asked of the pages rather than of
+     the old URLs: a link that relocate() missed when the specification moved
+     into /spec/ points one directory too high and 404s, and nothing above
+     would see it — the old URLs all still resolve, and the page renders. Only
+     the path is checked; a fragment is a question about one page's ids, and
+     the table-of-contents demo answers it with links to chapters it invents.
+
+     Every deployed page, not only the generated ones: tools/build-site.mjs
+     emits eleven of the fifteen, and examples/*.html and proofs/*.html are
+     hand-written and just as able to point at a file that has moved. A
+     generated page is read from `output` rather than from disk so the check
+     runs against what the build would write, and a hand-written one is read
+     from the tree. PAGE_DIRS is tools/legacy-urls.mjs's own list of the
+     directories a reader can hold a URL into, so the two halves of this
+     section cannot disagree about which pages count. */
+  const links = [];
+  for (const page of pages()) {
+    const contents = output.get(page) ?? readFileSync(page, 'utf8');
+    for (const m of contents.matchAll(/(?:href|src)="([^"]+)"/g)) links.push([page, m[1]]);
+  }
+
+  /* llms.txt and README.md are hand-written and name this site by absolute
+     URL, so nothing above would see a link rotting in either — and llms.txt
+     is the one file here whose whole purpose is telling an agent where things
+     are. */
+  for (const file of ['llms.txt', 'README.md']) {
+    for (const m of readFileSync(file, 'utf8').matchAll(/https:\/\/typeset\.adilsoncarvalho\.com\/([^\s)"'>]+)/g)) {
+      links.push([file, m[1].replace(/[.,]$/, '')]);
+    }
+  }
+
+  const seen = new Set();
+  for (const [page, href] of links) {
+    const url = siteUrl(page, href);
+    if (url === null) continue;
+    const path = url.split('#')[0];
+    if (EXCUSED_LINKS.has(path)) { seen.add(path); continue; }
+    if (!resolveUrl(path, derived).ok) {
+      fail.push(`${page}: links "${href}", which resolves to "${path}" — no such file. Fix the `
+        + 'link, or add the path to EXCUSED_LINKS above with the reason it cannot be fixed');
+    }
+  }
+
+  for (const [path, why] of EXCUSED_LINKS) {
+    if (!seen.has(path)) {
+      fail.push(`tools/check.mjs: "${path}" is in EXCUSED_LINKS ("${why}") and no page links it `
+        + 'any more — delete the entry rather than leave it standing');
+    } else if (resolveUrl(path, derived).ok) {
+      fail.push(`tools/check.mjs: "${path}" is in EXCUSED_LINKS ("${why}") and now resolves — `
+        + 'delete the entry, so the next dead link is reported instead of excused');
     }
   }
 }

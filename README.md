@@ -17,7 +17,9 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `spec.json` | **Normative.** Every length absolute. Section and element counts are generated onto the masthead by `tools/build-site.mjs`, not hand-maintained here. |
 | `SPEC.md` | The spec as prose, generated from `spec.json`. For pasting into a model's context. |
 | `llms.txt` | What a machine should read first, and in what order. |
-| `index.html` | **Generated.** The specimen page. Do not edit — edit `src/` and rebuild. |
+| `index.html` | **Generated.** The router at `/`: two routes, the raw files and the downloads. Do not edit — edit `src/` and rebuild. |
+| `spec/index.html` | **Generated.** The specification and its specimens. |
+| `templates/index.html` | **Generated.** What you can write in — one template today, the iA Writer letter. |
 | `typeset.css` | Reference implementation — CSS. |
 | `implementations/typeset.typ` | Reference implementation — Typst. |
 | `implementations/example-essay.typ` | The essay set in Typst. A conformance sample. |
@@ -27,9 +29,11 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `implementations/example-two-column.typ` | The two-column template in Typst. |
 | `implementations/iawriter/` | The iA Writer template — one bundle, for the letter. |
 | `implementations/iawriter/iawriter.css` | The layer between iA Writer's Markdown output and `typeset.css`. |
-| `specimen.css`, `specimen.js` | Chrome for the specimen page. Never shipped in a document. |
+| `specimen.css`, `specimen.js` | Chrome for the pages themselves. Never shipped in a document. |
 | `files/*.html` | **Generated.** One viewer page per downloadable file, including one per shipped Typst example with its rendered preview above the source. |
 | `src/examples.mjs` | The three shipped Typst example documents — the one list `tools/build-bundle.mjs`, `tools/build-previews.mjs`, `tools/check.mjs` and `tools/build-site.mjs` all read. |
+| `src/templates.mjs` | The templates this repository ships, and the bundle filename each one is published under — the one list `tools/build-iawriter.mjs`, `tools/build-site.mjs` and `tools/legacy-urls.mjs` all read. |
+| `src/fonts.mjs` | Which side of the CSS bundle a font family is read from — the one expression that decides it, called by `tools/build-iawriter.mjs` and asserted by `tools/check.mjs`. |
 | `src/sections.json` | The section manifest: order, group, title, prose, which panel to render. |
 | `src/demos/<id>.html` | The rendered example for each section. The HTML pane is extracted from it, so the two cannot disagree. |
 | `src/demos/<id>.typ` | The Typst snippet for each section — hand-written, and compiled by the checker under the boilerplate the page publishes. |
@@ -37,17 +41,19 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `src/boilerplate.mjs` | The Typst boilerplate the masthead prints and the checker compiles against — one source for both. |
 | `src/panels.mjs`, `src/highlight.mjs` | Build-time panel rendering and syntax highlighting. |
 | `src/masthead.html`, `src/footer.html`, `src/nav-*.html`, `src/viewers.json` | Page furniture. |
-| `tools/build-site.mjs` | Generates `index.html` and `files/*.html` from all of the above. |
-| `downloads/` | **Build output, gitignored.** The Typst bundle and the iA Writer letter template. |
+| `tools/build-site.mjs` | Generates the three pages and `files/*.html` from all of the above. |
+| `downloads/` | **Build output, gitignored.** The Typst bundle, the CSS bundle and the iA Writer letter template. |
 | `previews/` | **Build output, gitignored.** One SVG per page of each shipped Typst example — what the example viewer pages under `files/` show. |
 | `tools/build-bundle.mjs` | Builds the Typst bundle from `implementations/` and `fonts/`. |
-| `tools/build-iawriter.mjs` | Builds the iA Writer letter template bundle from `implementations/iawriter/`, `typeset.css` and `fonts/`. |
+| `tools/build-css-bundle.mjs` | Builds the CSS bundle — `typeset.css` and the three spec families with their licences — from `typeset.css` and `fonts/`. |
+| `tools/build-iawriter.mjs` | Builds the iA Writer letter template bundle from `implementations/iawriter/`, the CSS bundle it consumes `typeset.css` and the spec fonts from, and `fonts/Cormorant-Garamond/`, the letter's own face. |
 | `tools/build-previews.mjs` | Renders each shipped Typst example to `previews/<id>-<n>.svg`. Needs Typst on `PATH`; not run by `tools/build-site.mjs`, which must not need one. |
 | `.github/workflows/deploy.yml` | Checks, builds every bundle, deploys Pages; on a tag, publishes the release assets. |
 | `proofs/font-proof.html` | Six body-face candidates, one per A4 page, for printing. |
 | `examples/preview-bar.js` | The back bar for example documents. See the Paged.js notes below. |
 | `tools/build-spec.mjs` | Generates `SPEC.md` from `spec.json`. |
 | `tools/check.mjs` | Verifies the implementations still match the spec. |
+| `tools/legacy-urls.mjs`, `tools/legacy-urls.json` | Every URL the site published before the specification moved to `/spec/`, and the resolver `tools/check.mjs` holds each one to — the same resolver it sweeps every deployed page's links with. |
 
 Each section's panel carries three tabs beside the rendered example.
 
@@ -67,9 +73,10 @@ line number read from the file rather than kept by hand.
 
 ## The site is generated
 
-`index.html` and `files/*.html` are **build output**. Editing them by hand is
-wasted work — the next build overwrites it, and `tools/check.mjs` fails if the
-committed pages do not match what the sources produce.
+`index.html`, `spec/index.html`, `templates/index.html` and `files/*.html` are
+**build output**. Editing them by hand is wasted work — the next build overwrites
+it, and `tools/check.mjs` fails if the committed pages do not match what the
+sources produce.
 
 ```sh
 node tools/build-site.mjs   # regenerate the pages
@@ -78,14 +85,18 @@ node tools/check.mjs        # fails if anything is stale or inconsistent
 
 Everything is resolved at build time: the spec tables, both code panels, and the
 syntax highlighting are plain markup in the published page, and the Spec /
-HTML / Typst tabs are radio inputs driven by CSS. **`index.html` renders completely
-with JavaScript disabled**, and opens straight from the filesystem. `specimen.js`
+HTML / Typst tabs are radio inputs driven by CSS. **Every page renders completely
+with JavaScript disabled**, and opens straight from the filesystem. The one thing
+script does that nothing else can is forward an old anchor: `/#dropcap` was a
+place on the specification page before it moved to `/spec/`, and the router sends
+it on with the fragment intact. GitHub Pages has no redirects, and
+`<meta http-equiv="refresh">` arrives with the fragment gone. `specimen.js`
 exists only for its copy buttons; `viewer.js`, shared by every page under `files/`,
 does the same for theirs, and on the Typst example pages also swaps in a message
 when `previews/` has not been built, since a page there ships every preview `<img>`
 unconditionally and cannot know at build time whether it will resolve.
 
-What this bought, concretely: the 30% of `index.html` that was repeated scaffold
+What this bought, concretely: the 30% of the specification page that was repeated scaffold
 is gone; the nav is derived from the section list so it cannot drift; section
 numbers come from position rather than being typed (which immediately surfaced a
 duplicate `09` that had been sitting in the page); and every viewer page under
@@ -114,7 +125,7 @@ install. `.github/workflows/deploy.yml` names the version CI runs.
 
 ```sh
 node tools/build-spec.mjs      # regenerate SPEC.md after editing spec.json
-node tools/build-site.mjs      # regenerate index.html and files/*.html from src/
+node tools/build-site.mjs      # regenerate the three pages and files/*.html from src/
 node tools/build-previews.mjs  # render previews/ — the pages files/example-*.html show
 node tools/check.mjs           # verify everything, including that the pages are current
 python3 -m http.server         # optional — the pages also open straight from disk
@@ -160,12 +171,17 @@ produce:
   stale property table fails rather than passing on a matching version line.
 - Every downloadable a reader is pointed at can actually be reached: each
   `src/viewers.json` entry resolves, each `src/examples.mjs` entry has both of
-  its rendered pages, `index.html` links every one of them, and neither the
+  its rendered pages, `spec/index.html` links every one of them, and neither the
   masthead nor the sidebar offers a raw `.typ` where a viewer page renders it.
   Each example's `pages` count is held to what Typst lays out, and
   `files/viewer.css` is held to suppressing `hidden`, without which a checkout
   with no `previews/` shows the "not available" message with the broken images
   still beside it.
+- Every URL the site published before the specification moved to `/spec/` still
+  resolves — `tools/legacy-urls.json` is the list, derived from the tree rather
+  than recalled, and an anchor counts as resolving only if the router's fragment
+  forwarder actually carries it. A URL that was already dead is held to
+  no-worse-than-dead rather than to fixed.
 - The migration path is held to the release it describes: one run of
   `tools/codemod-names.mjs` carries `tools/fixtures/1.x-migration-sample.html`
   from 1.x class names to 2.0 ones and lands every class on a name this
@@ -204,9 +220,15 @@ If the element genuinely cannot be shown, add it to `EXEMPTIONS` in
 own: `src/demos/page.html` draws a page on screen, and `src/demos/link.html`
 says in place what a printer will do with the sample above it.
 
-## Templates
+## Page templates
 
-A template sets the page and the scale. Everything else — the palette, the rule
+The word carries two senses in this repository, and they are kept apart. A **page
+template** is what `spec.json`'s `templates` key holds — a page and a scale, and
+nothing else — and that is what this section is about. A **template** on
+`/templates/` is a document you write in, set to the specification: the iA Writer
+letter is the one that ships.
+
+A page template sets the page and the scale. Everything else — the palette, the rule
 weights, the numeral conventions, the pagination rules — is identical across
 them: a template does not get its own typography.
 
@@ -266,26 +288,43 @@ gaps: writing 25 of them against 25 HTML examples is the most systematic
 comparison of two implementations this project has run, and it found three live
 bugs in `typeset.typ` that compiling three example documents never could.
 
-## The Typst bundle is built, not committed
+## The bundles are built, not committed
 
 Typst has no equivalent of a CSS font URL: a font is either in the project or it
 is silently substituted. So the implementation is distributed as a zip carrying
 the three font families the spec names — verified by extracting it and compiling
 all three example documents with `--font-path fonts` and nothing else present.
+The CSS bundle is the same idea for the other implementation: `typeset.css` beside
+those three families and their licences. `typeset.css` declares no `@font-face` of
+its own, so a page that links it has to load the faces itself, and the bundle is
+what a document you send — or a template — binds them from.
 
-**It is derived from the repository, so it is not committed** — the same argument
-that makes `index.html` generated. `downloads/` is gitignored:
+**Each is derived from the repository, so none is committed** — the same argument
+that makes the pages generated. `downloads/` is gitignored:
 
 ```sh
 node tools/build-bundle.mjs      # ~1.7 MB, 24 files
+node tools/build-css-bundle.mjs  # ~1.7 MB, 21 files
+node tools/build-iawriter.mjs    # ~2.1 MB, 34 files — needs the CSS bundle above
 ```
 
-Two published forms, both from `.github/workflows/deploy.yml`:
+The published forms, all from `.github/workflows/deploy.yml`:
 
 | | URL | Versioning |
 |---|---|---|
 | Pages deploy, every push to `master` | `typeset.adilsoncarvalho.com/downloads/typeset-typst.zip` | always current |
 | Release asset, on a `v*` tag | `github.com/…/releases/download/v1.0.0/typeset-typst-1.0.0.zip` | immutable, named for the spec version |
+| Pages deploy, every push to `master` | `typeset.adilsoncarvalho.com/downloads/typeset-letter.iatemplate.zip` | always current |
+| Release asset, on a `v*` tag | `github.com/…/releases/download/v1.0.0/typeset-letter-1.0.0.iatemplate.zip` | immutable, named for the spec version |
+| Pages deploy, every push to `master` | `typeset.adilsoncarvalho.com/downloads/typeset-css.zip` | always current |
+
+**The CSS bundle is a site asset, not a release asset.** A release pins an
+immutable copy of an implementation; the CSS bundle is the live stylesheet with
+its fonts, which a template consumes at build time and a reader self-hosts from.
+Version-stamping it would publish a second, frozen `typeset.css` next to the one
+`/typeset.css` serves, and the two would disagree the first time the stylesheet
+changed without a tag. `tools/build-css-bundle.mjs` prints the versioned name it
+*would* use, for parity with the other two builders, and nothing attaches it.
 
 The workflow runs `tools/check.mjs` first, so a commit whose generated pages are
 stale fails before it can deploy.

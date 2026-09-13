@@ -8,8 +8,10 @@
    Run: node tools/build-bundle.mjs
 */
 
-import { readFileSync, mkdirSync, rmSync, writeFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { EXAMPLES } from '../src/examples.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
@@ -75,7 +77,15 @@ disagree, the spec is right.
 
 mkdirSync('downloads', { recursive: true });
 rmSync(OUT, { force: true });
-writeFileSync('downloads/BUNDLE.txt', README);
+
+/* Staged outside downloads/ rather than written there and deleted after the
+   zip is made. tools/legacy-urls.mjs derives what downloads/ will contain by
+   reading the paths these builders name — that is what lets a pull request,
+   where downloads/ is empty, tell whether a link to a bundle resolves — and a
+   file that only ever exists mid-build would be registered as shipping. */
+const stage = mkdtempSync(join(tmpdir(), 'typeset-typst-bundle-'));
+const readmePath = join(stage, 'BUNDLE.txt');
+writeFileSync(readmePath, README);
 
 /* -X drops extra file attributes, which keeps the archive a little more
    comparable between machines. Timestamps still vary, so the zip is not
@@ -87,8 +97,8 @@ execFileSync('zip', [
   ...FONT_DIRS,
   '-x', '.*', '-x', '*/.*',
 ], { stdio: 'inherit' });
-execFileSync('zip', ['-qjX', OUT, 'downloads/BUNDLE.txt'], { stdio: 'inherit' });
-rmSync('downloads/BUNDLE.txt');
+execFileSync('zip', ['-qjX', OUT, readmePath], { stdio: 'inherit' });
+rmSync(stage, { recursive: true, force: true });
 
 const list = execFileSync('unzip', ['-l', OUT], { encoding: 'utf8' });
 const files = Number(list.trim().split('\n').pop().trim().split(/\s+/)[1]);
