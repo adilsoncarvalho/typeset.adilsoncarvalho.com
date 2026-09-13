@@ -27,6 +27,7 @@ import { readFileSync, existsSync, readdirSync, writeFileSync, statSync } from '
 import { pathToFileURL } from 'node:url';
 import { EXAMPLES } from '../src/examples.mjs';
 import { TEMPLATES, bundleZip } from '../src/templates.mjs';
+import { CSS_BUNDLE } from '../src/fonts.mjs';
 
 export const SNAPSHOT = 'tools/legacy-urls.json';
 
@@ -60,6 +61,7 @@ export function derivedPaths() {
     for (let n = 1; n <= e.pages; n += 1) paths.add(`previews/${e.id}-${n}.svg`);
   }
   for (const t of TEMPLATES) paths.add(`downloads/${bundleZip(t)}`);
+  paths.add(CSS_BUNDLE);
   const tools = readdirSync('tools')
     .filter((f) => f.endsWith('.mjs') && f !== 'legacy-urls.mjs')
     .map((f) => read(`tools/${f}`))

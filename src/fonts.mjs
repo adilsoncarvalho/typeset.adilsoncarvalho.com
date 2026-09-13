@@ -19,6 +19,14 @@ import { join } from 'node:path';
 
 export const FONT_MANIFEST = 'fonts/manifest.json';
 
+/* The published CSS bundle, named once. tools/build-css-bundle.mjs writes it,
+   tools/build-iawriter.mjs consumes it, and tools/legacy-urls.mjs registers it
+   as a path downloads/ will contain — so on a pull request, where downloads/ is
+   empty, a link to it still resolves. Named here rather than in either builder
+   because a template consuming a bundle the publisher does not write is the one
+   failure none of them could see on its own. */
+export const CSS_BUNDLE = 'downloads/typeset-css.zip';
+
 export const fontManifest = () => JSON.parse(readFileSync(FONT_MANIFEST, 'utf8'));
 
 /* The directory `dir`'s faces are read from, given the directory a CSS bundle

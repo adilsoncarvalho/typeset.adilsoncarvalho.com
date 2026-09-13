@@ -4792,9 +4792,10 @@ if (/readFileSync\(\s*['"`]typeset\.css['"`]/.test(buildIawriterSrc)) {
   fail.push('tools/build-iawriter.mjs reads the repository root\'s typeset.css directly — '
     + 'it must read the CSS bundle (downloads/typeset-css.zip) instead');
 }
-if (!buildIawriterSrc.includes('typeset-css.zip')) {
-  fail.push('tools/build-iawriter.mjs no longer names downloads/typeset-css.zip — it must '
-    + 'source typeset.css and the spec fonts from the CSS bundle, not the repository root');
+if (!/import \{[^}]*\bCSS_BUNDLE\b[^}]*\} from '\.\.\/src\/fonts\.mjs'/.test(buildIawriterSrc)) {
+  fail.push("tools/build-iawriter.mjs no longer imports CSS_BUNDLE from src/fonts.mjs — the "
+    + 'bundle it consumes must be the one tools/build-css-bundle.mjs writes, named in one '
+    + 'place, not a downloads/ path each of them spells out for itself');
 }
 for (const font of Object.values(spec.foundation.fonts)) {
   if (!font.family) continue;

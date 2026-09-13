@@ -14,10 +14,11 @@ import { readFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync, existsSync
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { CSS_BUNDLE } from '../src/fonts.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const manifest = JSON.parse(readFileSync('fonts/manifest.json', 'utf8'));
-const OUT = 'downloads/typeset-css.zip';
+const OUT = CSS_BUNDLE;
 
 const css = readFileSync('typeset.css', 'utf8');
 

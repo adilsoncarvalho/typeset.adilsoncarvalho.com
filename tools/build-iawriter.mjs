@@ -36,12 +36,12 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { TEMPLATES, bundleZip } from '../src/templates.mjs';
-import { resolveFontDir } from '../src/fonts.mjs';
+import { resolveFontDir, CSS_BUNDLE } from '../src/fonts.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const SRC = 'implementations/iawriter';
 const OUT = 'downloads';
-const BUNDLE = `${OUT}/typeset-css.zip`;
+const BUNDLE = CSS_BUNDLE;
 
 const fail = (msg) => { throw new Error(msg); };
 
