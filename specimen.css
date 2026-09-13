@@ -795,15 +795,16 @@ table.spec-table code {
 .pagemap--pair { gap: 1.25rem; }
 .pagemap--pair .pagemap__sheet { width: 11rem; }
 
-/* A letter's margins: deeper at the head than at the foot or the sides, so
-   the sender block sits where an envelope window expects it. Written as its
-   own class rather than as a descendant override of .pagemap__margins so that
-   the gate holding the default diagram to spec.json cannot read this rule by
-   mistake; tools/check.mjs holds these three percentages to spec.json's own
+/* A letter's margins: the symmetric default on every edge, deeper at the head
+   alone so the sender block sits where an envelope window expects it. Written
+   as its own class rather than as a descendant override of .pagemap__margins
+   so that the gate holding the default diagram to spec.json cannot read this
+   rule by mistake; tools/check.mjs holds these percentages to spec.json's own
    letter-page margins in the same way. There is no gauge on this sheet: the
-   three margins differ, and one gauge can only point at one of them. */
-.pagemap__margins--letter { inset: 10.8% 11.9% 9.4%; }
-.pagemap__lines--letter { top: 12.8%; left: 11.9%; right: 11.9%; }
+   head differs from the foot and the sides, and one gauge can only point at
+   one of them. */
+.pagemap__margins--letter { inset: 10.8% 9.5% 6.7%; }
+.pagemap__lines--letter { top: 12.8%; left: 9.5%; right: 9.5%; }
 
 /* A spacer between two groups of lines — the gap a letter leaves between its
    sender block and the address under it. */

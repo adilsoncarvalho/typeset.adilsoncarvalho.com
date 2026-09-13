@@ -981,12 +981,15 @@
 /*! @e */
 
 /*! @s letter :: Letter */
-/* @style letter-page — a letter's own page: no running head, no folio, and a
-   deeper top margin than foot or sides so the sender block sits where an
-   envelope window expects it. */
+/* @style letter-page — a letter's own page: no running head, no folio, and
+   the symmetric default (foundation.page.margins.symmetric_mm.standard, 20mm)
+   on every edge, deepened on top alone by letter-page.derivation.letterhead_band_mm
+   (12mm) so the sender block sits where an envelope window expects it. The
+   bottom and sides carry no comparable reason — letter-page's own notes say
+   why — and stay the default, undecorated. */
 .typeset--letter { page: ts-letter; }
 @page ts-letter {
-  margin: 32mm 25mm 28mm;
+  margin: 32mm 20mm 20mm;   /* top: 20mm standard + 12mm letterhead_band_mm; sides/bottom: 20mm standard */
   @top-center { content: none; }
   @bottom-center { content: none; }
 }

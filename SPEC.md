@@ -1558,12 +1558,12 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | Property | Value |
 | --- | --- |
 | margin top mm | `32` |
-| margin bottom mm | `28` |
-| margin sides mm | `25` |
+| margin bottom mm | `20` |
+| margin sides mm | `20` |
 | running head | `none` |
 | folio | `none` |
 
-> The deeper top margin puts the letterhead where an envelope window expects it.
+> The deeper top margin puts the letterhead where an envelope window expects it — the symmetric default plus derivation.letterhead_band_mm. The bottom and sides carry no comparable reason: this section's own principles say nothing about margins at all, so they are the symmetric default, undecorated, rather than a bespoke number wearing a name.
 
 ##### Sender block
 

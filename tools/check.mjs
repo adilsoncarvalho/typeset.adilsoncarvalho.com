@@ -1920,6 +1920,12 @@ const INTERNAL_SYMBOLS = new Set([
      themselves; note-sidenote is (it names the spec element id directly). */
   'measure-sidenote', 'sidenote-reserved-margin', 'sidenote-note-width', 'sidenote-gap',
   'ts-sidenotes-active',
+  /* letter-page's own derived margin — spec.json's letter-page.derivation
+     names letterhead_band_mm, and letter-margin composes it with
+     margin-standard into the dict letter-page actually passes to typeset().
+     Not styles themselves; letter-page is (it names the spec element id
+     directly). */
+  'letterhead-band', 'letter-margin',
 ]);
 
 /* Engine element functions this file re-publishes under a second name. Not
@@ -2701,6 +2707,174 @@ for (const name of marginNames) {
       fail.push(`typeset.css: @page ts-margin-duplex-${name}'s outer edge is `
         + `${rightDecls.get('margin-right')} on the recto and ${leftDecls.get('margin-left')} on the `
         + `verso, but foundation.page.margins.duplex_outer_mm.${name} is ${duplexOuterMm[name]}mm`);
+    }
+  }
+}
+
+/* ---- 24. The letter's page derives from margin-standard plus a named
+            letterhead band, in both implementations, held by gate 7's own
+            mechanism rather than a parallel one ------------------------- */
+
+/* Exactly the shape gate 7 above already found for the six named margins, on
+   the letter's own page: spec.json's letter-page element states three plain
+   millimetre numbers, and until this gate nothing compared either
+   implementation's copy of them to spec.json, or spec.json's own numbers to
+   each other. letter-page.derivation now names the one number that is not
+   the symmetric default — letterhead_band_mm, added to the top alone — so
+   the three properties below are recomputed from it and from
+   foundation.page.margins.symmetric_mm.standard, not trusted as written.
+
+   The CSS half stays a source check, the same as gate 7's: @page ts-letter's
+   margin shorthand is a plain declaration, uncomplicated by anything else on
+   the page, so reading it back and comparing the numbers is as strong a
+   proof as rendering it. The Typst half cannot stay a source check —
+   letter-margin is now an expression (margin-standard.top + letterhead-band),
+   not a literal dict gate 7's regex could read a number out of — so this
+   renders a real letter-page() document and reads the numbers back off it,
+   the same lesson gate 22 already drew for the measure: a derivation that
+   only looks right in the source is exactly what a regression could leave
+   standing. Two of the three edges are straightforward to read off a render
+   (the first marker in the flow lands at the top margin exactly; the
+   available height a #layout() sees there is the page height less top and
+   bottom), but the sides cancel out of any measurement taken from ordinary
+   flow content, because foundation.rhythm.measure_position (gate 22) centres
+   that content inside the text area independently of how wide the text area
+   is — a wider or narrower side margin shows up as a wider or narrower gap
+   either side of the SAME centred block, never as a different one. The
+   escape is ts-text-width, the state typeset() itself sets to the text
+   area's true width before the measure ever clamps anything — reading it
+   back is exactly what measured(width: measure-full) already relies on
+   (gate 9's own probe), so this uses the same state rather than a new one. */
+
+{
+  const letterPageEl = spec.sections.find((s) => s.id === 'letter')
+    ?.elements.find((el) => el.id === 'letter-page');
+  if (!letterPageEl) {
+    fail.push('spec.json declares no "letter-page" element — gate 24 cannot check the letter\'s '
+      + 'page against it');
+  } else if (!letterPageEl.derivation || typeof letterPageEl.derivation.letterhead_band_mm !== 'number') {
+    fail.push('spec.json: letter-page has no derivation.letterhead_band_mm — the letterhead band '
+      + 'this gate holds both implementations to must be a named number, not implied by the top '
+      + 'margin alone');
+  } else {
+    const standardMm = symmetricMm.standard;
+    const bandMm = letterPageEl.derivation.letterhead_band_mm;
+    const expectedTopMm = standardMm + bandMm;
+    const expectedBottomMm = standardMm;
+    const expectedSidesMm = standardMm;
+
+    /* spec.json's own three numbers must be exactly what the derivation
+       above says — the "duplex total = 2x symmetric" check gate 7 runs
+       against its own note, on a different element. */
+    const { margin_top_mm: topMm, margin_bottom_mm: bottomMm, margin_sides_mm: sidesMm } = letterPageEl.properties;
+    if (!mmClose(topMm, expectedTopMm)) {
+      fail.push(`spec.json: letter-page.properties.margin_top_mm is ${topMm}, but `
+        + `foundation.page.margins.symmetric_mm.standard (${standardMm}) + `
+        + `letter-page.derivation.letterhead_band_mm (${bandMm}) is ${expectedTopMm}`);
+    }
+    if (!mmClose(bottomMm, expectedBottomMm)) {
+      fail.push(`spec.json: letter-page.properties.margin_bottom_mm is ${bottomMm}, but `
+        + `foundation.page.margins.symmetric_mm.standard is ${expectedBottomMm} and letter-page's own `
+        + 'notes say the foot carries no reason to differ from it');
+    }
+    if (!mmClose(sidesMm, expectedSidesMm)) {
+      fail.push(`spec.json: letter-page.properties.margin_sides_mm is ${sidesMm}, but `
+        + `foundation.page.margins.symmetric_mm.standard is ${expectedSidesMm} and letter-page's own `
+        + 'notes say the sides carry no reason to differ from it');
+    }
+
+    /* CSS: @page ts-letter's margin shorthand, top | sides | bottom (the
+       3-value form — sides and bottom are equal today but that is this
+       gate's conclusion, not a CSS shorthand rule, so the 3-value form is
+       parsed rather than assumed collapsible to 2).
+
+       @page ts-letter's body nests its own @top-center/@bottom-center
+       at-rules (to suppress the running head and folio), so its body
+       contains a "{" and extractCssLeafRules treats it as a wrapper, not a
+       leaf — cssPageDecls (gate 7's own helper) finds nothing here, the same
+       as it would for @page or @media. Read straight off the CSS text
+       instead, the same way this file's own note on the letter page (above,
+       under the iA Writer template check) already does for a plain @page
+       margin. */
+    const letterPageMatch = /@page\s+ts-letter\s*\{\s*margin:\s*([^;]+);/.exec(cssNoComments);
+    if (!letterPageMatch) {
+      fail.push('typeset.css: @page ts-letter was not found, or does not open with a plain '
+        + '"margin: ...;" declaration this check can compare to spec.json');
+    } else {
+      const value = letterPageMatch[1].trim();
+      const parts = value.split(/\s+/);
+      const mmToken = (t) => (/^[\d.]+mm$/.test(t) ? parseFloat(t) : null);
+      if (parts.length !== 3 || parts.some((p) => mmToken(p) === null)) {
+        fail.push(`typeset.css: @page ts-letter's margin ("${value}") is not the plain 3-value `
+          + '"<top> <sides> <bottom>" mm shorthand this check can compare to spec.json');
+      } else {
+        const [cssTop, cssSides, cssBottom] = parts.map(mmToken);
+        if (!mmClose(cssTop, topMm)) {
+          fail.push(`typeset.css: @page ts-letter declares margin: ${value}, whose top (${cssTop}mm) `
+            + `does not match letter-page.properties.margin_top_mm (${topMm}mm)`);
+        }
+        if (!mmClose(cssSides, sidesMm)) {
+          fail.push(`typeset.css: @page ts-letter declares margin: ${value}, whose sides (${cssSides}mm) `
+            + `does not match letter-page.properties.margin_sides_mm (${sidesMm}mm)`);
+        }
+        if (!mmClose(cssBottom, bottomMm)) {
+          fail.push(`typeset.css: @page ts-letter declares margin: ${value}, whose bottom `
+            + `(${cssBottom}mm) does not match letter-page.properties.margin_bottom_mm (${bottomMm}mm)`);
+        }
+      }
+    }
+
+    /* Typst: render letter-page() at its own default paper ("a4") and read
+       the three edges back off the page it actually produced. */
+    const letterPaperSpecName = PAPER_NAME_TO_SPEC.a4;
+    const [letterPaperWidthMm, letterPaperHeightMm] = sizesMm[letterPaperSpecName];
+    const LETTER_TOLERANCE_MM = 0.05;
+    const mmCloseRendered = (a, b) => Math.abs(a - b) < LETTER_TOLERANCE_MM;
+    const letterProbeDir = mkdtempSync(join(tmpdir(), 'typeset-letter-margin-check-'));
+    try {
+      copyFileSync('implementations/typeset.typ', join(letterProbeDir, 'typeset.typ'));
+      const probePath = join(letterProbeDir, 'letter-margin.typ');
+      writeFileSync(probePath, '#import "typeset.typ": *\n'
+        + '#show: letter-page.with(paper: "a4")\n\n'
+        + '#context [#metadata(here().position().y / 1mm) <ts-letter-top>]\n'
+        + '#context [#metadata(ts-text-width.get() / 1mm) <ts-letter-full>]\n'
+        + '#layout(size => [#metadata(size.height / 1mm) <ts-letter-height>])\n\n'
+        + 'Filler so the page has real content to flow around, rather than an empty box with '
+        + 'nothing to measure against.\n');
+      const queryOne = (tag) => Number(JSON.parse(execFileSync(
+        'typst',
+        ['query', '--font-path', resolve('fonts'), probePath, `<${tag}>`, '--field', 'value', '--one'],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+      ).toString()));
+      try {
+        const renderedTopMm = queryOne('ts-letter-top');
+        const fullWidthMm = queryOne('ts-letter-full');
+        const availableHeightMm = queryOne('ts-letter-height');
+        const renderedSidesMm = (letterPaperWidthMm - fullWidthMm) / 2;
+        const renderedBottomMm = letterPaperHeightMm - renderedTopMm - availableHeightMm;
+
+        if (!mmCloseRendered(renderedTopMm, topMm)) {
+          fail.push(`implementations/typeset.typ: letter-page() renders a top margin of `
+            + `${renderedTopMm.toFixed(2)}mm on a4, but letter-page.properties.margin_top_mm is `
+            + `${topMm}mm`);
+        }
+        if (!mmCloseRendered(renderedSidesMm, sidesMm)) {
+          fail.push(`implementations/typeset.typ: letter-page() renders a text area ${fullWidthMm.toFixed(2)}mm `
+            + `wide on a4 (${letterPaperWidthMm}mm paper), i.e. ${renderedSidesMm.toFixed(2)}mm of side `
+            + `margin, but letter-page.properties.margin_sides_mm is ${sidesMm}mm`);
+        }
+        if (!mmCloseRendered(renderedBottomMm, bottomMm)) {
+          fail.push(`implementations/typeset.typ: letter-page() renders a bottom margin of `
+            + `${renderedBottomMm.toFixed(2)}mm on a4 (page ${letterPaperHeightMm}mm, top `
+            + `${renderedTopMm.toFixed(2)}mm, available height ${availableHeightMm.toFixed(2)}mm), but `
+            + `letter-page.properties.margin_bottom_mm is ${bottomMm}mm`);
+        }
+      } catch (err) {
+        const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+        fail.push(`implementations/typeset.typ: could not render the letter margin probe:\n${detail}`);
+      }
+    } finally {
+      rmSync(letterProbeDir, { recursive: true, force: true });
     }
   }
 }
