@@ -15,11 +15,18 @@ import { typstBoilerplate, typstDocument, setsItsOwnPage } from '../src/boilerpl
 import { TYPST_ELSEWHERE } from '../src/panels.mjs';
 import { rewrite } from './codemod-names.mjs';
 import { EXAMPLES } from '../src/examples.mjs';
+import { resolveUrl, derivedPaths, siteUrl } from './legacy-urls.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
 const typ = readFileSync('implementations/typeset.typ', 'utf8');
-const html = readFileSync('index.html', 'utf8');
+/* The specification page. It is served from /spec/, so every site-internal
+   link on it is written one level up — see relocate() in tools/build-site.mjs.
+   linksTo() takes the href as the site root spells it and asks the page in its
+   own terms, so the gates below read the way src/ is written. */
+const SPEC_PAGE = 'spec/index.html';
+const specPageHtml = readFileSync(SPEC_PAGE, 'utf8');
+const linksTo = (href) => specPageHtml.includes(`href="../${href}"`);
 const specMd = readFileSync('SPEC.md', 'utf8');
 const readmeMd = readFileSync('README.md', 'utf8');
 const VIEWERS = JSON.parse(readFileSync('src/viewers.json', 'utf8'));
@@ -1100,8 +1107,8 @@ if (missingViewerTarget) reportFailuresAndExit();
 
 for (const v of VIEWERS) {
   const href = `files/${v.slug}.html`;
-  if (!html.includes(`href="${href}"`)) {
-    fail.push(`index.html: no link to ${href} — src/viewers.json names "${v.slug}" but `
+  if (!linksTo(href)) {
+    fail.push(`${SPEC_PAGE}: no link to ${href} — src/viewers.json names "${v.slug}" but `
       + 'nothing on the page points at its viewer page');
   }
 }
@@ -1112,8 +1119,8 @@ for (const v of VIEWERS) {
    already established that both pages exist. */
 for (const e of EXAMPLES) {
   for (const href of [`examples/${e.id}.html`, `files/example-${e.id}.html`]) {
-    if (!html.includes(`href="${href}"`)) {
-      fail.push(`index.html: no link to ${href} — src/examples.mjs names "${e.id}" but `
+    if (!linksTo(href)) {
+      fail.push(`${SPEC_PAGE}: no link to ${href} — src/examples.mjs names "${e.id}" but `
         + 'nothing on the page points at that rendering');
     }
   }
@@ -1127,22 +1134,22 @@ for (const e of EXAMPLES) {
    panels are read out of, which is a citation, not an offer. */
 {
   const regions = [
-    ['index.html nav', /<nav class="nav">[\s\S]*?<\/nav>/],
-    ['index.html masthead', /<header class="masthead">[\s\S]*?<\/header>/],
+    [`${SPEC_PAGE} nav`, /<nav class="nav">[\s\S]*?<\/nav>/],
+    [`${SPEC_PAGE} masthead`, /<header class="masthead">[\s\S]*?<\/header>/],
   ];
   const rendered = new Map([
     ...VIEWERS.map((v) => [v.source, `files/${v.slug}.html`]),
     ...EXAMPLES.map((e) => [e.file, `files/example-${e.id}.html`]),
   ]);
   for (const [name, pattern] of regions) {
-    const region = html.match(pattern);
+    const region = specPageHtml.match(pattern);
     if (!region) {
-      fail.push(`${name}: not found in index.html — this gate cannot read it, so update the `
+      fail.push(`${name}: not found — this gate cannot read it, so update the `
         + 'pattern rather than leaving it matching nothing');
       continue;
     }
     for (const [source, page] of rendered) {
-      if (source.endsWith('.typ') && region[0].includes(`href="${source}"`)) {
+      if (source.endsWith('.typ') && region[0].includes(`href="../${source}"`)) {
         fail.push(`${name}: links the raw ${source}, which a browser downloads or dumps as `
           + `plain text — ${page} renders it, and is what should be offered here`);
       }
@@ -4834,6 +4841,64 @@ for (const f of iawriterFaces) {
     fail.push(`implementations/iawriter/iawriter.css: @font-face binds ${f.family} ${f.weight} `
       + `${f.style} from ${f.src}, which fonts/manifest.json's "spec" entries do not carry — `
       + 'the hand-written block has drifted from the manifest');
+  }
+}
+
+/* ---- 28. Every URL that resolved before the split must still resolve ----- */
+
+/* The specification moved to /spec/ and / became a router between it and
+   /templates/. This site is linked from llms.txt — the file it publishes for
+   machines, which hard-codes absolute URLs — and from a GitHub release, so a
+   reader or an agent can be holding any URL the site has ever published. A
+   path that stops resolving is a regression whatever it tidies, and it is
+   invisible from the inside: the split looks finished the moment the new
+   pages exist and everything anyone happens to click works.
+
+   tools/legacy-urls.json is the snapshot, derived from the tree at the commit
+   before the split rather than recalled, and it records the status each URL
+   had at the time — so the two shapes that were ALREADY dead (fonts/ has no
+   index and .nojekyll turns directory listing off; the nine anchors the
+   table-of-contents demo points at are specimen content naming chapters that
+   do not exist) are held to no-worse-than-they-were rather than to fixed.
+
+   resolveUrl() is the same function that built the snapshot, so the gate and
+   the record cannot disagree about what "resolves" means. It follows a page's
+   fragment forwarder too, which is how an anchor that moved to /spec/ is
+   counted as resolving. */
+{
+  const snapshot = JSON.parse(readFileSync('tools/legacy-urls.json', 'utf8'));
+  const derived = derivedPaths();
+  const alreadyDead = new Set();
+
+  for (const [url, was] of Object.entries(snapshot.urls)) {
+    if (was === 'missing' || was === 'no-anchor') {
+      alreadyDead.add(url.split('#')[0]);
+      continue;
+    }
+    const now = resolveUrl(url, derived);
+    if (!now.ok) {
+      fail.push(`${url || '/'} resolved before the split (${was}) and does not now (${now.how}) — `
+        + 'it is in tools/legacy-urls.json because something published it. Give it a redirect, '
+        + 'or put the file back');
+    }
+  }
+
+  /* The other half of the same question, asked of the new pages rather than
+     the old URLs: a link that relocate() missed when the specification moved
+     into /spec/ points one directory too high and 404s, and nothing above
+     would see it — the old URLs all still resolve, and the page renders. Only
+     the path is checked; a fragment is a question about one page's ids, and
+     the demo above answers it with links to chapters it invents. */
+  for (const [page, contents] of output) {
+    for (const m of contents.matchAll(/(?:href|src)="([^"]+)"/g)) {
+      const url = siteUrl(page, m[1]);
+      if (url === null) continue;
+      const path = url.split('#')[0];
+      if (alreadyDead.has(path)) continue;
+      if (!resolveUrl(path, derived).ok) {
+        fail.push(`${page}: links "${m[1]}", which resolves to "${path}" — no such file`);
+      }
+    }
   }
 }
 

@@ -51,7 +51,7 @@ const read = (p) => readFileSync(p, 'utf8');
    asked instead: previews/ from the example list tools/build-previews.mjs
    itself derives its filenames from, downloads/ from the tools that name the
    archive they write. */
-function derivedPaths() {
+export function derivedPaths() {
   const paths = new Set();
   for (const e of EXAMPLES) {
     for (let n = 1; n <= e.pages; n += 1) paths.add(`previews/${e.id}-${n}.svg`);
@@ -120,7 +120,7 @@ export function resolveUrl(url, derived = derivedPaths()) {
 /* Joins a page-relative href onto the directory the page sits in, the way a
    browser does, and returns null for anything that is not a path on this
    site. */
-function siteUrl(fromPage, href) {
+export function siteUrl(fromPage, href) {
   if (/^(https?:|mailto:|data:|javascript:|\/\/)/i.test(href)) {
     const local = href.match(/^https?:\/\/typeset\.adilsoncarvalho\.com\/(.*)$/);
     return local ? local[1] : null;
