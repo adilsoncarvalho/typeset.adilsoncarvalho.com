@@ -14,12 +14,14 @@ import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
 import { typstBoilerplate, typstDocument, setsItsOwnPage } from '../src/boilerplate.mjs';
 import { TYPST_ELSEWHERE } from '../src/panels.mjs';
 import { rewrite } from './codemod-names.mjs';
+import { EXAMPLES } from '../src/examples.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
 const typ = readFileSync('implementations/typeset.typ', 'utf8');
 const html = readFileSync('index.html', 'utf8');
 const specMd = readFileSync('SPEC.md', 'utf8');
+const readmeMd = readFileSync('README.md', 'utf8');
 
 const fail = [];
 const warn = [];
@@ -239,18 +241,28 @@ if (typstSnippets.length > 0) {
    resolve a single name in them. A rename that misses one shows up here as
    a hard compile error, the same way it would in a reader's own terminal.
 
-   The list below is explicit, not `readdirSync('implementations').filter(...)`:
-   a directory listing goes quiet the moment a file is deleted, silently
-   checking two examples instead of three, which is exactly the failure this
-   gate exists to make loud instead. Keep this list in sync with
-   tools/build-bundle.mjs's own explicit zip list and the paths README.md
-   names; existsSync below reports a missing file by name rather than
-   letting the loop just iterate over fewer files. */
-const EXAMPLE_TYP_FILES = [
-  'implementations/example-essay.typ',
-  'implementations/example-letter.typ',
-  'implementations/example-two-column.typ',
-];
+   The list comes from src/examples.mjs, not
+   `readdirSync('implementations').filter(...)`: a directory listing goes
+   quiet the moment a file is deleted, silently checking two examples
+   instead of three, which is exactly the failure this gate exists to make
+   loud instead. tools/build-bundle.mjs and tools/build-previews.mjs read
+   that same array, so a fourth example, or a rename, cannot appear in one
+   of those and not here; existsSync below reports a missing file by name
+   rather than letting the loop just iterate over fewer files. */
+const EXAMPLE_TYP_FILES = EXAMPLES.map((e) => e.file);
+
+/* README.md is the one consumer that cannot import src/examples.mjs — it
+   stays hand-written prose — so its claim to name "the three shipped Typst
+   examples" is checked here rather than trusted. Same relationship gate
+   16d below holds docs/migrating-to-2.0.md's class table to the rename
+   maps it describes: the derived list is normative, and the prose is read
+   back against it. */
+for (const file of EXAMPLE_TYP_FILES) {
+  if (!readmeMd.includes(`\`${file}\``)) {
+    fail.push(`README.md: does not name ${file} — src/examples.mjs names it as one of the `
+      + 'three shipped Typst examples, and the file table must too');
+  }
+}
 
 if (!typstAvailable()) {
   console.error('typst is not on PATH — cannot verify that the Typst examples compile.');
@@ -263,8 +275,8 @@ if (!typstAvailable()) {
   const fontPath = resolve('fonts');
   for (const file of EXAMPLE_TYP_FILES) {
     if (!existsSync(file)) {
-      fail.push(`${file} is missing — README.md and tools/build-bundle.mjs both name it `
-        + 'as one of the three shipped Typst examples');
+      fail.push(`${file} is missing — src/examples.mjs names it as one of the three shipped `
+        + 'Typst examples');
       continue;
     }
     const outPath = join(outDir, `${file.replace(/[\\/]/g, '_')}.pdf`);

@@ -10,6 +10,7 @@
 
 import { readFileSync, mkdirSync, rmSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { EXAMPLES } from '../src/examples.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const OUT = 'downloads/typeset-typst.zip';
@@ -30,17 +31,27 @@ for (const dir of FONT_DIRS) {
   if (!existsSync(`${dir}/OFL.txt`)) throw new Error(`${dir}/OFL.txt is missing; the licence must ship with the fonts`);
 }
 
+/* The manifest lines for typeset.typ and fonts/ stay literal here — they
+   are not shipped examples, so src/examples.mjs has no entry for them.
+   Column widths are computed rather than hand-aligned, so a longer example
+   path never leaves the descriptions ragged. */
+const MANIFEST_ENTRIES = [
+  { file: 'implementations/typeset.typ', description: 'the implementation' },
+  ...EXAMPLES.map(({ file, description }) => ({ file, description })),
+  { file: 'fonts/', description: 'the three families the spec names' },
+];
+const manifestPathWidth = Math.max(...MANIFEST_ENTRIES.map((e) => e.file.length));
+const manifestLines = MANIFEST_ENTRIES
+  .map((e) => `  ${e.file.padEnd(manifestPathWidth)}  ${e.description}`)
+  .join('\n');
+
 const README = `typeset — Typst bundle ${spec.version}
 ${spec.canonical_url}
 
-  implementations/typeset.typ             the implementation
-  implementations/example-essay.typ       single column, justified
-  implementations/example-letter.typ      letter, ragged right, page-foot footnote
-  implementations/example-two-column.typ  two columns, equal
-  fonts/                                  the three families the spec names
+${manifestLines}
 
 Compile:
-  typst compile --font-path fonts implementations/example-essay.typ essay.pdf
+  typst compile --font-path fonts ${EXAMPLES.find((e) => e.id === 'essay').file} essay.pdf
 
 Typst web app: drag the unzipped folder into a project. Fonts resolve by name.
 
@@ -63,9 +74,7 @@ writeFileSync('downloads/BUNDLE.txt', README);
 execFileSync('zip', [
   '-qrX', OUT,
   'implementations/typeset.typ',
-  'implementations/example-essay.typ',
-  'implementations/example-letter.typ',
-  'implementations/example-two-column.typ',
+  ...EXAMPLES.map((e) => e.file),
   ...FONT_DIRS,
   '-x', '.*', '-x', '*/.*',
 ], { stdio: 'inherit' });

@@ -10,17 +10,7 @@
 
 import { mkdirSync, rmSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-
-/* The three shipped examples. Kept in sync by hand with
-   tools/build-bundle.mjs's own zip file list and tools/check.mjs's
-   EXAMPLE_TYP_FILES — neither of those exposes a shared, importable
-   constant, so this is a third hand-maintained copy of the same three
-   paths rather than a derivation from either. */
-const EXAMPLES = [
-  { id: 'essay', file: 'implementations/example-essay.typ' },
-  { id: 'letter', file: 'implementations/example-letter.typ' },
-  { id: 'two-column', file: 'implementations/example-two-column.typ' },
-];
+import { EXAMPLES } from '../src/examples.mjs';
 
 function typstAvailable() {
   try {
