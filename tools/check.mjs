@@ -4889,15 +4889,26 @@ for (const f of iawriterFaces) {
      would see it — the old URLs all still resolve, and the page renders. Only
      the path is checked; a fragment is a question about one page's ids, and
      the demo above answers it with links to chapters it invents. */
-  for (const [page, contents] of output) {
-    for (const m of contents.matchAll(/(?:href|src)="([^"]+)"/g)) {
-      const url = siteUrl(page, m[1]);
-      if (url === null) continue;
-      const path = url.split('#')[0];
-      if (alreadyDead.has(path)) continue;
-      if (!resolveUrl(path, derived).ok) {
-        fail.push(`${page}: links "${m[1]}", which resolves to "${path}" — no such file`);
-      }
+  const links = [...output].flatMap(([page, contents]) =>
+    [...contents.matchAll(/(?:href|src)="([^"]+)"/g)].map((m) => [page, m[1]]));
+
+  /* llms.txt and README.md are hand-written and name this site by absolute
+     URL, so nothing above would see a link rotting in either — and llms.txt
+     is the one file here whose whole purpose is telling an agent where things
+     are. */
+  for (const file of ['llms.txt', 'README.md']) {
+    for (const m of readFileSync(file, 'utf8').matchAll(/https:\/\/typeset\.adilsoncarvalho\.com\/([^\s)"'>]+)/g)) {
+      links.push([file, m[1].replace(/[.,]$/, '')]);
+    }
+  }
+
+  for (const [page, href] of links) {
+    const url = siteUrl(page, href);
+    if (url === null) continue;
+    const path = url.split('#')[0];
+    if (alreadyDead.has(path)) continue;
+    if (!resolveUrl(path, derived).ok) {
+      fail.push(`${page}: links "${href}", which resolves to "${path}" — no such file`);
     }
   }
 }
