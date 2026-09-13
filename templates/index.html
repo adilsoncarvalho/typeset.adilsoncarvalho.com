@@ -37,9 +37,9 @@
       </thead>
       <tbody>
       <tr>
-        <th scope="row">Full spec vocabulary</th>
-        <td>yes</td>
-        <td>yes</td>
+        <th scope="row">Every element expressible</th>
+        <td><a href="../files/typeset-css.html">all 103</a> — every element the specification names has a form in CSS. How much of one reaches the page is a question about the engine, and the three rows below are where that gap is widest; 4 elements carry a <code>fallback</code> in <a href="../spec.json">spec.json</a> naming what they degrade to where an engine cannot honour them in full — <a href="../spec/index.html#justification"><code>justification-justified</code></a>, <a href="../spec/index.html#note"><code>note-footnote</code></a>, <a href="../spec/index.html#toc"><code>toc-entry</code></a> and <a href="../spec/index.html#letter"><code>letter-footnote</code></a>.</td>
+        <td><a href="../files/typeset-typ.html">all 103</a> — every element has a Typst form; 2 fall short of the full property set: <a href="../spec/index.html#quote"><code>quote-verse</code></a> and <a href="../spec/index.html#bibliography"><code>bibliography-entry</code></a> lose their runover indent, per each one's <code>fallback</code> in spec.json. The <a href="../files/typeset-typ.html#L817">drop cap</a> is set in the margin rather than wrapped, because Typst has no float.</td>
         <td><a href="../files/iawriter-css.html">Markdown subset only</a> — headings, body text, bold, italic, tables and footnotes; not the 103 elements the specification names, and not signature blocks, callouts, sidenotes or drop caps, which Markdown has no markup for.</td>
       </tr>
       <tr>

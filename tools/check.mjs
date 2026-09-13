@@ -7,7 +7,7 @@ import { readFileSync, existsSync, readdirSync, writeFileSync, rmSync, mkdtempSy
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { buildAll, faceDescriptors } from './build-site.mjs';
+import { buildAll, faceDescriptors, SPEC_PAGE, TEMPLATES_PAGE } from './build-site.mjs';
 import { buildSpecMd } from './build-spec.mjs';
 import { extractDemos, verbatimLineMask } from '../src/extract.mjs';
 import { APPARATUS_ELEMENTS, APPARATUS_CLASSES } from '../src/extract.mjs';
@@ -24,8 +24,9 @@ const typ = readFileSync('implementations/typeset.typ', 'utf8');
 /* The specification page. It is served from /spec/, so every site-internal
    link on it is written one level up — see relocate() in tools/build-site.mjs.
    linksTo() takes the href as the site root spells it and asks the page in its
-   own terms, so the gates below read the way src/ is written. */
-const SPEC_PAGE = 'spec/index.html';
+   own terms, so the gates below read the way src/ is written. SPEC_PAGE and
+   TEMPLATES_PAGE come from tools/build-site.mjs, which is the one place that
+   decides where a page is emitted. */
 const specPageHtml = readFileSync(SPEC_PAGE, 'utf8');
 const linksTo = (href) => specPageHtml.includes(`href="../${href}"`);
 const specMd = readFileSync('SPEC.md', 'utf8');
@@ -4894,7 +4895,44 @@ for (const f of iawriterFaces) {
   }
 }
 
-/* ---- 28. Every URL that resolved before the split must still resolve ----- */
+/* ---- 28. No capability-matrix cell may assert without pointing at proof -- */
+
+/* The matrix's own rule, from tools/build-site.mjs: every claim points at
+   where this repository already proves it, rather than asserting it fresh.
+   A cell holding a bare word is the one shape that breaks it, and it is
+   invisible from the inside — the table renders, the row reads plausibly,
+   and nothing else here reads the cell at all. It shipped once: "Full spec
+   vocabulary — CSS yes, Typst yes", which spec.json's fallback fields,
+   llms.txt, README.md's engine-capability table and section 3m above each
+   answer differently.
+
+   Read off the built page rather than the generator's source, so a cell
+   assembled from any number of pieces is judged on what a reader receives.
+   A link into typeset.css, typeset.typ, a viewer page or spec.json is proof;
+   so is a quotation from spec.json, which the footnote row uses where
+   spec.json states the reason in its own words. */
+{
+  const matrix = output.get(TEMPLATES_PAGE)?.match(/<table class="matrix">[\s\S]*?<\/table>/)?.[0];
+  if (!matrix) {
+    fail.push(`${TEMPLATES_PAGE}: no capability matrix — tools/build-site.mjs publishes one, `
+      + 'and section 28 of this file holds every cell in it to naming its evidence');
+  } else {
+    const rows = [...matrix.matchAll(/<tr>\s*<th scope="row">([\s\S]*?)<\/th>([\s\S]*?)<\/tr>/g)];
+    if (!rows.length) fail.push(`${TEMPLATES_PAGE}: the capability matrix has no body rows`);
+    for (const [, feature, body] of rows) {
+      const cells = [...body.matchAll(/<td>([\s\S]*?)<\/td>/g)].map((m) => m[1]);
+      for (const [i, cell] of cells.entries()) {
+        if (!/<a href="/.test(cell) && !cell.includes('\u201c')) {
+          fail.push(`${TEMPLATES_PAGE}: capability matrix row "${feature.trim()}", column `
+            + `${i + 1}, asserts "${cell.replace(/<[^>]+>/g, '').trim()}" and points at nothing — `
+            + 'a cell must link into the code or the spec that proves it, or quote spec.json');
+        }
+      }
+    }
+  }
+}
+
+/* ---- 29. Every URL that resolved before the split must still resolve ----- */
 
 /* The specification moved to /spec/ and / became a router between it and
    /templates/. This site is linked from llms.txt — the file it publishes for

@@ -56,6 +56,22 @@ export function faceDescriptors(file) {
   return { weight, style: italic ? 'italic' : 'normal' };
 }
 
+/* ---- Where a page lives -------------------------------------------------- */
+
+/* The specification and its specimens are served from /spec/, the templates
+   from /templates/, and / is a router between the two. Every link inside the
+   fragments under src/ is written as the site root sees it — "spec.json",
+   "files/typeset-css.html" — because that is the form a reader reads, the form
+   tools/check.mjs's reachability gates match against, and the form that stays
+   correct if a page is ever served from somewhere else again. This is the one
+   place that knows where a page was emitted. */
+/* Named down to the index file rather than left as a directory: a bare
+   "spec/" is served as the page by GitHub Pages but opens as a directory
+   listing over file://, and this repository's pages are meant to open straight
+   from a checkout. A reader who types /spec/ still gets the page. */
+export const SPEC_PAGE = 'spec/index.html';
+export const TEMPLATES_PAGE = 'templates/index.html';
+
 /* Returns every generated file as path -> contents. Nothing is written here, so
    tools/check.mjs can rebuild in memory and compare against what is committed —
    which makes a stale generated page a build failure rather than a surprise. */
@@ -130,22 +146,6 @@ ${scripts}</body>
 </html>
 `;
 }
-
-/* ---- Where a page lives -------------------------------------------------- */
-
-/* The specification and its specimens are served from /spec/, the templates
-   from /templates/, and / is a router between the two. Every link inside the
-   fragments under src/ is written as the site root sees it — "spec.json",
-   "files/typeset-css.html" — because that is the form a reader reads, the form
-   tools/check.mjs's reachability gates match against, and the form that stays
-   correct if a page is ever served from somewhere else again. This is the one
-   place that knows where a page was emitted. */
-/* Named down to the index file rather than left as a directory: a bare
-   "spec/" is served as the page by GitHub Pages but opens as a directory
-   listing over file://, and this repository's pages are meant to open straight
-   from a checkout. A reader who types /spec/ still gets the page. */
-const SPEC_PAGE = 'spec/index.html';
-const TEMPLATES_PAGE = 'templates/index.html';
 
 /* Rewrites every site-internal href and src on a finished page so it resolves
    from a page nested `prefix` deep instead of from the site root. Left alone:
@@ -443,17 +443,59 @@ const TEMPLATE_BUNDLE = `downloads/${bundleZip(letterTemplate)}`;
      of them. */
 function capabilityMatrix() {
   const noteSection = spec.sections.find((s) => s.id === 'note');
-  const footnoteWhy = noteSection.principles[0];
+  /* Matched on what the sentence says, not on its position in the array: the
+     cell publishes this as the reason WeasyPrint and Prince are the only CSS
+     engines that place a note at the page foot, and a principle inserted at
+     the front of the section would otherwise republish a different sentence
+     as that reason with nothing to notice. */
+  const footnoteWhy = noteSection.principles.find((p) => /WeasyPrint/.test(p) && /Prince/.test(p));
+  if (!footnoteWhy) {
+    throw new Error('spec.json: the "note" section has no principle naming WeasyPrint and '
+      + 'Prince — the capability matrix quotes it as the reason those two engines are '
+      + 'required, and must not fall back to quoting whichever principle comes first');
+  }
   const footnoteFallback = noteSection.elements.find((e) => e.id === 'note-footnote').fallback;
   const cssAt = (id) => `files/typeset-css.html#L${cssLines.get(id)}`;
   const typAt = (id) => `files/typeset-typ.html#L${typLines.get(id)}`;
   const IAW = 'files/iawriter-css.html';
 
+  /* Which elements fall short, and in which engine, comes off spec.json's own
+     `fallback` fields rather than being asserted here: a fallback prefixed
+     "in Typst:" names a property that engine cannot honour, and the rest name
+     what an engine that cannot measure the page as it lays it out degrades to.
+     tools/check.mjs section 3m holds the two Typst ones to what Typst actually
+     renders, so the day one comes off spec.json this row follows it. */
+  const withFallback = spec.sections.flatMap((s) => s.elements
+    .filter((e) => e.fallback)
+    .map((e) => ({ section: s.id, id: e.id, name: e.name, fallback: e.fallback })));
+  const typstShort = withFallback.filter((e) => /^in Typst:/i.test(e.fallback));
+  const pagedShort = withFallback.filter((e) => !/^in Typst:/i.test(e.fallback));
+  /* Named by spec.json's own element id rather than by the element's display
+     name: two of the six are called "Entry" and two are called "Footnote", so
+     the names alone do not say which element a reader should go and read. */
+  const specLink = (e) => `<a href="${SPEC_PAGE}#${e.section}"><code>${esc(e.id)}</code></a>`;
+  const list = (els) => els.map(specLink)
+    .reduce((acc, x, i, all) => acc + (i === 0 ? '' : i === all.length - 1 ? ' and ' : ', ') + x, '');
+
   const rows = [
     {
-      feature: 'Full spec vocabulary',
-      css: 'yes',
-      typst: 'yes',
+      /* Named for what it measures. "Every element" is a question about the
+         vocabulary — whether the engine has a form for the thing at all — and
+         the three rows under it are the question about depth. Stated as one
+         row of "yes" it read as both, and the repository answers the second
+         one differently in four places. */
+      feature: 'Every element expressible',
+      css: `<a href="files/typeset-css.html">all ${elementCount}</a> — every element the `
+        + 'specification names has a form in CSS. How much of one reaches the page is a '
+        + 'question about the engine, and the three rows below are where that gap is widest; '
+        + `${pagedShort.length} elements carry a <code>fallback</code> in `
+        + '<a href="spec.json">spec.json</a> naming what they degrade to where an engine '
+        + `cannot honour them in full — ${list(pagedShort)}.`,
+      typst: `<a href="files/typeset-typ.html">all ${elementCount}</a> — every element has a `
+        + `Typst form; ${typstShort.length} fall short of the full property set: `
+        + `${list(typstShort)} lose their runover indent, per each one's <code>fallback</code> `
+        + `in spec.json. The <a href="${typAt('dropcap')}">drop cap</a> is set in the margin `
+        + 'rather than wrapped, because Typst has no float.',
       iawriter: `<a href="${IAW}">Markdown subset only</a> — headings, body text, bold, `
         + `italic, tables and footnotes; not the ${elementCount} elements the specification `
         + 'names, and not signature blocks, callouts, sidenotes or drop caps, which Markdown '
