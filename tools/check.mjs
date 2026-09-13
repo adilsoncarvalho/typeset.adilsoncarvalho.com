@@ -16,6 +16,7 @@ import { TYPST_ELSEWHERE } from '../src/panels.mjs';
 import { rewrite } from './codemod-names.mjs';
 import { EXAMPLES } from '../src/examples.mjs';
 import { resolveUrl, derivedPaths, siteUrl } from './legacy-urls.mjs';
+import { resolveFontDir } from '../src/fonts.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
 const css = readFileSync('typeset.css', 'utf8');
@@ -4762,13 +4763,28 @@ for (const [role, font] of Object.entries(spec.foundation.fonts)) {
    itself. A template that reads typeset.css or a spec family's directory
    straight out of the repository root is a template carrying a second,
    silently drifting copy of exactly what the CSS bundle exists to be the one
-   copy of, which is the failure this whole group of changes exists to
-   prevent. Checked by grepping the builder's own source for the literal
-   root-relative reads a shortcut would reach for, rather than by running it —
-   running it proves only today's behaviour, and says nothing about a future
-   edit that puts the direct read back. Cormorant Garamond is not a spec
-   family (fonts/manifest.json has no "spec" entry for it), so it is exempt:
-   it is the template's own, and reads from fonts/ directly by design. */
+   copy of, which is the failure this whole group of changes exists to prevent.
+
+   A template can reach the repository root two ways, and only one of them is
+   visible in the builder's text:
+
+   - By naming a root path outright — readFileSync('typeset.css'), or a spec
+     family's directory as a string literal. That is a new literal, and the
+     greps below see it.
+   - By resolving a family to the wrong side of the boundary. Which side a
+     family sits on is one expression, src/fonts.mjs's resolveFontDir(): delete
+     its condition and every spec family reads from fonts/ instead of from the
+     unpacked bundle. Nothing about the builder's text changes — the directory
+     comes from fonts/manifest.json at run time, so there is no literal to
+     grep for, and a text check stays green while the template ships the
+     repository's own font files.
+
+   So the second is checked by calling resolveFontDir() and looking at where
+   the path lands, against a bundle directory that exists only for this check:
+   a spec family must resolve inside it, and a family of any other role must
+   not. Cormorant Garamond is the letter's own display-quote and letterhead
+   face, so it resolves to fonts/ by design, and that is asserted here rather
+   than left as an exemption — the boundary is a rule about both sides. */
 const buildIawriterSrc = readFileSync('tools/build-iawriter.mjs', 'utf8');
 
 if (/readFileSync\(\s*['"`]typeset\.css['"`]/.test(buildIawriterSrc)) {
@@ -4786,6 +4802,40 @@ for (const font of Object.values(spec.foundation.fonts)) {
   if (buildIawriterSrc.includes(`'${entry.dir}'`) || buildIawriterSrc.includes(`"${entry.dir}"`)) {
     fail.push(`tools/build-iawriter.mjs names "${entry.dir}" literally — a spec family's `
       + 'directory must be reached through the CSS bundle, never hardcoded as a repository-root path');
+  }
+}
+
+{
+  const BUNDLE_DIR = '/typeset-css-bundle-probe';
+  const inBundle = (path) => path === BUNDLE_DIR || path.startsWith(`${BUNDLE_DIR}/`);
+  for (const entry of fontManifest.families) {
+    let landed;
+    try {
+      landed = resolveFontDir(entry.dir, BUNDLE_DIR, fontManifest);
+    } catch (err) {
+      fail.push(`src/fonts.mjs: resolveFontDir("${entry.dir}") throws for a family `
+        + `fonts/manifest.json itself lists: ${err.message}`);
+      continue;
+    }
+    if (entry.role === 'spec' && !inBundle(landed)) {
+      fail.push(`src/fonts.mjs: "${entry.dir}" is a "spec" family and resolveFontDir() reads it `
+        + `from ${landed}, outside the CSS bundle — the template would ship this repository's `
+        + 'own copy of a family the bundle exists to be the one copy of');
+    }
+    if (entry.role !== 'spec' && inBundle(landed)) {
+      fail.push(`src/fonts.mjs: "${entry.dir}" has role "${entry.role}" and resolveFontDir() `
+        + `reads it from ${landed}, inside the CSS bundle — only a "spec" family ships there, `
+        + 'and the bundle carries no other role to read');
+    }
+  }
+  /* The assertions above hold the resolver; this holds the builder to using it.
+     Dropping the calls IS a change in the builder's own text — the paths go
+     back to being written out at the call site — so a grep is the instrument
+     that fits, the same way it fits the two root-path literals above. */
+  if (!/resolveFontDir\(/.test(buildIawriterSrc)) {
+    fail.push('tools/build-iawriter.mjs no longer calls resolveFontDir() — every font directory '
+      + 'it reads must go through src/fonts.mjs, which is the only place that decides whether a '
+      + 'family comes from the CSS bundle or from this repository');
   }
 }
 

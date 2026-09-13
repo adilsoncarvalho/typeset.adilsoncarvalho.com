@@ -30,28 +30,14 @@ import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { TEMPLATES, bundleZip } from '../src/templates.mjs';
+import { resolveFontDir } from '../src/fonts.mjs';
 
 const spec = JSON.parse(readFileSync('spec.json', 'utf8'));
-const fontManifest = JSON.parse(readFileSync('fonts/manifest.json', 'utf8'));
 const SRC = 'implementations/iawriter';
 const OUT = 'downloads';
 const BUNDLE = `${OUT}/typeset-css.zip`;
 
 const fail = (msg) => { throw new Error(msg); };
-
-/* The one door from the repository's own fonts/ into the bundle: a directory
-   is "spec" if fonts/manifest.json says so, and only a spec directory is
-   allowed to come from the CSS bundle rather than from this repository. Every
-   other role — "letter", today just Cormorant Garamond — is the template's
-   own, and is read from fonts/ directly, same as iawriter.css and page.css are. */
-function resolveFontDir(dir, bundleDir) {
-  const entry = fontManifest.families.find((f) => f.dir === dir);
-  if (!entry) {
-    fail(`${dir} is not listed in fonts/manifest.json — cannot tell whether it ships from `
-      + "the CSS bundle or the template's own fonts/");
-  }
-  return entry.role === 'spec' ? join(bundleDir, dir) : dir;
-}
 
 /* Which families a bundle carries is derived from the @font-face rules in the
    stylesheets it actually links, not from a list kept here: the letter binds two
