@@ -3,5 +3,8 @@
 # Build output. Rebuild with: node tools/build-bundle.mjs
 downloads/
 
+# Build output. Rebuild with: node tools/build-previews.mjs
+previews/
+
 # subagent-driven-development scratch
 .superpowers/
