@@ -23,6 +23,7 @@ const html = readFileSync('index.html', 'utf8');
 const specMd = readFileSync('SPEC.md', 'utf8');
 const readmeMd = readFileSync('README.md', 'utf8');
 const VIEWERS = JSON.parse(readFileSync('src/viewers.json', 'utf8'));
+const fontManifest = JSON.parse(readFileSync('fonts/manifest.json', 'utf8'));
 
 const fail = [];
 const warn = [];
@@ -4716,6 +4717,32 @@ for (const sec of spec.sections) {
       const where = bindings.map((b) => `${b.file} ("${b.label ?? '(unlabelled)'}")`).join(', ');
       fail.push(`"${el.id}" is bound to ${bindings.length} panes, not exactly one: ${where}`);
     }
+  }
+}
+
+/* ---- 25. The CSS bundle carries every spec family, each with its licence - */
+
+/* tools/build-css-bundle.mjs ships typeset.css beside the three families
+   spec.foundation.fonts names, each with fonts/manifest.json's "spec" entry
+   for it and that entry's directory's OFL.txt — and refuses to build if any
+   of that is missing. But that script only runs on a push or a manual
+   dispatch (see .github/workflows/deploy.yml); a pull request never runs it,
+   so a family dropped from the manifest, or a licence file deleted from a
+   font directory, would not fail until the next deploy. Checked here against
+   the same manifest entries the builder reads, so a pull request catches it
+   first — the same reason section 1 above already checks that typeset.css
+   and typeset.typ still name every family, before either implementation ever
+   gets packaged. */
+for (const [role, font] of Object.entries(spec.foundation.fonts)) {
+  if (role === 'embedding') continue;
+  const entry = fontManifest.families.find((f) => f.family === font.family && f.role === 'spec');
+  if (!entry) {
+    fail.push(`fonts/manifest.json has no "spec" entry for "${font.family}", which `
+      + `spec.foundation.fonts.${role} names — the CSS bundle cannot ship that family`);
+    continue;
+  }
+  if (!existsSync(`${entry.dir}/OFL.txt`)) {
+    fail.push(`${entry.dir}/OFL.txt is missing — the CSS bundle cannot ship "${font.family}" without its licence`);
   }
 }
 

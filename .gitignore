@@ -1,6 +1,8 @@
 .DS_Store
 
-# Build output. Rebuild with: node tools/build-bundle.mjs
+# Build output — the Typst bundle, the CSS bundle, and the iA Writer template.
+# Rebuild with: node tools/build-bundle.mjs, tools/build-css-bundle.mjs,
+# tools/build-iawriter.mjs
 downloads/
 
 # Build output. Rebuild with: node tools/build-previews.mjs
