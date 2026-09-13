@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pages = preview.querySelector('.preview__pages');
     const missing = preview.querySelector('.preview__missing');
     const first = pages.querySelector('img');
+    /* `hidden` only suppresses .preview__pages because viewer.css neutralises
+       it — see the [hidden] rule at the top of that file for why. */
     const showMissing = () => { pages.hidden = true; missing.hidden = false; };
     /* The image may already have resolved (loaded or failed) by the time this
        deferred script runs — a cached image in particular can beat it — so a

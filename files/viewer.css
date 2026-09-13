@@ -1,5 +1,12 @@
 /* Chrome for a single-file view. Colour tokens come from ../specimen.css. */
 
+/* An element this file gives a `display` to — .preview__pages below is one —
+   ignores the `hidden` attribute without this rule: the [hidden] declaration
+   that would suppress it is user-agent origin, and any author declaration
+   beats that whatever the specificity. viewer.js hides the preview that way,
+   so this line is what makes it move. */
+[hidden] { display: none !important; }
+
 body { margin: 0; background: var(--ui-bg); color: var(--ui-fg); font-family: var(--ui-sans); }
 
 .vbar {

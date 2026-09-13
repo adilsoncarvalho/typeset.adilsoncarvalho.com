@@ -113,10 +113,11 @@ Otherwise Node and nothing else: there is no `package.json` and nothing to
 install. `.github/workflows/deploy.yml` names the version CI runs.
 
 ```sh
-node tools/build-spec.mjs   # regenerate SPEC.md after editing spec.json
-node tools/build-site.mjs   # regenerate index.html and files/*.html from src/
-node tools/check.mjs        # verify everything, including that the pages are current
-python3 -m http.server      # optional — the pages also open straight from disk
+node tools/build-spec.mjs      # regenerate SPEC.md after editing spec.json
+node tools/build-site.mjs      # regenerate index.html and files/*.html from src/
+node tools/build-previews.mjs  # render previews/ — the pages files/example-*.html show
+node tools/check.mjs           # verify everything, including that the pages are current
+python3 -m http.server         # optional — the pages also open straight from disk
 ```
 
 `check.mjs` fails when a token in `typeset.css` no longer matches `spec.json`,

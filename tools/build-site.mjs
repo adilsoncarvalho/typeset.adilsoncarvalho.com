@@ -369,9 +369,9 @@ for (const e of EXAMPLES) {
       + `${n > 1 ? ' loading="lazy"' : ''}>`)
     .join('\n');
   const preview = `  <section class="preview" data-preview>
-    <p class="preview__missing" hidden>Rendered pages are not built in this checkout. Run
-      <code>node tools/build-previews.mjs</code> to generate them — Typst must be on
-      <code>PATH</code>.</p>
+    <p class="preview__missing" hidden>The rendered pages are not available here — the
+      source is below. To build them in a checkout, run
+      <code>node tools/build-previews.mjs</code> with Typst on <code>PATH</code>.</p>
     <div class="preview__pages">
 ${pages}
     </div>

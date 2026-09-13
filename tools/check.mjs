@@ -1067,6 +1067,41 @@ for (const e of EXAMPLES) {
   }
 }
 
+/* ---- 21. `hidden` must actually hide the preview on a viewer page -------- */
+
+/* files/viewer.js hides .preview__pages by setting its `hidden` property when
+   the first rendered page fails to load, and shows the message that names the
+   build command instead. viewer.css gives .preview__pages a `display`, which
+   is author origin; the [hidden] declaration that would suppress it is
+   user-agent origin and loses to any author one whatever the specificity — and
+   a bare `[hidden]` author rule has the same specificity as `.preview__pages`,
+   so it only wins by carrying `!important` or by naming the class itself.
+   Without one of those two shapes the message and both broken images show
+   together, which is the one state this whole mechanism exists to avoid.
+
+   Checked as text because nothing here renders HTML: the gates that observe
+   behaviour rather than source all run Typst, and there is no browser on the
+   PATH this checker is allowed to assume. */
+
+{
+  const viewerCss = readFileSync('files/viewer.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const suppressed = [...viewerCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)].some(([, selectors, body]) => {
+    if (!/display\s*:\s*none/.test(body)) return false;
+    return selectors.split(',').some((sel) => {
+      const s = sel.trim();
+      if (/^\[hidden\]$/.test(s)) return /display\s*:\s*none\s*!important/.test(body);
+      return /^(\.preview__pages\[hidden\]|\[hidden\]\.preview__pages)$/.test(s);
+    });
+  });
+  if (!suppressed) {
+    fail.push('files/viewer.css: nothing here makes the `hidden` attribute suppress '
+      + '.preview__pages, so files/viewer.js cannot hide the rendered pages when they are '
+      + 'missing — the "not available" message would show with both broken images beside '
+      + 'it. Declare either `[hidden] { display: none !important; }` or '
+      + '`.preview__pages[hidden] { display: none; }`');
+  }
+}
+
 /* ---- 3d. The generated pages must be current ----------------------------- */
 
 const { output } = buildAll();
