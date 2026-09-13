@@ -231,8 +231,8 @@ if (typstSnippets.length > 0) {
 
 /* Unlike 3h above, these three are not snippets to wrap in the published
    boilerplate — they are whole documents a reader downloads: the ones
-   README.md links to, the ones tools/build-bundle.mjs zips into the
-   downloadable Typst bundle. Each already carries its own
+   README.md's file table names, the ones tools/build-bundle.mjs zips into
+   the downloadable Typst bundle. Each already carries its own
    `#import "typeset.typ": *` and page setup, so this compiles them exactly
    where they sit in implementations/, with no synthetic wrapper and no
    copy into a reader directory — that is the distinction that let a symbol
@@ -1056,20 +1056,26 @@ for (const v of VIEWERS) {
   }
 }
 
-/* ---- 19. Every entry in src/examples.mjs has a viewer page ---------------- */
+/* ---- 19. Every example is rendered by both engines ------------------------ */
 
-/* tools/build-site.mjs derives one files/example-<id>.html per entry, so this
-   is true today by construction — the gate is what keeps it true the day
-   someone adds a fourth example and forgets to re-run
-   node tools/build-site.mjs. Checked here, before buildAll() (3d), for the
-   same reason as above: 3d's own comparison loop reads this exact path and
-   would crash on it rather than report it. */
+/* An example is one document set twice, which is what makes the three
+   conformance samples rather than demos, so each id names a page per engine.
+   The Typst half is derived by tools/build-site.mjs and is true by
+   construction until someone adds a fourth example and forgets to re-run it;
+   the CSS half is hand-written, so nothing but this makes it exist. Checked
+   here, before buildAll() (3d), for the same reason as above: 3d's own
+   comparison loop reads the Typst path and would crash on it rather than
+   report it. */
 
 for (const e of EXAMPLES) {
-  const page = `files/example-${e.id}.html`;
-  if (!existsSync(page)) {
-    fail.push(`src/examples.mjs: "${e.id}" has no ${page} — run node tools/build-site.mjs`);
+  if (!existsSync(`files/example-${e.id}.html`)) {
+    fail.push(`src/examples.mjs: "${e.id}" has no files/example-${e.id}.html — `
+      + 'run node tools/build-site.mjs');
     missingViewerTarget = true;
+  }
+  if (!existsSync(`examples/${e.id}.html`)) {
+    fail.push(`src/examples.mjs: "${e.id}" has no examples/${e.id}.html — each example is `
+      + 'the same document in both engines, and that is the CSS one');
   }
 }
 
@@ -1099,17 +1105,12 @@ for (const v of VIEWERS) {
   }
 }
 
-/* Each example is one document rendered by both engines — that is what makes
-   the three conformance samples rather than demos — so each has two pages, and
-   the page must reach both. A missing CSS counterpart is how the sidebar came
-   to offer "Essay, in Typst" with no "Letter, in Typst" beside it. */
+/* Both of each example's renderings, not just the Typst one: a list that
+   reaches one engine and not the other is how the sidebar came to offer
+   "Essay, in Typst" with no "Letter, in Typst" beside it. Gate 19 above has
+   already established that both pages exist. */
 for (const e of EXAMPLES) {
   for (const href of [`examples/${e.id}.html`, `files/example-${e.id}.html`]) {
-    if (!existsSync(href)) {
-      fail.push(`${href} does not exist — src/examples.mjs names "${e.id}", and each example `
-        + 'is rendered by both engines');
-      continue;
-    }
     if (!html.includes(`href="${href}"`)) {
       fail.push(`index.html: no link to ${href} — src/examples.mjs names "${e.id}" but `
         + 'nothing on the page points at that rendering');

@@ -25,7 +25,7 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `examples/essay.html`, `examples/letter.html` | The same documents in CSS, paginated with Paged.js. |
 | `examples/two-column.html` | The two-column template in CSS. Prints from the browser — see below. |
 | `implementations/example-two-column.typ` | The two-column template in Typst. |
-| `implementations/iawriter/` | The iA Writer templates — one bundle for the letter, one for two columns. |
+| `implementations/iawriter/` | The iA Writer template — one bundle, for the letter. |
 | `implementations/iawriter/iawriter.css` | The layer between iA Writer's Markdown output and `typeset.css`. |
 | `specimen.css`, `specimen.js` | Chrome for the specimen page. Never shipped in a document. |
 | `files/*.html` | **Generated.** One viewer page per downloadable file, including one per shipped Typst example with its rendered preview above the source. |
@@ -38,10 +38,10 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `src/panels.mjs`, `src/highlight.mjs` | Build-time panel rendering and syntax highlighting. |
 | `src/masthead.html`, `src/footer.html`, `src/nav-*.html`, `src/viewers.json` | Page furniture. |
 | `tools/build-site.mjs` | Generates `index.html` and `files/*.html` from all of the above. |
-| `downloads/` | **Build output, gitignored.** The Typst bundle and the two iA Writer templates. |
+| `downloads/` | **Build output, gitignored.** The Typst bundle and the iA Writer letter template. |
 | `previews/` | **Build output, gitignored.** One SVG per page of each shipped Typst example — what the example viewer pages under `files/` show. |
 | `tools/build-bundle.mjs` | Builds the Typst bundle from `implementations/` and `fonts/`. |
-| `tools/build-iawriter.mjs` | Builds the two iA Writer template bundles from `implementations/iawriter/`, `typeset.css` and `fonts/`. |
+| `tools/build-iawriter.mjs` | Builds the iA Writer letter template bundle from `implementations/iawriter/`, `typeset.css` and `fonts/`. |
 | `tools/build-previews.mjs` | Renders each shipped Typst example to `previews/<id>-<n>.svg`. Needs Typst on `PATH`; not run by `tools/build-site.mjs`, which must not need one. |
 | `.github/workflows/deploy.yml` | Checks, builds every bundle, deploys Pages; on a tag, publishes the release assets. |
 | `proofs/font-proof.html` | Six body-face candidates, one per A4 page, for printing. |
@@ -158,6 +158,14 @@ produce:
   against `spec.json`, the same way the page section's diagram is.
 - `SPEC.md` is regenerated from `spec.json` and compared byte for byte, so a
   stale property table fails rather than passing on a matching version line.
+- Every downloadable a reader is pointed at can actually be reached: each
+  `src/viewers.json` entry resolves, each `src/examples.mjs` entry has both of
+  its rendered pages, `index.html` links every one of them, and neither the
+  masthead nor the sidebar offers a raw `.typ` where a viewer page renders it.
+  Each example's `pages` count is held to what Typst lays out, and
+  `files/viewer.css` is held to suppressing `hidden`, without which a checkout
+  with no `previews/` shows the "not available" message with the broken images
+  still beside it.
 - The migration path is held to the release it describes: one run of
   `tools/codemod-names.mjs` carries `tools/fixtures/1.x-migration-sample.html`
   from 1.x class names to 2.0 ones and lands every class on a name this

@@ -369,10 +369,7 @@ for (const v of VIEWERS) {
   }));
 }
 
-/* One page per shipped Typst example (src/examples.mjs) — derived rather than
-   a fourth hand-typed copy of that list in src/viewers.json, which is exactly
-   the duplication tools/build-bundle.mjs, tools/build-previews.mjs and
-   tools/check.mjs were collapsed onto one source to remove.
+/* One page per shipped Typst example, derived from src/examples.mjs.
 
    The rendered preview goes first, above the source: previews/<id>-<n>.svg is
    built separately, by tools/build-previews.mjs, because it needs Typst and

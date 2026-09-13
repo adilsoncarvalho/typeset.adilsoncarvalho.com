@@ -142,6 +142,16 @@ Typst                 typeset.typ   essay   letter   two-column
 
 - [ ] **Step 4: Commit.**
 
+> **Steps 1 and 3 were withdrawn after the whole-branch review.** Step 3 was
+> right about "Live examples" grouping by document and wrong about the result:
+> every entry in it led to `examples/*.html`, so beside a type-grouped Typst
+> group it read as an unlabelled CSS group, and `Essay` appeared twice with
+> nothing on either button to tell the two apart. The three documents now sit
+> under the engine that renders them, and the font proof — the one entry that
+> was not a CSS rendering — heads a `Fonts` group. Step 1 put `llms.txt` in
+> "The specification"; it is a raw file among two viewer pages there, so it is
+> back in the raw-files box with the description it had on `master`.
+
 ---
 
 ## Task 4: Gate it

@@ -73,8 +73,11 @@ jobs:
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: node tools/build-iawriter.mjs
 
+      # Same condition as "Assemble the site" below, because that is the only
+      # step that consumes them: on a tag the site is never assembled, so
+      # rendering the previews there is work thrown away.
       - name: Build the example previews
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && startsWith(github.ref, 'refs/heads/')
         run: node tools/build-previews.mjs
 
       # Assembled explicitly rather than uploading the repository root, so the

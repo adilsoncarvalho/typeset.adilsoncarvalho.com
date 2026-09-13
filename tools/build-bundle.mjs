@@ -45,13 +45,22 @@ const manifestLines = MANIFEST_ENTRIES
   .map((e) => `  ${e.file.padEnd(manifestPathWidth)}  ${e.description}`)
   .join('\n');
 
+/* The compile line names one example rather than all three, so it needs that
+   one by id. Every other lookup in this file reports what to fix by name; a
+   bare property read on `undefined` would not. */
+const compileExample = EXAMPLES.find((e) => e.id === 'essay');
+if (!compileExample) {
+  throw new Error('src/examples.mjs has no "essay" entry — the bundle README\'s compile '
+    + 'line names it; point that line at another example, or restore the id');
+}
+
 const README = `typeset — Typst bundle ${spec.version}
 ${spec.canonical_url}
 
 ${manifestLines}
 
 Compile:
-  typst compile --font-path fonts ${EXAMPLES.find((e) => e.id === 'essay').file} essay.pdf
+  typst compile --font-path fonts ${compileExample.file} essay.pdf
 
 Typst web app: drag the unzipped folder into a project. Fonts resolve by name.
 
