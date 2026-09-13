@@ -299,6 +299,47 @@ a { color: inherit; }
   color: var(--ui-fg-muted);
 }
 
+/* ---- Router and templates page ------------------------------------------ */
+
+/* Neither page has a sidebar, so neither uses .shell's two-column grid. */
+.page { max-width: 62rem; margin: 0 auto; }
+
+.crumb { margin: 0 0 1.5rem; font-size: 0.8125rem; }
+.crumb a { color: var(--ui-fg-muted); text-decoration: none; border-bottom: 1px solid var(--ui-border-strong); }
+.crumb a:hover { color: var(--ui-fg); }
+
+.routes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 3.5rem;
+}
+@media (max-width: 48rem) { .routes { grid-template-columns: minmax(0, 1fr); } }
+
+.route, .card {
+  display: block;
+  padding: 1.75rem;
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  background: var(--ui-bg-raised);
+  text-decoration: none;
+  color: inherit;
+}
+.route:hover { border-color: var(--ui-fg-muted); }
+.route p, .card p { margin: 0 0 0.75rem; color: var(--ui-fg-muted); font-size: 0.9375rem; }
+.route__label, .card__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ui-fg-faint);
+}
+.route__go { margin-bottom: 0; font-weight: 600; color: var(--ui-fg); }
+
+.card { margin-bottom: 3.5rem; }
+.card h2 { font: 300 1.75rem/1.15 var(--ui-sans); margin: 0.35rem 0 0.9rem; }
+.card .btnrow { margin-top: 1.25rem; }
+
 .btnrow { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
 .btn {
   display: inline-block;
