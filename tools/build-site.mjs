@@ -617,6 +617,7 @@ function letterTemplateCard() {
     ['letter-signature', '<code>#letter-signature[Adilson C]</code>', 'Your typed name, with room above it to sign.'],
     ['letter-enclosures', '<code>#letter-enclosures[…]</code>', '<i>Enc.</i> and what is enclosed.'],
     ['letter-postscript', '<code>#letter-postscript[…]</code>', '<i>P.S.</i> and the postscript.'],
+    ['letter-phrases', '<code>#letter-phrases(accent: ("…",), smallcaps: ("…",))[…]</code>', 'Restyles the listed phrases in the content it wraps, and nowhere else. Wrap the paragraphs in it when writing a letter part by part.'],
   ];
   const table = (head, rows) => `<div class="matrix-wrap">
     <table class="matrix">
@@ -651,10 +652,11 @@ ${rows.join('\n')}
   ${table(['Parameter', 'Default', 'What it sets'], paramRows)}
 
   <h3>Using only part of it</h3>
-  <p><code>letter()</code> places each part where a letter keeps it. To place them yourself, leave
-    them out — <code>closing: none</code> included — and write the functions below in the body.
-    The page, the quotation style and the <code>accent</code> and <code>smallcaps</code> phrases
-    still apply.</p>
+  <p><code>letter()</code> places each part where a letter keeps it. To place them yourself, write
+    the letter part by part: <code>#show: letter-page</code> sets the page and the quotation style,
+    each part is its own call, and <code>letter-phrases</code> wraps the paragraphs so the
+    <code>accent</code> and <code>smallcaps</code> phrases restyle them and nothing else. This is the
+    form the generated letter takes, so every part is there to edit.</p>
   ${example('partial')}
   <p>Every piece <code>letter()</code> is built from, for writing a letter by hand:</p>
   ${table(['Function', 'Call', 'What it sets'], fnRows)}

@@ -1,12 +1,8 @@
 #import "typeset.typ": *
 
-// letter() for the page and the phrase rules only. Every part is left out,
-// closing: none included, and the letter sets each one itself.
-#show: letter.with(
-  closing: none,
-  accent: ("good and faithful servant",),
-  smallcaps: ("non sum dignus",),
-)
+// The letter written part by part: letter-page sets the page, each part is
+// its own call, and letter-phrases restyles phrases in the paragraphs alone.
+#show: letter-page
 
 #letter-addresses[
   #letter-address-from[
@@ -23,8 +19,13 @@
 
 #letter-salutation[Fr Lai]
 
-I stood up right after the non sum dignus and dashed to the end of the queue.
-I pray you will one day hear Him call you _good and faithful servant_.
+#letter-phrases(
+  accent: ("good and faithful servant",),
+  smallcaps: ("non sum dignus",),
+)[
+  I stood up right after the non sum dignus and dashed to the end of the queue.
+  I pray you will one day hear Him call you _good and faithful servant_.
+]
 
 #letter-closing[In Christ]
 

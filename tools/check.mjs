@@ -1980,6 +1980,11 @@ const INTERNAL_SYMBOLS = new Set([
      SVG's text. No spec element — the spec states the crest's colour, not
      how a file is recoloured. */
   'svg-recolor',
+  /* restyles phrases in the content it wraps — what letter() applies to its
+     body, and what a letter written part by part wraps its paragraphs in.
+     No spec element: the spec states the phrase styles, not how a document
+     marks them. */
+  'letter-phrases',
 ]);
 
 /* Engine element functions this file re-publishes under a second name. Not

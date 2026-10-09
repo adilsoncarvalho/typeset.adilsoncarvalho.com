@@ -57,7 +57,7 @@
       <tr>
         <th scope="row">True page-foot footnotes</th>
         <td><a href="../files/typeset-css.html#L712">WeasyPrint and Prince only</a> — per spec.json: “Bottom-of-page footnotes require an engine that can measure the page while laying it out. Typst and LaTeX do this natively. WeasyPrint 53+ and Prince implement the CSS footnote model. No browser does.”</td>
-        <td><a href="../files/typeset-typ.html#L1446">yes, natively</a></td>
+        <td><a href="../files/typeset-typ.html#L1456">yes, natively</a></td>
         <td><a href="../files/iawriter-css.html">no</a> — Markdown has no page-position construct for a note, so it degrades to an endnotes block at the end of the document.</td>
       </tr>
       </tbody>
@@ -74,7 +74,7 @@
     Every part is optional, and a part you leave out is not set.</p>
   <p>It lives in <code>typeset.typ</code>, so the import line is the same one every other
     document uses: <code>#import "typeset.typ": *</code> beside a copy of the file, or
-    <code>#import "@local/typeset:2.1.3": *</code> with the
+    <code>#import "@local/typeset:2.2.0": *</code> with the
     <code>implementations/</code> folder linked as a local Typst package.</p>
 
   <h3>A complete letter</h3>
@@ -130,19 +130,16 @@ I would be glad to send the specification I use for my own documents.</pre></div
   </div>
 
   <h3>Using only part of it</h3>
-  <p><code>letter()</code> places each part where a letter keeps it. To place them yourself, leave
-    them out — <code>closing: none</code> included — and write the functions below in the body.
-    The page, the quotation style and the <code>accent</code> and <code>smallcaps</code> phrases
-    still apply.</p>
+  <p><code>letter()</code> places each part where a letter keeps it. To place them yourself, write
+    the letter part by part: <code>#show: letter-page</code> sets the page and the quotation style,
+    each part is its own call, and <code>letter-phrases</code> wraps the paragraphs so the
+    <code>accent</code> and <code>smallcaps</code> phrases restyle them and nothing else. This is the
+    form the generated letter takes, so every part is there to edit.</p>
   <div class="codewrap"><pre>#<span class="c-at">import</span> &quot;typeset.typ&quot;: *
 
-<span class="c-comment">// letter() for the page and the phrase rules only. Every part is left out,</span>
-<span class="c-comment">// closing: none included, and the letter sets each one itself.</span>
-#<span class="c-at">show</span>: letter.with(
-  <span class="c-prop">closing</span>: <span class="c-at">none</span>,
-  <span class="c-prop">accent</span>: (&quot;good and faithful servant&quot;,),
-  <span class="c-prop">smallcaps</span>: (&quot;non sum dignus&quot;,),
-)
+<span class="c-comment">// The letter written part by part: letter-page sets the page, each part is</span>
+<span class="c-comment">// its own call, and letter-phrases restyles phrases in the paragraphs alone.</span>
+#<span class="c-at">show</span>: letter-page
 
 #letter-addresses[
   #letter-address-from[
@@ -159,8 +156,13 @@ I would be glad to send the specification I use for my own documents.</pre></div
 
 #letter-salutation[Fr Lai]
 
-I stood up right after the non sum dignus and dashed to the end of the queue.
-I pray you will one day hear Him call you _good and faithful servant_.
+#letter-phrases(
+  <span class="c-prop">accent</span>: (&quot;good and faithful servant&quot;,),
+  <span class="c-prop">smallcaps</span>: (&quot;non sum dignus&quot;,),
+)[
+  I stood up right after the non sum dignus and dashed to the end of the queue.
+  I pray you will one day hear Him call you _good and faithful servant_.
+]
 
 #letter-closing[In Christ]
 
@@ -186,6 +188,7 @@ I pray you will one day hear Him call you _good and faithful servant_.
         <tr data-fn="letter-signature"><th scope="row"><code>letter-signature</code></th><td><code>#letter-signature[Adilson C]</code></td><td>Your typed name, with room above it to sign.</td></tr>
         <tr data-fn="letter-enclosures"><th scope="row"><code>letter-enclosures</code></th><td><code>#letter-enclosures[…]</code></td><td><i>Enc.</i> and what is enclosed.</td></tr>
         <tr data-fn="letter-postscript"><th scope="row"><code>letter-postscript</code></th><td><code>#letter-postscript[…]</code></td><td><i>P.S.</i> and the postscript.</td></tr>
+        <tr data-fn="letter-phrases"><th scope="row"><code>letter-phrases</code></th><td><code>#letter-phrases(accent: ("…",), smallcaps: ("…",))[…]</code></td><td>Restyles the listed phrases in the content it wraps, and nowhere else. Wrap the paragraphs in it when writing a letter part by part.</td></tr>
       </tbody>
     </table>
   </div>
