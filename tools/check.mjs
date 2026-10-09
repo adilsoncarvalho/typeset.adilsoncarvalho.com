@@ -110,8 +110,10 @@ if (!typ.includes('measure: measure-standard,')) {
   fail.push("typeset.typ: typeset()'s default measure is not measure-standard — "
     + 'the flow would fill the full text width, or use an untracked literal');
 }
-if (!css.includes('max-width: var(--ts-measure)')) {
-  fail.push('typeset.css: the measure is never applied to the text column');
+if (!css.includes('.typeset { --ts-measure-computed: var(--ts-measure); }')
+  || !css.includes('max-width: var(--ts-measure-computed)')) {
+  fail.push('typeset.css: the measure is never applied to the text column, or is not computed '
+    + 'once on .typeset — an em resolved on each block would size headings by their own font');
 }
 
 /* ---- 3. Every spec section must be reachable from the page --------------- */
@@ -5449,6 +5451,41 @@ if (!symmetryPaperTypKey || !Number.isFinite(crestWidthMm) || !Number.isFinite(s
     fail.push(`typeset.typ: the phrase-scope probe failed:\n${(err.stderr ? err.stderr.toString() : String(err.message || err)).trim()}`);
   } finally {
     rmSync(phraseProbeDir, { recursive: true, force: true });
+  }
+}
+
+/* ---- 38. No block rule takes the measure's centring away --------------- */
+
+/* `.typeset > *` centres every block in the measure with margin-inline: auto.
+   A rule with the margin shorthand sets both sides as well, and its
+   specificity wins, so `margin: 1em 0` quietly pins its block to the left
+   edge. Block rules set margin-block alone. A rule that means its own side
+   margins is listed here with the reason, and an entry that stops matching a
+   rule is reported, so the list cannot outlive its rules. */
+{
+  const SIDE_MARGINS_ON_PURPOSE = new Map([
+    ['.typeset .ts-heading-run-in', 'an inline heading; it is never a block in the measure'],
+    ['.typeset .ts-quote-epigraph', 'flush right by design: auto on the left only'],
+    ['.typeset dd', 'the definition indent, inside a dl'],
+    ['.typeset .ts-letter-sender p', 'lines inside the sender block, never in the measure themselves'],
+    ['.typeset > .ts-letter-crest', 'reaches into the margin to the letterhead edge'],
+    ['.typeset--letter blockquote, .typeset .ts-letter-quote', "the letter quotation's own indent on both sides"],
+    ['.typeset--two-column .ts-note-sidenote', 'an inline aside in a column, with no measure to centre in'],
+  ]);
+  const cssBare = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const seen = new Set();
+  for (const m of cssBare.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const selector = m[1].trim().replace(/\s+/g, ' ');
+    if (!selector.startsWith('.typeset')) continue;
+    if (!/(^|;)\s*margin\s*:/.test(m[2])) continue;
+    if (SIDE_MARGINS_ON_PURPOSE.has(selector)) { seen.add(selector); continue; }
+    fail.push(`typeset.css: "${selector}" uses the margin shorthand, which overrides the measure's `
+      + 'centring — set margin-block, or list the rule in gate 38 with the reason it means its side margins');
+  }
+  for (const selector of SIDE_MARGINS_ON_PURPOSE.keys()) {
+    if (!seen.has(selector)) {
+      fail.push(`tools/check.mjs: gate 38 lists "${selector}", but no rule with the margin shorthand matches it any more — remove the entry`);
+    }
   }
 }
 

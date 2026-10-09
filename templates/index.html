@@ -44,19 +44,19 @@
       </tr>
       <tr>
         <th scope="row">Paginated two columns</th>
-        <td><a href="../files/typeset-css.html#L1144">no</a> — Paged.js paginates by moving content between page boxes and cannot fragment a column flow; <a href="../examples/two-column.html">the two-column example</a> drops Paged.js entirely and lets the browser's own print produce the columns instead.</td>
+        <td><a href="../files/typeset-css.html#L1165">no</a> — Paged.js paginates by moving content between page boxes and cannot fragment a column flow; <a href="../examples/two-column.html">the two-column example</a> drops Paged.js entirely and lets the browser's own print produce the columns instead.</td>
         <td><a href="../files/typeset-typ.html#L864">yes, natively</a></td>
         <td><a href="../files/iawriter-css.html">no</a> — WebKit's print path ignores every CSS multi-column property, so a two-column template previews correctly on screen and exports as a single column.</td>
       </tr>
       <tr>
         <th scope="row">Running head and folio</th>
-        <td><a href="../files/typeset-css.html#L67">yes, via CSS Paged Media</a> — Chrome's own print dialog ignores the margin boxes a running head and folio need; only a paged-media engine (Paged.js, WeasyPrint, Prince) renders them.</td>
+        <td><a href="../files/typeset-css.html#L84">yes, via CSS Paged Media</a> — Chrome's own print dialog ignores the margin boxes a running head and folio need; only a paged-media engine (Paged.js, WeasyPrint, Prince) renders them.</td>
         <td><a href="../files/typeset-typ.html#L263">yes, natively</a></td>
         <td><a href="../files/iawriter-css.html">no</a> — iA Writer reserves the top and bottom bands itself, by setting the page margins directly; a template's own @page margin would replace that reservation rather than add to it.</td>
       </tr>
       <tr>
         <th scope="row">True page-foot footnotes</th>
-        <td><a href="../files/typeset-css.html#L712">WeasyPrint and Prince only</a> — per spec.json: “Bottom-of-page footnotes require an engine that can measure the page while laying it out. Typst and LaTeX do this natively. WeasyPrint 53+ and Prince implement the CSS footnote model. No browser does.”</td>
+        <td><a href="../files/typeset-css.html#L733">WeasyPrint and Prince only</a> — per spec.json: “Bottom-of-page footnotes require an engine that can measure the page while laying it out. Typst and LaTeX do this natively. WeasyPrint 53+ and Prince implement the CSS footnote model. No browser does.”</td>
         <td><a href="../files/typeset-typ.html#L1456">yes, natively</a></td>
         <td><a href="../files/iawriter-css.html">no</a> — Markdown has no page-position construct for a note, so it degrades to an endnotes block at the end of the document.</td>
       </tr>
@@ -74,7 +74,7 @@
     Every part is optional, and a part you leave out is not set.</p>
   <p>It lives in <code>typeset.typ</code>, so the import line is the same one every other
     document uses: <code>#import "typeset.typ": *</code> beside a copy of the file, or
-    <code>#import "@local/typeset:2.2.0": *</code> with the
+    <code>#import "@local/typeset:2.2.1": *</code> with the
     <code>implementations/</code> folder linked as a local Typst package.</p>
 
   <h3>A complete letter</h3>
