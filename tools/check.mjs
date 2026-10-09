@@ -1392,6 +1392,17 @@ const doc = readFileSync(`${IAW}/letter/document.html`, 'utf8');
 if (plistValue(plist, 'CFBundleShortVersionString') !== spec.version) {
   fail.push(`${IAW}/letter/Info.plist: version is ${plistValue(plist, 'CFBundleShortVersionString')}, spec.json says ${spec.version}`);
 }
+
+/* implementations/ is also a Typst package: a document imports it as
+   @<namespace>/typeset:<version>, so the manifest names the spec's version. */
+const typstToml = readFileSync('implementations/typst.toml', 'utf8');
+const tomlField = (key) => new RegExp(`^${key}\\s*=\\s*"([^"]*)"`, 'm').exec(typstToml)?.[1];
+if (tomlField('version') !== spec.version) {
+  fail.push(`implementations/typst.toml: version is ${tomlField('version')}, spec.json says ${spec.version}`);
+}
+if (tomlField('entrypoint') !== 'typeset.typ') {
+  fail.push(`implementations/typst.toml: entrypoint is ${tomlField('entrypoint')}, expected typeset.typ`);
+}
 if (!doc.includes('data-document')) {
   fail.push(`${IAW}/letter/document.html: no data-document element — iA Writer would render an empty page`);
 }

@@ -22,6 +22,7 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `templates/index.html` | **Generated.** What you can write in — one template today, the iA Writer letter. |
 | `typeset.css` | Reference implementation — CSS. |
 | `implementations/typeset.typ` | Reference implementation — Typst. |
+| `implementations/typst.toml` | Makes `implementations/` a Typst package, imported as `@local/typeset:<version>` once linked into Typst's local package directory. Its version is `spec.json`'s. |
 | `implementations/example-essay.typ` | The essay set in Typst. A conformance sample. |
 | `implementations/example-letter.typ` | The letter set in Typst — ragged right, real page-foot footnote. |
 | `examples/essay.html`, `examples/letter.html` | The same documents in CSS, paginated with Paged.js. |
