@@ -1685,6 +1685,7 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | align | `left` |
 | space before | `36pt` |
 | space after | `24pt` |
+| form | closing words and a comma — “Yours sincerely” unless the writer gives others |
 
 ##### Signature block
 

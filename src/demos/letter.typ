@@ -55,7 +55,7 @@ place twice, and by the fourth I had stopped reading and started measuring.
 This is a cheap problem to fix, and I would be glad to send the specification I
 use for my own documents.
 
-#letter-closing[Yours sincerely,]
+#letter-closing()
 
 #letter-signature[Adilson Carvalho]
 

@@ -5247,6 +5247,47 @@ if (!symmetryPaperTypKey || !Number.isFinite(crestWidthMm) || !Number.isFinite(s
   }
 }
 
+/* ---- 33. letter-closing writes its default words and the comma itself --- */
+
+/* letter-closing() sets "Yours sincerely,"; given words, it sets them and the
+   comma. Held the way gate 32 holds the salutation: each form against the
+   width of its line written out in full. */
+{
+  const closingProbeDir = mkdtempSync(join(tmpdir(), 'typeset-closing-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(closingProbeDir, 'typeset.typ'));
+    const probePath = join(closingProbeDir, 'closing.typ');
+    writeFileSync(probePath, '#import "typeset.typ": *\n#show: letter-page\n'
+      + '#context {\n'
+      + '  let w(b) = measure(box(b)).width / 1pt\n'
+      + '  [#metadata((\n'
+      + '    default-form: w(letter-closing()),\n'
+      + '    default-text: w[Yours sincerely,],\n'
+      + '    words-form: w(letter-closing[Cowabunga]),\n'
+      + '    words-text: w[Cowabunga,],\n'
+      + '  )) <ts-closing>]\n'
+      + '}\n');
+    const widths = JSON.parse(execFileSync(
+      'typst',
+      ['query', '--font-path', resolve('fonts'), probePath, '<ts-closing>', '--field', 'value', '--one'],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    ).toString());
+    for (const [form, text, call] of [
+      ['default-form', 'default-text', 'letter-closing() as "Yours sincerely,"'],
+      ['words-form', 'words-text', 'letter-closing[Cowabunga] as "Cowabunga,"'],
+    ]) {
+      if (Math.abs(widths[form] - widths[text]) > 0.01) {
+        fail.push(`typeset.typ: ${call} — expected ${widths[text].toFixed(2)}pt wide, set ${widths[form].toFixed(2)}pt`);
+      }
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+    fail.push(`typeset.typ: the letter-closing probe failed:\n${detail}`);
+  } finally {
+    rmSync(closingProbeDir, { recursive: true, force: true });
+  }
+}
+
 /* ---- Report ------------------------------------------------------------- */
 
 const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);

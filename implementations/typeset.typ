@@ -1297,10 +1297,22 @@
   })
 }
 
-#let letter-closing(body) = block(above: 3em, below: 2em, {
-  set par(justify: false, first-line-indent: 0pt)
-  body
-})
+// The closing words — "Yours sincerely" unless others are given — and a comma:
+//   #letter-closing()               Yours sincerely,
+//   #letter-closing[Cowabunga]      Cowabunga,
+#let letter-closing(..args) = {
+  let pos = args.pos()
+  assert(
+    pos.len() <= 1 and args.named().len() == 0,
+    message: "letter-closing takes the closing words, or none for Yours sincerely: "
+      + "letter-closing() or letter-closing[With love]",
+  )
+  let words = if pos.len() == 1 { pos.first() } else [Yours sincerely]
+  block(above: 3em, below: 2em, {
+    set par(justify: false, first-line-indent: 0pt)
+    [#words,]
+  })
+}
 
 // The typed name, with room above it to sign. No rule: a ruled line is a form
 // to be filled in, and this is a letter.

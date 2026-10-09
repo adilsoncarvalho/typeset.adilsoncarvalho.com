@@ -37,7 +37,7 @@ This is a cheap problem to fix. Narrowing the column to sixty-six characters
 costs one afternoon and no money, and the space it frees on the right can carry
 the marginal notes that are currently crowded into footnotes.
 
-#letter-closing[Yours sincerely,]
+#letter-closing()
 
 #letter-signature[Adilson Carvalho]
 

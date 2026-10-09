@@ -1693,7 +1693,8 @@
           "properties": {
             "align": "left",
             "space_before": "36pt",
-            "space_after": "24pt"
+            "space_after": "24pt",
+            "form": "closing words and a comma — “Yours sincerely” unless the writer gives others"
           }
         },
         {
