@@ -1350,8 +1350,11 @@
 
 // A whole letter from its parts, in the order a letter takes them: crest,
 // addresses, date and saint, salutation, the body, closing, signature,
-// enclosures and postscript. Each part is optional except the body; a part
-// left out is not set at all, and closing falls back to "Yours sincerely".
+// enclosures and postscript. Each part is optional except the body, and a
+// part left out is not set at all. The closing is the one part with a
+// default: `auto` sets "Yours sincerely,", `none` sets no closing, and words
+// set those words and a comma. Leave every part out and write them in the
+// body instead to use letter() for its page and its phrase rules alone.
 //
 //   #show: letter.with(
 //     sender: ("Adilson Carvalho", "10 Wentworth Avenue", "Australia"),
@@ -1376,7 +1379,7 @@
   saint: none,
   greeting: "Dear",
   salutation: none,
-  closing: none,
+  closing: auto,
   signature: none,
   enclosures: none,
   postscript: none,
@@ -1406,7 +1409,7 @@
 
   doc
 
-  if closing == none { letter-closing() } else { letter-closing(closing) }
+  if closing == auto { letter-closing() } else if closing != none { letter-closing(closing) }
   if signature != none { letter-signature(signature) }
   if enclosures != none { letter-enclosures(enclosures) }
   if postscript != none { letter-postscript(postscript) }

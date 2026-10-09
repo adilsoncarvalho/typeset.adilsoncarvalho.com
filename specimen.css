@@ -352,6 +352,10 @@ a { color: inherit; }
 .card { margin-bottom: 3.5rem; }
 .card h2 { font: 300 1.75rem/1.15 var(--ui-sans); margin: 0.35rem 0 0.9rem; }
 .card .btnrow { margin-top: 1.25rem; }
+.card h3 { font: 600 1.05rem/1.3 var(--ui-sans); margin: 2.25rem 0 0.6rem; }
+.card > p, .card li { font-size: 0.9375rem; line-height: 1.6; }
+.card .codewrap, .card .matrix-wrap { margin: 1rem 0 1.25rem; }
+.card code { font-family: var(--ui-mono); font-size: 0.85em; }
 
 .btnrow { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.5rem; }
 .btn {

@@ -5292,6 +5292,83 @@ if (!symmetryPaperTypKey || !Number.isFinite(crestWidthMm) || !Number.isFinite(s
   }
 }
 
+/* ---- 34. The letter template's worked examples compile, and closing: none
+            leaves the closing out ------------------------------------------ */
+
+/* The /templates/ page publishes src/letter-docs/*.typ as copy-pasteable
+   letters, so each must compile as written beside typeset.typ and the
+   placeholder crest — the two files a reader of the bundle has. Then the one
+   default letter() carries: closing auto sets "Yours sincerely," and none sets
+   nothing. Measured as the distance from the end of the body to the
+   signature, which a closing between them lengthens by its own line and its
+   space above. */
+{
+  const docsDir = 'src/letter-docs';
+  const docsProbeDir = mkdtempSync(join(tmpdir(), 'typeset-letter-docs-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(docsProbeDir, 'typeset.typ'));
+    copyFileSync('implementations/crest-placeholder.svg', join(docsProbeDir, 'crest-placeholder.svg'));
+    const docs = existsSync(docsDir) ? readdirSync(docsDir).filter((f) => f.endsWith('.typ')) : [];
+    if (docs.length === 0) fail.push(`${docsDir}: no worked examples — /templates/ publishes them`);
+    for (const f of docs) {
+      copyFileSync(join(docsDir, f), join(docsProbeDir, f));
+      try {
+        execFileSync('typst', ['compile', '--font-path', resolve('fonts'), join(docsProbeDir, f),
+          join(docsProbeDir, `${f}.pdf`)], { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 });
+      } catch (err) {
+        fail.push(`${docsDir}/${f} does not compile beside typeset.typ:\n`
+          + (err.stderr ? err.stderr.toString() : String(err.message)).trim());
+      }
+    }
+    const gap = (closing) => {
+      const probePath = join(docsProbeDir, 'closing-gap.typ');
+      writeFileSync(probePath, '#import "typeset.typ": *\n'
+        + `#show: letter.with(${closing}signature: [#context [#metadata(here().position().y / 1pt) <sig>]S])\n\n`
+        + 'Body.#context [#metadata(here().position().y / 1pt) <end>]\n');
+      const at = (tag) => Number(JSON.parse(execFileSync('typst',
+        ['query', '--font-path', resolve('fonts'), probePath, `<${tag}>`, '--field', 'value', '--one'],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 }).toString()));
+      return at('sig') - at('end');
+    };
+    const withClosing = gap('');
+    const without = gap('closing: none, ');
+    if (!(withClosing - without > 12)) {
+      fail.push(`typeset.typ: letter() with closing: none leaves ${without.toFixed(1)}pt between the body `
+        + `and the signature, against ${withClosing.toFixed(1)}pt with the default — the default's closing `
+        + 'line is not being set, or none is not leaving it out');
+    }
+  } catch (err) {
+    fail.push(`typeset.typ: the letter-template probe failed:\n${(err.stderr ? err.stderr.toString() : String(err.message || err)).trim()}`);
+  } finally {
+    rmSync(docsProbeDir, { recursive: true, force: true });
+  }
+}
+
+/* ---- 35. /templates/ documents every letter() parameter and every letter
+            function ------------------------------------------------------ */
+
+/* The page's two tables are hand-written prose, and a parameter or function
+   added to typeset.typ would otherwise go undocumented with nothing to say so.
+   Read both sets off the source and hold the tables to them, both ways. */
+{
+  const typSrc = readFileSync('implementations/typeset.typ', 'utf8');
+  const page = readFileSync('templates/index.html', 'utf8');
+  const sig = /#let letter\(([\s\S]*?)\n\) =/.exec(typSrc)?.[1] ?? '';
+  const params = new Set([...sig.matchAll(/^\s*([a-z][\w-]*):/gm)].map((m) => m[1]));
+  const fns = new Set([...typSrc.matchAll(/^#let (letter-[\w-]+)\(/gm)].map((m) => m[1]).concat('svg-recolor'));
+  const documented = (attr) => new Set([...page.matchAll(new RegExp(`data-${attr}="([^"]+)"`, 'g'))].map((m) => m[1]));
+  for (const [what, source, attr] of [['letter() parameter', params, 'param'], ['letter function', fns, 'fn']]) {
+    const docs = documented(attr);
+    if (source.size === 0) fail.push(`tools/check.mjs: gate 35 read no ${what}s from typeset.typ — update its pattern`);
+    for (const name of source) {
+      if (!docs.has(name)) fail.push(`templates/index.html: the ${what} "${name}" is not documented — add a row to letterTemplateCard() in tools/build-site.mjs`);
+    }
+    for (const name of docs) {
+      if (!source.has(name)) fail.push(`templates/index.html documents a ${what} "${name}" that typeset.typ does not define`);
+    }
+  }
+}
+
 /* ---- Report ------------------------------------------------------------- */
 
 const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);

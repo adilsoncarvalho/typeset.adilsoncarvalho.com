@@ -571,10 +571,103 @@ ${body}
 </section>`;
 }
 
+/* ---- The Typst letter template ------------------------------------------ */
+
+/* How to write a letter with letter() and the letter-* functions. The three
+   worked examples are files under src/letter-docs/ rather than strings here:
+   tools/check.mjs compiles each one against implementations/typeset.typ, so
+   an example on this page cannot stop compiling without failing the build.
+   The parameter and function tables carry data-param / data-fn attributes,
+   and tools/check.mjs holds them to letter()'s own signature and to every
+   public letter-* function, so neither table can fall behind the code. */
+function letterTemplateCard() {
+  const example = (name) => `<div class="codewrap"><pre>${byLang('typst',
+    readFileSync(`src/letter-docs/${name}.typ`, 'utf8').trimEnd())}</pre></div>`;
+  const params = [
+    ['crest', 'none', 'An image set top right — a crest or monogram. Read an SVG drawn in one ink with <code>svg-recolor(read("crest.svg"), width: 100%)</code> to set it in the accent; the path resolves against your document.'],
+    ['sender', 'none', 'Your address: an array of lines, or line-broken content. The first line is the name, set in small caps; the rest a step smaller. Labelled <i>From</i>.'],
+    ['addressee', 'none', 'The recipient’s address, the same shape as <code>sender</code>. Labelled <i>To</i>.'],
+    ['date', 'none', 'The date line.'],
+    ['saint', 'none', 'The saint of the day, set under the date and closed with <i>, ora pro nobis</i>. Needs a <code>date</code>; left out or empty, the date stands alone.'],
+    ['greeting', '"Dear"', 'The word before the name in the salutation.'],
+    ['salutation', 'none', 'The name you greet. The greeting goes before it and a comma after it, so <code>salutation: "Fr Lai"</code> sets \u201cDear Fr Lai,\u201d'],
+    ['closing', 'auto', '<code>auto</code> sets \u201cYours sincerely,\u201d Words set those words and a comma, so <code>closing: [With love]</code> sets \u201cWith love,\u201d <code>none</code> sets no closing at all — use it when you write your own.'],
+    ['signature', 'none', 'Your typed name, with room above it to sign.'],
+    ['enclosures', 'none', 'What is enclosed, set as <i>Enc.</i> and the text.'],
+    ['postscript', 'none', 'A postscript, set after the signature as <i>P.S.</i> and the text.'],
+    ['accent', '()', 'Phrases to set in the accent colour wherever they occur in the body: <code>accent: ("good and faithful servant",)</code>. Exact and case-sensitive. Note the trailing comma for a single phrase — that is what makes it a list.'],
+    ['smallcaps', '()', 'Phrases to set in small caps wherever they occur in the body, the same way as <code>accent</code>.'],
+    ['margin', 'letter-margin', 'The page margin: 35mm on every edge by default — the standard 20mm plus a 15mm inset, which the letterhead reaches back out of.'],
+    ['paper', '"a4"', 'The paper, by its Typst name.'],
+  ];
+  const fns = [
+    ['letter-page', '<code>#show: letter-page</code>', 'The page alone: 35mm margins, 12pt, justified, no running head or folio, block quotes as <code>letter-quote</code>. What <code>letter()</code> is built on.'],
+    ['letter-crest', '<code>#letter-crest(image)</code>', 'An image top right, held at the standard margin from the paper’s edge.'],
+    ['svg-recolor', '<code>svg-recolor(read("crest.svg"), width: 100%)</code>', 'An SVG with its one ink swapped for the accent — or <code>to:</code> any colour, <code>from:</code> any source colour.'],
+    ['letter-addresses', '<code>#letter-addresses[…]</code>', 'The column the address blocks sit in, held at the standard margin from the paper’s edge.'],
+    ['letter-address-from', '<code>#letter-address-from[Name \\ Street]</code>', 'An address block labelled <i>From</i>.'],
+    ['letter-address-to', '<code>#letter-address-to[Name \\ Street]</code>', 'An address block labelled <i>To</i>.'],
+    ['letter-address-block', '<code>#letter-address-block(label: [Via])[…]</code>', 'An address block with any label, or none.'],
+    ['letter-sender', '<code>#letter-sender[…]</code>', 'Your address without a label, with more room below it.'],
+    ['letter-date', '<code>#letter-date("8 October 2026", saint: "St Pelagia")</code>', 'The date, and the saint’s line under it when a saint is given.'],
+    ['letter-date-note', '<code>#letter-date-note[…]</code>', 'Any other line under a date set as its own paragraph.'],
+    ['letter-salutation', '<code>#letter-salutation[Fr Lai]</code><br><code>#letter-salutation("Hey,")[Fr Lai]</code>', 'The greeting, the name and a comma. The greeting is <i>Dear</i> unless you give one first.'],
+    ['letter-quote', '<code>#letter-quote[…]</code>', 'A quotation set apart by indent and colour. Inside <code>letter-page</code>, every <code>#quote[…]</code> takes this form.'],
+    ['letter-closing', '<code>#letter-closing()</code><br><code>#letter-closing[With love]</code>', 'The closing words and a comma — <i>Yours sincerely</i> when called with <code>()</code>. The parentheses are needed: a bare <code>#letter-closing</code> names the function without calling it.'],
+    ['letter-signature', '<code>#letter-signature[Adilson C]</code>', 'Your typed name, with room above it to sign.'],
+    ['letter-enclosures', '<code>#letter-enclosures[…]</code>', '<i>Enc.</i> and what is enclosed.'],
+    ['letter-postscript', '<code>#letter-postscript[…]</code>', '<i>P.S.</i> and the postscript.'],
+  ];
+  const table = (head, rows) => `<div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr>${head.map((h) => `<th scope="col">${h}</th>`).join('')}</tr></thead>
+      <tbody>
+${rows.join('\n')}
+      </tbody>
+    </table>
+  </div>`;
+  const paramRows = params.map(([p, d, what]) => `        <tr data-param="${p}"><th scope="row"><code>${p}</code></th><td><code>${esc(d)}</code></td><td>${what}</td></tr>`);
+  const fnRows = fns.map(([f, call, what]) => `        <tr data-fn="${f}"><th scope="row"><code>${f}</code></th><td>${call}</td><td>${what}</td></tr>`);
+  return `<section class="card" id="typst-letter">
+  <p class="card__label">Typst</p>
+  <h2>The letter template</h2>
+  <p><code>letter()</code> sets a whole letter from named parts — crest, addresses, date,
+    salutation, closing, signature, enclosures and postscript — on a 35mm page at 12pt, justified.
+    You fill in the parts you want; the text under the <code>#show</code> line is the letter.
+    Every part is optional, and a part you leave out is not set.</p>
+  <p>It lives in <code>typeset.typ</code>, so the import line is the same one every other
+    document uses: <code>#import "typeset.typ": *</code> beside a copy of the file, or
+    <code>#import "@local/typeset:${esc(spec.version)}": *</code> with the
+    <code>implementations/</code> folder linked as a local Typst package.</p>
+
+  <h3>A complete letter</h3>
+  ${example('complete')}
+  <p>This is <a href="files/example-letter.html">the example letter</a>, shortened; that page
+    shows it rendered.</p>
+
+  <h3>The parts</h3>
+  <p>Every parameter of <code>letter()</code>, with the value it takes when you leave it out.</p>
+  ${table(['Parameter', 'Default', 'What it sets'], paramRows)}
+
+  <h3>Using only part of it</h3>
+  <p><code>letter()</code> places each part where a letter keeps it. To place them yourself, leave
+    them out — <code>closing: none</code> included — and write the functions below in the body.
+    The page, the quotation style and the <code>accent</code> and <code>smallcaps</code> phrases
+    still apply.</p>
+  ${example('partial')}
+  <p>Every piece <code>letter()</code> is built from, for writing a letter by hand:</p>
+  ${table(['Function', 'Call', 'What it sets'], fnRows)}
+
+  <h3>Changing the defaults</h3>
+  <p>The greeting, the closing words and the page are parameters like any other.</p>
+  ${example('defaults')}
+</section>`;
+}
+
 output.set(TEMPLATES_PAGE, relocate(shell({
   title: 'Templates — typeset',
-  description: 'Ready-made documents set to the typeset specification: the iA Writer '
-    + 'letter template, and what each technology can and cannot express.',
+  description: 'Ready-made documents set to the typeset specification: the Typst letter '
+    + 'template, the iA Writer letter template, and what each technology can and cannot express.',
   head: `<link rel="stylesheet" href="specimen.css">\n`,
   body: `<div class="page">
 <main class="main">
@@ -589,10 +682,12 @@ output.set(TEMPLATES_PAGE, relocate(shell({
 
 ${capabilityMatrix()}
 
+${letterTemplateCard()}
+
 <section class="card">
   <p class="card__label">iA Writer</p>
   <h2>The letter</h2>
-  <p>A letter on A4 at 20mm on all four sides. EB Garamond at 11pt, ragged right, filling the
+  <p>A letter on A4 at 35mm on all four sides. EB Garamond at 12pt, justified, filling the
     page the margins leave. Markdown only, so it covers headings, body text, bold, italic,
     tables and footnotes — <a href="files/iawriter-css.html">its own page</a> states what that
     vocabulary reaches and what it does not, including why there is no two-column iA Writer
