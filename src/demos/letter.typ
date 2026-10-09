@@ -32,7 +32,7 @@
   ]
 ]
 
-#letter-date(note: [St Monica, mother of St Augustine Bishop, ora pro nobis])[27 August 2026]
+#letter-date([27 August 2026], saint: [St Monica, mother of St Augustine Bishop])
 
 #letter-salutation[Dear Registrar,]
 

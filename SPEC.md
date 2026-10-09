@@ -1636,6 +1636,8 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 
 > The date and the line under it are one block. The space after belongs to the pair, not to the date alone.
 
+> Only the date is required. The line under it, where there is one, is the saint of the day, closed with “ora pro nobis”; with no saint the date stands alone.
+
 ##### Line under the date
 
 | Property | Value |

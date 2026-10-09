@@ -5155,6 +5155,52 @@ if (!symmetryPaperTypKey || !Number.isFinite(crestWidthMm) || !Number.isFinite(s
   }
 }
 
+/* ---- 31. letter-date sets the saint's line only when there is a saint ---- */
+
+/* letter-date(date, saint:) adds the saint's line, closed with ", ora pro
+   nobis", only when a saint is given. "Not given" has three spellings a
+   document can reach — the default none, an empty string, and empty content
+   from a template's blank field — and each must leave the date alone on one
+   line. Measured by height: one line for each of those, two for a named saint. */
+{
+  const dateProbeDir = mkdtempSync(join(tmpdir(), 'typeset-letter-date-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(dateProbeDir, 'typeset.typ'));
+    const probePath = join(dateProbeDir, 'date.typ');
+    writeFileSync(probePath, '#import "typeset.typ": *\n#show: letter-page\n'
+      + '#context {\n'
+      + '  let h(b) = measure(b).height / 1pt\n'
+      + '  [#metadata((\n'
+      + '    alone: h(letter-date[1 May 2026]),\n'
+      + '    empty-string: h(letter-date([1 May 2026], saint: "")),\n'
+      + '    empty-content: h(letter-date([1 May 2026], saint: [])),\n'
+      + '    saint: h(letter-date([1 May 2026], saint: [St Joseph the Worker])),\n'
+      + '  )) <ts-letter-date>]\n'
+      + '}\n');
+    const heights = JSON.parse(execFileSync(
+      'typst',
+      ['query', '--font-path', resolve('fonts'), probePath, '<ts-letter-date>', '--field', 'value', '--one'],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    ).toString());
+    for (const absent of ['empty-string', 'empty-content']) {
+      if (Math.abs(heights[absent] - heights.alone) > 0.01) {
+        fail.push(`typeset.typ: letter-date with saint: ${absent === 'empty-string' ? '""' : '[]'} sets `
+          + `${heights[absent].toFixed(2)}pt, not the date alone (${heights.alone.toFixed(2)}pt) — an empty saint `
+          + 'must print no ", ora pro nobis" line');
+      }
+    }
+    if (!(heights.saint > heights.alone + 1)) {
+      fail.push(`typeset.typ: letter-date with a saint sets ${heights.saint.toFixed(2)}pt, no taller than the `
+        + `date alone (${heights.alone.toFixed(2)}pt) — the saint's line is missing`);
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+    fail.push(`typeset.typ: the letter-date probe failed:\n${detail}`);
+  } finally {
+    rmSync(dateProbeDir, { recursive: true, force: true });
+  }
+}
+
 /* ---- Report ------------------------------------------------------------- */
 
 const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);

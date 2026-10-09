@@ -1250,17 +1250,18 @@
   block(width: size.width, place(top + right, dx: reach, block(width: width, body)))
 }))
 
-// The date with its line beneath — a dedication, a feast, a devotion — set as
-// one paragraph, so the note is the date's next line rather than a block of
-// its own.
+// The date, and beneath it the saint of the day, closed with ", ora pro
+// nobis" — one paragraph, so the saint is the date's next line rather than a
+// block of its own. Only the date is required; without a saint there is no
+// second line.
 #let _date-note-text(body) = text(size: 0.9em, fill: ink-muted, style: "italic", body)
 
-#let letter-date(note: none, body) = block(above: 3em, below: 2em, {
+#let letter-date(date, saint: none) = block(above: 3em, below: 2em, {
   set par(justify: false, first-line-indent: 0pt)
-  body
-  if note != none {
+  date
+  if saint not in (none, "", []) {
     linebreak()
-    _date-note-text(note)
+    _date-note-text[#saint, ora pro nobis]
   }
 })
 
