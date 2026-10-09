@@ -20,7 +20,7 @@
 
 
 	<key>IATemplateDescription</key>
-	<string>A letter on A4: EB Garamond at 11pt over a 66-character measure, set ragged right. From the typeset specification.</string>
+	<string>A letter on A4: EB Garamond at 12pt across the 140mm a 35mm margin leaves, about 66 characters, set justified. From the typeset specification.</string>
 	<key>IATemplateAuthor</key>
 	<string>Adilson Carvalho</string>
 	<key>IATemplateAuthorURL</key>

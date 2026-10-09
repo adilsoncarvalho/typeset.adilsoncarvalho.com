@@ -23,7 +23,7 @@ export const TEMPLATES = [
   {
     dir: 'letter',
     bundle: 'typeset-letter.iatemplate',
-    summary: 'A letter on A4 at 20mm on all four sides. EB Garamond at 11pt, ragged right,\n'
+    summary: 'A letter on A4 at 35mm on all four sides. EB Garamond at 12pt, justified,\n'
       + 'filling the page the margins leave.',
     notes: `The display quote
   A \`>\` quote is set centred in Cormorant Garamond Light Italic at 1.3x the

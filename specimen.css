@@ -893,8 +893,8 @@ table.spec-table code {
    letter-page margins in the same way. There is no gauge on this sheet: the
    head differs from the foot and the sides, and one gauge can only point at
    one of them. */
-.pagemap__margins--letter { inset: 10.8% 9.5% 6.7%; }
-.pagemap__lines--letter { top: 12.8%; left: 9.5%; right: 9.5%; }
+.pagemap__margins--letter { inset: 11.8% 16.7% 11.8%; }
+.pagemap__lines--letter { top: 13.8%; left: 16.7%; right: 16.7%; }
 
 /* A spacer between two groups of lines — the gap a letter leaves between its
    sender block and the address under it. */

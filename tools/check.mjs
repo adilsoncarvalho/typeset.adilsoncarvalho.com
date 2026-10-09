@@ -1416,21 +1416,19 @@ for (const key of ['IATemplateHeaderFile', 'IATemplateHeaderHeight',
   }
 }
 
-/* The letter deliberately lets the text fill the page rather than stopping at
-   the measure, so the cap must actually be lifted — with the cap in place the
-   column would sit adrift with the margins asked for. This is the one place a
-   template departs from the spec, so it is asserted rather than left to drift
-   back silently. */
+/* The letter lets the text fill the page its margins leave (letter-page's
+   full measure), so the cap must actually be lifted — with it in place the
+   column would sit centred inside the margins rather than filling them. */
 if (!/max-width:\s*none/.test(letterPage)) {
   fail.push(`${IAW}/letter/page.css: the measure cap is not lifted, so the column will not fill the page the margins leave`);
 }
 
-/* A letter is set ragged right; the spec forbids justifying one. */
-if (!doc.includes('typeset--ragged')) {
-  fail.push(`${IAW}/letter/document.html: a letter is set ragged right — typeset--ragged is missing`);
+/* A letter is set justified (letter-page.properties.justification). */
+if (!doc.includes('typeset--justified')) {
+  fail.push(`${IAW}/letter/document.html: a letter is set justified — typeset--justified is missing`);
 }
-if (doc.includes('typeset--justified') || doc.includes('typeset--two-column')) {
-  fail.push(`${IAW}/letter/document.html: a letter must not be justified`);
+if (doc.includes('typeset--ragged') || doc.includes('typeset--two-column')) {
+  fail.push(`${IAW}/letter/document.html: a letter must not be set ragged right or in two columns`);
 }
 
 /* Every family/weight/style the template asks for must have a face bound for it.
@@ -1961,12 +1959,12 @@ const INTERNAL_SYMBOLS = new Set([
      themselves; note-sidenote is (it names the spec element id directly). */
   'measure-sidenote', 'sidenote-reserved-margin', 'sidenote-note-width', 'sidenote-gap',
   'ts-sidenotes-active',
-  /* letter-page's own derived margin — spec.json's letter-page.derivation
-     names letterhead_band_mm, and letter-margin composes it with
-     margin-standard into the dict letter-page actually passes to typeset().
-     Not styles themselves; letter-page is (it names the spec element id
-     directly). */
-  'letterhead-band', 'letter-margin',
+  /* letter-page's own derived margin and scale — spec.json's
+     letter-page.derivation names letter_inset_mm, letter-margin composes it
+     with margin-standard on every edge, and scale-letter is the single-column
+     scale at letter-page's 12pt base. Not styles themselves; letter-page is
+     (it names the spec element id directly). */
+  'letter-inset', 'letter-margin', 'scale-letter',
   /* the name line / detail lines split and style shared by letter-sender and
      letter-address-block, and the note's style shared by letter-date and
      letter-date-note. Not styles themselves. */
@@ -2783,16 +2781,16 @@ for (const name of marginNames) {
    the letter's own page: spec.json's letter-page element states three plain
    millimetre numbers, and until this gate nothing compared either
    implementation's copy of them to spec.json, or spec.json's own numbers to
-   each other. letter-page.derivation now names the one number that is not
-   the symmetric default — letterhead_band_mm, added to the top alone — so
-   the three properties below are recomputed from it and from
+   each other. letter-page.derivation names the one number that is not the
+   symmetric default — letter_inset_mm, added to every edge — so the three
+   properties below are recomputed from it and from
    foundation.page.margins.symmetric_mm.standard, not trusted as written.
 
    The CSS half stays a source check, the same as gate 7's: @page ts-letter's
    margin shorthand is a plain declaration, uncomplicated by anything else on
    the page, so reading it back and comparing the numbers is as strong a
    proof as rendering it. The Typst half cannot stay a source check —
-   letter-margin is now an expression (margin-standard.top + letterhead-band),
+   letter-margin is an expression (margin-standard.top + letter-inset),
    not a literal dict gate 7's regex could read a number out of — so this
    renders a real letter-page() document and reads the numbers back off it,
    the same lesson gate 22 already drew for the measure: a derivation that
@@ -2816,16 +2814,15 @@ for (const name of marginNames) {
   if (!letterPageEl) {
     fail.push('spec.json declares no "letter-page" element — gate 24 cannot check the letter\'s '
       + 'page against it');
-  } else if (!letterPageEl.derivation || typeof letterPageEl.derivation.letterhead_band_mm !== 'number') {
-    fail.push('spec.json: letter-page has no derivation.letterhead_band_mm — the letterhead band '
-      + 'this gate holds both implementations to must be a named number, not implied by the top '
-      + 'margin alone');
+  } else if (!letterPageEl.derivation || typeof letterPageEl.derivation.letter_inset_mm !== 'number') {
+    fail.push('spec.json: letter-page has no derivation.letter_inset_mm — the inset this gate holds '
+      + 'both implementations to must be a named number, not implied by the margins alone');
   } else {
     const standardMm = symmetricMm.standard;
-    const bandMm = letterPageEl.derivation.letterhead_band_mm;
-    const expectedTopMm = standardMm + bandMm;
-    const expectedBottomMm = standardMm;
-    const expectedSidesMm = standardMm;
+    const insetMm = letterPageEl.derivation.letter_inset_mm;
+    const expectedTopMm = standardMm + insetMm;
+    const expectedBottomMm = standardMm + insetMm;
+    const expectedSidesMm = standardMm + insetMm;
 
     /* spec.json's own three numbers must be exactly what the derivation
        above says — the "duplex total = 2x symmetric" check gate 7 runs
@@ -2834,17 +2831,15 @@ for (const name of marginNames) {
     if (!mmClose(topMm, expectedTopMm)) {
       fail.push(`spec.json: letter-page.properties.margin_top_mm is ${topMm}, but `
         + `foundation.page.margins.symmetric_mm.standard (${standardMm}) + `
-        + `letter-page.derivation.letterhead_band_mm (${bandMm}) is ${expectedTopMm}`);
+        + `letter-page.derivation.letter_inset_mm (${insetMm}) is ${expectedTopMm}`);
     }
     if (!mmClose(bottomMm, expectedBottomMm)) {
       fail.push(`spec.json: letter-page.properties.margin_bottom_mm is ${bottomMm}, but `
-        + `foundation.page.margins.symmetric_mm.standard is ${expectedBottomMm} and letter-page's own `
-        + 'notes say the foot carries no reason to differ from it');
+        + `symmetric_mm.standard + letter_inset_mm is ${expectedBottomMm}`);
     }
     if (!mmClose(sidesMm, expectedSidesMm)) {
       fail.push(`spec.json: letter-page.properties.margin_sides_mm is ${sidesMm}, but `
-        + `foundation.page.margins.symmetric_mm.standard is ${expectedSidesMm} and letter-page's own `
-        + 'notes say the sides carry no reason to differ from it');
+        + `symmetric_mm.standard + letter_inset_mm is ${expectedSidesMm}`);
     }
 
     /* CSS: @page ts-letter's margin shorthand, top | sides | bottom (the
@@ -5115,7 +5110,8 @@ if (!symmetryPaperTypKey || !Number.isFinite(crestWidthMm) || !Number.isFinite(s
   const paper = `paper: "${symmetryPaperTypKey}"`;
   const cases = [
     { name: 'a wide margin, full measure', show: `typeset.with(${paper}, margin: ${standardMm + 15}mm, measure: measure-full)` },
-    { name: "letter-page's own margin, centred measure", show: `letter-page.with(${paper})` },
+    { name: "letter-page's own page", show: `letter-page.with(${paper})` },
+    { name: 'a wide margin, centred measure', show: `typeset.with(${paper}, margin: ${standardMm + 15}mm)` },
     { name: 'a narrow margin, centred measure', show: `typeset.with(${paper}, margin: ${standardMm / 2}mm)` },
     { name: 'a narrow margin, full measure', show: `typeset.with(${paper}, margin: ${standardMm / 2}mm, measure: measure-full)` },
   ];

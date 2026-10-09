@@ -29,7 +29,7 @@ export const EXAMPLES = [
   {
     id: 'letter',
     file: 'implementations/example-letter.typ',
-    description: 'letter, ragged right, page-foot footnote',
+    description: 'letter, justified, page-foot footnote',
     pages: 1,
   },
   {

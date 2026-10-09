@@ -981,15 +981,20 @@
 /*! @e */
 
 /*! @s letter :: Letter */
-/* @style letter-page — a letter's own page: no running head, no folio, and
-   the symmetric default (foundation.page.margins.symmetric_mm.standard, 20mm)
-   on every edge, deepened on top alone by letter-page.derivation.letterhead_band_mm
-   (12mm) so the sender block sits where an envelope window expects it. The
-   bottom and sides carry no comparable reason — letter-page's own notes say
-   why — and stay the default, undecorated. */
-.typeset--letter { page: ts-letter; }
+/* @style letter-page — a letter's own page: no running head, no folio, the
+   standard margin (foundation.page.margins.symmetric_mm.standard, 20mm) plus
+   letter-page.derivation.letter_inset_mm (15mm) on every edge, and the text
+   justified at 12pt across the full width that leaves — about 66 characters
+   on A4. The letterhead reaches back out to the standard margin (below). */
+.typeset--letter {
+  page: ts-letter;
+  --ts-base: 12pt;
+  --ts-measure: 100%;
+  text-align: justify;
+  hyphens: auto;
+}
 @page ts-letter {
-  margin: 32mm 20mm 20mm;   /* top: 20mm standard + 12mm letterhead_band_mm; sides/bottom: 20mm standard */
+  margin: 35mm 35mm 35mm;   /* every edge: 20mm standard + 15mm letter_inset_mm */
   @top-center { content: none; }
   @bottom-center { content: none; }
 }
@@ -1004,7 +1009,7 @@
   font-size: calc(var(--ts-base) * 0.85);
   line-height: 1.35;
   color: var(--ts-ink);
-  margin: 0 0 calc(var(--ts-space) * 2.5);
+  margin: 0 0 calc(var(--ts-base) * 2.5);
 }
 .typeset .ts-letter-sender p {
   margin: 0;
@@ -1049,6 +1054,7 @@
 .typeset { --ts-page-margin: 20mm; }
 .typeset--margin-narrow { --ts-page-margin: 10mm; }
 .typeset--margin-wide { --ts-page-margin: 30mm; }
+.typeset--letter { --ts-page-margin: 35mm; }      /* letter-page: 20mm standard + 15mm inset */
 .typeset {
   --ts-letterhead-offset: min(
     calc((100% - min(var(--ts-measure), 100%)) / 2),
@@ -1069,7 +1075,7 @@
 .typeset .ts-letter-crest svg { display: block; width: 100%; height: auto; }
 
 .typeset .ts-letter-date {
-  margin: calc(var(--ts-space) * 3) 0 calc(var(--ts-space) * 2);
+  margin: calc(var(--ts-base) * 3) 0 calc(var(--ts-base) * 2);
   font-variant-numeric: oldstyle-nums;
   text-align: left;
 }
@@ -1083,18 +1089,18 @@
    CSS parser does not understand `:has()` any more than it understands `:is()`,
    and a selector it cannot parse aborts pagination outright. */
 .typeset .ts-letter-date-note {
-  margin: calc(var(--ts-space) * -2) 0 calc(var(--ts-space) * 2);
+  margin: calc(var(--ts-base) * -2) 0 calc(var(--ts-base) * 2);
   font-size: calc(var(--ts-base) * 0.9);
   font-style: italic;
   color: var(--ts-ink-muted);
   text-indent: 0;
 }
-.typeset .ts-letter-salutation { margin: calc(var(--ts-space) * 2) 0; text-align: left; }
+.typeset .ts-letter-salutation { margin: calc(var(--ts-base) * 2) 0; text-align: left; }
 
 /* A quotation in a letter is set apart by indent and colour, not by a rule. */
 .typeset--letter blockquote,
 .typeset .ts-letter-quote {
-  margin: calc(var(--ts-space) * 1.5) calc(var(--ts-space) * 2);
+  margin: calc(var(--ts-base) * 1.5) calc(var(--ts-base) * 2);
   padding: 0;
   border: 0;
   font-size: calc(var(--ts-base) * 1.05);
@@ -1103,13 +1109,13 @@
   color: var(--ts-ink-muted);
 }
 
-.typeset .ts-letter-closing { margin: calc(var(--ts-space) * 3) 0 calc(var(--ts-space) * 2); text-align: left; }
+.typeset .ts-letter-closing { margin: calc(var(--ts-base) * 3) 0 calc(var(--ts-base) * 2); text-align: left; }
 
 /* The typed name, with room above it to sign. No rule: a ruled line is a form
    to be filled in, and this is a letter. */
 .typeset .ts-letter-signature {
   text-align: left;
-  margin-top: calc(var(--ts-space) * 3);
+  margin-top: calc(var(--ts-base) * 3);
   text-indent: 0;
   break-inside: avoid;
 }
@@ -1120,7 +1126,7 @@
    thing on the page shouting. */
 .typeset .ts-letter-enclosures {
   text-align: left;
-  margin-top: calc(var(--ts-space) * 2);
+  margin-top: calc(var(--ts-base) * 2);
   font-size: var(--ts-base);
   text-indent: 0;
 }
@@ -1129,7 +1135,7 @@
    the signature by the signature's own distance from the closing. */
 .typeset .ts-letter-postscript {
   text-align: left;
-  margin-top: calc(var(--ts-space) * 3);
+  margin-top: calc(var(--ts-base) * 3);
   font-size: var(--ts-base);
   text-indent: 0;
 }

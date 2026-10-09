@@ -24,7 +24,7 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `implementations/typeset.typ` | Reference implementation — Typst. |
 | `implementations/typst.toml` | Makes `implementations/` a Typst package, imported as `@local/typeset:<version>` once linked into Typst's local package directory. Its version is `spec.json`'s. |
 | `implementations/example-essay.typ` | The essay set in Typst. A conformance sample. |
-| `implementations/example-letter.typ` | The letter set in Typst — ragged right, real page-foot footnote. |
+| `implementations/example-letter.typ` | The letter set in Typst — justified, real page-foot footnote. |
 | `examples/essay.html`, `examples/letter.html` | The same documents in CSS, paginated with Paged.js. |
 | `examples/two-column.html` | The two-column template in CSS. Prints from the browser — see below. |
 | `implementations/example-two-column.typ` | The two-column template in Typst. |
@@ -348,8 +348,8 @@ the whole of it. So the template implements exactly that much of the spec, and
 does not pretend to the rest — the signature block, callouts, sidenotes and drop
 caps all need markup Markdown has no way to write.
 
-`typeset-letter.iatemplate` is A4 at 20mm on all four sides, ragged right at the
-11pt base, filling the 170mm the margins leave. It is `typeset.css` plus
+`typeset-letter.iatemplate` is A4 at 35mm on all four sides, justified at the
+12pt base, filling the 140mm the margins leave. It is `typeset.css` plus
 `implementations/iawriter/iawriter.css`, which binds the bundled fonts to the
 family names the spec asserts and maps the MultiMarkdown constructs that have no
 counterpart in a hand-written document (footnotes, citations, task lists, column
@@ -419,16 +419,12 @@ Typst does it natively, and `examples/two-column.html` prints from a browser.
   which stops the print pipeline dropping it to save ink. The Preview tint is
   therefore scoped to `@media screen`, and paper supplies its own ground.
 
-### The letter departs from the measure, deliberately
+### The letter reaches the measure through its margin
 
-A4 at 20mm leaves 170mm, which at the 11pt base carries about 88 characters —
-past the 75-character ceiling `foundation.rhythm` sets, and the measure is the
-rule this spec says everything else is downstream of. The letter template lifts
-the cap anyway and fills the page, because a 12.8cm column inside 2cm margins
-reads as a column adrift on a sheet.
-
-This is the one place the template knowingly contradicts `spec.json`, and it is
-asserted in `tools/check.mjs` rather than left to drift back silently.
+A4 at letter-page's 35mm leaves 140mm, which at the 12pt base carries about 66
+characters — the standard measure. The template lifts the cap and lets the text
+fill the page, so the margin sets the line rather than a column centred inside
+it. `tools/check.mjs` asserts the cap is lifted.
 
 Fonts ship inside the bundle. A template is a local page with no network, and
 WebKit substitutes a missing face without saying so — the same argument that makes

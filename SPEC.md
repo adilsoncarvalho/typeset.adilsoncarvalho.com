@@ -1546,7 +1546,7 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 
 `letter`
 
-- A letter is set ragged right. It is addressed to a person, and justification reads as institutional.
+- A letter is set justified, at 12pt, across the full width its margins leave. It is read once, closely, by one person, and an even page with a quiet edge serves that reading.
 - Sender and address blocks are address data, not a masthead. The name line is set in small caps at body size, and the lines below it a step smaller, so the eye finds who before where. Nothing bold, nothing in the sans, nothing larger than the text: a personal letter does not announce itself.
 - Address blocks are line-broken data, not prose: tighter leading, never justified, line breaks as authored.
 - The letterhead — the addresses and any crest — sits the standard margin from the paper's edge, or at the text's own edge where that is nearer the paper. Where the text sits further in, under a wider margin or a centred measure, the letterhead stays out at the standard margin rather than moving in with it.
@@ -1558,14 +1558,19 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 
 | Property | Value |
 | --- | --- |
-| margin top mm | `32` |
-| margin bottom mm | `20` |
-| margin sides mm | `20` |
+| margin top mm | `35` |
+| margin bottom mm | `35` |
+| margin sides mm | `35` |
+| base size | `12pt` |
+| measure | full — the width the margins leave, about 66 characters on A4 |
+| justification | `justified` |
 | running head | `none` |
 | folio | `none` |
 | block quote | `letter-quote` |
 
-> The deeper top margin puts the letterhead where an envelope window expects it — the symmetric default plus derivation.letterhead_band_mm. The bottom and sides carry no comparable reason: this section's own principles say nothing about margins at all, so they are the symmetric default, undecorated, rather than a bespoke number wearing a name.
+> The text sits letter_inset_mm inside the standard margin on every edge. The letterhead — letter-addresses and letter-crest — reaches back out by the same amount, so the addresses and the crest stand at the standard margin and the text is framed inside them.
+
+> At 12pt, the full width inside 35mm margins on A4 carries about 66 characters: the standard measure, reached by the margin rather than by a cap.
 
 ##### Sender block
 
@@ -1573,14 +1578,14 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | --- | --- |
 | font | `serif` |
 | weight | `400` |
-| size | `11pt` |
+| size | `12pt` |
 | line height | `1.35` |
 | color | `ink` |
 | align | `left` |
 | line breaks | as authored — name, street, suburb and postcode, country |
-| space after | `27.5pt` |
+| space after | `30pt` |
 | name line | small caps (smcp and c2sc), at body size |
-| detail size | `9.35pt — 0.85 of body` |
+| detail size | `10.2pt — 0.85 of body` |
 
 > The name is the one line in small caps, at body size; street, suburb and country sit a step smaller beneath it. Never larger and never bold — that turns a letter into stationery.
 
@@ -1591,14 +1596,14 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | Property | Value |
 | --- | --- |
 | font | `serif` |
-| size | `11pt` |
+| size | `12pt` |
 | line height | `1.35` |
 | style | `normal` |
 | align | `left` |
 | line breaks | `as authored` |
 | space after | `16.5pt` |
 | name line | small caps (smcp and c2sc), at body size |
-| detail size | `9.35pt — 0.85 of body` |
+| detail size | `10.2pt — 0.85 of body` |
 
 ##### Address column
 
@@ -1626,8 +1631,8 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | --- | --- |
 | numerals | `oldstyle` |
 | align | `left` |
-| space before | `33pt` |
-| space after | `22pt` |
+| space before | `36pt` |
+| space after | `24pt` |
 
 > The date and the line under it are one block. The space after belongs to the pair, not to the date alone.
 
@@ -1637,11 +1642,11 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | --- | --- |
 | font | `serif` |
 | style | `italic` |
-| size | `9.9pt — 0.9 of body` |
+| size | `10.8pt — 0.9 of body` |
 | color | `ink_muted` |
 | align | `left` |
 | space before | none — the date's own next line, at body leading |
-| space after | `22pt, the date's` |
+| space after | `24pt, the date's` |
 
 > A dedication, a feast, a devotion — whatever the writer puts under the date. Italic, at body size, immediately beneath.
 
@@ -1650,8 +1655,8 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | Property | Value |
 | --- | --- |
 | align | `left` |
-| space before | `22pt` |
-| space after | `22pt` |
+| space before | `24pt` |
+| space after | `24pt` |
 
 ##### Quotation — in a letter
 
@@ -1660,13 +1665,13 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | font | `serif` |
 | style | `italic` |
 | weight | `400` |
-| size | `11.55pt — 1.05 of body` |
+| size | `12.6pt — 1.05 of body` |
 | color | `ink_muted` |
-| indent left | `22pt` |
-| indent right | `22pt` |
+| indent left | `24pt` |
+| indent right | `24pt` |
 | rule | `none` |
-| space before | `16.5pt` |
-| space after | `16.5pt` |
+| space before | `18pt` |
+| space after | `18pt` |
 
 > A letter quotes a prayer, a line, a remembered phrase. It is set apart by indent and colour, not by a rule: a rule is the essay's quotation, and a letter is not an essay.
 
@@ -1675,17 +1680,17 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | Property | Value |
 | --- | --- |
 | align | `left` |
-| space before | `33pt` |
-| space after | `22pt` |
+| space before | `36pt` |
+| space after | `24pt` |
 
 ##### Signature block
 
 | Property | Value |
 | --- | --- |
 | font | `serif` |
-| size | `11pt` |
+| size | `12pt` |
 | align | `left` |
-| space before | `33pt — the room to sign` |
+| space before | `36pt — the room to sign` |
 | rule | `none` |
 | break inside | `avoid` |
 | signature image max height | `16mm` |
@@ -1697,9 +1702,9 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | Property | Value |
 | --- | --- |
 | font | `serif` |
-| size | `11pt` |
+| size | `12pt` |
 | align | `left` |
-| space before | `22pt` |
+| space before | `24pt` |
 | label | same style as the text it introduces — no small caps, no weight change |
 
 > Same reasoning as the postscript: "Enc." introduces a sentence, it does not head a section.
@@ -1709,9 +1714,9 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | Property | Value |
 | --- | --- |
 | font | `serif` |
-| size | `11pt` |
+| size | `12pt` |
 | align | `left` |
-| space before | 33pt — the signature's own distance from the closing |
+| space before | 36pt — the signature's own distance from the closing |
 | label | same style as the text it introduces — no small caps, no weight change |
 
 > A postscript is a sentence that happens to begin with "P.S.". The label is not a heading.

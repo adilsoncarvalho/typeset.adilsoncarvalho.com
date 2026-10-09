@@ -1141,21 +1141,21 @@
 // ── Letter ──────────────────────────────────────────────────────────────────
 
 // @s letter
-// A letter's page is the symmetric default (margin-standard) with one edge
-// deepened: letterhead-band, added to the top alone, is the room an envelope
-// window expects above the sender block. The bottom and sides carry no
-// comparable reason — spec.json's letter-page.notes says why — so they stay
-// margin-standard's own rather than a bespoke number of their own. A letter
+// A letter's page: the standard margin plus letter-inset on every edge, the
+// text justified at 12pt across the full width that leaves. The letterhead
+// reaches back out by letter-inset (letter-addresses, letter-crest), so it
+// stands at the standard margin and the text is framed inside it. A letter
 // opens with this in place of `#show: typeset` — the two cannot be stacked,
 // because typeset() sets the page and a page configuration underneath it
 // sits inside a container, where Typst refuses one.
-#let letterhead-band = 12mm
+#let letter-inset = 15mm
 #let letter-margin = (
-  top: margin-standard.top + letterhead-band,
-  bottom: margin-standard.bottom,
-  left: margin-standard.left,
-  right: margin-standard.right,
+  top: margin-standard.top + letter-inset,
+  bottom: margin-standard.bottom + letter-inset,
+  left: margin-standard.left + letter-inset,
+  right: margin-standard.right + letter-inset,
 )
+#let scale-letter = (..scale-single-column, base: 12pt)
 
 // A quotation inside a letter: indented on both sides, italic and muted, with
 // no rule. letter-page makes it the letter's block quote.
@@ -1175,11 +1175,17 @@
 #let letter-page(
   paper: "a4",
   margin: letter-margin,
+  scale: scale-letter,
+  justified: true,
+  measure: measure-full,
   doc,
 ) = {
   show: typeset.with(
     paper: paper,
     margin: margin,
+    scale: scale,
+    justified: justified,
+    measure: measure,
     running-head: false,
     folio: false,
   )

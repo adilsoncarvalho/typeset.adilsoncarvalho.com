@@ -26,7 +26,7 @@
 
 I am writing about the setting of the Institute's annual report, which arrived
 this morning and which I read with rather more attention to its margins than to
-its contents. I hope that is taken in the spirit intended.
+its contents.
 
 The text column runs to something near a hundred and ten
 characters.#footnote[Measured on page four, between the outer margins: 168mm at
@@ -37,14 +37,10 @@ This is a cheap problem to fix. Narrowing the column to sixty-six characters
 costs one afternoon and no money, and the space it frees on the right can carry
 the marginal notes that are currently crowded into footnotes.
 
-If it would be useful, I am glad to set one section of next year's report as a
-demonstration.
-
 #letter-closing[Yours sincerely,]
 
 #letter-signature[Adilson Carvalho]
 
 #letter-enclosures[typeset.css; two specimen pages]
 
-#letter-postscript[The tables were excellent — tabular figures throughout, which is
-more than most annual reports manage.]
+#letter-postscript[The tables were excellent — tabular figures throughout.]
