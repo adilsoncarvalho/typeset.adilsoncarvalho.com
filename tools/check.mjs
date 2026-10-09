@@ -2027,6 +2027,10 @@ const IMPLEMENTS = new Map([
     'quote-blockquote', 'quote-attribution',
     'quote-epigraph', 'quote-pullquote', 'quote-verse',
   ]],
+  /* letter-address-block with its label set by role — From, To — named for
+     the address a writer is entering rather than for the caption it gets. */
+  ['letter-address-from', ['letter-address-block', 'letter-address-label']],
+  ['letter-address-to', ['letter-address-block', 'letter-address-label']],
 ]);
 
 for (const [sym, ids] of IMPLEMENTS) {

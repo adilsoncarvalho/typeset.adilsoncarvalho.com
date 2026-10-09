@@ -14,8 +14,9 @@
 ), width: 100%))
 
 // letter-address-label is reached through letter-address-block's `label:`
-// parameter rather than through a symbol of its own. The first line of each
-// block is the name, set in small caps; the lines after it a step smaller.
+// parameter; letter-address-from and letter-address-to set it by role. The
+// first line of each block is the name, set in small caps; the lines after it
+// a step smaller.
 #letter-addresses[
   #letter-sender[
     Adilson Carvalho \
@@ -24,7 +25,7 @@
     Australia
   ]
 
-  #letter-address-block(label: [To])[
+  #letter-address-to[
     The Registrar \
     Institute of Typographic Studies \
     88 Rundle Street \

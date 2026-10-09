@@ -12,7 +12,7 @@
     Australia
   ]
 
-  #letter-address-block(label: [To])[
+  #letter-address-to[
     The Registrar \
     Institute of Typographic Studies \
     88 Rundle Street \

@@ -1234,6 +1234,10 @@
 // own edge where that is nearer the paper. Read from where the text actually
 // starts, so a wide margin and a centred measure both count.
 
+// The sender's and the recipient's address, by role rather than by label.
+#let letter-address-from(body) = letter-address-block(label: [From], body)
+#let letter-address-to(body) = letter-address-block(label: [To], body)
+
 // The column of sender and recipient blocks.
 #let letter-addresses(body) = context {
   let reach = calc.max(0pt, here().position().x - margin-standard.left)
