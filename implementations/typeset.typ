@@ -1346,6 +1346,72 @@
   })
 }
 
+// ── The letter template ─────────────────────────────────────────────────────
+
+// A whole letter from its parts, in the order a letter takes them: crest,
+// addresses, date and saint, salutation, the body, closing, signature,
+// enclosures and postscript. Each part is optional except the body; a part
+// left out is not set at all, and closing falls back to "Yours sincerely".
+//
+//   #show: letter.with(
+//     sender: ("Adilson Carvalho", "10 Wentworth Avenue", "Australia"),
+//     addressee: ("The Registrar", "88 Rundle Street", "Adelaide SA 5000"),
+//     date: "27 August 2026",
+//     salutation: "Registrar",
+//   )
+//
+// Addresses take an array of lines or line-broken content. `accent` and
+// `smallcaps` take phrases to restyle wherever they occur in the body, so a
+// letter written in Markdown can mark a phrase without markup of its own.
+#let _letter-accent-ink = accent
+#let _lines(value) = if type(value) == array { value.join(linebreak()) } else { value }
+
+#let letter(
+  paper: "a4",
+  margin: letter-margin,
+  crest: none,
+  sender: none,
+  addressee: none,
+  date: none,
+  saint: none,
+  greeting: "Dear",
+  salutation: none,
+  closing: none,
+  signature: none,
+  enclosures: none,
+  postscript: none,
+  accent: (),
+  smallcaps: (),
+  doc,
+) = {
+  show: letter-page.with(paper: paper, margin: margin)
+  show: body => accent.fold(body, (b, phrase) => {
+    show phrase: text.with(fill: _letter-accent-ink)
+    b
+  })
+  show: body => smallcaps.fold(body, (b, phrase) => {
+    show phrase: it => text(..smcp, lower(it))
+    b
+  })
+
+  if crest != none { letter-crest(crest) }
+  if sender != none or addressee != none {
+    letter-addresses({
+      if sender != none { letter-address-from(_lines(sender)) }
+      if addressee != none { letter-address-to(_lines(addressee)) }
+    })
+  }
+  if date != none { letter-date(date, saint: saint) }
+  if salutation != none { letter-salutation(greeting, salutation) }
+
+  doc
+
+  if closing == none { letter-closing() } else { letter-closing(closing) }
+  if signature != none { letter-signature(signature) }
+  if enclosures != none { letter-enclosures(enclosures) }
+  if postscript != none { letter-postscript(postscript) }
+}
+
 // ── Apparatus ───────────────────────────────────────────────────────────────
 
 // @s toc

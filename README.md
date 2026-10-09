@@ -24,7 +24,8 @@ spec disagree, **the spec is right and the implementation is broken.**
 | `implementations/typeset.typ` | Reference implementation — Typst. |
 | `implementations/typst.toml` | Makes `implementations/` a Typst package, imported as `@local/typeset:<version>` once linked into Typst's local package directory. Its version is `spec.json`'s. |
 | `implementations/example-essay.typ` | The essay set in Typst. A conformance sample. |
-| `implementations/example-letter.typ` | The letter set in Typst — justified, real page-foot footnote. |
+| `implementations/example-letter.typ` | The letter set in Typst through the `letter()` template — justified, real page-foot footnote. |
+| `implementations/crest-placeholder.svg` | A stand-in crest in one ink, read by `example-letter.typ`. Replace it with your own. |
 | `examples/essay.html`, `examples/letter.html` | The same documents in CSS, paginated with Paged.js. |
 | `examples/two-column.html` | The two-column template in CSS. Prints from the browser — see below. |
 | `implementations/example-two-column.typ` | The two-column template in Typst. |

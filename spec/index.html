@@ -2711,7 +2711,7 @@ The next section begins without ornament, only the rule to mark the gap.</pre><b
     &lt;li id=&quot;n2&quot;&gt;Below about 40 characters, hyphenation stops being optional.&lt;/li&gt;
   &lt;/ol&gt;
 &lt;/div&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="../files/typeset-typ.html#L1359">note</a></p><pre><span class="c-comment">// Two examples here, one in the CSS implementation. Typst sets footnotes at the</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="../files/typeset-typ.html#L1425">note</a></p><pre><span class="c-comment">// Two examples here, one in the CSS implementation. Typst sets footnotes at the</span>
 <span class="c-comment">// foot of the page natively; no browser implements the CSS footnote model, so</span>
 <span class="c-comment">// the CSS example degrades to the numbered endnote block the spec names as the</span>
 <span class="c-comment">// fallback, and its sidenotes are shown as a separate full-page example.</span>
@@ -2890,7 +2890,7 @@ difference is not small.</pre><button class="copy" type="button" data-copy>Copy<
     &lt;li class=&quot;ts-toc-entry-2&quot;&gt;&lt;a href=&quot;#opening-a-chapter&quot;&gt;&lt;span&gt;Opening a chapter: the drop cap and the small-caps lede&lt;/span&gt;&lt;span class=&quot;ts-toc-leader&quot;&gt;&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
   &lt;/ol&gt;
 &lt;/nav&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="../files/typeset-typ.html#L1351">toc</a></p><pre><span class="c-comment">// toc() generates the list from the document's own headings, which is why a</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="../files/typeset-typ.html#L1417">toc</a></p><pre><span class="c-comment">// toc() generates the list from the document's own headings, which is why a</span>
 <span class="c-comment">// whole document follows it here and only the list appears in the HTML file:</span>
 <span class="c-comment">// there, the entries and their page numbers are written by hand, because a</span>
 <span class="c-comment">// browser resolves neither. The HTML file's other three panes are entries</span>
@@ -3807,7 +3807,7 @@ is more than most annual reports manage.]</pre><button class="copy" type="button
     &lt;tr&gt;&lt;td&gt;Letter&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;32&lt;/td&gt;&lt;td class=&quot;ts-table-cell-numeric&quot;&gt;25&lt;/td&gt;&lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;</pre><button class="copy" type="button" data-copy>Copy</button></div></div>
-    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="../files/typeset-typ.html#L1403">utility</a></p><pre><span class="c-comment">// utility-break-before and utility-break-after are not shown here, and cannot</span>
+    <div class="tabs__pane"><div class="codewrap"><p class="code-note">Full implementation in typeset.typ — <a href="../files/typeset-typ.html#L1469">utility</a></p><pre><span class="c-comment">// utility-break-before and utility-break-after are not shown here, and cannot</span>
 <span class="c-comment">// be: both are Typst's own #pagebreak(), and a pagebreak is refused inside a</span>
 <span class="c-comment">// container. typeset() holds the flow to the measure by wrapping the whole</span>
 <span class="c-comment">// document in a block(width: …), so every document set under the boilerplate</span>

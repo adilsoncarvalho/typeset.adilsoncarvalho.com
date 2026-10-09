@@ -1936,7 +1936,11 @@ const INTERNAL_SYMBOLS = new Set([
      block-spaced/block-indented below — not a style itself */
   '_paragraphs-rule',
   /* document and template entry points */
-  'typeset', 'two-column', 'span',
+  'typeset', 'two-column', 'span', 'letter',
+  /* letter()'s own helpers: a line list joined for an address block, and the
+     accent colour kept under a second name because letter() takes a
+     parameter called accent. Not styles themselves. */
+  '_lines', '_letter-accent-ink',
   /* typeset()'s two halves — the page it sets once per document, and the
      styles it sets over the body. Both templates call both: two-column() has
      to set the page, draw its column rule on it, and only then set the styles,

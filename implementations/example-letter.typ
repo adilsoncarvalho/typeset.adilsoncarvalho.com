@@ -1,28 +1,22 @@
-// A conformance check for the letter template. Ragged right, no running head,
-// no folio, and a real footnote at the foot of the page.
+// A conformance check for the letter template: letter() sets the page, the
+// letterhead and the sign-off from its parameters, and the body is the
+// letter. Justified at 12pt, no running head, no folio, and a real footnote
+// at the foot of the page.
 #import "typeset.typ": *
 
-#show: letter-page      // ragged right, no running head, no folio
-
-#letter-addresses[
-  #letter-sender[
-    Adilson Carvalho \
-    10 Wentworth Avenue \
-    Surry Hills NSW 2010 \
-    Australia
-  ]
-
-  #letter-address-to[
-    The Registrar \
-    Institute of Typographic Studies \
-    88 Rundle Street \
-    Adelaide SA 5000
-  ]
-]
-
-#letter-date([27 August 2026], saint: [St Monica, mother of St Augustine Bishop])
-
-#letter-salutation[Registrar]
+#show: letter.with(
+  // A crest is optional. This placeholder is drawn in one ink, so svg-recolor
+  // sets it in the accent; read() resolves the path against this file.
+  crest: svg-recolor(read("crest-placeholder.svg"), width: 100%),
+  sender: ("Adilson Carvalho", "10 Wentworth Avenue", "Surry Hills NSW 2010", "Australia"),
+  addressee: ("The Registrar", "Institute of Typographic Studies", "88 Rundle Street", "Adelaide SA 5000"),
+  date: "27 August 2026",
+  saint: "St Monica, mother of St Augustine Bishop",
+  salutation: "Registrar",
+  signature: "Adilson Carvalho",
+  enclosures: [typeset.css; two specimen pages],
+  postscript: [The tables were excellent — tabular figures throughout.],
+)
 
 I am writing about the setting of the Institute's annual report, which arrived
 this morning and which I read with rather more attention to its margins than to
@@ -36,11 +30,3 @@ place twice, and by the fourth I had stopped reading and started measuring.
 This is a cheap problem to fix. Narrowing the column to sixty-six characters
 costs one afternoon and no money, and the space it frees on the right can carry
 the marginal notes that are currently crowded into footnotes.
-
-#letter-closing()
-
-#letter-signature[Adilson Carvalho]
-
-#letter-enclosures[typeset.css; two specimen pages]
-
-#letter-postscript[The tables were excellent — tabular figures throughout.]

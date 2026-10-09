@@ -40,6 +40,7 @@ for (const dir of FONT_DIRS) {
 const MANIFEST_ENTRIES = [
   { file: 'implementations/typeset.typ', description: 'the implementation' },
   ...EXAMPLES.map(({ file, description }) => ({ file, description })),
+  { file: 'implementations/crest-placeholder.svg', description: 'the stand-in crest example-letter.typ reads' },
   { file: 'fonts/', description: 'the three families the spec names' },
 ];
 const manifestPathWidth = Math.max(...MANIFEST_ENTRIES.map((e) => e.file.length));
@@ -94,6 +95,7 @@ execFileSync('zip', [
   '-qrX', OUT,
   'implementations/typeset.typ',
   ...EXAMPLES.map((e) => e.file),
+  'implementations/crest-placeholder.svg',
   ...FONT_DIRS,
   '-x', '.*', '-x', '*/.*',
 ], { stdio: 'inherit' });
