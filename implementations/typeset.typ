@@ -698,11 +698,10 @@
 // calls, since `quote` inside it would name itself.
 #let native-quote = quote
 
-#let quote(type: none, attribution: none, body) = if type == none {
-  // Always block: the spec defines only a block quote, no inline one, so
-  // there is no second reading of `>` for a `block:` parameter to select
-  // between. The show rule above (`quote.where(block: true)`) styles the
-  // element this produces and carries quote-attribution's own treatment.
+#let _quote(type: none, attribution: none, body) = if type == none {
+  // Always block: the spec defines only a block quote, no inline one. The
+  // show rule above (`quote.where(block: true)`) styles the element this
+  // produces and carries quote-attribution's own treatment.
   native-quote(block: true, attribution: attribution, body)
 } else if type == "epigraph" {
   // quote-epigraph's own block_alignment property is "flush right" — a
@@ -760,6 +759,22 @@
 } else {
   panic("quote: unknown type " + repr(type)
     + " — expected none, \"epigraph\", \"pullquote\" or \"verse\"")
+}
+
+// The public quote(). It also takes `block:`, because Pandoc's Typst writer
+// emits #quote(block: true)[…] for every `>` quotation; it must be true, since
+// the spec defines only a block quote. Kept apart from _quote() because a
+// parameter named `block` would hide the block() its branches call.
+#let quote(type: none, attribution: none, ..args) = {
+  assert(
+    args.pos().len() == 1 and args.named().keys().all(k => k == "block"),
+    message: "quote takes type:, attribution: and the quotation itself",
+  )
+  assert(
+    args.named().at("block", default: true) == true,
+    message: "typeset sets only block quotations — quote(block: false) has no inline form to set",
+  )
+  _quote(type: type, attribution: attribution, args.pos().first())
 }
 
 // @s callout
