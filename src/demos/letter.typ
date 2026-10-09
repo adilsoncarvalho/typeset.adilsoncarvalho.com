@@ -4,49 +4,57 @@
 // replaces the other rather than nesting under it.
 #show: letter-page
 
-#letter-sender[
-  Adilson Carvalho \
-  10 Wentworth Avenue \
-  Surry Hills NSW 2010 \
-  Australia
-]
+// letter-crest takes the image itself. A crest kept as a file is read from
+// the document and recoloured with svg-recolor:
+//   #letter-crest(svg-recolor(read("crest.svg"), width: 100%))
+#letter-crest(image(bytes(
+  "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 48'>"
+    + "<path d='M4 4h32v18c0 12-8 20-16 24C12 42 4 34 4 22z' fill='none' stroke='#7a1f1f' stroke-width='1.5'/>"
+    + "</svg>"
+), width: 100%))
 
 // letter-address-label is reached through letter-address-block's `label:`
-// parameter rather than through a symbol of its own. The HTML file shows the
-// block twice — without the caption and with it — where this one document
-// shows only the finished, captioned form; omitting `label:` is what the
-// first of those two panes corresponds to.
-#letter-address-block(label: [To])[
-  The Registrar \
-  Institute of Typographic Studies \
-  88 Rundle Street \
-  Adelaide SA 5000
+// parameter rather than through a symbol of its own. The first line of each
+// block is the name, set in small caps; the lines after it a step smaller.
+#letter-addresses[
+  #letter-sender[
+    Adilson Carvalho \
+    10 Wentworth Avenue \
+    Surry Hills NSW 2010 \
+    Australia
+  ]
+
+  #letter-address-block(label: [To])[
+    The Registrar \
+    Institute of Typographic Studies \
+    88 Rundle Street \
+    Adelaide SA 5000
+  ]
 ]
 
-// letter-date, letter-salutation and letter-closing carry no symbol of
-// their own: each is plain text, left aligned, at the same rhythm as any
-// other paragraph in the letter.
-27 August 2026
-#letter-date-note[St Monica, mother of St Augustine Bishop, ora pro nobis]
+#letter-date(note: [St Monica, mother of St Augustine Bishop, ora pro nobis])[27 August 2026]
 
-Dear Registrar,
+#letter-salutation[Dear Registrar,]
 
 I am writing about the setting of the Institute's annual report, which arrived
 this morning and which I read with more attention to its margins than to its
 contents. I hope that is taken in the spirit intended.
 
-// letter-footnote has no symbol either: it is Typst's own footnote,
-// set at the foot of the page where the engine can — which on a one-page
-// letter is the numbered-note fallback this spec asks for anyway.
+// letter-footnote has no symbol: it is Typst's own footnote, set at the foot
+// of the page where the engine can — which on a one-page letter is the
+// numbered-note fallback this spec asks for anyway.
 The text column runs to something near a hundred and ten
 characters.#footnote[Measured on page four, between the outer margins: 168mm at
 a 10pt body, which is about 112 characters.] By the second page I had lost my
 place twice, and by the fourth I had stopped reading and started measuring.
 
+// Inside letter-page every block quote is a letter-quote.
+#quote[Set the column to sixty-six characters, and the margins will look after themselves.]
+
 This is a cheap problem to fix, and I would be glad to send the specification I
 use for my own documents.
 
-Yours sincerely,
+#letter-closing[Yours sincerely,]
 
 #letter-signature[Adilson Carvalho]
 

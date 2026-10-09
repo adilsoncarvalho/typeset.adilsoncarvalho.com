@@ -28,7 +28,7 @@
 </div>
 
 <p class="pair__label" data-element="letter-sender">2 · Sender block</p>
-<p class="demo-note">One style throughout, including the name — bold or larger turns a letter into stationery. Leave out what a letter does not need: no email address, no telephone number, unless the correspondence calls for one.</p>
+<p class="demo-note">The name line in small caps at body size, the lines beneath it a step smaller — a hierarchy of data, not decoration. Never bold and never larger: that turns a letter into stationery. Leave out what a letter does not need: no email address, no telephone number, unless the correspondence calls for one.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <div class="ts-letter-sender">
     <p>Adilson Carvalho</p>
@@ -39,7 +39,7 @@
 </div>
 
 <p class="pair__label" data-element="letter-address-block">3 · Address block</p>
-<p class="demo-note">Line-broken data, not prose — the recipient's address exactly as it would sit on an envelope: tighter leading than the body, never justified, and the line breaks as authored.</p>
+<p class="demo-note">Line-broken data, not prose — the recipient's address exactly as it would sit on an envelope: the name in small caps at body size, the rest a step smaller, tighter leading than the body, never justified, and the line breaks as authored.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <address class="ts-letter-address-block">
     The Registrar<br>
@@ -61,26 +61,73 @@
   </address>
 </div>
 
-<p class="pair__label" data-element="letter-date">5 · Date line</p>
-<p class="demo-note">Oldstyle figures, flush left — the same numeral convention the rest of the document already sets, not a date format of its own.</p>
+<p class="pair__label" data-element="letter-addresses">5 · Address column</p>
+<p class="demo-note">The sender and recipient blocks together, held at the standard margin from the paper's edge. Where the text sits further in — this page has the wide margin — the column reaches out by the difference, so the letterhead stays where an envelope window expects it. Where the text is nearer the paper than the standard margin, the column stays with the text.</p>
+<div class="paper typeset typeset--ragged typeset--letter typeset--margin-wide" lang="en">
+  <div class="ts-letter-addresses">
+    <address class="ts-letter-address-block">
+      <span class="ts-label ts-letter-address-label">From</span>
+      Adilson Carvalho<br>
+      10 Wentworth Avenue<br>
+      Surry Hills NSW 2010
+    </address>
+    <address class="ts-letter-address-block">
+      <span class="ts-label ts-letter-address-label">To</span>
+      The Registrar<br>
+      88 Rundle Street<br>
+      Adelaide SA 5000
+    </address>
+  </div>
+  <p>The text of the letter begins here, at the page's own margin.</p>
+</div>
+
+<p class="pair__label" data-element="letter-crest">6 · Crest</p>
+<p class="demo-note">Optional: a crest or monogram in the top right corner, 20mm wide, held at the standard margin from the paper's right edge by the same rule as the address column. A mark drawn in one ink takes the accent. A letter without one leaves the corner empty.</p>
+<div class="paper typeset typeset--ragged typeset--letter" lang="en">
+  <div class="ts-letter-crest">
+    <svg viewBox="0 0 40 48" role="img" aria-label="Crest">
+      <path d="M4 4h32v18c0 12-8 20-16 24C12 42 4 34 4 22z" fill="none" stroke="#7a1f1f" stroke-width="1.5"/>
+      <path d="M20 12l3 7h7l-5.5 4.5 2 7-6.5-4.5-6.5 4.5 2-7L10 19h7z" fill="none" stroke="#7a1f1f" stroke-width="1"/>
+    </svg>
+  </div>
+  <address class="ts-letter-address-block">
+    <span class="ts-label ts-letter-address-label">To</span>
+    The Registrar<br>
+    88 Rundle Street<br>
+    Adelaide SA 5000
+  </address>
+</div>
+
+<p class="pair__label" data-element="letter-date">7 · Date line</p>
+<p class="demo-note">Oldstyle figures, flush left — the same numeral convention the rest of the document already sets, not a date format of its own. Three lines of space above it set the letterhead off from the letter.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-date">27 August 2026</p>
 </div>
 
-<p class="pair__label" data-element="letter-date-note">6 · Line under the date</p>
-<p class="demo-note">A dedication, a feast, a devotion — whatever the writer puts under the date. Italic, at body size, close enough beneath it that the two read as one line rather than two.</p>
+<p class="pair__label" data-element="letter-date-note">8 · Line under the date</p>
+<p class="demo-note">A dedication, a feast, a devotion — whatever the writer puts under the date. Italic, muted and a step smaller, on the date's own next line, so the two read as one block.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-date">27 August 2026</p>
   <p class="ts-letter-date-note">St Monica, mother of St Augustine Bishop, ora pro nobis</p>
 </div>
 
-<p class="pair__label" data-element="letter-salutation">7 · Salutation</p>
-<p class="demo-note">A greeting, set exactly like any other paragraph in the letter — no weight change, no size change, no heading trying to happen.</p>
+<p class="pair__label" data-element="letter-salutation">9 · Salutation</p>
+<p class="demo-note">A greeting, set like any other paragraph in the letter — no weight change, no size change, no heading trying to happen — with two lines of room above and below it.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-salutation">Dear Registrar,</p>
 </div>
 
-<p class="pair__label" data-element="letter-footnote">8 · Footnote — in a letter</p>
+<p class="pair__label" data-element="letter-quote">10 · Quotation — in a letter</p>
+<p class="demo-note">A prayer, a line, a remembered phrase: indented on both sides, italic and muted, with no rule. A rule is the essay's quotation; a letter sets its quotations apart by indent and colour. Inside a letter, every block quote takes this form.</p>
+<div class="paper typeset typeset--ragged typeset--letter" lang="en">
+  <p>That was my prayer while I waited.</p>
+  <blockquote class="ts-letter-quote">
+    <p>Forgive me my failure to act, O Lord, and if I miss confession today, I will take that as a warning.</p>
+  </blockquote>
+  <p>The queue moved at a glacial pace.</p>
+</div>
+
+<p class="pair__label" data-element="letter-footnote">11 · Footnote — in a letter</p>
 <p class="demo-note">The same marker as the rest of the document's apparatus — superscript, no brackets. On a one-page letter, the rule and the numbered note it sits above are the page foot in every sense but name.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-salutation">Dear Registrar,</p>
@@ -98,28 +145,28 @@
   </div>
 </div>
 
-<p class="pair__label" data-element="letter-closing">9 · Closing</p>
-<p class="demo-note">The same plain rhythm as the salutation it echoes — the only difference is the room above it, not a style of its own.</p>
+<p class="pair__label" data-element="letter-closing">12 · Closing</p>
+<p class="demo-note">The same plain rhythm as the salutation it echoes — the only difference is the room around it: three lines above, two below, not a style of its own.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-closing">Yours sincerely,</p>
 </div>
 
-<p class="pair__label" data-element="letter-signature">10 · Signature block</p>
+<p class="pair__label" data-element="letter-signature">13 · Signature block</p>
 <p class="demo-note">The typed name, with room above it to sign. No ruled line: a rule above a name is a form to be filled in, and this is not a form.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-closing">Yours sincerely,</p>
   <div class="ts-letter-signature">Adilson Carvalho</div>
 </div>
 
-<p class="pair__label" data-element="letter-enclosures">11 · Enclosures</p>
+<p class="pair__label" data-element="letter-enclosures">14 · Enclosures</p>
 <p class="demo-note"><b>Enc.</b> introduces a sentence; it does not head a section, so it carries no small caps and no weight change of its own.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <div class="ts-letter-signature">Adilson Carvalho</div>
   <p class="ts-letter-enclosures">Enc. typeset.css; two specimen pages</p>
 </div>
 
-<p class="pair__label" data-element="letter-postscript">12 · Postscript</p>
-<p class="demo-note">A postscript is a sentence that happens to begin with <b>P.S.</b> — the label is not a heading, so it matches the text it introduces exactly.</p>
+<p class="pair__label" data-element="letter-postscript">15 · Postscript</p>
+<p class="demo-note">A postscript is a sentence that happens to begin with <b>P.S.</b> — the label is not a heading, so it matches the text it introduces exactly. It stands off what precedes it by the signature's own three lines.</p>
 <div class="paper typeset typeset--ragged typeset--letter" lang="en">
   <p class="ts-letter-enclosures">Enc. typeset.css; two specimen pages</p>
   <p class="ts-letter-postscript">P.S. The tables were excellent — tabular figures throughout, which is more than most annual reports manage.</p>

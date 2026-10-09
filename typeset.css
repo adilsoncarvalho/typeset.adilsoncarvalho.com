@@ -994,13 +994,14 @@
   @bottom-center { content: none; }
 }
 
-/* The sender block is address data, not a masthead: one style throughout, at
-   body size, in the reading face. A personal letter does not announce itself —
-   the recipient knows who writes to them. Nothing here is bold, and nothing is
-   set in the sans, so the block recedes and the letter starts sooner. */
+/* Sender and address blocks are address data, not a masthead: the name line
+   in small caps at body size, the lines below it a step smaller, so the eye
+   finds who before where. Nothing bold, nothing in the sans, nothing larger
+   than the text. The block is set at the detail size and its first line is
+   raised back to body size. */
 .typeset .ts-letter-sender {
   text-align: left;
-  font-size: var(--ts-base);
+  font-size: calc(var(--ts-base) * 0.85);
   line-height: 1.35;
   color: var(--ts-ink);
   margin: 0 0 calc(var(--ts-space) * 2.5);
@@ -1014,11 +1015,21 @@
 .typeset .ts-letter-address-block {
   text-align: left;
   font-style: normal;
+  font-size: calc(var(--ts-base) * 0.85);
   line-height: 1.35;
   margin-bottom: calc(var(--ts-space) * 1.5);
 }
+.typeset .ts-letter-sender::first-line,
+.typeset .ts-letter-address-block::first-line {
+  font-size: var(--ts-base);
+  font-variant-caps: all-small-caps;
+}
+/* Floated so it is not the block's first formatted line: the name is, and
+   ::first-line above reaches the name rather than the label. */
 .typeset .ts-letter-address-label {
   display: block;
+  float: left;
+  width: 100%;
   font-family: var(--ts-sans);
   font-size: var(--ts-xs);
   font-weight: 400;
@@ -1029,27 +1040,70 @@
   margin-bottom: 0.25em;
 }
 
+/* The letterhead sits the standard margin (20mm) from the paper's edge, or at
+   the text's own edge where that is nearer the paper. Each child of .typeset
+   is held to the measure and centred; the address column and the crest lift
+   that for themselves and take whichever offset from the page's text box is
+   smaller: the measure's own centring surplus, or the standard margin less
+   the page's margin (negative where the margin is wider, so it reaches out). */
+.typeset { --ts-page-margin: 20mm; }
+.typeset--margin-narrow { --ts-page-margin: 10mm; }
+.typeset--margin-wide { --ts-page-margin: 30mm; }
+.typeset {
+  --ts-letterhead-offset: min(
+    calc((100% - min(var(--ts-measure), 100%)) / 2),
+    calc(20mm - var(--ts-page-margin))
+  );
+}
+.typeset > .ts-letter-addresses {
+  max-width: none;
+  margin-inline: var(--ts-letterhead-offset) 0;
+}
+.typeset > .ts-letter-crest {
+  float: right;
+  width: 20mm;
+  max-width: none;
+  margin: 0 var(--ts-letterhead-offset) 0 var(--ts-space);
+}
+.typeset .ts-letter-crest img,
+.typeset .ts-letter-crest svg { display: block; width: 100%; height: auto; }
+
 .typeset .ts-letter-date {
-  margin-bottom: calc(var(--ts-space) * 1.5);
+  margin: calc(var(--ts-space) * 3) 0 calc(var(--ts-space) * 2);
   font-variant-numeric: oldstyle-nums;
   text-align: left;
 }
 
-/* A line under the date, in italic — a dedication, a feast, a devotion. It
-   belongs to the date rather than following it, so it climbs back over the
-   date's gap and carries that gap itself. Written against the same token as the
-   date's margin so the two cannot drift apart.
+/* A line under the date — a dedication, a feast, a devotion. It is the date's
+   own next line, so it climbs back over the date's whole gap and carries that
+   gap itself. Written against the same token as the date's margin so the two
+   cannot drift apart.
 
    Deliberately not `.ts-letter-date:has(+ .ts-letter-date-note)`: Paged.js's
    CSS parser does not understand `:has()` any more than it understands `:is()`,
    and a selector it cannot parse aborts pagination outright. */
 .typeset .ts-letter-date-note {
-  margin: calc(var(--ts-space) * -1.5 + 0.1em) 0 calc(var(--ts-space) * 1.5);
+  margin: calc(var(--ts-space) * -2) 0 calc(var(--ts-space) * 2);
+  font-size: calc(var(--ts-base) * 0.9);
   font-style: italic;
+  color: var(--ts-ink-muted);
   text-indent: 0;
 }
-.typeset .ts-letter-salutation { margin-bottom: var(--ts-space); text-align: left; }
-.typeset .ts-letter-closing { margin: calc(var(--ts-space) * 1.5) 0 0; text-align: left; }
+.typeset .ts-letter-salutation { margin: calc(var(--ts-space) * 2) 0; text-align: left; }
+
+/* A quotation in a letter is set apart by indent and colour, not by a rule. */
+.typeset--letter blockquote,
+.typeset .ts-letter-quote {
+  margin: calc(var(--ts-space) * 1.5) calc(var(--ts-space) * 2);
+  padding: 0;
+  border: 0;
+  font-size: calc(var(--ts-base) * 1.05);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--ts-ink-muted);
+}
+
+.typeset .ts-letter-closing { margin: calc(var(--ts-space) * 3) 0 calc(var(--ts-space) * 2); text-align: left; }
 
 /* The typed name, with room above it to sign. No rule: a ruled line is a form
    to be filled in, and this is a letter. */
@@ -1071,10 +1125,11 @@
   text-indent: 0;
 }
 /* A postscript is a sentence that happens to begin with "P.S." — the label is
-   not a heading, so it matches the text it introduces exactly. */
+   not a heading, so it matches the text it introduces exactly. It stands off
+   the signature by the signature's own distance from the closing. */
 .typeset .ts-letter-postscript {
   text-align: left;
-  margin-top: var(--ts-space);
+  margin-top: calc(var(--ts-space) * 3);
   font-size: var(--ts-base);
   text-indent: 0;
 }

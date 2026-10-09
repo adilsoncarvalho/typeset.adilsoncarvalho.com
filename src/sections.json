@@ -322,7 +322,8 @@
     "title": "Letter",
     "prose": [
       "<p>Set <b>ragged right</b> — a letter is addressed to a person, and justification reads as institutional.</p>",
-      "<p>The <b>sender block is address data, not a masthead</b>: one style throughout, at body size, in the reading face. Nothing bold, nothing in the sans. A personal letter does not announce itself, and the recipient already knows who writes to them. Omit what you do not use — a personal letter needs no email address and no telephone number.</p>",
+      "<p>The <b>sender and address blocks are address data, not a masthead</b>: the name line in small caps at body size, the lines below it a step smaller, so the eye finds who before where. Nothing bold, nothing in the sans, nothing larger than the text. A personal letter does not announce itself, and the recipient already knows who writes to them. Omit what you do not use — a personal letter needs no email address and no telephone number.</p>",
+      "<p>The <b>letterhead holds the standard margin</b> from the paper's edge. Where the text sits further in — under a wider margin or a centred measure — the addresses and any crest stay out at the standard margin, where an envelope window and a reader's eye expect them.</p>",
       "<p>The <b>signature is the typed name</b>, with room above it to sign. No ruled line: a rule above a name is a form to be filled in, and this is not a form. For the same reason “Enc.” and “P.S.” match the text they introduce exactly — they begin sentences, they do not head sections.</p>",
       "<p>Footnotes belong in a letter as much as in an essay. On a one-page letter the rule and the numbered note at the end <em>are</em> the page foot, so it reads correctly even in an engine that cannot set true footnotes.</p>"
     ],

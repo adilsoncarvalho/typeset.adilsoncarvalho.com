@@ -38,13 +38,13 @@
       <tbody>
       <tr>
         <th scope="row">Every element expressible</th>
-        <td><a href="../files/typeset-css.html">all 103</a> — every element the specification names has a form in CSS. How much of one reaches the page is a question about the engine, and the three rows below are where that gap is widest; 4 elements carry a <code>fallback</code> in <a href="../spec.json">spec.json</a> naming what they degrade to where an engine cannot honour them in full — <a href="../spec/index.html#justification"><code>justification-justified</code></a>, <a href="../spec/index.html#note"><code>note-footnote</code></a>, <a href="../spec/index.html#toc"><code>toc-entry</code></a> and <a href="../spec/index.html#letter"><code>letter-footnote</code></a>.</td>
-        <td><a href="../files/typeset-typ.html">all 103</a> — every element has a Typst form; 2 fall short of the full property set: <a href="../spec/index.html#quote"><code>quote-verse</code></a> and <a href="../spec/index.html#bibliography"><code>bibliography-entry</code></a> lose their runover indent, per each one's <code>fallback</code> in spec.json. The <a href="../files/typeset-typ.html#L817">drop cap</a> is set in the margin rather than wrapped, because Typst has no float.</td>
-        <td><a href="../files/iawriter-css.html">Markdown subset only</a> — headings, body text, bold, italic, tables and footnotes; not the 103 elements the specification names, and not signature blocks, callouts, sidenotes or drop caps, which Markdown has no markup for.</td>
+        <td><a href="../files/typeset-css.html">all 106</a> — every element the specification names has a form in CSS. How much of one reaches the page is a question about the engine, and the three rows below are where that gap is widest; 4 elements carry a <code>fallback</code> in <a href="../spec.json">spec.json</a> naming what they degrade to where an engine cannot honour them in full — <a href="../spec/index.html#justification"><code>justification-justified</code></a>, <a href="../spec/index.html#note"><code>note-footnote</code></a>, <a href="../spec/index.html#toc"><code>toc-entry</code></a> and <a href="../spec/index.html#letter"><code>letter-footnote</code></a>.</td>
+        <td><a href="../files/typeset-typ.html">all 106</a> — every element has a Typst form; 2 fall short of the full property set: <a href="../spec/index.html#quote"><code>quote-verse</code></a> and <a href="../spec/index.html#bibliography"><code>bibliography-entry</code></a> lose their runover indent, per each one's <code>fallback</code> in spec.json. The <a href="../files/typeset-typ.html#L817">drop cap</a> is set in the margin rather than wrapped, because Typst has no float.</td>
+        <td><a href="../files/iawriter-css.html">Markdown subset only</a> — headings, body text, bold, italic, tables and footnotes; not the 106 elements the specification names, and not signature blocks, callouts, sidenotes or drop caps, which Markdown has no markup for.</td>
       </tr>
       <tr>
         <th scope="row">Paginated two columns</th>
-        <td><a href="../files/typeset-css.html#L1083">no</a> — Paged.js paginates by moving content between page boxes and cannot fragment a column flow; <a href="../examples/two-column.html">the two-column example</a> drops Paged.js entirely and lets the browser's own print produce the columns instead.</td>
+        <td><a href="../files/typeset-css.html#L1138">no</a> — Paged.js paginates by moving content between page boxes and cannot fragment a column flow; <a href="../examples/two-column.html">the two-column example</a> drops Paged.js entirely and lets the browser's own print produce the columns instead.</td>
         <td><a href="../files/typeset-typ.html#L849">yes, natively</a></td>
         <td><a href="../files/iawriter-css.html">no</a> — WebKit's print path ignores every CSS multi-column property, so a two-column template previews correctly on screen and exports as a single column.</td>
       </tr>
@@ -57,7 +57,7 @@
       <tr>
         <th scope="row">True page-foot footnotes</th>
         <td><a href="../files/typeset-css.html#L712">WeasyPrint and Prince only</a> — per spec.json: “Bottom-of-page footnotes require an engine that can measure the page while laying it out. Typst and LaTeX do this natively. WeasyPrint 53+ and Prince implement the CSS footnote model. No browser does.”</td>
-        <td><a href="../files/typeset-typ.html#L1244">yes, natively</a></td>
+        <td><a href="../files/typeset-typ.html#L1323">yes, natively</a></td>
         <td><a href="../files/iawriter-css.html">no</a> — Markdown has no page-position construct for a note, so it degrades to an endnotes block at the end of the document.</td>
       </tr>
       </tbody>

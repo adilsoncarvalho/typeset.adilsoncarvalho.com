@@ -4,24 +4,25 @@
 
 #show: letter-page      // ragged right, no running head, no folio
 
-#letter-sender[
-  Adilson Carvalho \
-  10 Wentworth Avenue \
-  Surry Hills NSW 2010 \
-  Australia
+#letter-addresses[
+  #letter-sender[
+    Adilson Carvalho \
+    10 Wentworth Avenue \
+    Surry Hills NSW 2010 \
+    Australia
+  ]
+
+  #letter-address-block(label: [To])[
+    The Registrar \
+    Institute of Typographic Studies \
+    88 Rundle Street \
+    Adelaide SA 5000
+  ]
 ]
 
-#letter-address-block(label: [To])[
-  The Registrar \
-  Institute of Typographic Studies \
-  88 Rundle Street \
-  Adelaide SA 5000
-]
+#letter-date(note: [St Monica, mother of St Augustine Bishop, ora pro nobis])[27 August 2026]
 
-27 August 2026
-#letter-date-note[St Monica, mother of St Augustine Bishop, ora pro nobis]
-
-Dear Registrar,
+#letter-salutation[Dear Registrar,]
 
 I am writing about the setting of the Institute's annual report, which arrived
 this morning and which I read with rather more attention to its margins than to
@@ -39,7 +40,7 @@ the marginal notes that are currently crowded into footnotes.
 If it would be useful, I am glad to set one section of next year's report as a
 demonstration.
 
-Yours sincerely,
+#letter-closing[Yours sincerely,]
 
 #letter-signature[Adilson Carvalho]
 

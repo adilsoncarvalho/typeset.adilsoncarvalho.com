@@ -1,7 +1,7 @@
 {
   "name": "typeset",
-  "version": "2.0.0",
-  "updated": "2026-09-13",
+  "version": "2.1.0",
+  "updated": "2026-10-09",
   "owner": "Adilson Carvalho",
   "canonical_url": "https://typeset.adilsoncarvalho.com",
   "intent": "A normative typographic specification for printed documents — essays, letters, reports. This file is the source of truth. CSS, Typst, LaTeX or any other implementation conforms to it; where an implementation and this file disagree, this file is right.",
@@ -1537,8 +1537,9 @@
       "group": "Documents",
       "principles": [
         "A letter is set ragged right. It is addressed to a person, and justification reads as institutional.",
-        "The sender block is address data, not a masthead: one style throughout, at body size, in the reading face. Nothing bold, nothing in the sans. A personal letter does not announce itself.",
+        "Sender and address blocks are address data, not a masthead. The name line is set in small caps at body size, and the lines below it a step smaller, so the eye finds who before where. Nothing bold, nothing in the sans, nothing larger than the text: a personal letter does not announce itself.",
         "Address blocks are line-broken data, not prose: tighter leading, never justified, line breaks as authored.",
+        "The letterhead — the addresses and any crest — sits the standard margin from the paper's edge, or at the text's own edge where that is nearer the paper. Where the text sits further in, under a wider margin or a centred measure, the letterhead stays out at the standard margin rather than moving in with it.",
         "The signature is the typed name with room above it to sign. No ruled line — a rule is a form to be filled in.",
         "A letter carries no running head and no folio.",
         "Footnotes belong in a letter as much as in an essay. Where the engine cannot set them at the page foot, the rule plus the numbered note at the end of a one-page letter reads as a footnote area regardless."
@@ -1552,7 +1553,8 @@
             "margin_bottom_mm": 20,
             "margin_sides_mm": 20,
             "running_head": "none",
-            "folio": "none"
+            "folio": "none",
+            "block_quote": "letter-quote"
           },
           "derivation": {
             "derived_for": "foundation.page.margins.symmetric_mm.standard, on every edge, plus this element's own letterhead_band_mm added to the top alone. No copy of the standard margin is kept here.",
@@ -1574,10 +1576,12 @@
             "color": "ink",
             "align": "left",
             "line_breaks": "as authored — name, street, suburb and postcode, country",
-            "space_after": "27.5pt"
+            "space_after": "27.5pt",
+            "name_line": "small caps (smcp and c2sc), at body size",
+            "detail_size": "9.35pt — 0.85 of body"
           },
           "notes": [
-            "Every line is the same style, including the name. Setting the name larger or bolder turns a letter into stationery.",
+            "The name is the one line in small caps, at body size; street, suburb and country sit a step smaller beneath it. Never larger and never bold — that turns a letter into stationery.",
             "Omit what you do not use. A personal letter needs no email address and no telephone number."
           ]
         },
@@ -1591,8 +1595,34 @@
             "style": "normal",
             "align": "left",
             "line_breaks": "as authored",
-            "space_after": "16.5pt"
+            "space_after": "16.5pt",
+            "name_line": "small caps (smcp and c2sc), at body size",
+            "detail_size": "9.35pt — 0.85 of body"
           }
+        },
+        {
+          "id": "letter-addresses",
+          "name": "Address column",
+          "properties": {
+            "left_edge": "foundation.page.margins.symmetric_mm.standard from the paper's left edge, or the text's own left edge where that is nearer the paper",
+            "reach": "how far the text's left edge sits beyond symmetric_mm.standard — from a wider margin, a centred measure or both — or none"
+          },
+          "notes": [
+            "Holds the sender and address blocks. The reach is measured from where the text actually starts, so it follows the page margin and the measure together."
+          ]
+        },
+        {
+          "id": "letter-crest",
+          "name": "Crest",
+          "properties": {
+            "position": "top right of the first page, its top on the top margin",
+            "right_edge": "symmetric_mm.standard from the paper's right edge, or the text's own right edge where that is nearer the paper",
+            "width": "20mm",
+            "color": "accent, where the mark is drawn in a single ink"
+          },
+          "notes": [
+            "Optional. A letter with no crest leaves the corner empty; nothing moves into it."
+          ]
         },
         {
           "id": "letter-date",
@@ -1600,8 +1630,12 @@
           "properties": {
             "numerals": "oldstyle",
             "align": "left",
-            "space_after": "16.5pt"
-          }
+            "space_before": "33pt",
+            "space_after": "22pt"
+          },
+          "notes": [
+            "The date and the line under it are one block. The space after belongs to the pair, not to the date alone."
+          ]
         },
         {
           "id": "letter-date-note",
@@ -1609,11 +1643,11 @@
           "properties": {
             "font": "serif",
             "style": "italic",
-            "size": "11pt",
-            "color": "ink",
+            "size": "9.9pt — 0.9 of body",
+            "color": "ink_muted",
             "align": "left",
-            "space_before": "0.1em — it belongs to the date, and takes no gap of its own",
-            "space_after": "16.5pt"
+            "space_before": "none — the date's own next line, at body leading",
+            "space_after": "22pt, the date's"
           },
           "notes": [
             "A dedication, a feast, a devotion — whatever the writer puts under the date. Italic, at body size, immediately beneath."
@@ -1624,15 +1658,36 @@
           "name": "Salutation",
           "properties": {
             "align": "left",
-            "space_after": "11pt"
+            "space_before": "22pt",
+            "space_after": "22pt"
           }
+        },
+        {
+          "id": "letter-quote",
+          "name": "Quotation — in a letter",
+          "properties": {
+            "font": "serif",
+            "style": "italic",
+            "weight": 400,
+            "size": "11.55pt — 1.05 of body",
+            "color": "ink_muted",
+            "indent_left": "22pt",
+            "indent_right": "22pt",
+            "rule": "none",
+            "space_before": "16.5pt",
+            "space_after": "16.5pt"
+          },
+          "notes": [
+            "A letter quotes a prayer, a line, a remembered phrase. It is set apart by indent and colour, not by a rule: a rule is the essay's quotation, and a letter is not an essay."
+          ]
         },
         {
           "id": "letter-closing",
           "name": "Closing",
           "properties": {
             "align": "left",
-            "space_before": "16.5pt"
+            "space_before": "33pt",
+            "space_after": "22pt"
           }
         },
         {
@@ -1672,7 +1727,7 @@
             "font": "serif",
             "size": "11pt",
             "align": "left",
-            "space_before": "11pt",
+            "space_before": "33pt — the signature's own distance from the closing",
             "label": "same style as the text it introduces — no small caps, no weight change"
           },
           "notes": [

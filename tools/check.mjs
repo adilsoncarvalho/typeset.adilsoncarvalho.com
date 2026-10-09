@@ -1956,6 +1956,14 @@ const INTERNAL_SYMBOLS = new Set([
      Not styles themselves; letter-page is (it names the spec element id
      directly). */
   'letterhead-band', 'letter-margin',
+  /* the name line / detail lines split and style shared by letter-sender and
+     letter-address-block, and the note's style shared by letter-date and
+     letter-date-note. Not styles themselves. */
+  '_first-line', '_address-lines', '_date-note-text',
+  /* a document-side helper for letter-crest's image: swaps one colour in an
+     SVG's text. No spec element — the spec states the crest's colour, not
+     how a file is recoloured. */
+  'svg-recolor',
 ]);
 
 /* Engine element functions this file re-publishes under a second name. Not
@@ -5066,6 +5074,77 @@ const EXCUSED_LINKS = new Map([]);
       fail.push(`tools/check.mjs: "${path}" is in EXCUSED_LINKS ("${why}") and now resolves — `
         + 'delete the entry, so the next dead link is reported instead of excused');
     }
+  }
+}
+
+/* ---- 30. The letterhead holds the standard margin from the paper's edge -- */
+
+/* letter-addresses and letter-crest sit symmetric_mm.standard from the paper's
+   edge, or at the text's own edge where that is nearer the paper. Both inputs
+   move independently — the page margin, and the measure centred inside it —
+   and the reach is computed at layout time, which no source check can see.
+   So this renders one letterhead per case, reads where the text itself
+   starts and how wide it is from markers in the flow, and holds the address
+   column's left edge and the crest's left edge to the rule. The cases cover
+   each branch: text further in than the standard by a wide margin, by the
+   centred measure alone, and by both; and text nearer the paper than the
+   standard, where the letterhead stays with the text. */
+
+const letterSection = spec.sections.find((sec) => sec.id === 'letter');
+const crestWidthMm = Number(/^([\d.]+)mm$/.exec(
+  letterSection?.elements.find((el) => el.id === 'letter-crest')?.properties.width ?? '')?.[1]);
+const standardMm = symmetricMm.standard;
+const HANG_TOLERANCE_MM = 0.01;
+
+if (!symmetryPaperTypKey || !Number.isFinite(crestWidthMm) || !Number.isFinite(standardMm)) {
+  fail.push('tools/check.mjs: gate 30 cannot build its probe — it needs foundation.page.size, '
+    + 'symmetric_mm.standard and letter-crest.properties.width in mm');
+} else {
+  const hangProbeDir = mkdtempSync(join(tmpdir(), 'typeset-hang-check-'));
+  const paper = `paper: "${symmetryPaperTypKey}"`;
+  const cases = [
+    { name: 'a wide margin, full measure', show: `typeset.with(${paper}, margin: ${standardMm + 15}mm, measure: measure-full)` },
+    { name: "letter-page's own margin, centred measure", show: `letter-page.with(${paper})` },
+    { name: 'a narrow margin, centred measure', show: `typeset.with(${paper}, margin: ${standardMm / 2}mm)` },
+    { name: 'a narrow margin, full measure', show: `typeset.with(${paper}, margin: ${standardMm / 2}mm, measure: measure-full)` },
+  ];
+  try {
+    copyFileSync('implementations/typeset.typ', join(hangProbeDir, 'typeset.typ'));
+    const probePath = join(hangProbeDir, 'hang.typ');
+    const read = (label) => Number(JSON.parse(execFileSync(
+      'typst',
+      ['query', '--font-path', resolve('fonts'), probePath, `<${label}>`, '--field', 'value', '--one'],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    ).toString()));
+    for (const c of cases) {
+      writeFileSync(probePath, '#import "typeset.typ": *\n'
+        + `#show: ${c.show}\n\n`
+        + '#letter-crest(block(width: 100%)[#context [#metadata(here().position().x / 1mm) <ts-crest-x>]])\n'
+        + '#letter-addresses[#context [#metadata(here().position().x / 1mm) <ts-addresses-x>]]\n\n'
+        + 'The letter begins.\n\n'
+        + '#context [#metadata(here().position().x / 1mm) <ts-text-left>]\n'
+        + '#layout(size => [#metadata(size.width / 1mm) <ts-text-width>])\n');
+      const textLeft = read('ts-text-left');
+      const textRight = textLeft + read('ts-text-width');
+      const expectAddresses = Math.min(textLeft, standardMm);
+      const rightEdgeMm = Math.min(symmetryPaperWidthMm - textRight, standardMm);
+      const expectCrest = symmetryPaperWidthMm - rightEdgeMm - crestWidthMm;
+      const addresses = read('ts-addresses-x');
+      const crest = read('ts-crest-x');
+      if (Math.abs(addresses - expectAddresses) > HANG_TOLERANCE_MM) {
+        fail.push(`typeset.typ: with ${c.name}, letter-addresses starts ${addresses.toFixed(2)}mm from the `
+          + `paper's left edge, expected ${expectAddresses.toFixed(2)}mm (text starts at ${textLeft.toFixed(2)}mm)`);
+      }
+      if (Math.abs(crest - expectCrest) > HANG_TOLERANCE_MM) {
+        fail.push(`typeset.typ: with ${c.name}, letter-crest's left edge is at ${crest.toFixed(2)}mm, expected `
+          + `${expectCrest.toFixed(2)}mm — ${rightEdgeMm.toFixed(2)}mm from the paper's right edge`);
+      }
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+    fail.push(`typeset.typ: the letterhead hang probe failed to compile:\n${detail}`);
+  } finally {
+    rmSync(hangProbeDir, { recursive: true, force: true });
   }
 }
 
