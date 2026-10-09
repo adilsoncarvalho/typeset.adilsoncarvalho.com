@@ -2,7 +2,8 @@
    The letter's page. Loaded last, so it wins over typeset.css and iawriter.css.
    ========================================================================== */
 
-/* A4 at 20mm on all four sides.
+/* A4 at 35mm on all four sides — letter-page's own margin: the standard 20mm
+   plus its 15mm inset.
 
    `@page` is the whole mechanism, and it is the ONLY one: iA Writer draws the
    header and the footer into bands whose depth is IATemplateHeaderHeight and
@@ -13,21 +14,13 @@
    all four margins. */
 @page {
   size: A4;
-  margin: 20mm;
+  margin: 35mm;
 }
 
-/* The text fills the 170mm the margins leave, rather than stopping at the
-   33em measure.
-
-   This is a DEPARTURE FROM THE SPECIFICATION, made deliberately and worth
-   stating plainly: 170mm at the 11pt base carries about 88 characters, against
-   the 75-character ceiling `foundation.rhythm` sets. The spec's own position is
-   that the measure is the rule everything else is downstream of. This template
-   overrides it because a letter with 2cm margins and a 12.8cm column reads as
-   a column of text adrift on a sheet, and the page is what was asked for.
-
-   Anything narrower than A4, or any larger base size, brings the two back into
-   agreement; nothing else in the template depends on the cap. */
+/* The text fills the 140mm the margins leave, at letter-page's 12pt base:
+   about 66 characters, the standard measure, reached by the margin rather
+   than by a cap. So the cap is lifted. */
+body.typeset { --ts-base: 12pt; }
 body.typeset,
 body.typeset > * {
   max-width: none;

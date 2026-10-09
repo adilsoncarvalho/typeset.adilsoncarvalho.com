@@ -1,0 +1,12 @@
+# Makes implementations/ a Typst package, so a document anywhere can write
+# `#import "@local/typeset:2.1.0": *` once this folder is linked into Typst's
+# local package directory. The version is spec.json's; tools/check.mjs holds
+# the two together.
+[package]
+name = "typeset"
+version = "2.1.0"
+entrypoint = "typeset.typ"
+authors = ["Adilson Carvalho"]
+description = "A typographic specification for printed documents: essays, letters, reports."
+homepage = "https://typeset.adilsoncarvalho.com"
+repository = "https://github.com/adilsoncarvalho/typeset.adilsoncarvalho.com"

@@ -1392,6 +1392,17 @@ const doc = readFileSync(`${IAW}/letter/document.html`, 'utf8');
 if (plistValue(plist, 'CFBundleShortVersionString') !== spec.version) {
   fail.push(`${IAW}/letter/Info.plist: version is ${plistValue(plist, 'CFBundleShortVersionString')}, spec.json says ${spec.version}`);
 }
+
+/* implementations/ is also a Typst package: a document imports it as
+   @<namespace>/typeset:<version>, so the manifest names the spec's version. */
+const typstToml = readFileSync('implementations/typst.toml', 'utf8');
+const tomlField = (key) => new RegExp(`^${key}\\s*=\\s*"([^"]*)"`, 'm').exec(typstToml)?.[1];
+if (tomlField('version') !== spec.version) {
+  fail.push(`implementations/typst.toml: version is ${tomlField('version')}, spec.json says ${spec.version}`);
+}
+if (tomlField('entrypoint') !== 'typeset.typ') {
+  fail.push(`implementations/typst.toml: entrypoint is ${tomlField('entrypoint')}, expected typeset.typ`);
+}
 if (!doc.includes('data-document')) {
   fail.push(`${IAW}/letter/document.html: no data-document element — iA Writer would render an empty page`);
 }
@@ -1405,21 +1416,19 @@ for (const key of ['IATemplateHeaderFile', 'IATemplateHeaderHeight',
   }
 }
 
-/* The letter deliberately lets the text fill the page rather than stopping at
-   the measure, so the cap must actually be lifted — with the cap in place the
-   column would sit adrift with the margins asked for. This is the one place a
-   template departs from the spec, so it is asserted rather than left to drift
-   back silently. */
+/* The letter lets the text fill the page its margins leave (letter-page's
+   full measure), so the cap must actually be lifted — with it in place the
+   column would sit centred inside the margins rather than filling them. */
 if (!/max-width:\s*none/.test(letterPage)) {
   fail.push(`${IAW}/letter/page.css: the measure cap is not lifted, so the column will not fill the page the margins leave`);
 }
 
-/* A letter is set ragged right; the spec forbids justifying one. */
-if (!doc.includes('typeset--ragged')) {
-  fail.push(`${IAW}/letter/document.html: a letter is set ragged right — typeset--ragged is missing`);
+/* A letter is set justified (letter-page.properties.justification). */
+if (!doc.includes('typeset--justified')) {
+  fail.push(`${IAW}/letter/document.html: a letter is set justified — typeset--justified is missing`);
 }
-if (doc.includes('typeset--justified') || doc.includes('typeset--two-column')) {
-  fail.push(`${IAW}/letter/document.html: a letter must not be justified`);
+if (doc.includes('typeset--ragged') || doc.includes('typeset--two-column')) {
+  fail.push(`${IAW}/letter/document.html: a letter must not be set ragged right or in two columns`);
 }
 
 /* Every family/weight/style the template asks for must have a face bound for it.
@@ -1927,7 +1936,11 @@ const INTERNAL_SYMBOLS = new Set([
      block-spaced/block-indented below — not a style itself */
   '_paragraphs-rule',
   /* document and template entry points */
-  'typeset', 'two-column', 'span',
+  'typeset', 'two-column', 'span', 'letter',
+  /* letter()'s own helpers: a line list joined for an address block, and the
+     accent colour kept under a second name because letter() takes a
+     parameter called accent. Not styles themselves. */
+  '_lines', '_letter-accent-ink',
   /* typeset()'s two halves — the page it sets once per document, and the
      styles it sets over the body. Both templates call both: two-column() has
      to set the page, draw its column rule on it, and only then set the styles,
@@ -1950,12 +1963,20 @@ const INTERNAL_SYMBOLS = new Set([
      themselves; note-sidenote is (it names the spec element id directly). */
   'measure-sidenote', 'sidenote-reserved-margin', 'sidenote-note-width', 'sidenote-gap',
   'ts-sidenotes-active',
-  /* letter-page's own derived margin — spec.json's letter-page.derivation
-     names letterhead_band_mm, and letter-margin composes it with
-     margin-standard into the dict letter-page actually passes to typeset().
-     Not styles themselves; letter-page is (it names the spec element id
-     directly). */
-  'letterhead-band', 'letter-margin',
+  /* letter-page's own derived margin and scale — spec.json's
+     letter-page.derivation names letter_inset_mm, letter-margin composes it
+     with margin-standard on every edge, and scale-letter is the single-column
+     scale at letter-page's 12pt base. Not styles themselves; letter-page is
+     (it names the spec element id directly). */
+  'letter-inset', 'letter-margin', 'scale-letter',
+  /* the name line / detail lines split and style shared by letter-sender and
+     letter-address-block, and the note's style shared by letter-date and
+     letter-date-note. Not styles themselves. */
+  '_first-line', '_address-lines', '_date-note-text',
+  /* a document-side helper for letter-crest's image: swaps one colour in an
+     SVG's text. No spec element — the spec states the crest's colour, not
+     how a file is recoloured. */
+  'svg-recolor',
 ]);
 
 /* Engine element functions this file re-publishes under a second name. Not
@@ -2010,6 +2031,10 @@ const IMPLEMENTS = new Map([
     'quote-blockquote', 'quote-attribution',
     'quote-epigraph', 'quote-pullquote', 'quote-verse',
   ]],
+  /* letter-address-block with its label set by role — From, To — named for
+     the address a writer is entering rather than for the caption it gets. */
+  ['letter-address-from', ['letter-address-block', 'letter-address-label']],
+  ['letter-address-to', ['letter-address-block', 'letter-address-label']],
 ]);
 
 for (const [sym, ids] of IMPLEMENTS) {
@@ -2764,16 +2789,16 @@ for (const name of marginNames) {
    the letter's own page: spec.json's letter-page element states three plain
    millimetre numbers, and until this gate nothing compared either
    implementation's copy of them to spec.json, or spec.json's own numbers to
-   each other. letter-page.derivation now names the one number that is not
-   the symmetric default — letterhead_band_mm, added to the top alone — so
-   the three properties below are recomputed from it and from
+   each other. letter-page.derivation names the one number that is not the
+   symmetric default — letter_inset_mm, added to every edge — so the three
+   properties below are recomputed from it and from
    foundation.page.margins.symmetric_mm.standard, not trusted as written.
 
    The CSS half stays a source check, the same as gate 7's: @page ts-letter's
    margin shorthand is a plain declaration, uncomplicated by anything else on
    the page, so reading it back and comparing the numbers is as strong a
    proof as rendering it. The Typst half cannot stay a source check —
-   letter-margin is now an expression (margin-standard.top + letterhead-band),
+   letter-margin is an expression (margin-standard.top + letter-inset),
    not a literal dict gate 7's regex could read a number out of — so this
    renders a real letter-page() document and reads the numbers back off it,
    the same lesson gate 22 already drew for the measure: a derivation that
@@ -2797,16 +2822,15 @@ for (const name of marginNames) {
   if (!letterPageEl) {
     fail.push('spec.json declares no "letter-page" element — gate 24 cannot check the letter\'s '
       + 'page against it');
-  } else if (!letterPageEl.derivation || typeof letterPageEl.derivation.letterhead_band_mm !== 'number') {
-    fail.push('spec.json: letter-page has no derivation.letterhead_band_mm — the letterhead band '
-      + 'this gate holds both implementations to must be a named number, not implied by the top '
-      + 'margin alone');
+  } else if (!letterPageEl.derivation || typeof letterPageEl.derivation.letter_inset_mm !== 'number') {
+    fail.push('spec.json: letter-page has no derivation.letter_inset_mm — the inset this gate holds '
+      + 'both implementations to must be a named number, not implied by the margins alone');
   } else {
     const standardMm = symmetricMm.standard;
-    const bandMm = letterPageEl.derivation.letterhead_band_mm;
-    const expectedTopMm = standardMm + bandMm;
-    const expectedBottomMm = standardMm;
-    const expectedSidesMm = standardMm;
+    const insetMm = letterPageEl.derivation.letter_inset_mm;
+    const expectedTopMm = standardMm + insetMm;
+    const expectedBottomMm = standardMm + insetMm;
+    const expectedSidesMm = standardMm + insetMm;
 
     /* spec.json's own three numbers must be exactly what the derivation
        above says — the "duplex total = 2x symmetric" check gate 7 runs
@@ -2815,17 +2839,15 @@ for (const name of marginNames) {
     if (!mmClose(topMm, expectedTopMm)) {
       fail.push(`spec.json: letter-page.properties.margin_top_mm is ${topMm}, but `
         + `foundation.page.margins.symmetric_mm.standard (${standardMm}) + `
-        + `letter-page.derivation.letterhead_band_mm (${bandMm}) is ${expectedTopMm}`);
+        + `letter-page.derivation.letter_inset_mm (${insetMm}) is ${expectedTopMm}`);
     }
     if (!mmClose(bottomMm, expectedBottomMm)) {
       fail.push(`spec.json: letter-page.properties.margin_bottom_mm is ${bottomMm}, but `
-        + `foundation.page.margins.symmetric_mm.standard is ${expectedBottomMm} and letter-page's own `
-        + 'notes say the foot carries no reason to differ from it');
+        + `symmetric_mm.standard + letter_inset_mm is ${expectedBottomMm}`);
     }
     if (!mmClose(sidesMm, expectedSidesMm)) {
       fail.push(`spec.json: letter-page.properties.margin_sides_mm is ${sidesMm}, but `
-        + `foundation.page.margins.symmetric_mm.standard is ${expectedSidesMm} and letter-page's own `
-        + 'notes say the sides carry no reason to differ from it');
+        + `symmetric_mm.standard + letter_inset_mm is ${expectedSidesMm}`);
     }
 
     /* CSS: @page ts-letter's margin shorthand, top | sides | bottom (the
@@ -5065,6 +5087,284 @@ const EXCUSED_LINKS = new Map([]);
     } else if (resolveUrl(path, derived).ok) {
       fail.push(`tools/check.mjs: "${path}" is in EXCUSED_LINKS ("${why}") and now resolves — `
         + 'delete the entry, so the next dead link is reported instead of excused');
+    }
+  }
+}
+
+/* ---- 30. The letterhead holds the standard margin from the paper's edge -- */
+
+/* letter-addresses and letter-crest sit symmetric_mm.standard from the paper's
+   edge, or at the text's own edge where that is nearer the paper. Both inputs
+   move independently — the page margin, and the measure centred inside it —
+   and the reach is computed at layout time, which no source check can see.
+   So this renders one letterhead per case, reads where the text itself
+   starts and how wide it is from markers in the flow, and holds the address
+   column's left edge and the crest's left edge to the rule. The cases cover
+   each branch: text further in than the standard by a wide margin, by the
+   centred measure alone, and by both; and text nearer the paper than the
+   standard, where the letterhead stays with the text. */
+
+const letterSection = spec.sections.find((sec) => sec.id === 'letter');
+const crestWidthMm = Number(/^([\d.]+)mm$/.exec(
+  letterSection?.elements.find((el) => el.id === 'letter-crest')?.properties.width ?? '')?.[1]);
+const standardMm = symmetricMm.standard;
+const HANG_TOLERANCE_MM = 0.01;
+
+if (!symmetryPaperTypKey || !Number.isFinite(crestWidthMm) || !Number.isFinite(standardMm)) {
+  fail.push('tools/check.mjs: gate 30 cannot build its probe — it needs foundation.page.size, '
+    + 'symmetric_mm.standard and letter-crest.properties.width in mm');
+} else {
+  const hangProbeDir = mkdtempSync(join(tmpdir(), 'typeset-hang-check-'));
+  const paper = `paper: "${symmetryPaperTypKey}"`;
+  const cases = [
+    { name: 'a wide margin, full measure', show: `typeset.with(${paper}, margin: ${standardMm + 15}mm, measure: measure-full)` },
+    { name: "letter-page's own page", show: `letter-page.with(${paper})` },
+    { name: 'a wide margin, centred measure', show: `typeset.with(${paper}, margin: ${standardMm + 15}mm)` },
+    { name: 'a narrow margin, centred measure', show: `typeset.with(${paper}, margin: ${standardMm / 2}mm)` },
+    { name: 'a narrow margin, full measure', show: `typeset.with(${paper}, margin: ${standardMm / 2}mm, measure: measure-full)` },
+  ];
+  try {
+    copyFileSync('implementations/typeset.typ', join(hangProbeDir, 'typeset.typ'));
+    const probePath = join(hangProbeDir, 'hang.typ');
+    const read = (label) => Number(JSON.parse(execFileSync(
+      'typst',
+      ['query', '--font-path', resolve('fonts'), probePath, `<${label}>`, '--field', 'value', '--one'],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    ).toString()));
+    for (const c of cases) {
+      writeFileSync(probePath, '#import "typeset.typ": *\n'
+        + `#show: ${c.show}\n\n`
+        + '#letter-crest(block(width: 100%)[#context [#metadata(here().position().x / 1mm) <ts-crest-x>]])\n'
+        + '#letter-addresses[#context [#metadata(here().position().x / 1mm) <ts-addresses-x>]]\n\n'
+        + 'The letter begins.\n\n'
+        + '#context [#metadata(here().position().x / 1mm) <ts-text-left>]\n'
+        + '#layout(size => [#metadata(size.width / 1mm) <ts-text-width>])\n');
+      const textLeft = read('ts-text-left');
+      const textRight = textLeft + read('ts-text-width');
+      const expectAddresses = Math.min(textLeft, standardMm);
+      const rightEdgeMm = Math.min(symmetryPaperWidthMm - textRight, standardMm);
+      const expectCrest = symmetryPaperWidthMm - rightEdgeMm - crestWidthMm;
+      const addresses = read('ts-addresses-x');
+      const crest = read('ts-crest-x');
+      if (Math.abs(addresses - expectAddresses) > HANG_TOLERANCE_MM) {
+        fail.push(`typeset.typ: with ${c.name}, letter-addresses starts ${addresses.toFixed(2)}mm from the `
+          + `paper's left edge, expected ${expectAddresses.toFixed(2)}mm (text starts at ${textLeft.toFixed(2)}mm)`);
+      }
+      if (Math.abs(crest - expectCrest) > HANG_TOLERANCE_MM) {
+        fail.push(`typeset.typ: with ${c.name}, letter-crest's left edge is at ${crest.toFixed(2)}mm, expected `
+          + `${expectCrest.toFixed(2)}mm — ${rightEdgeMm.toFixed(2)}mm from the paper's right edge`);
+      }
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+    fail.push(`typeset.typ: the letterhead hang probe failed to compile:\n${detail}`);
+  } finally {
+    rmSync(hangProbeDir, { recursive: true, force: true });
+  }
+}
+
+/* ---- 31. letter-date sets the saint's line only when there is a saint ---- */
+
+/* letter-date(date, saint:) adds the saint's line, closed with ", ora pro
+   nobis", only when a saint is given. "Not given" has three spellings a
+   document can reach — the default none, an empty string, and empty content
+   from a template's blank field — and each must leave the date alone on one
+   line. Measured by height: one line for each of those, two for a named saint. */
+{
+  const dateProbeDir = mkdtempSync(join(tmpdir(), 'typeset-letter-date-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(dateProbeDir, 'typeset.typ'));
+    const probePath = join(dateProbeDir, 'date.typ');
+    writeFileSync(probePath, '#import "typeset.typ": *\n#show: letter-page\n'
+      + '#context {\n'
+      + '  let h(b) = measure(b).height / 1pt\n'
+      + '  [#metadata((\n'
+      + '    alone: h(letter-date[1 May 2026]),\n'
+      + '    empty-string: h(letter-date([1 May 2026], saint: "")),\n'
+      + '    empty-content: h(letter-date([1 May 2026], saint: [])),\n'
+      + '    saint: h(letter-date([1 May 2026], saint: [St Joseph the Worker])),\n'
+      + '  )) <ts-letter-date>]\n'
+      + '}\n');
+    const heights = JSON.parse(execFileSync(
+      'typst',
+      ['query', '--font-path', resolve('fonts'), probePath, '<ts-letter-date>', '--field', 'value', '--one'],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    ).toString());
+    for (const absent of ['empty-string', 'empty-content']) {
+      if (Math.abs(heights[absent] - heights.alone) > 0.01) {
+        fail.push(`typeset.typ: letter-date with saint: ${absent === 'empty-string' ? '""' : '[]'} sets `
+          + `${heights[absent].toFixed(2)}pt, not the date alone (${heights.alone.toFixed(2)}pt) — an empty saint `
+          + 'must print no ", ora pro nobis" line');
+      }
+    }
+    if (!(heights.saint > heights.alone + 1)) {
+      fail.push(`typeset.typ: letter-date with a saint sets ${heights.saint.toFixed(2)}pt, no taller than the `
+        + `date alone (${heights.alone.toFixed(2)}pt) — the saint's line is missing`);
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+    fail.push(`typeset.typ: the letter-date probe failed:\n${detail}`);
+  } finally {
+    rmSync(dateProbeDir, { recursive: true, force: true });
+  }
+}
+
+/* ---- 32. letter-salutation writes the greeting and the comma itself ----- */
+
+/* letter-salutation takes the name; the greeting defaults to "Dear" and the
+   comma is added. Each form is held to the width of the line it should set,
+   written out in full, so a lost default, a dropped comma or a greeting in the
+   wrong place all change the width. */
+{
+  const salutationProbeDir = mkdtempSync(join(tmpdir(), 'typeset-salutation-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(salutationProbeDir, 'typeset.typ'));
+    const probePath = join(salutationProbeDir, 'salutation.typ');
+    writeFileSync(probePath, '#import "typeset.typ": *\n#show: letter-page\n'
+      + '#context {\n'
+      + '  let w(b) = measure(box(b)).width / 1pt\n'
+      + '  [#metadata((\n'
+      + '    default-form: w(letter-salutation[Fr Lai]),\n'
+      + '    default-text: w[Dear Fr Lai,],\n'
+      + '    greeting-form: w(letter-salutation("Hey, bro")[Fr Lai]),\n'
+      + '    greeting-text: w[Hey, bro Fr Lai,],\n'
+      + '  )) <ts-salutation>]\n'
+      + '}\n');
+    const widths = JSON.parse(execFileSync(
+      'typst',
+      ['query', '--font-path', resolve('fonts'), probePath, '<ts-salutation>', '--field', 'value', '--one'],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    ).toString());
+    for (const [form, text, call] of [
+      ['default-form', 'default-text', 'letter-salutation[Fr Lai] as "Dear Fr Lai,"'],
+      ['greeting-form', 'greeting-text', 'letter-salutation("Hey, bro")[Fr Lai] as "Hey, bro Fr Lai,"'],
+    ]) {
+      if (Math.abs(widths[form] - widths[text]) > 0.01) {
+        fail.push(`typeset.typ: ${call} — expected ${widths[text].toFixed(2)}pt wide, set ${widths[form].toFixed(2)}pt`);
+      }
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+    fail.push(`typeset.typ: the letter-salutation probe failed:\n${detail}`);
+  } finally {
+    rmSync(salutationProbeDir, { recursive: true, force: true });
+  }
+}
+
+/* ---- 33. letter-closing writes its default words and the comma itself --- */
+
+/* letter-closing() sets "Yours sincerely,"; given words, it sets them and the
+   comma. Held the way gate 32 holds the salutation: each form against the
+   width of its line written out in full. */
+{
+  const closingProbeDir = mkdtempSync(join(tmpdir(), 'typeset-closing-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(closingProbeDir, 'typeset.typ'));
+    const probePath = join(closingProbeDir, 'closing.typ');
+    writeFileSync(probePath, '#import "typeset.typ": *\n#show: letter-page\n'
+      + '#context {\n'
+      + '  let w(b) = measure(box(b)).width / 1pt\n'
+      + '  [#metadata((\n'
+      + '    default-form: w(letter-closing()),\n'
+      + '    default-text: w[Yours sincerely,],\n'
+      + '    words-form: w(letter-closing[Cowabunga]),\n'
+      + '    words-text: w[Cowabunga,],\n'
+      + '  )) <ts-closing>]\n'
+      + '}\n');
+    const widths = JSON.parse(execFileSync(
+      'typst',
+      ['query', '--font-path', resolve('fonts'), probePath, '<ts-closing>', '--field', 'value', '--one'],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    ).toString());
+    for (const [form, text, call] of [
+      ['default-form', 'default-text', 'letter-closing() as "Yours sincerely,"'],
+      ['words-form', 'words-text', 'letter-closing[Cowabunga] as "Cowabunga,"'],
+    ]) {
+      if (Math.abs(widths[form] - widths[text]) > 0.01) {
+        fail.push(`typeset.typ: ${call} — expected ${widths[text].toFixed(2)}pt wide, set ${widths[form].toFixed(2)}pt`);
+      }
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+    fail.push(`typeset.typ: the letter-closing probe failed:\n${detail}`);
+  } finally {
+    rmSync(closingProbeDir, { recursive: true, force: true });
+  }
+}
+
+/* ---- 34. The letter template's worked examples compile, and closing: none
+            leaves the closing out ------------------------------------------ */
+
+/* The /templates/ page publishes src/letter-docs/*.typ as copy-pasteable
+   letters, so each must compile as written beside typeset.typ and the
+   placeholder crest — the two files a reader of the bundle has. Then the one
+   default letter() carries: closing auto sets "Yours sincerely," and none sets
+   nothing. Measured as the distance from the end of the body to the
+   signature, which a closing between them lengthens by its own line and its
+   space above. */
+{
+  const docsDir = 'src/letter-docs';
+  const docsProbeDir = mkdtempSync(join(tmpdir(), 'typeset-letter-docs-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(docsProbeDir, 'typeset.typ'));
+    copyFileSync('implementations/crest-placeholder.svg', join(docsProbeDir, 'crest-placeholder.svg'));
+    const docs = existsSync(docsDir) ? readdirSync(docsDir).filter((f) => f.endsWith('.typ')) : [];
+    if (docs.length === 0) fail.push(`${docsDir}: no worked examples — /templates/ publishes them`);
+    for (const f of docs) {
+      copyFileSync(join(docsDir, f), join(docsProbeDir, f));
+      try {
+        execFileSync('typst', ['compile', '--font-path', resolve('fonts'), join(docsProbeDir, f),
+          join(docsProbeDir, `${f}.pdf`)], { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 });
+      } catch (err) {
+        fail.push(`${docsDir}/${f} does not compile beside typeset.typ:\n`
+          + (err.stderr ? err.stderr.toString() : String(err.message)).trim());
+      }
+    }
+    const gap = (closing) => {
+      const probePath = join(docsProbeDir, 'closing-gap.typ');
+      writeFileSync(probePath, '#import "typeset.typ": *\n'
+        + `#show: letter.with(${closing}signature: [#context [#metadata(here().position().y / 1pt) <sig>]S])\n\n`
+        + 'Body.#context [#metadata(here().position().y / 1pt) <end>]\n');
+      const at = (tag) => Number(JSON.parse(execFileSync('typst',
+        ['query', '--font-path', resolve('fonts'), probePath, `<${tag}>`, '--field', 'value', '--one'],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 }).toString()));
+      return at('sig') - at('end');
+    };
+    const withClosing = gap('');
+    const without = gap('closing: none, ');
+    if (!(withClosing - without > 12)) {
+      fail.push(`typeset.typ: letter() with closing: none leaves ${without.toFixed(1)}pt between the body `
+        + `and the signature, against ${withClosing.toFixed(1)}pt with the default — the default's closing `
+        + 'line is not being set, or none is not leaving it out');
+    }
+  } catch (err) {
+    fail.push(`typeset.typ: the letter-template probe failed:\n${(err.stderr ? err.stderr.toString() : String(err.message || err)).trim()}`);
+  } finally {
+    rmSync(docsProbeDir, { recursive: true, force: true });
+  }
+}
+
+/* ---- 35. /templates/ documents every letter() parameter and every letter
+            function ------------------------------------------------------ */
+
+/* The page's two tables are hand-written prose, and a parameter or function
+   added to typeset.typ would otherwise go undocumented with nothing to say so.
+   Read both sets off the source and hold the tables to them, both ways. */
+{
+  const typSrc = readFileSync('implementations/typeset.typ', 'utf8');
+  const page = readFileSync('templates/index.html', 'utf8');
+  const sig = /#let letter\(([\s\S]*?)\n\) =/.exec(typSrc)?.[1] ?? '';
+  const params = new Set([...sig.matchAll(/^\s*([a-z][\w-]*):/gm)].map((m) => m[1]));
+  const fns = new Set([...typSrc.matchAll(/^#let (letter-[\w-]+)\(/gm)].map((m) => m[1]).concat('svg-recolor'));
+  const documented = (attr) => new Set([...page.matchAll(new RegExp(`data-${attr}="([^"]+)"`, 'g'))].map((m) => m[1]));
+  for (const [what, source, attr] of [['letter() parameter', params, 'param'], ['letter function', fns, 'fn']]) {
+    const docs = documented(attr);
+    if (source.size === 0) fail.push(`tools/check.mjs: gate 35 read no ${what}s from typeset.typ — update its pattern`);
+    for (const name of source) {
+      if (!docs.has(name)) fail.push(`templates/index.html: the ${what} "${name}" is not documented — add a row to letterTemplateCard() in tools/build-site.mjs`);
+    }
+    for (const name of docs) {
+      if (!source.has(name)) fail.push(`templates/index.html documents a ${what} "${name}" that typeset.typ does not define`);
     }
   }
 }

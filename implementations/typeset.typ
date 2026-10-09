@@ -1141,54 +1141,84 @@
 // ── Letter ──────────────────────────────────────────────────────────────────
 
 // @s letter
-// A letter's page is the symmetric default (margin-standard) with one edge
-// deepened: letterhead-band, added to the top alone, is the room an envelope
-// window expects above the sender block. The bottom and sides carry no
-// comparable reason — spec.json's letter-page.notes says why — so they stay
-// margin-standard's own rather than a bespoke number of their own. A letter
+// A letter's page: the standard margin plus letter-inset on every edge, the
+// text justified at 12pt across the full width that leaves. The letterhead
+// reaches back out by letter-inset (letter-addresses, letter-crest), so it
+// stands at the standard margin and the text is framed inside it. A letter
 // opens with this in place of `#show: typeset` — the two cannot be stacked,
 // because typeset() sets the page and a page configuration underneath it
 // sits inside a container, where Typst refuses one.
-#let letterhead-band = 12mm
+#let letter-inset = 15mm
 #let letter-margin = (
-  top: margin-standard.top + letterhead-band,
-  bottom: margin-standard.bottom,
-  left: margin-standard.left,
-  right: margin-standard.right,
+  top: margin-standard.top + letter-inset,
+  bottom: margin-standard.bottom + letter-inset,
+  left: margin-standard.left + letter-inset,
+  right: margin-standard.right + letter-inset,
+)
+#let scale-letter = (..scale-single-column, base: 12pt)
+
+// A quotation inside a letter: indented on both sides, italic and muted, with
+// no rule. letter-page makes it the letter's block quote.
+#let letter-quote(attribution: none, body) = block(
+  above: 1.5em,
+  below: 1.5em,
+  inset: (left: 2em, right: 2em),
+  {
+    set text(style: "italic", fill: ink-muted, size: 1.05em)
+    body
+    if attribution != none {
+      block(above: 0.5em, text(style: "normal", size: 0.86em)[— #attribution])
+    }
+  },
 )
 
 #let letter-page(
   paper: "a4",
   margin: letter-margin,
+  scale: scale-letter,
+  justified: true,
+  measure: measure-full,
   doc,
 ) = {
   show: typeset.with(
     paper: paper,
     margin: margin,
+    scale: scale,
+    justified: justified,
+    measure: measure,
     running-head: false,
     folio: false,
   )
+  show native-quote.where(block: true): it => letter-quote(attribution: it.attribution, it.body)
   doc
 }
 // @e
 
-// The sender block is address data, not a masthead: one style throughout, at
-// body size, in the reading face. Nothing bold, nothing in the sans.
+// Splits line-broken content at its first `\`: the name line, then the rest.
+// Content with no line break is all name.
+#let _first-line(body) = {
+  let kids = if body.has("children") { body.children } else { (body,) }
+  let i = kids.position(k => k.func() == linebreak)
+  if i == none { (body, none) } else { (kids.slice(0, i).join(), kids.slice(i + 1).join()) }
+}
+
+// Address data, in the reading face: the name line in small caps at body size,
+// the lines below it a step smaller. A hierarchy of data, not decoration —
+// nothing bold, nothing in the sans, nothing larger than the text.
+#let _address-lines(body) = {
+  let (name, rest) = _first-line(body)
+  text(..smcp, name)
+  if rest != none {
+    linebreak()
+    text(size: 0.85em, rest)
+  }
+}
+
 #let letter-sender(body) = context {
   let u = text.size
   block(below: u * 2.5, {
     set par(justify: false, leading: leading-for(1.35), first-line-indent: 0pt)
-    body
-  })
-}
-
-// A line under the date — a dedication, a feast, a devotion. It belongs to the
-// date, so it takes no gap of its own.
-#let letter-date-note(body) = context {
-  let u = text.size
-  block(above: 0.1em, below: u * 1.5, {
-    set par(justify: false, first-line-indent: 0pt)
-    text(style: "italic", body)
+    _address-lines(body)
   })
 }
 
@@ -1197,8 +1227,92 @@
   if label != none {
     block(below: 0.25em, text(font: sans, size: xs, tracking: 0.1em, fill: ink-faint, upper(label)))
   }
-  body
+  _address-lines(body)
 })
+
+// The letterhead sits margin-standard from the paper's edge, or at the text's
+// own edge where that is nearer the paper. Read from where the text actually
+// starts, so a wide margin and a centred measure both count.
+
+// The sender's and the recipient's address, by role rather than by label.
+#let letter-address-from(body) = letter-address-block(label: [From], body)
+#let letter-address-to(body) = letter-address-block(label: [To], body)
+
+// The column of sender and recipient blocks.
+#let letter-addresses(body) = context {
+  let reach = calc.max(0pt, here().position().x - margin-standard.left)
+  block(inset: (left: -reach), body)
+}
+
+// A crest or monogram, top right of the first page. `body` is the image
+// itself; recolour an SVG with svg-recolor first.
+// Placed twice so it takes no room in the flow: the outer place spans the text
+// box, which is what layout measures, and the inner one sets the crest.
+#let letter-crest(width: 20mm, body) = place(top + left, layout(size => context {
+  let text-right = here().position().x + size.width
+  let reach = calc.max(0pt, page.width - margin-standard.right - text-right)
+  block(width: size.width, place(top + right, dx: reach, block(width: width, body)))
+}))
+
+// The date, and beneath it the saint of the day, closed with ", ora pro
+// nobis" — one paragraph, so the saint is the date's next line rather than a
+// block of its own. Only the date is required; without a saint there is no
+// second line.
+#let _date-note-text(body) = text(size: 0.9em, fill: ink-muted, style: "italic", body)
+
+#let letter-date(date, saint: none) = block(above: 3em, below: 2em, {
+  set par(justify: false, first-line-indent: 0pt)
+  date
+  if saint not in (none, "", []) {
+    linebreak()
+    _date-note-text[#saint, ora pro nobis]
+  }
+})
+
+// The note alone, after a date set as its own paragraph: one line's leading
+// below it, as though it were the date's next line.
+#let letter-date-note(body) = context {
+  let u = text.size
+  block(above: leading-for(1.45), below: 2em, {
+    set par(justify: false, first-line-indent: 0pt)
+    _date-note-text(body)
+  })
+}
+
+// The person's name, after a greeting — "Dear" unless another is given —
+// and closed with a comma:
+//   #letter-salutation[Fr Lai]                  Dear Fr Lai,
+//   #letter-salutation("Hey, bro")[Fr Lai]      Hey, bro Fr Lai,
+#let letter-salutation(..args) = {
+  let pos = args.pos()
+  assert(
+    pos.len() in (1, 2) and args.named().len() == 0,
+    message: "letter-salutation takes the name, optionally after a greeting: "
+      + "letter-salutation[Fr Lai] or letter-salutation(\"Hey\")[Fr Lai]",
+  )
+  let (greeting, name) = if pos.len() == 2 { pos } else { ("Dear", pos.first()) }
+  block(above: 2em, below: 2em, {
+    set par(justify: false, first-line-indent: 0pt)
+    [#greeting #name,]
+  })
+}
+
+// The closing words — "Yours sincerely" unless others are given — and a comma:
+//   #letter-closing()               Yours sincerely,
+//   #letter-closing[Cowabunga]      Cowabunga,
+#let letter-closing(..args) = {
+  let pos = args.pos()
+  assert(
+    pos.len() <= 1 and args.named().len() == 0,
+    message: "letter-closing takes the closing words, or none for Yours sincerely: "
+      + "letter-closing() or letter-closing[With love]",
+  )
+  let words = if pos.len() == 1 { pos.first() } else [Yours sincerely]
+  block(above: 3em, below: 2em, {
+    set par(justify: false, first-line-indent: 0pt)
+    [#words,]
+  })
+}
 
 // The typed name, with room above it to sign. No rule: a ruled line is a form
 // to be filled in, and this is a letter.
@@ -1221,14 +1335,84 @@
 }
 
 // A postscript is a sentence that happens to begin with "P.S." — the label is
-// not a heading, so it matches the text it introduces exactly.
+// not a heading, so it matches the text it introduces exactly. It stands off
+// the signature by the same 3em the signature stands off the closing.
 #let letter-postscript(body) = context {
   let u = text.size
-  block(above: u, {
+  block(above: u * 3, {
     set par(justify: false, first-line-indent: 0pt)
     [P.S. ]
     body
   })
+}
+
+// ── The letter template ─────────────────────────────────────────────────────
+
+// A whole letter from its parts, in the order a letter takes them: crest,
+// addresses, date and saint, salutation, the body, closing, signature,
+// enclosures and postscript. Each part is optional except the body, and a
+// part left out is not set at all. The closing is the one part with a
+// default: `auto` sets "Yours sincerely,", `none` sets no closing, and words
+// set those words and a comma. Leave every part out and write them in the
+// body instead to use letter() for its page and its phrase rules alone.
+//
+//   #show: letter.with(
+//     sender: ("Adilson Carvalho", "10 Wentworth Avenue", "Australia"),
+//     addressee: ("The Registrar", "88 Rundle Street", "Adelaide SA 5000"),
+//     date: "27 August 2026",
+//     salutation: "Registrar",
+//   )
+//
+// Addresses take an array of lines or line-broken content. `accent` and
+// `smallcaps` take phrases to restyle wherever they occur in the body, so a
+// letter written in Markdown can mark a phrase without markup of its own.
+#let _letter-accent-ink = accent
+#let _lines(value) = if type(value) == array { value.join(linebreak()) } else { value }
+
+#let letter(
+  paper: "a4",
+  margin: letter-margin,
+  crest: none,
+  sender: none,
+  addressee: none,
+  date: none,
+  saint: none,
+  greeting: "Dear",
+  salutation: none,
+  closing: auto,
+  signature: none,
+  enclosures: none,
+  postscript: none,
+  accent: (),
+  smallcaps: (),
+  doc,
+) = {
+  show: letter-page.with(paper: paper, margin: margin)
+  show: body => accent.fold(body, (b, phrase) => {
+    show phrase: text.with(fill: _letter-accent-ink)
+    b
+  })
+  show: body => smallcaps.fold(body, (b, phrase) => {
+    show phrase: it => text(..smcp, lower(it))
+    b
+  })
+
+  if crest != none { letter-crest(crest) }
+  if sender != none or addressee != none {
+    letter-addresses({
+      if sender != none { letter-address-from(_lines(sender)) }
+      if addressee != none { letter-address-to(_lines(addressee)) }
+    })
+  }
+  if date != none { letter-date(date, saint: saint) }
+  if salutation != none { letter-salutation(greeting, salutation) }
+
+  doc
+
+  if closing == auto { letter-closing() } else if closing != none { letter-closing(closing) }
+  if signature != none { letter-signature(signature) }
+  if enclosures != none { letter-enclosures(enclosures) }
+  if postscript != none { letter-postscript(postscript) }
 }
 
 // ── Apparatus ───────────────────────────────────────────────────────────────
@@ -1289,3 +1473,11 @@
 #let utility-keep-together(body) = block(breakable: false, body)
 #let utility-tie(body) = box(body)
 // @e
+
+// An SVG with one colour swapped for another — a crest drawn in a single ink,
+// set in the letter's accent. `data` is the file's text: pass read("…") from
+// the document, so the path resolves against the document, not this file.
+#let svg-recolor(data, from: "#231f20", to: accent, ..args) = image(
+  bytes(data.replace(from, to.to-hex())),
+  ..args.named(),
+)

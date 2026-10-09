@@ -1,6 +1,6 @@
 # typeset — typographic specification
 
-Version 2.0.0 · updated 2026-09-13 · Adilson Carvalho
+Version 2.1.0 · updated 2026-10-09 · Adilson Carvalho
 Canonical: https://typeset.adilsoncarvalho.com
 
 A normative typographic specification for printed documents — essays, letters, reports. This file is the source of truth. CSS, Typst, LaTeX or any other implementation conforms to it; where an implementation and this file disagree, this file is right.
@@ -1546,9 +1546,10 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 
 `letter`
 
-- A letter is set ragged right. It is addressed to a person, and justification reads as institutional.
-- The sender block is address data, not a masthead: one style throughout, at body size, in the reading face. Nothing bold, nothing in the sans. A personal letter does not announce itself.
+- A letter is set justified, at 12pt, across the full width its margins leave. It is read once, closely, by one person, and an even page with a quiet edge serves that reading.
+- Sender and address blocks are address data, not a masthead. The name line is set in small caps at body size, and the lines below it a step smaller, so the eye finds who before where. Nothing bold, nothing in the sans, nothing larger than the text: a personal letter does not announce itself.
 - Address blocks are line-broken data, not prose: tighter leading, never justified, line breaks as authored.
+- The letterhead — the addresses and any crest — sits the standard margin from the paper's edge, or at the text's own edge where that is nearer the paper. Where the text sits further in, under a wider margin or a centred measure, the letterhead stays out at the standard margin rather than moving in with it.
 - The signature is the typed name with room above it to sign. No ruled line — a rule is a form to be filled in.
 - A letter carries no running head and no folio.
 - Footnotes belong in a letter as much as in an essay. Where the engine cannot set them at the page foot, the rule plus the numbered note at the end of a one-page letter reads as a footnote area regardless.
@@ -1557,13 +1558,19 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 
 | Property | Value |
 | --- | --- |
-| margin top mm | `32` |
-| margin bottom mm | `20` |
-| margin sides mm | `20` |
+| margin top mm | `35` |
+| margin bottom mm | `35` |
+| margin sides mm | `35` |
+| base size | `12pt` |
+| measure | full — the width the margins leave, about 66 characters on A4 |
+| justification | `justified` |
 | running head | `none` |
 | folio | `none` |
+| block quote | `letter-quote` |
 
-> The deeper top margin puts the letterhead where an envelope window expects it — the symmetric default plus derivation.letterhead_band_mm. The bottom and sides carry no comparable reason: this section's own principles say nothing about margins at all, so they are the symmetric default, undecorated, rather than a bespoke number wearing a name.
+> The text sits letter_inset_mm inside the standard margin on every edge. The letterhead — letter-addresses and letter-crest — reaches back out by the same amount, so the addresses and the crest stand at the standard margin and the text is framed inside them.
+
+> At 12pt, the full width inside 35mm margins on A4 carries about 66 characters: the standard measure, reached by the margin rather than by a cap.
 
 ##### Sender block
 
@@ -1571,14 +1578,16 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | --- | --- |
 | font | `serif` |
 | weight | `400` |
-| size | `11pt` |
+| size | `12pt` |
 | line height | `1.35` |
 | color | `ink` |
 | align | `left` |
 | line breaks | as authored — name, street, suburb and postcode, country |
-| space after | `27.5pt` |
+| space after | `30pt` |
+| name line | small caps (smcp and c2sc), at body size |
+| detail size | `10.2pt — 0.85 of body` |
 
-> Every line is the same style, including the name. Setting the name larger or bolder turns a letter into stationery.
+> The name is the one line in small caps, at body size; street, suburb and country sit a step smaller beneath it. Never larger and never bold — that turns a letter into stationery.
 
 > Omit what you do not use. A personal letter needs no email address and no telephone number.
 
@@ -1587,12 +1596,34 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | Property | Value |
 | --- | --- |
 | font | `serif` |
-| size | `11pt` |
+| size | `12pt` |
 | line height | `1.35` |
 | style | `normal` |
 | align | `left` |
 | line breaks | `as authored` |
 | space after | `16.5pt` |
+| name line | small caps (smcp and c2sc), at body size |
+| detail size | `10.2pt — 0.85 of body` |
+
+##### Address column
+
+| Property | Value |
+| --- | --- |
+| left edge | foundation.page.margins.symmetric_mm.standard from the paper's left edge, or the text's own left edge where that is nearer the paper |
+| reach | how far the text's left edge sits beyond symmetric_mm.standard — from a wider margin, a centred measure or both — or none |
+
+> Holds the sender and address blocks. The reach is measured from where the text actually starts, so it follows the page margin and the measure together.
+
+##### Crest
+
+| Property | Value |
+| --- | --- |
+| position | top right of the first page, its top on the top margin |
+| right edge | symmetric_mm.standard from the paper's right edge, or the text's own right edge where that is nearer the paper |
+| width | `20mm` |
+| color | accent, where the mark is drawn in a single ink |
+
+> Optional. A letter with no crest leaves the corner empty; nothing moves into it.
 
 ##### Date line
 
@@ -1600,7 +1631,12 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | --- | --- |
 | numerals | `oldstyle` |
 | align | `left` |
-| space after | `16.5pt` |
+| space before | `36pt` |
+| space after | `24pt` |
+
+> The date and the line under it are one block. The space after belongs to the pair, not to the date alone.
+
+> Only the date is required. The line under it, where there is one, is the saint of the day, closed with “ora pro nobis”; with no saint the date stands alone.
 
 ##### Line under the date
 
@@ -1608,11 +1644,11 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | --- | --- |
 | font | `serif` |
 | style | `italic` |
-| size | `11pt` |
-| color | `ink` |
+| size | `10.8pt — 0.9 of body` |
+| color | `ink_muted` |
 | align | `left` |
-| space before | 0.1em — it belongs to the date, and takes no gap of its own |
-| space after | `16.5pt` |
+| space before | none — the date's own next line, at body leading |
+| space after | `24pt, the date's` |
 
 > A dedication, a feast, a devotion — whatever the writer puts under the date. Italic, at body size, immediately beneath.
 
@@ -1621,23 +1657,44 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | Property | Value |
 | --- | --- |
 | align | `left` |
-| space after | `11pt` |
+| space before | `24pt` |
+| space after | `24pt` |
+| form | greeting, name, comma — “Dear” unless the writer gives another greeting |
+
+##### Quotation — in a letter
+
+| Property | Value |
+| --- | --- |
+| font | `serif` |
+| style | `italic` |
+| weight | `400` |
+| size | `12.6pt — 1.05 of body` |
+| color | `ink_muted` |
+| indent left | `24pt` |
+| indent right | `24pt` |
+| rule | `none` |
+| space before | `18pt` |
+| space after | `18pt` |
+
+> A letter quotes a prayer, a line, a remembered phrase. It is set apart by indent and colour, not by a rule: a rule is the essay's quotation, and a letter is not an essay.
 
 ##### Closing
 
 | Property | Value |
 | --- | --- |
 | align | `left` |
-| space before | `16.5pt` |
+| space before | `36pt` |
+| space after | `24pt` |
+| form | closing words and a comma — “Yours sincerely” unless the writer gives others |
 
 ##### Signature block
 
 | Property | Value |
 | --- | --- |
 | font | `serif` |
-| size | `11pt` |
+| size | `12pt` |
 | align | `left` |
-| space before | `33pt — the room to sign` |
+| space before | `36pt — the room to sign` |
 | rule | `none` |
 | break inside | `avoid` |
 | signature image max height | `16mm` |
@@ -1649,9 +1706,9 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | Property | Value |
 | --- | --- |
 | font | `serif` |
-| size | `11pt` |
+| size | `12pt` |
 | align | `left` |
-| space before | `22pt` |
+| space before | `24pt` |
 | label | same style as the text it introduces — no small caps, no weight change |
 
 > Same reasoning as the postscript: "Enc." introduces a sentence, it does not head a section.
@@ -1661,9 +1718,9 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | Property | Value |
 | --- | --- |
 | font | `serif` |
-| size | `11pt` |
+| size | `12pt` |
 | align | `left` |
-| space before | `11pt` |
+| space before | 36pt — the signature's own distance from the closing |
 | label | same style as the text it introduces — no small caps, no weight change |
 
 > A postscript is a sentence that happens to begin with "P.S.". The label is not a heading.

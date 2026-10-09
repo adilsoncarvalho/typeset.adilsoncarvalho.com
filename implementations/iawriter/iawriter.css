@@ -105,7 +105,7 @@
 
 /* --- 2. The page ----------------------------------------------------------
    Nothing here. The page belongs to the template's own page.css — the letter is
-   A4 at 20mm on all four sides.
+   A4 at 35mm on all four sides.
 
    What is worth recording once, rather than twice, is why `@page` is the only
    mechanism available. iA Writer renders the header and the footer as separate

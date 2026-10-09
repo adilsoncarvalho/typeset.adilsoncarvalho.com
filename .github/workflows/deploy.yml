@@ -175,6 +175,6 @@ jobs:
             --notes "Implementations of typeset spec $VERSION, each carrying every font file.
 
           - \`typeset-typst-${VERSION}.zip\` — Typst. Compile with \`typst compile --font-path fonts implementations/example-essay.typ out.pdf\`.
-          - \`typeset-letter-${VERSION}.iatemplate.zip\` — iA Writer, letter. Ragged right at the 11pt base.
+          - \`typeset-letter-${VERSION}.iatemplate.zip\` — iA Writer, letter. Justified at the 12pt base, 35mm margins.
           - \`typeset-css-${VERSION}.zip\` — CSS. The stylesheet and the three families it binds; what a template consumes." \
           || gh release upload "$GITHUB_REF_NAME" "${assets[@]}" --clobber
