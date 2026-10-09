@@ -1969,6 +1969,9 @@ const INTERNAL_SYMBOLS = new Set([
      scale at letter-page's 12pt base. Not styles themselves; letter-page is
      (it names the spec element id directly). */
   'letter-inset', 'letter-margin', 'scale-letter',
+  /* quote()'s implementation, behind the public quote() that also accepts
+     Pandoc's block: true. Not a style itself; quote is. */
+  '_quote',
   /* the name line / detail lines split and style shared by letter-sender and
      letter-address-block, and the note's style shared by letter-date and
      letter-date-note. Not styles themselves. */
@@ -5366,6 +5369,38 @@ if (!symmetryPaperTypKey || !Number.isFinite(crestWidthMm) || !Number.isFinite(s
     for (const name of docs) {
       if (!source.has(name)) fail.push(`templates/index.html documents a ${what} "${name}" that typeset.typ does not define`);
     }
+  }
+}
+
+/* ---- 36. quote() takes what Pandoc writes for a block quotation -------- */
+
+/* Pandoc's Typst writer emits #quote(block: true)[…] for every `>` quotation,
+   and typeset.typ's quote() shadows the element, so it must accept that call;
+   block: false has no inline form in the spec and must refuse rather than set
+   a block quote anyway. */
+{
+  const quoteProbeDir2 = mkdtempSync(join(tmpdir(), 'typeset-quote-block-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(quoteProbeDir2, 'typeset.typ'));
+    const run = (name, call) => {
+      const path = join(quoteProbeDir2, `${name}.typ`);
+      writeFileSync(path, `#import "typeset.typ": *\n#show: typeset\n\n${call}\n`);
+      execFileSync('typst', ['compile', '--font-path', resolve('fonts'), path, join(quoteProbeDir2, `${name}.pdf`)],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 });
+    };
+    try {
+      run('pandoc', '#quote(block: true)[\nA quotation as Pandoc writes it.\n]');
+    } catch (err) {
+      fail.push('typeset.typ: #quote(block: true)[…], which Pandoc writes for every block quotation, '
+        + `does not compile:\n${(err.stderr ? err.stderr.toString() : String(err.message)).trim()}`);
+    }
+    let refused = false;
+    try { run('inline', '#quote(block: false)[An inline quotation.]'); } catch { refused = true; }
+    if (!refused) {
+      fail.push('typeset.typ: #quote(block: false) compiled — the spec has no inline quotation, so it must refuse');
+    }
+  } finally {
+    rmSync(quoteProbeDir2, { recursive: true, force: true });
   }
 }
 
