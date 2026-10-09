@@ -47,8 +47,8 @@ jobs:
       # changed. Built for x86_64 Linux, matching this runner.
       - name: Install typst
         env:
-          TYPST_VERSION: '0.14.0'
-          TYPST_SHA256: '99816d2982de08d2b091bac56b59b2faa523a10e1378ad3cdd68e35b8eb74b3d'
+          TYPST_VERSION: '0.15.1'
+          TYPST_SHA256: 'a6d077d0a95eed5a2eba715b2dae06be954f624ccbf85758a03f389ded33118c'
         run: |
           asset="typst-x86_64-unknown-linux-musl"
           curl -fsSL --retry 3 --retry-all-errors \
