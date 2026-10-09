@@ -5404,6 +5404,49 @@ if (!symmetryPaperTypKey || !Number.isFinite(crestWidthMm) || !Number.isFinite(s
   }
 }
 
+/* ---- 37. letter()'s phrase lists restyle the body and nothing else ------ */
+
+/* accent and smallcaps restyle phrases in the body, so a phrase that appears
+   in a part letter() sets from its own parameters — an address, the saint,
+   the salutation, the postscript — keeps the writer's own setting. Rendered
+   as SVG and compared whole: with the phrase only in those parts, the page
+   with the lists must equal the page without them; with the phrase in the
+   body as well, the two must differ, or the first comparison proves nothing. */
+{
+  const phraseProbeDir = mkdtempSync(join(tmpdir(), 'typeset-phrase-scope-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(phraseProbeDir, 'typeset.typ'));
+    const render = (name, lists, bodyText) => {
+      const path = join(phraseProbeDir, `${name}.typ`);
+      writeFileSync(path, '#import "typeset.typ": *\n'
+        + '#show: letter.with(\n'
+        + '  addressee: ("Fr Quill", "Quill Street"),\n'
+        + '  date: "1 May 2026", saint: "St Quill",\n'
+        + '  salutation: "Quill", postscript: [Quill again.],\n'
+        + `  ${lists}\n)\n\n${bodyText}\n`);
+      const out = join(phraseProbeDir, `${name}.svg`);
+      execFileSync('typst', ['compile', '--font-path', resolve('fonts'), '--format', 'svg', path, out],
+        { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 });
+      return readFileSync(out, 'utf8');
+    };
+    const lists = 'accent: ("Quill",), smallcaps: ("Quill",),';
+    const partsOnly = [render('parts-with', lists, 'A body without the phrase.'), render('parts-without', '', 'A body without the phrase.')];
+    if (partsOnly[0] !== partsOnly[1]) {
+      fail.push('typeset.typ: letter()\'s accent/smallcaps restyle a phrase outside the body — in an address, '
+        + 'the saint, the salutation or the postscript — which keep the writer\'s own setting');
+    }
+    const withBody = [render('body-with', lists, 'A body with Quill in it.'), render('body-without', '', 'A body with Quill in it.')];
+    if (withBody[0] === withBody[1]) {
+      fail.push('typeset.typ: letter()\'s accent/smallcaps do not restyle a phrase in the body, so gate 37\'s '
+        + 'other comparison proves nothing');
+    }
+  } catch (err) {
+    fail.push(`typeset.typ: the phrase-scope probe failed:\n${(err.stderr ? err.stderr.toString() : String(err.message || err)).trim()}`);
+  } finally {
+    rmSync(phraseProbeDir, { recursive: true, force: true });
+  }
+}
+
 /* ---- Report ------------------------------------------------------------- */
 
 const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);

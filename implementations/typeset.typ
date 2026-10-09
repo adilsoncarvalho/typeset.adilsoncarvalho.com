@@ -1403,11 +1403,14 @@
   doc,
 ) = {
   show: letter-page.with(paper: paper, margin: margin)
-  show: body => accent.fold(body, (b, phrase) => {
+
+  // The phrase rules reach the body alone. The parts set from parameters —
+  // addresses, saint, salutation, postscript — keep the writer's own words.
+  let body = accent.fold(doc, (b, phrase) => {
     show phrase: text.with(fill: _letter-accent-ink)
     b
   })
-  show: body => smallcaps.fold(body, (b, phrase) => {
+  body = smallcaps.fold(body, (b, phrase) => {
     show phrase: it => text(..smcp, lower(it))
     b
   })
@@ -1422,7 +1425,7 @@
   if date != none { letter-date(date, saint: saint) }
   if salutation != none { letter-salutation(greeting, salutation) }
 
-  doc
+  body
 
   if closing == auto { letter-closing() } else if closing != none { letter-closing(closing) }
   if signature != none { letter-signature(signature) }
