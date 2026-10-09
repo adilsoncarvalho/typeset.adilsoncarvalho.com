@@ -1384,6 +1384,23 @@
 #let _letter-accent-ink = accent
 #let _lines(value) = if type(value) == array { value.join(linebreak()) } else { value }
 
+// Restyles phrases in `body` alone: each `accent` phrase in the accent colour,
+// each `smallcaps` phrase in small caps. Exact and case-sensitive, and a
+// phrase matches inside a longer word as well. letter() applies it to the
+// body; a letter written part by part wraps its own paragraphs in it, so a
+// phrase in the date, an address or the postscript keeps its own setting.
+//   #letter-phrases(accent: ("good and faithful servant",))[…paragraphs…]
+#let letter-phrases(accent: (), smallcaps: (), body) = {
+  let styled = accent.fold(body, (b, phrase) => {
+    show phrase: text.with(fill: _letter-accent-ink)
+    b
+  })
+  smallcaps.fold(styled, (b, phrase) => {
+    show phrase: it => text(..smcp, lower(it))
+    b
+  })
+}
+
 #let letter(
   paper: "a4",
   margin: letter-margin,
@@ -1406,14 +1423,7 @@
 
   // The phrase rules reach the body alone. The parts set from parameters —
   // addresses, saint, salutation, postscript — keep the writer's own words.
-  let body = accent.fold(doc, (b, phrase) => {
-    show phrase: text.with(fill: _letter-accent-ink)
-    b
-  })
-  body = smallcaps.fold(body, (b, phrase) => {
-    show phrase: it => text(..smcp, lower(it))
-    b
-  })
+  let body = letter-phrases(accent: accent, smallcaps: smallcaps, doc)
 
   if crest != none { letter-crest(crest) }
   if sender != none or addressee != none {
