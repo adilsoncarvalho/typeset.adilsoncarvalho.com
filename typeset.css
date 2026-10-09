@@ -55,8 +55,25 @@
    (measure: none in two columns, or any block already at 100%), so it needs
    no opt-out for those; `.typeset--sidenotes` is the one case that DOES
    carry a surplus and still wants it flush, and it resets this back below. */
+/* Every block rule below sets its vertical margins alone (margin-block), so
+   this rule owns the horizontal ones and the measure stays centred. The two
+   blocks whose browser default carries a side margin when nested — blockquote
+   and figure — zero it in their own rules and are re-centred as direct
+   children further down.
+
+   The measure is counted in the body's ems, as Typst counts it. An em in
+   --ts-measure would otherwise resolve against each block's own size — 33em of
+   an 18pt heading is wider than the page — so it is computed once, on
+   .typeset, into a registered length that every child inherits as is. */
+@property --ts-measure-computed {
+  syntax: "<length-percentage> | none";
+  inherits: true;
+  initial-value: none;
+}
+.typeset { --ts-measure-computed: var(--ts-measure); }
 .typeset > * {
-  max-width: var(--ts-measure);
+  box-sizing: border-box;   /* a block's own padding sits inside the measure, as Typst's inset does */
+  max-width: var(--ts-measure-computed);
   margin-inline: auto;
 }
 
@@ -146,7 +163,7 @@
   color: var(--ts-ink);
 
   /* A heading belongs to what follows it, not to what precedes it. */
-  margin: calc(var(--ts-space) * 2) 0 calc(var(--ts-space) * 0.5);
+  margin-block: calc(var(--ts-space) * 2) calc(var(--ts-space) * 0.5);
 
   /* Never strand a heading at the foot of a page. */
   break-after: avoid;
@@ -240,7 +257,7 @@
 }
 
 .typeset p {
-  margin: 0 0 var(--ts-para-gap);
+  margin-block: 0 var(--ts-para-gap);
   text-indent: var(--ts-para-indent);
   orphans: 2;   /* no single line left at the foot of a page */
   widows: 2;    /* no single line carried to the head of the next */
@@ -444,7 +461,8 @@
 /*! @s quote :: Block quotations */
 /* @style quote-blockquote */
 .typeset blockquote {
-  margin: calc(var(--ts-space) * 1.25) 0;
+  margin-block: calc(var(--ts-space) * 1.25);
+  margin-inline: 0;
   padding-left: calc(var(--ts-space) * 1.5);
   border-left: 1pt solid var(--ts-rule);
   color: var(--ts-ink);
@@ -452,6 +470,7 @@
   break-inside: avoid;
 }
 .typeset blockquote > :last-child { margin-bottom: 0; }
+.typeset > blockquote { margin-inline: auto; }
 
 /* Attribution: an em dash, and never inside the quote. */
 .typeset blockquote cite,
@@ -488,7 +507,7 @@
   border-top: 1.5pt solid var(--ts-rule-strong);
   border-bottom: 0.5pt solid var(--ts-rule);
   padding: var(--ts-space) 0;
-  margin: calc(var(--ts-space) * 1.5) 0;
+  margin-block: calc(var(--ts-space) * 1.5);
   font-family: var(--ts-sans);
   font-size: 15pt;
   font-weight: 300;
@@ -511,12 +530,12 @@
 /*! @s list :: Lists */
 .typeset ul,
 .typeset ol {
-  margin: 0 0 var(--ts-space);
+  margin-block: 0 var(--ts-space);
   padding-left: 1.4em;
 }
 .typeset li { margin-bottom: calc(var(--ts-space) * 0.25); }
 .typeset li > ul,
-.typeset li > ol { margin: calc(var(--ts-space) * 0.25) 0 0; }
+.typeset li > ol { margin-block: calc(var(--ts-space) * 0.25) 0; }
 .typeset li:last-child { margin-bottom: 0; }
 
 /* @style list-unordered */
@@ -559,7 +578,7 @@
 .typeset .ts-list-tight li { margin-bottom: 0; }
 
 /* Definition lists: the right shape for terms, glossaries, and letter fields. */
-.typeset dl { margin: 0 0 var(--ts-space); }
+.typeset dl { margin-block: 0 var(--ts-space); }
 /* @style list-definition-term */
 .typeset dt {
   text-align: left;
@@ -579,7 +598,7 @@
 .typeset table {
   width: 100%;
   border-collapse: collapse;
-  margin: calc(var(--ts-space) * 1.25) 0;
+  margin-block: calc(var(--ts-space) * 1.25);
   font-family: var(--ts-sans);
   font-size: var(--ts-sm);
   font-variant-numeric: lining-nums tabular-nums;
@@ -663,7 +682,7 @@
   background: var(--ts-wash);
   border-left: 2pt solid var(--ts-rule-strong);
   padding: 0.8em 1em;
-  margin: calc(var(--ts-space) * 1.25) 0;
+  margin-block: calc(var(--ts-space) * 1.25);
   overflow-x: auto;
 
   /* Paper cannot scroll. Wrap, and mark the wrap. */
@@ -686,9 +705,11 @@
 /*! @s figure :: Figures & captions */
 /* @style figure */
 .typeset figure {
-  margin: calc(var(--ts-space) * 1.5) 0;
+  margin-block: calc(var(--ts-space) * 1.5);
+  margin-inline: 0;
   break-inside: avoid;
 }
+.typeset > figure { margin-inline: auto; }
 .typeset figure img,
 .typeset figure svg {
   display: block;
@@ -791,7 +812,7 @@
 
 /*! @s callout :: Callouts */
 .typeset .ts-callout {
-  margin: calc(var(--ts-space) * 1.25) 0;
+  margin-block: calc(var(--ts-space) * 1.25);
   padding: 0.75em 1em;
   border: 0.5pt solid var(--ts-rule);
   border-left: 2.5pt solid var(--ts-rule-strong);
@@ -825,7 +846,7 @@
 .typeset .ts-break {
   border: 0;
   height: auto;
-  margin: calc(var(--ts-space) * 1.5) 0;
+  margin-block: calc(var(--ts-space) * 1.5);
   text-align: center;
   text-align-last: center;   /* a one-line block IS its own last line */
   color: var(--ts-ink-faint);
@@ -865,7 +886,7 @@
   font-weight: 300;
   line-height: 1.25;
   color: var(--ts-ink-muted);
-  margin: 0 0 var(--ts-space);
+  margin-block: 0 var(--ts-space);
   text-wrap: balance;
 }
 .typeset .ts-frontmatter-byline {
@@ -873,14 +894,14 @@
   font-variant-caps: all-small-caps;
   letter-spacing: 0.08em;
   font-size: var(--ts-base);
-  margin: 0;
+  margin-block: 0;
 }
 .typeset .ts-frontmatter-dateline {
   text-align: left;
   font-family: var(--ts-sans);
   font-size: var(--ts-sm);
   color: var(--ts-ink-muted);
-  margin: 0.2em 0 0;
+  margin-block: 0.2em 0;
 }
 
 .typeset .ts-frontmatter-abstract {
@@ -956,7 +977,7 @@
   line-height: var(--ts-leading-tight);
   letter-spacing: -0.01em;
   color: var(--ts-ink);
-  margin: calc(var(--ts-space) * 2) 0 calc(var(--ts-space) * 0.5);
+  margin-block: calc(var(--ts-space) * 2) calc(var(--ts-space) * 0.5);
   break-after: avoid;
   break-inside: avoid;
   text-wrap: balance;
@@ -1009,7 +1030,7 @@
   font-size: calc(var(--ts-base) * 0.85);
   line-height: 1.35;
   color: var(--ts-ink);
-  margin: 0 0 calc(var(--ts-base) * 2.5);
+  margin-block: 0 calc(var(--ts-base) * 2.5);
 }
 .typeset .ts-letter-sender p {
   margin: 0;
@@ -1057,7 +1078,7 @@
 .typeset--letter { --ts-page-margin: 35mm; }      /* letter-page: 20mm standard + 15mm inset */
 .typeset {
   --ts-letterhead-offset: min(
-    calc((100% - min(var(--ts-measure), 100%)) / 2),
+    calc((100% - min(var(--ts-measure-computed), 100%)) / 2),
     calc(20mm - var(--ts-page-margin))
   );
 }
@@ -1075,7 +1096,7 @@
 .typeset .ts-letter-crest svg { display: block; width: 100%; height: auto; }
 
 .typeset .ts-letter-date {
-  margin: calc(var(--ts-base) * 3) 0 calc(var(--ts-base) * 2);
+  margin-block: calc(var(--ts-base) * 3) calc(var(--ts-base) * 2);
   font-variant-numeric: oldstyle-nums;
   text-align: left;
 }
@@ -1089,13 +1110,13 @@
    CSS parser does not understand `:has()` any more than it understands `:is()`,
    and a selector it cannot parse aborts pagination outright. */
 .typeset .ts-letter-date-note {
-  margin: calc(var(--ts-base) * -2) 0 calc(var(--ts-base) * 2);
+  margin-block: calc(var(--ts-base) * -2) calc(var(--ts-base) * 2);
   font-size: calc(var(--ts-base) * 0.9);
   font-style: italic;
   color: var(--ts-ink-muted);
   text-indent: 0;
 }
-.typeset .ts-letter-salutation { margin: calc(var(--ts-base) * 2) 0; text-align: left; }
+.typeset .ts-letter-salutation { margin-block: calc(var(--ts-base) * 2); text-align: left; }
 
 /* A quotation in a letter is set apart by indent and colour, not by a rule. */
 .typeset--letter blockquote,
@@ -1109,7 +1130,7 @@
   color: var(--ts-ink-muted);
 }
 
-.typeset .ts-letter-closing { margin: calc(var(--ts-base) * 3) 0 calc(var(--ts-base) * 2); text-align: left; }
+.typeset .ts-letter-closing { margin-block: calc(var(--ts-base) * 3) calc(var(--ts-base) * 2); text-align: left; }
 
 /* The typed name, with room above it to sign. No rule: a ruled line is a form
    to be filled in, and this is a letter. */

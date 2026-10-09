@@ -4,7 +4,7 @@
 # the two together.
 [package]
 name = "typeset"
-version = "2.2.0"
+version = "2.2.1"
 entrypoint = "typeset.typ"
 authors = ["Adilson Carvalho"]
 description = "A typographic specification for printed documents: essays, letters, reports."
