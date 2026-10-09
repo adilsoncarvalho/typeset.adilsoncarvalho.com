@@ -642,8 +642,9 @@ ${rows.join('\n')}
 
   <h3>A complete letter</h3>
   ${example('complete')}
-  <p>This is <a href="files/example-letter.html">the example letter</a>, shortened; that page
-    shows it rendered.</p>
+  <p><a href="files/example-letter.html">The example letter</a> sets a longer version of this
+    letter part by part, with each part its own call, and gives this compact form in its opening
+    comment. That page shows it rendered.</p>
 
   <h3>The parts</h3>
   <p>Every parameter of <code>letter()</code>, with the value it takes when you leave it out.</p>

@@ -74,7 +74,7 @@
     Every part is optional, and a part you leave out is not set.</p>
   <p>It lives in <code>typeset.typ</code>, so the import line is the same one every other
     document uses: <code>#import "typeset.typ": *</code> beside a copy of the file, or
-    <code>#import "@local/typeset:2.1.0": *</code> with the
+    <code>#import "@local/typeset:2.1.1": *</code> with the
     <code>implementations/</code> folder linked as a local Typst package.</p>
 
   <h3>A complete letter</h3>
@@ -100,8 +100,9 @@ contents.
 #quote[Narrowing the column to sixty-six characters costs one afternoon and no money.]
 
 I would be glad to send the specification I use for my own documents.</pre></div>
-  <p>This is <a href="../files/example-letter.html">the example letter</a>, shortened; that page
-    shows it rendered.</p>
+  <p><a href="../files/example-letter.html">The example letter</a> sets a longer version of this
+    letter part by part, with each part its own call, and gives this compact form in its opening
+    comment. That page shows it rendered.</p>
 
   <h3>The parts</h3>
   <p>Every parameter of <code>letter()</code>, with the value it takes when you leave it out.</p>
