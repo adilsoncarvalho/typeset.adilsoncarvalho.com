@@ -5205,6 +5205,48 @@ if (!symmetryPaperTypKey || !Number.isFinite(crestWidthMm) || !Number.isFinite(s
   }
 }
 
+/* ---- 32. letter-salutation writes the greeting and the comma itself ----- */
+
+/* letter-salutation takes the name; the greeting defaults to "Dear" and the
+   comma is added. Each form is held to the width of the line it should set,
+   written out in full, so a lost default, a dropped comma or a greeting in the
+   wrong place all change the width. */
+{
+  const salutationProbeDir = mkdtempSync(join(tmpdir(), 'typeset-salutation-check-'));
+  try {
+    copyFileSync('implementations/typeset.typ', join(salutationProbeDir, 'typeset.typ'));
+    const probePath = join(salutationProbeDir, 'salutation.typ');
+    writeFileSync(probePath, '#import "typeset.typ": *\n#show: letter-page\n'
+      + '#context {\n'
+      + '  let w(b) = measure(box(b)).width / 1pt\n'
+      + '  [#metadata((\n'
+      + '    default-form: w(letter-salutation[Fr Lai]),\n'
+      + '    default-text: w[Dear Fr Lai,],\n'
+      + '    greeting-form: w(letter-salutation("Hey, bro")[Fr Lai]),\n'
+      + '    greeting-text: w[Hey, bro Fr Lai,],\n'
+      + '  )) <ts-salutation>]\n'
+      + '}\n');
+    const widths = JSON.parse(execFileSync(
+      'typst',
+      ['query', '--font-path', resolve('fonts'), probePath, '<ts-salutation>', '--field', 'value', '--one'],
+      { stdio: ['ignore', 'pipe', 'pipe'], timeout: 30_000 },
+    ).toString());
+    for (const [form, text, call] of [
+      ['default-form', 'default-text', 'letter-salutation[Fr Lai] as "Dear Fr Lai,"'],
+      ['greeting-form', 'greeting-text', 'letter-salutation("Hey, bro")[Fr Lai] as "Hey, bro Fr Lai,"'],
+    ]) {
+      if (Math.abs(widths[form] - widths[text]) > 0.01) {
+        fail.push(`typeset.typ: ${call} — expected ${widths[text].toFixed(2)}pt wide, set ${widths[form].toFixed(2)}pt`);
+      }
+    }
+  } catch (err) {
+    const detail = (err.stderr ? err.stderr.toString() : String(err.message || err)).trim();
+    fail.push(`typeset.typ: the letter-salutation probe failed:\n${detail}`);
+  } finally {
+    rmSync(salutationProbeDir, { recursive: true, force: true });
+  }
+}
+
 /* ---- Report ------------------------------------------------------------- */
 
 const elements = spec.sections.reduce((n, s) => n + s.elements.length, 0);

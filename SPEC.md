@@ -1659,6 +1659,7 @@ Where unsupported: in Typst: every property here except the hanging indent — a
 | align | `left` |
 | space before | `24pt` |
 | space after | `24pt` |
+| form | greeting, name, comma — “Dear” unless the writer gives another greeting |
 
 ##### Quotation — in a letter
 

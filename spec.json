@@ -1664,7 +1664,8 @@
           "properties": {
             "align": "left",
             "space_before": "24pt",
-            "space_after": "24pt"
+            "space_after": "24pt",
+            "form": "greeting, name, comma — “Dear” unless the writer gives another greeting"
           }
         },
         {

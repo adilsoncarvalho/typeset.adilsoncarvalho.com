@@ -1279,10 +1279,23 @@
   })
 }
 
-#let letter-salutation(body) = block(above: 2em, below: 2em, {
-  set par(justify: false, first-line-indent: 0pt)
-  body
-})
+// The person's name, after a greeting — "Dear" unless another is given —
+// and closed with a comma:
+//   #letter-salutation[Fr Lai]                  Dear Fr Lai,
+//   #letter-salutation("Hey, bro")[Fr Lai]      Hey, bro Fr Lai,
+#let letter-salutation(..args) = {
+  let pos = args.pos()
+  assert(
+    pos.len() in (1, 2) and args.named().len() == 0,
+    message: "letter-salutation takes the name, optionally after a greeting: "
+      + "letter-salutation[Fr Lai] or letter-salutation(\"Hey\")[Fr Lai]",
+  )
+  let (greeting, name) = if pos.len() == 2 { pos } else { ("Dear", pos.first()) }
+  block(above: 2em, below: 2em, {
+    set par(justify: false, first-line-indent: 0pt)
+    [#greeting #name,]
+  })
+}
 
 #let letter-closing(body) = block(above: 3em, below: 2em, {
   set par(justify: false, first-line-indent: 0pt)

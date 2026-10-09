@@ -35,7 +35,7 @@
 
 #letter-date([27 August 2026], saint: [St Monica, mother of St Augustine Bishop])
 
-#letter-salutation[Dear Registrar,]
+#letter-salutation[Registrar]
 
 I am writing about the setting of the Institute's annual report, which arrived
 this morning and which I read with more attention to its margins than to its
