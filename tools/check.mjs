@@ -461,13 +461,13 @@ if (typstAvailable()) {
    authoritative. */
 
 /* Per line of text, the leftmost run's x offset, read out of a compiled SVG.
-   Typst emits one <g class="typst-text"> per run, so a line that changes font
+   Typst emits one y-flipped <g transform="matrix(1 0 0 -1 x y)"> per run, so a line that changes font
    mid-way (an author in roman, a title in italic) is several runs sharing one
    y — hence the grouping. */
 function lineLeftEdges(svg) {
   const byLine = new Map();
   for (const m of svg.matchAll(
-    /<g class="typst-text" transform="matrix\(1 0 0 -1 ([-0-9.]+) ([-0-9.]+)\)"/g)) {
+    /<g(?: class="typst-text")? transform="matrix\(1 0 0 -1 ([-0-9.]+) ([-0-9.]+)\)"/g)) {
     const x = Number(m[1]);
     const y = Number(m[2]).toFixed(2);
     byLine.set(y, Math.min(byLine.get(y) ?? Infinity, x));
@@ -2326,6 +2326,25 @@ if (spanValues.length === 0) {
    marker at the page's own top or bottom line" a clean question, rather than
    "at the top of the page, or one float-height further down" — which is what
    the stacked-probe version of this gate would have to ask instead. */
+/* An SVG transform attribute as a matrix, or null. Typst writes two forms:
+   matrix(...) on a group, and translate(x y) on a shape that is only moved. */
+function svgTransform(t) {
+  const m = /matrix\(([^)]+)\)/.exec(t);
+  if (m) return m[1].trim().split(/[\s,]+/).map(Number);
+  const tr = /translate\(([^)]+)\)/.exec(t);
+  if (!tr) return null;
+  const [x, y = 0] = tr[1].trim().split(/[\s,]+/).map(Number);
+  return [1, 0, 0, 1, x, y];
+}
+
+/* A text run is a group whose own transform flips the y axis, which is how
+   Typst sets glyphs in SVG. Older releases also marked it class="typst-text". */
+function isSvgTextRun(attrs) {
+  if (attrs.class === 'typst-text') return true;
+  const m = attrs.transform && svgTransform(attrs.transform);
+  return Boolean(m) && m[0] === 1 && m[1] === 0 && m[2] === 0 && m[3] === -1;
+}
+
 function svgShapesByFill(svgText, fill) {
   /* A hand-rolled walk rather than an XML library: Typst's own SVG output is
      simple and regular (self-closing <path>, nested <g transform="matrix(...)">
@@ -2333,10 +2352,6 @@ function svgShapesByFill(svgText, fill) {
      tag-and-stack scanner is enough, and it keeps this file dependency-free. */
   const tagRe = /<([a-zA-Z][\w:-]*)((?:\s+[\w:-]+="[^"]*")*)\s*(\/?)>|<\/([a-zA-Z][\w:-]*)>/g;
   const attrRe = /([\w:-]+)="([^"]*)"/g;
-  const parseMatrix = (t) => {
-    const m = /matrix\(([^)]+)\)/.exec(t);
-    return m ? m[1].trim().split(/[\s,]+/).map(Number) : null;
-  };
   const multiply = (m1, m2) => {
     const [a1, b1, c1, d1, e1, f1] = m1;
     const [a2, b2, c2, d2, e2, f2] = m2;
@@ -2365,7 +2380,7 @@ function svgShapesByFill(svgText, fill) {
     }
     let matrix = stack[stack.length - 1];
     if (attrs.transform) {
-      const mm = parseMatrix(attrs.transform);
+      const mm = svgTransform(attrs.transform);
       if (mm) matrix = multiply(matrix, mm);
     }
     if (openTag === 'g') {
@@ -3755,17 +3770,13 @@ for (const key of HYPHENATION_TUNING_KEYS) {
 /* ---- 12b. Rendered proof: ambient alignment must not survive nesting ----- */
 
 /* Reuses gate 6's stack-based matrix walk (svgShapesByFill), but for the
-   paragraph text itself rather than a marker rect: every <g class="typst-text">
-   run, with its absolute origin and its glyphs' absolute x. Grouped by line
+   paragraph text itself rather than a marker rect: every text run
+   (isSvgTextRun), with its absolute origin and its glyphs' absolute x. Grouped by line
    (rounded y) because a hyphenated line renders as two runs — the word and
    its hyphen — sharing one y. */
 function svgTextRuns(svgText) {
   const tagRe = /<([a-zA-Z][\w:-]*)((?:\s+[\w:-]+="[^"]*")*)\s*(\/?)>|<\/([a-zA-Z][\w:-]*)>/g;
   const attrRe = /([\w:-]+)="([^"]*)"/g;
-  const parseMatrix = (t) => {
-    const m = /matrix\(([^)]+)\)/.exec(t);
-    return m ? m[1].trim().split(/[\s,]+/).map(Number) : null;
-  };
   const multiply = (m1, m2) => {
     const [a1, b1, c1, d1, e1, f1] = m1;
     const [a2, b2, c2, d2, e2, f2] = m2;
@@ -3801,13 +3812,13 @@ function svgTextRuns(svgText) {
     }
     let matrix = stack[stack.length - 1];
     if (attrs.transform) {
-      const mm = parseMatrix(attrs.transform);
+      const mm = svgTransform(attrs.transform);
       if (mm) matrix = multiply(matrix, mm);
     }
     if (openTag === 'g') {
       if (!selfClose) {
         stack.push(matrix);
-        if (openRun === null && attrs.class === 'typst-text') {
+        if (openRun === null && isSvgTextRun(attrs)) {
           openRun = { depth: stack.length - 1, matrix, glyphs: [] };
         }
       }
